@@ -24,7 +24,8 @@ func inviteCodes() idgen.Codes {
 }
 
 type proposalCollaborators struct {
-	founder   proposalservice.AgreementFounder
+	keeper    proposalservice.AgreementKeeper
+	current   proposalservice.CurrentAgreementReader
 	announcer proposalservice.Announcer
 }
 
@@ -32,7 +33,8 @@ func buildProposalComponents(
 	pool *database.Pool, clock proposalservice.Clock, collaborators proposalCollaborators,
 ) proposalComponents {
 	return proposalComponents{deps: proposalservice.ProposalDeps{
-		Founder:   collaborators.founder,
+		Keeper:    collaborators.keeper,
+		Current:   collaborators.current,
 		Announcer: collaborators.announcer,
 		Proposals: proposalrepository.NewProposals(pool),
 		Audit:     newAuditTrail(auditrepository.NewRecords(pool)),
@@ -61,6 +63,7 @@ func proposalDeps(components proposalComponents, routes proposalRoutes) proposal
 		Decline:      proposalservice.NewDeclineProposal(deps),
 		Withdraw:     proposalservice.NewWithdrawProposal(deps),
 		List:         proposalservice.NewListProposals(deps.Proposals),
+		Amend:        proposalservice.NewSendAmendment(deps),
 		WriteLimiter: routes.writeLimiter,
 		SecurityLog:  routes.securityLog,
 	}

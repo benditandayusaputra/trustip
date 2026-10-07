@@ -26,6 +26,12 @@ func (m *memoryAgreements) CreatePartnership(_ context.Context, partnership doma
 	return nil
 }
 
+func (m *memoryAgreements) LockActiveAgreement(context.Context, string) (domain.Agreement, error) {
+	return domain.Found(input(), domain.FoundingIDs{PartnershipID: "k1", AgreementID: "a1"}).Agreement, nil
+}
+
+func (m *memoryAgreements) Supersede(context.Context, string) error { return nil }
+
 func (m *memoryAgreements) CreateAgreement(_ context.Context, agreement domain.Agreement) error {
 	m.agreements = append(m.agreements, agreement)
 	return nil
@@ -75,5 +81,20 @@ func TestFound_BRPRT01_ExistingActivePartnershipStopsTheFounding(t *testing.T) {
 
 	if !errors.Is(err, domain.ErrAlreadyPartners) || len(sealer.requests) != 0 {
 		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestAmend_BRAGR05_SupersedesTheActiveVersionAndSealsTheNext(t *testing.T) {
+	agreements, sealer := &memoryAgreements{}, &memorySealer{}
+	founder := service.NewFounder(service.FounderDeps{Agreements: agreements, Sealer: sealer, IDs: &sequenceIDs{}})
+
+	next, err := founder.Amend(t.Context(), domain.AmendmentInput{
+		PartnershipID: "k1", ProposalID: "p2", ProposalNumber: "AJ-202611-0001", Terms: input().Terms,
+		AcceptedBy: "u1", AcceptorOrgID: "c1", At: input().At,
+	})
+
+	if err != nil || next.Version != 2 || len(agreements.agreements) != 1 || sealer.requests[0].DocumentID != next.ID ||
+		sealer.requests[0].DocumentNumber != "AJ-202611-0001/V2" {
+		t.Fatalf("next = %+v, sealed = %+v, err = %v", next, sealer.requests, err)
 	}
 }

@@ -7,12 +7,13 @@ RETURNING last_value;
 
 -- name: CreateProposal :exec
 INSERT INTO proposals (
-    id, number, kind, consignor_org_id, store_org_id, from_org_id, invite_code, status,
-    current_revision_no, expires_at, created_at, updated_at
+    id, number, kind, consignor_org_id, store_org_id, from_org_id, awaiting_org_id, partnership_id, invite_code,
+    status, current_revision_no, expires_at, created_at, updated_at
 ) VALUES (
     @id::uuid, @number::text, @kind::text, NULLIF(@consignor_org_id::text, '')::uuid,
-    NULLIF(@store_org_id::text, '')::uuid, @from_org_id::uuid, NULLIF(@invite_code::text, ''), 'OPEN',
-    1, @expires_at::timestamptz, @created_at::timestamptz, @created_at::timestamptz
+    NULLIF(@store_org_id::text, '')::uuid, @from_org_id::uuid, NULLIF(@awaiting_org_id::text, '')::uuid,
+    NULLIF(@partnership_id::text, '')::uuid, NULLIF(@invite_code::text, ''), 'OPEN', 1,
+    @expires_at::timestamptz, @created_at::timestamptz, @created_at::timestamptz
 );
 
 -- name: CreateProposalRevision :exec
@@ -38,7 +39,7 @@ FROM (
         unnest(@commission_bps::bigint[]) AS commission_bps, unnest(@deposit_prices::bigint[]) AS deposit_price
 ) AS item
 JOIN products AS p ON p.id = item.product_id
-WHERE p.consignor_org_id = @consignor_org_id::uuid AND NOT p.is_archived;
+WHERE p.consignor_org_id = @consignor_org_id::uuid AND (NOT p.is_archived OR item.action <> 'ADD');
 
 -- name: GetProposal :one
 SELECT

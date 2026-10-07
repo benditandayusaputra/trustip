@@ -11,14 +11,16 @@ import (
 )
 
 const addAgreementItems = `-- name: AddAgreementItems :exec
-INSERT INTO agreement_items (agreement_id, product_id, pricing_model, retail_price, commission_bps, deposit_price)
+INSERT INTO agreement_items (
+    agreement_id, product_id, pricing_model, retail_price, commission_bps, deposit_price, is_active
+)
 SELECT $1::uuid, item.product_id, item.pricing_model, item.retail_price, item.commission_bps,
-    item.deposit_price
+    item.deposit_price, item.is_active
 FROM (
     SELECT
         unnest($2::uuid[]) AS product_id, unnest($3::text[]) AS pricing_model,
         unnest($4::bigint[]) AS retail_price, unnest($5::bigint[]) AS commission_bps,
-        unnest($6::bigint[]) AS deposit_price
+        unnest($6::bigint[]) AS deposit_price, unnest($7::boolean[]) AS is_active
 ) AS item
 `
 
@@ -29,6 +31,7 @@ type AddAgreementItemsParams struct {
 	RetailPrices  []int64
 	CommissionBps []int64
 	DepositPrices []int64
+	ActiveFlags   []bool
 }
 
 func (q *Queries) AddAgreementItems(ctx context.Context, arg AddAgreementItemsParams) error {
@@ -39,6 +42,7 @@ func (q *Queries) AddAgreementItems(ctx context.Context, arg AddAgreementItemsPa
 		arg.RetailPrices,
 		arg.CommissionBps,
 		arg.DepositPrices,
+		arg.ActiveFlags,
 	)
 	return err
 }
@@ -85,8 +89,9 @@ func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams
 	return err
 }
 
-const getActiveAgreement = `-- name: GetActiveAgreement :one
+const getAgreementVersion = `-- name: GetAgreementVersion :one
 SELECT
+    p.status AS partnership_status,
     a.id, a.partnership_id, a.version, a.status, a.settlement_schedule, a.payment_terms_days, a.count_rhythm,
     a.notes, a.source_proposal_id, pr.number AS proposal_number, a.proposed_by, a.accepted_by, a.accepted_at,
     pu.full_name AS proposer_name, COALESCE(po.name, '')::text AS proposer_org_name,
@@ -103,16 +108,19 @@ LEFT JOIN memberships AS pm ON pm.user_id = a.proposed_by
 LEFT JOIN organizations AS po ON po.id = pm.organization_id
 LEFT JOIN memberships AS am ON am.user_id = a.accepted_by
 LEFT JOIN organizations AS ao ON ao.id = am.organization_id
-WHERE a.partnership_id = $1::uuid AND a.status = 'ACTIVE'
-    AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+WHERE a.partnership_id = $1::uuid
+    AND (($2::bigint = 0 AND a.status = 'ACTIVE') OR a.version = $2::bigint)
+    AND (p.consignor_org_id = $3::uuid OR p.store_org_id = $3::uuid)
 `
 
-type GetActiveAgreementParams struct {
+type GetAgreementVersionParams struct {
 	PartnershipID  string
+	Version        int64
 	OrganizationID string
 }
 
-type GetActiveAgreementRow struct {
+type GetAgreementVersionRow struct {
+	PartnershipStatus  string
 	ID                 string
 	PartnershipID      string
 	Version            int32
@@ -136,10 +144,11 @@ type GetActiveAgreementRow struct {
 	StoreName          string
 }
 
-func (q *Queries) GetActiveAgreement(ctx context.Context, arg GetActiveAgreementParams) (GetActiveAgreementRow, error) {
-	row := q.db.QueryRow(ctx, getActiveAgreement, arg.PartnershipID, arg.OrganizationID)
-	var i GetActiveAgreementRow
+func (q *Queries) GetAgreementVersion(ctx context.Context, arg GetAgreementVersionParams) (GetAgreementVersionRow, error) {
+	row := q.db.QueryRow(ctx, getAgreementVersion, arg.PartnershipID, arg.Version, arg.OrganizationID)
+	var i GetAgreementVersionRow
 	err := row.Scan(
+		&i.PartnershipStatus,
 		&i.ID,
 		&i.PartnershipID,
 		&i.Version,
@@ -215,4 +224,175 @@ func (q *Queries) ListAgreementItems(ctx context.Context, agreementID string) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const listAgreementVersions = `-- name: ListAgreementVersions :many
+SELECT
+    a.id, a.version, a.status, a.settlement_schedule, a.payment_terms_days, a.count_rhythm, a.notes,
+    pr.number AS proposal_number, a.accepted_at
+FROM agreements AS a
+JOIN partnerships AS p ON p.id = a.partnership_id
+JOIN proposals AS pr ON pr.id = a.source_proposal_id
+WHERE a.partnership_id = $1::uuid
+    AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+ORDER BY a.version
+`
+
+type ListAgreementVersionsParams struct {
+	PartnershipID  string
+	OrganizationID string
+}
+
+type ListAgreementVersionsRow struct {
+	ID                 string
+	Version            int32
+	Status             string
+	SettlementSchedule string
+	PaymentTermsDays   int32
+	CountRhythm        string
+	Notes              string
+	ProposalNumber     string
+	AcceptedAt         time.Time
+}
+
+func (q *Queries) ListAgreementVersions(ctx context.Context, arg ListAgreementVersionsParams) ([]ListAgreementVersionsRow, error) {
+	rows, err := q.db.Query(ctx, listAgreementVersions, arg.PartnershipID, arg.OrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAgreementVersionsRow{}
+	for rows.Next() {
+		var i ListAgreementVersionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Version,
+			&i.Status,
+			&i.SettlementSchedule,
+			&i.PaymentTermsDays,
+			&i.CountRhythm,
+			&i.Notes,
+			&i.ProposalNumber,
+			&i.AcceptedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPartnershipAgreementItems = `-- name: ListPartnershipAgreementItems :many
+SELECT
+    i.agreement_id, i.product_id, pr.name AS product_name, pr.sku, pr.unit, i.pricing_model, i.retail_price,
+    i.commission_bps, i.deposit_price, i.is_active
+FROM agreement_items AS i
+JOIN agreements AS a ON a.id = i.agreement_id
+JOIN products AS pr ON pr.id = i.product_id
+WHERE a.partnership_id = $1::uuid
+ORDER BY a.version, pr.name, pr.id
+`
+
+type ListPartnershipAgreementItemsRow struct {
+	AgreementID   string
+	ProductID     string
+	ProductName   string
+	Sku           string
+	Unit          string
+	PricingModel  string
+	RetailPrice   int64
+	CommissionBps int32
+	DepositPrice  int64
+	IsActive      bool
+}
+
+func (q *Queries) ListPartnershipAgreementItems(ctx context.Context, partnershipID string) ([]ListPartnershipAgreementItemsRow, error) {
+	rows, err := q.db.Query(ctx, listPartnershipAgreementItems, partnershipID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPartnershipAgreementItemsRow{}
+	for rows.Next() {
+		var i ListPartnershipAgreementItemsRow
+		if err := rows.Scan(
+			&i.AgreementID,
+			&i.ProductID,
+			&i.ProductName,
+			&i.Sku,
+			&i.Unit,
+			&i.PricingModel,
+			&i.RetailPrice,
+			&i.CommissionBps,
+			&i.DepositPrice,
+			&i.IsActive,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockActiveAgreement = `-- name: LockActiveAgreement :one
+SELECT
+    a.id, a.partnership_id, a.version, a.settlement_schedule, a.payment_terms_days, a.count_rhythm, a.notes,
+    a.source_proposal_id, pr.number AS proposal_number, a.proposed_by, a.accepted_by, a.accepted_at
+FROM agreements AS a
+JOIN proposals AS pr ON pr.id = a.source_proposal_id
+WHERE a.partnership_id = $1::uuid AND a.status = 'ACTIVE'
+FOR UPDATE OF a
+`
+
+type LockActiveAgreementRow struct {
+	ID                 string
+	PartnershipID      string
+	Version            int32
+	SettlementSchedule string
+	PaymentTermsDays   int32
+	CountRhythm        string
+	Notes              string
+	SourceProposalID   string
+	ProposalNumber     string
+	ProposedBy         string
+	AcceptedBy         string
+	AcceptedAt         time.Time
+}
+
+func (q *Queries) LockActiveAgreement(ctx context.Context, partnershipID string) (LockActiveAgreementRow, error) {
+	row := q.db.QueryRow(ctx, lockActiveAgreement, partnershipID)
+	var i LockActiveAgreementRow
+	err := row.Scan(
+		&i.ID,
+		&i.PartnershipID,
+		&i.Version,
+		&i.SettlementSchedule,
+		&i.PaymentTermsDays,
+		&i.CountRhythm,
+		&i.Notes,
+		&i.SourceProposalID,
+		&i.ProposalNumber,
+		&i.ProposedBy,
+		&i.AcceptedBy,
+		&i.AcceptedAt,
+	)
+	return i, err
+}
+
+const supersedeAgreement = `-- name: SupersedeAgreement :execrows
+UPDATE agreements SET status = 'SUPERSEDED' WHERE id = $1::uuid AND status = 'ACTIVE'
+`
+
+func (q *Queries) SupersedeAgreement(ctx context.Context, id string) (int64, error) {
+	result, err := q.db.Exec(ctx, supersedeAgreement, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

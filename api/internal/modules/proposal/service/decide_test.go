@@ -52,8 +52,14 @@ func (d *decidingProposals) ListProposals(_ context.Context, query domain.ListQu
 }
 
 type fakeFounder struct {
-	foundings []domain.Founding
-	fail      error
+	foundings  []domain.Founding
+	amendments []domain.Founding
+	fail       error
+}
+
+func (f *fakeFounder) Amend(_ context.Context, founding domain.Founding) (int, error) {
+	f.amendments = append(f.amendments, founding)
+	return 2, nil
 }
 
 func (f *fakeFounder) Found(_ context.Context, founding domain.Founding) (string, error) {
@@ -95,7 +101,7 @@ func newDecisionScene() decisionScene {
 		proposals: proposals, founder: founder, announcer: announcer, audit: trail,
 		deps: service.ProposalDeps{
 			Proposals: proposals, Audit: trail, Tx: inlineTx{}, Clock: fixedClock{at: sentAt()}, IDs: &sequenceIDs{},
-			Codes: fixedCode{}, Founder: founder, Announcer: announcer,
+			Codes: fixedCode{}, Keeper: founder, Announcer: announcer, Current: currentReader{},
 		},
 	}
 }
@@ -213,5 +219,76 @@ func TestListProposals_UnknownBoxIsAValidationFailure(t *testing.T) {
 
 	if apperror.From(err).Code() != apperror.CodeValidationFailed {
 		t.Fatalf("err = %v", err)
+	}
+}
+
+type currentReader struct{ isEnded bool }
+
+func (c currentReader) CurrentAgreement(_ context.Context, key domain.PartnershipKey) (domain.CurrentAgreement, error) {
+	if key.OrganizationID != consignorID && key.OrganizationID != storeID {
+		return domain.CurrentAgreement{}, apperror.NotFound()
+	}
+	return domain.CurrentAgreement{
+		PartnershipID: key.PartnershipID, IsActive: !c.isEnded,
+		Consignor: domain.Party{OrganizationID: consignorID, Name: "Roti Pak Anton"},
+		Store:     domain.Party{OrganizationID: storeID, Name: "Warung Bu Sri"},
+		Terms:     terms.General{Schedule: terms.ScheduleWeekly, Rhythm: terms.RhythmDaily},
+		Items:     map[string]domain.CurrentItem{breadID: {IsActive: true}},
+	}, nil
+}
+
+func amendmentCommand() service.AmendmentCommand {
+	return service.AmendmentCommand{PartnershipID: "0192f0c4-0000-7000-8000-000000000501", Input: domain.RevisionInput{
+		Terms: terms.Input{SettlementSchedule: "WEEKLY", CountRhythm: "DAILY"},
+		Items: []domain.ItemInput{{ProductID: breadID, Action: "STOP"}},
+	}}
+}
+
+func TestSendAmendment_FRPRP08_StopsAProductAndTellsTheOtherOwner(t *testing.T) {
+	scene := newDecisionScene()
+
+	_, err := service.NewSendAmendment(scene.deps).Execute(t.Context(), owner(consignorID, actor.Consignor),
+		amendmentCommand())
+
+	notice := scene.announcer.notices[0]
+	if err != nil || notice.OrganizationID != storeID || notice.Type != "PROPOSAL_RECEIVED" ||
+		notice.Body != "Roti Pak Anton mengajukan perubahan Kesepakatan (AJ-202610-0001)." {
+		t.Fatalf("notice = %+v, err = %v", notice, err)
+	}
+}
+
+func TestSendAmendment_BRAUTHZ01_StaffCannotAmend(t *testing.T) {
+	scene := newDecisionScene()
+	staff := owner(consignorID, actor.Consignor)
+	staff.Membership.Role = actor.Staff
+
+	_, err := service.NewSendAmendment(scene.deps).Execute(t.Context(), staff, amendmentCommand())
+
+	if apperror.From(err).Code() != apperror.CodeForbidden {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestSendAmendment_BRAUTHZ02_StrangerGetsNotFound(t *testing.T) {
+	scene := newDecisionScene()
+
+	_, err := service.NewSendAmendment(scene.deps).Execute(t.Context(), owner("elsewhere", actor.Consignor),
+		amendmentCommand())
+
+	if apperror.From(err).Code() != apperror.CodeNotFound {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestAcceptProposal_BRPRP03_AmendmentMakesTheNextVersionAndTellsBothOwners(t *testing.T) {
+	scene := newDecisionScene()
+	scene.proposals.stored.Kind = domain.Amendment
+	scene.proposals.stored.PartnershipID = "0192f0c4-0000-7000-8000-000000000501"
+
+	_, err := service.NewAcceptProposal(scene.deps).Execute(t.Context(), owner(storeID, actor.Store), proposalID)
+
+	if err != nil || len(scene.founder.amendments) != 1 || len(scene.founder.foundings) != 0 ||
+		scene.proposals.decisions[0].AgreementVersion != 2 || len(scene.announcer.notices) != 3 {
+		t.Fatalf("notices = %+v, err = %v", scene.announcer.notices, err)
 	}
 }

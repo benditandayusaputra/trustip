@@ -23,7 +23,7 @@ type emptyProposals struct{}
 
 func (emptyProposals) NextNumber(context.Context, domain.SequenceKey) (int, error) { return 1, nil }
 
-func (emptyProposals) CreateInvitation(context.Context, domain.Invitation) error {
+func (emptyProposals) Open(context.Context, domain.Opening) error {
 	return domain.ErrUnknownProduct
 }
 
@@ -57,6 +57,14 @@ func (refusingCollaborators) Found(context.Context, domain.Founding) (string, er
 	return "", domain.ErrAlreadyPartners
 }
 
+func (refusingCollaborators) Amend(context.Context, domain.Founding) (int, error) {
+	return 0, domain.ErrAlreadyDecided
+}
+
+func (refusingCollaborators) CurrentAgreement(context.Context, domain.PartnershipKey) (domain.CurrentAgreement, error) {
+	return domain.CurrentAgreement{}, apperror.NotFound()
+}
+
 func (refusingCollaborators) Announce(context.Context, domain.Notice) error { return nil }
 
 type testSealKeys struct{}
@@ -77,8 +85,8 @@ func (emptyProposals) HasActivePartnership(context.Context, domain.Pair) (bool, 
 func testProposalComponents(now *clock.Manual) proposalComponents {
 	return proposalComponents{deps: proposalservice.ProposalDeps{
 		Proposals: emptyProposals{}, Audit: &memoryAudit{}, Tx: inlineTx{}, Clock: now, IDs: idgen.NewSequence(),
-		Codes:   inviteCodes(),
-		Founder: refusingCollaborators{}, Announcer: refusingCollaborators{},
+		Codes:  inviteCodes(),
+		Keeper: refusingCollaborators{}, Announcer: refusingCollaborators{}, Current: refusingCollaborators{},
 	}}
 }
 
@@ -138,8 +146,14 @@ func TestViewInvitation_MalformedCodeIsNotFound(t *testing.T) {
 
 type missingAgreements struct{}
 
-func (missingAgreements) GetActiveAgreement(
+func (missingAgreements) ListVersions(
 	context.Context, agreementdomain.PartnershipKey,
+) ([]agreementdomain.Agreement, error) {
+	return nil, apperror.NotFound()
+}
+
+func (missingAgreements) GetAgreement(
+	context.Context, agreementdomain.VersionKey,
 ) (agreementdomain.View, error) {
 	return agreementdomain.View{}, apperror.NotFound()
 }

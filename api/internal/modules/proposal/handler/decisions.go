@@ -83,3 +83,31 @@ func toSummaryResponse(summary domain.Summary) summaryResponse {
 		CreatedAt: summary.CreatedAt.UTC().Format(time.RFC3339),
 	}
 }
+
+func amend(sender AmendmentSender) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		signedIn, err := signedInActor(c)
+		if err != nil {
+			return err
+		}
+		partnershipID, err := httpserver.IDParam(c, "id")
+		if err != nil {
+			return fmt.Errorf("read partnership id: %w", err)
+		}
+		var request invitationRequest
+		if err := httpserver.DecodeJSON(c, &request); err != nil {
+			return fmt.Errorf("read amendment: %w", err)
+		}
+		input, err := request.toInput()
+		if err != nil {
+			return err
+		}
+		proposal, err := sender.Execute(c.Context(), signedIn,
+			service.AmendmentCommand{PartnershipID: partnershipID, Input: input})
+		if err != nil {
+			return fmt.Errorf("send amendment: %w", err)
+		}
+		c.Location(httpserver.APIPrefix + proposalsPath + "/" + proposal.ID)
+		return httpserver.Respond(c, httpserver.Reply{Status: fiber.StatusCreated, Data: toProposalResponse(proposal)})
+	}
+}

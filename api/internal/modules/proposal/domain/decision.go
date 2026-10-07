@@ -22,17 +22,20 @@ type Decider struct {
 }
 
 type Decision struct {
-	ProposalID    string
-	Status        Status
-	DecidedBy     string
-	DeciderOrgID  string
-	Reason        string
-	RevisionNo    int
-	PartnershipID string
-	At            time.Time
+	ProposalID       string
+	Status           Status
+	DecidedBy        string
+	DeciderOrgID     string
+	Reason           string
+	RevisionNo       int
+	PartnershipID    string
+	AgreementVersion int
+	At               time.Time
 }
 
 type Founding struct {
+	Kind           Kind
+	PartnershipID  string
 	ProposalID     string
 	ProposalNumber string
 	ConsignorID    string
@@ -50,6 +53,7 @@ func (p Proposal) Accept(decider Decider, decidedAt time.Time) (Decision, Foundi
 		return Decision{}, Founding{}, err
 	}
 	founding := Founding{
+		Kind: p.Kind, PartnershipID: p.PartnershipID,
 		ProposalID: p.ID, ProposalNumber: p.Number, ConsignorID: p.Consignor.OrganizationID,
 		StoreID: p.Store.OrganizationID, Terms: p.Revision.Terms, Items: p.Revision.Items,
 		ProposedBy: p.Revision.AuthorUserID, AcceptedBy: decider.UserID, AcceptorOrgID: decider.OrganizationID,
@@ -167,4 +171,17 @@ func (p Proposal) CounterpartOf(organizationID string) string {
 		return p.Store.Name
 	}
 	return p.Consignor.Name
+}
+
+func (p Proposal) AgreementNotices(decision Decision, version int) []Notice {
+	notices := make([]Notice, 0, len([]Party{p.Consignor, p.Store}))
+	for _, party := range []Party{p.Consignor, p.Store} {
+		notices = append(notices, Notice{
+			OrganizationID: party.OrganizationID, ActorUserID: decision.DecidedBy, Type: "AGREEMENT_UPDATED",
+			Title: "Kesepakatan diperbarui",
+			Body:  fmt.Sprintf("Kesepakatan dengan %s kini versi %d.", p.CounterpartOf(party.OrganizationID), version),
+			Link:  "/app/mitra/" + p.PartnershipID + "/kesepakatan", OwnersOnly: true,
+		})
+	}
+	return notices
 }

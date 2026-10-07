@@ -28,6 +28,7 @@ const (
 
 type ItemInput struct {
 	ProductID string
+	Action    string
 	Terms     pricing.TermsInput
 }
 
@@ -83,11 +84,31 @@ func checkItems(inputs []ItemInput) ([]Item, []apperror.FieldError) {
 			problems = append(problems, apperror.InvalidField(prefix+".product_id", apperror.FieldUnknownChoice))
 		}
 		seen[input.ProductID] = true
-		terms, err := pricing.NewTerms(input.Terms)
-		problems = append(problems, prefixed(prefix, err)...)
-		items = append(items, Item{ProductID: input.ProductID, Action: Add, Terms: terms})
+		item, itemProblems := checkItem(prefix, input)
+		problems = append(problems, itemProblems...)
+		items = append(items, item)
 	}
 	return items, problems
+}
+
+func checkItem(prefix string, input ItemInput) (Item, []apperror.FieldError) {
+	action, known := actions()[input.Action]
+	if !known {
+		return Item{ProductID: input.ProductID}, []apperror.FieldError{
+			apperror.InvalidField(prefix+".action", apperror.FieldUnknownChoice),
+		}
+	}
+	item := Item{ProductID: input.ProductID, Action: action}
+	if action == Stop {
+		return item, nil
+	}
+	terms, err := pricing.NewTerms(input.Terms)
+	item.Terms = terms
+	return item, prefixed(prefix, err)
+}
+
+func actions() map[string]Action {
+	return map[string]Action{"": Add, string(Add): Add, string(Update): Update, string(Stop): Stop}
 }
 
 func prefixed(prefix string, err error) []apperror.FieldError {
@@ -99,6 +120,17 @@ func prefixed(prefix string, err error) []apperror.FieldError {
 	for _, problem := range appErr.Fields() {
 		problem.Field = prefix + "." + problem.Field
 		problems = append(problems, problem)
+	}
+	return problems
+}
+
+func (d RevisionDraft) onlyAdditions() []apperror.FieldError {
+	var problems []apperror.FieldError
+	for index, item := range d.Items {
+		if item.Action != Add {
+			problems = append(problems, apperror.InvalidField(fmt.Sprintf("items[%d].action", index),
+				apperror.FieldUnknownChoice))
+		}
 	}
 	return problems
 }

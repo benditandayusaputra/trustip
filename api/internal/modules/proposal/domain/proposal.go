@@ -67,3 +67,8 @@ type SequenceKey struct {
 	Prefix         string
 	Period         string
 }
+
+type PartnershipKey struct {
+	OrganizationID string
+	PartnershipID  string
+}

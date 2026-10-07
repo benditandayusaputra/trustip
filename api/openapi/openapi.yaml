@@ -1614,6 +1614,129 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/amendments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: sendAmendment
+      tags: [proposal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationRequest"
+      responses:
+        "201":
+          description: Ajuan perubahan untuk kemitraan aktif dikirim ke pihak lawan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/agreements:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listAgreementVersions
+      tags: [agreement]
+      responses:
+        "200":
+          description: Semua versi Kesepakatan beserta bedanya dengan versi sebelumnya
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgreementVersionListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/agreements/{version}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAgreementVersion
+      tags: [agreement]
+      responses:
+        "200":
+          description: Satu versi Kesepakatan dengan status segel yang dihitung ulang
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgreementResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -1746,6 +1869,7 @@ components:
         - ALREADY_PARTNERS
         - NOT_YOUR_TURN
         - PROPOSAL_ALREADY_DECIDED
+        - PARTNERSHIP_NOT_ACTIVE
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -2588,6 +2712,9 @@ components:
       properties:
         product_id:
           type: string
+        action:
+          type: string
+          enum: [ADD, UPDATE, STOP]
         pricing_model:
           $ref: "#/components/schemas/PricingModel"
         retail_price:
@@ -3148,5 +3275,84 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PartnerCatalogItem"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    TermsSnapshot:
+      type: object
+      additionalProperties: false
+      required: [pricing_model, retail_price, commission_bps, deposit_price]
+      properties:
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        retail_price:
+          type: integer
+        commission_bps:
+          type: integer
+        deposit_price:
+          type: integer
+    AgreementVersion:
+      type: object
+      additionalProperties: false
+      required: [version, status, number, accepted_at, term_changes, item_changes]
+      properties:
+        version:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [ACTIVE, SUPERSEDED]
+        number:
+          type: string
+        accepted_at:
+          type: string
+          format: date-time
+        term_changes:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [field, before, after]
+            properties:
+              field:
+                type: string
+                enum: [settlement_schedule, payment_terms_days, count_rhythm, notes]
+              before:
+                type: string
+              after:
+                type: string
+        item_changes:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [product_id, product_name, kind, before, after]
+            properties:
+              product_id:
+                type: string
+                format: uuid
+              product_name:
+                type: string
+              kind:
+                type: string
+                enum: [ADDED, UPDATED, STOPPED]
+              before:
+                nullable: true
+                allOf:
+                  - $ref: "#/components/schemas/TermsSnapshot"
+              after:
+                $ref: "#/components/schemas/TermsSnapshot"
+    AgreementVersionListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgreementVersion"
         meta:
           $ref: "#/components/schemas/ListMeta"

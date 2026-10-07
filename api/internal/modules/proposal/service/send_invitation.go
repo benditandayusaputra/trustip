@@ -45,7 +45,7 @@ func (uc *SendInvitation) Execute(
 		if err != nil {
 			return err
 		}
-		if err := uc.deps.Proposals.CreateInvitation(ctx, invitation); err != nil {
+		if err := uc.deps.Proposals.Open(ctx, invitation.Opening()); err != nil {
 			return explainCreateFailure(err)
 		}
 		proposal, err = finishProposalEvent(ctx, uc.deps, proposalEvent{

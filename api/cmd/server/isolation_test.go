@@ -100,6 +100,16 @@ func isolationCases() map[string]isolationCase {
 		"GET /api/v1/partnerships/:id/catalog": func(w isolationWorld) exchange {
 			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/catalog")
 		},
+		"GET /api/v1/partnerships/:id/agreements": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/agreements")
+		},
+		"GET /api/v1/partnerships/:id/agreements/:version": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/agreements/1")
+		},
+		"POST /api/v1/partnerships/:id/amendments": func(w isolationWorld) exchange {
+			return w.consignorStranger.postJSON("/api/v1/partnerships/"+w.consignor.partnershipID+"/amendments",
+				invitationBody(""))
+		},
 	}
 }
 

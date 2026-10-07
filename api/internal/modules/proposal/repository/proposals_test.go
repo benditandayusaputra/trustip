@@ -116,7 +116,7 @@ func invitation(index int, sender string, productIDs ...string) domain.Invitatio
 
 func (w world) invite(created domain.Invitation) {
 	w.t.Helper()
-	if err := w.proposals.CreateInvitation(w.t.Context(), created); err != nil {
+	if err := w.proposals.Open(w.t.Context(), created.Opening()); err != nil {
 		w.t.Fatalf("invite: %v", err)
 	}
 }
@@ -151,7 +151,7 @@ func TestCreateInvitation_BRPRP01_ArchivedOrForeignProductsAreRejected(t *testin
 		created := invitation(1, consignorID, breadID, productID)
 
 		err := scene.pool.WithinTx(t.Context(), func(ctx context.Context) error {
-			return scene.proposals.CreateInvitation(ctx, created)
+			return scene.proposals.Open(ctx, created.Opening())
 		})
 
 		if !errors.Is(err, domain.ErrUnknownProduct) {

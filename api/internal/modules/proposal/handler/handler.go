@@ -24,6 +24,7 @@ const (
 	acceptPath      = proposalPath + "/accept"
 	declinePath     = proposalPath + "/decline"
 	withdrawPath    = proposalPath + "/withdraw"
+	amendmentsPath  = "/partnerships/:id/amendments"
 )
 
 type InvitationSender interface {
@@ -42,6 +43,10 @@ type Decliner interface {
 	Execute(ctx context.Context, signedIn actor.Actor, cmd service.DeclineCommand) (domain.Proposal, error)
 }
 
+type AmendmentSender interface {
+	Execute(ctx context.Context, signedIn actor.Actor, cmd service.AmendmentCommand) (domain.Proposal, error)
+}
+
 type Lister interface {
 	Execute(ctx context.Context, signedIn actor.Actor, request service.ListRequest) (service.Page, error)
 }
@@ -56,6 +61,7 @@ type Deps struct {
 	Decline      Decliner
 	Withdraw     ProposalByKey
 	List         Lister
+	Amend        AmendmentSender
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
 }
@@ -70,6 +76,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Post(acceptPath, deps.Authenticate, writeLimit, byID(deps.Accept))
 	api.Post(declinePath, deps.Authenticate, writeLimit, decline(deps.Decline))
 	api.Post(withdrawPath, deps.Authenticate, writeLimit, byID(deps.Withdraw))
+	api.Post(amendmentsPath, deps.Authenticate, writeLimit, amend(deps.Amend))
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {

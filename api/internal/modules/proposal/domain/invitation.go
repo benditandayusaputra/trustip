@@ -77,6 +77,9 @@ func (d RevisionDraft) Invite(params InvitationParams) (Invitation, error) {
 	if params.Sender.OrganizationType == actor.Store && len(d.Items) > 0 {
 		return Invitation{}, apperror.Validation(field.Collect(field.Invalid("items", apperror.FieldUnknownChoice))...)
 	}
+	if problems := d.onlyAdditions(); len(problems) > 0 {
+		return Invitation{}, apperror.Validation(problems...)
+	}
 	return Invitation{
 		IDs: params.IDs, Number: Number(params.At, params.Sequence), Sender: params.Sender, Draft: d,
 		At: params.At, ExpiresAt: params.At.Add(OpenFor),

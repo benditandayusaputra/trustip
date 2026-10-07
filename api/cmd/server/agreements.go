@@ -86,6 +86,7 @@ func agreementDeps(components agreementComponents, routes proposalRoutes) agreem
 	return agreementhandler.Deps{
 		Authenticate: routes.authenticate,
 		Get:          agreementservice.NewGetAgreement(components.reader, components.checker),
+		History:      agreementservice.NewListVersions(components.reader),
 		SecurityLog:  routes.securityLog,
 	}
 }
@@ -108,18 +109,18 @@ func (s agreementSealer) Seal(ctx context.Context, request agreementdomain.SealR
 	return nil
 }
 
-type agreementFounder struct {
+type agreementKeeper struct {
 	founder *agreementservice.Founder
 }
 
-func newAgreementFounder(pool *database.Pool, seals sealComponents) agreementFounder {
-	return agreementFounder{founder: agreementservice.NewFounder(agreementservice.FounderDeps{
+func newAgreementKeeper(pool *database.Pool, seals sealComponents) agreementKeeper {
+	return agreementKeeper{founder: agreementservice.NewFounder(agreementservice.FounderDeps{
 		Agreements: agreementrepository.NewAgreements(pool), Sealer: agreementSealer{recorder: seals.recorder},
 		IDs: idgen.UUIDv7{},
 	})}
 }
 
-func (a agreementFounder) Found(ctx context.Context, founding proposaldomain.Founding) (string, error) {
+func (a agreementKeeper) Found(ctx context.Context, founding proposaldomain.Founding) (string, error) {
 	items := make([]agreementdomain.Item, 0, len(founding.Items))
 	for _, item := range founding.Items {
 		items = append(items, agreementdomain.Item{ProductID: item.ProductID, Terms: item.Terms})
@@ -136,4 +137,48 @@ func (a agreementFounder) Found(ctx context.Context, founding proposaldomain.Fou
 		return "", fmt.Errorf("found agreement: %w", err)
 	}
 	return agreement.PartnershipID, nil
+}
+
+func (a agreementKeeper) Amend(ctx context.Context, founding proposaldomain.Founding) (int, error) {
+	changes := make([]agreementdomain.Change, 0, len(founding.Items))
+	for _, item := range founding.Items {
+		changes = append(changes, agreementdomain.Change{
+			ProductID: item.ProductID, Action: agreementdomain.ChangeAction(item.Action), Terms: item.Terms,
+		})
+	}
+	agreement, err := a.founder.Amend(ctx, agreementdomain.AmendmentInput{
+		PartnershipID: founding.PartnershipID, ProposalID: founding.ProposalID,
+		ProposalNumber: founding.ProposalNumber, Terms: founding.Terms, Changes: changes,
+		ProposedBy: founding.ProposedBy, AcceptedBy: founding.AcceptedBy, AcceptorOrgID: founding.AcceptorOrgID,
+		At: founding.At,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("amend agreement: %w", err)
+	}
+	return agreement.Version, nil
+}
+
+type currentAgreements struct {
+	reader agreementservice.AgreementReader
+}
+
+func (c currentAgreements) CurrentAgreement(
+	ctx context.Context, key proposaldomain.PartnershipKey,
+) (proposaldomain.CurrentAgreement, error) {
+	view, err := c.reader.GetAgreement(ctx, agreementdomain.VersionKey{
+		OrganizationID: key.OrganizationID, PartnershipID: key.PartnershipID,
+	})
+	if err != nil {
+		return proposaldomain.CurrentAgreement{}, fmt.Errorf("read current agreement: %w", err)
+	}
+	items := map[string]proposaldomain.CurrentItem{}
+	for _, item := range view.Agreement.Items {
+		items[item.ProductID] = proposaldomain.CurrentItem{IsActive: item.IsActive, Terms: item.Terms}
+	}
+	return proposaldomain.CurrentAgreement{
+		PartnershipID: key.PartnershipID, IsActive: view.IsPartnershipActive, Terms: view.Agreement.Terms,
+		Consignor: proposaldomain.Party{OrganizationID: view.Consignor.OrganizationID, Name: view.Consignor.Name},
+		Store:     proposaldomain.Party{OrganizationID: view.Store.OrganizationID, Name: view.Store.Name},
+		Items:     items,
+	}, nil
 }

@@ -714,12 +714,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/partnerships/{id}/amendments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sendAmendment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partnerships/{id}/agreements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["listAgreementVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partnerships/{id}/agreements/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getAgreementVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -1066,6 +1121,8 @@ export interface components {
         };
         ProposalItemRequest: {
             product_id: string;
+            /** @enum {string} */
+            action?: "ADD" | "UPDATE" | "STOP";
             pricing_model: components["schemas"]["PricingModel"];
             retail_price: number;
             commission_bps: number;
@@ -1312,6 +1369,41 @@ export interface components {
             code: components["schemas"]["SuccessCode"];
             message: string;
             data: components["schemas"]["PartnerCatalogItem"][];
+            meta: components["schemas"]["ListMeta"];
+        };
+        TermsSnapshot: {
+            pricing_model: components["schemas"]["PricingModel"];
+            retail_price: number;
+            commission_bps: number;
+            deposit_price: number;
+        };
+        AgreementVersion: {
+            version: number;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUPERSEDED";
+            number: string;
+            /** Format: date-time */
+            accepted_at: string;
+            term_changes: {
+                /** @enum {string} */
+                field: "settlement_schedule" | "payment_terms_days" | "count_rhythm" | "notes";
+                before: string;
+                after: string;
+            }[];
+            item_changes: {
+                /** Format: uuid */
+                product_id: string;
+                product_name: string;
+                /** @enum {string} */
+                kind: "ADDED" | "UPDATED" | "STOPPED";
+                before: components["schemas"]["TermsSnapshot"] | null;
+                after: components["schemas"]["TermsSnapshot"];
+            }[];
+        };
+        AgreementVersionListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["AgreementVersion"][];
             meta: components["schemas"]["ListMeta"];
         };
     };
@@ -2830,6 +2922,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PartnerCatalogResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    sendAmendment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationRequest"];
+            };
+        };
+        responses: {
+            /** @description Ajuan perubahan untuk kemitraan aktif dikirim ke pihak lawan */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    Location: components["headers"]["Location"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listAgreementVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Semua versi Kesepakatan beserta bedanya dengan versi sebelumnya */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgreementVersionListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getAgreementVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Satu versi Kesepakatan dengan status segel yang dihitung ulang */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgreementResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

@@ -10,7 +10,7 @@ import (
 
 type ProposalWriter interface {
 	NextNumber(ctx context.Context, key domain.SequenceKey) (int, error)
-	CreateInvitation(ctx context.Context, invitation domain.Invitation) error
+	Open(ctx context.Context, opening domain.Opening) error
 	ClaimInvitation(ctx context.Context, claim domain.Claim) error
 	SaveDecision(ctx context.Context, decision domain.Decision) error
 }
@@ -32,8 +32,13 @@ type ProposalStore interface {
 	ProposalLister
 }
 
-type AgreementFounder interface {
+type AgreementKeeper interface {
 	Found(ctx context.Context, founding domain.Founding) (string, error)
+	Amend(ctx context.Context, founding domain.Founding) (int, error)
+}
+
+type CurrentAgreementReader interface {
+	CurrentAgreement(ctx context.Context, key domain.PartnershipKey) (domain.CurrentAgreement, error)
 }
 
 type Announcer interface {

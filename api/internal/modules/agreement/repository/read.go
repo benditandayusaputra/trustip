@@ -16,12 +16,12 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 )
 
-func (r *Agreements) GetActiveAgreement(ctx context.Context, key domain.PartnershipKey) (domain.View, error) {
+func (r *Agreements) GetAgreement(ctx context.Context, key domain.VersionKey) (domain.View, error) {
 	readCtx, cancel := database.ReadContext(ctx)
 	defer cancel()
 	queries := sqlc.New(r.pool.Querier(ctx))
-	row, err := queries.GetActiveAgreement(readCtx, sqlc.GetActiveAgreementParams{
-		PartnershipID: key.PartnershipID, OrganizationID: key.OrganizationID,
+	row, err := queries.GetAgreementVersion(readCtx, sqlc.GetAgreementVersionParams{
+		PartnershipID: key.PartnershipID, OrganizationID: key.OrganizationID, Version: int64(key.Version),
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.View{}, apperror.OutsideScope()
@@ -38,8 +38,9 @@ func (r *Agreements) GetActiveAgreement(ctx context.Context, key domain.Partners
 	return view, nil
 }
 
-func toView(row sqlc.GetActiveAgreementRow) domain.View {
+func toView(row sqlc.GetAgreementVersionRow) domain.View {
 	return domain.View{
+		IsPartnershipActive: row.PartnershipStatus == partnershipActive,
 		Agreement: domain.Agreement{
 			ID: row.ID, PartnershipID: row.PartnershipID, Version: int(row.Version), Status: domain.Status(row.Status),
 			Terms: terms.General{

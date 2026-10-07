@@ -10,23 +10,35 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/agreement/domain"
+	"github.com/benditandayusaputra/trustip/api/internal/modules/agreement/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 )
 
-const agreementPath = "/partnerships/:id/agreement"
+const (
+	agreementPath = "/partnerships/:id/agreement"
+	versionsPath  = "/partnerships/:id/agreements"
+	versionPath   = versionsPath + "/:version"
+)
 
 type Reader interface {
-	Execute(ctx context.Context, signedIn actor.Actor, partnershipID string) (domain.SealedView, error)
+	Execute(ctx context.Context, signedIn actor.Actor, request service.VersionRequest) (domain.SealedView, error)
+}
+
+type HistoryReader interface {
+	Execute(ctx context.Context, signedIn actor.Actor, partnershipID string) ([]domain.Version, error)
 }
 
 type Deps struct {
 	Authenticate fiber.Handler
 	Get          Reader
+	History      HistoryReader
 	SecurityLog  *slog.Logger
 }
 
 func Mount(api fiber.Router, deps Deps) {
 	api.Get(agreementPath, deps.Authenticate, read(deps.Get, deps.SecurityLog))
+	api.Get(versionsPath, deps.Authenticate, history(deps.History))
+	api.Get(versionPath, deps.Authenticate, read(deps.Get, deps.SecurityLog))
 }
 
 func read(reader Reader, securityLog *slog.Logger) fiber.Handler {
@@ -39,7 +51,12 @@ func read(reader Reader, securityLog *slog.Logger) fiber.Handler {
 		if err != nil {
 			return fmt.Errorf("read partnership id: %w", err)
 		}
-		sealed, err := reader.Execute(c.Context(), signedIn, partnershipID)
+		version, err := versionParam(c)
+		if err != nil {
+			return err
+		}
+		sealed, err := reader.Execute(c.Context(), signedIn,
+			service.VersionRequest{PartnershipID: partnershipID, Version: version})
 		if err != nil {
 			return fmt.Errorf("read agreement: %w", err)
 		}

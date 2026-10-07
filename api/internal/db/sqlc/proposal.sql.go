@@ -23,7 +23,7 @@ FROM (
         unnest($6::bigint[]) AS commission_bps, unnest($7::bigint[]) AS deposit_price
 ) AS item
 JOIN products AS p ON p.id = item.product_id
-WHERE p.consignor_org_id = $8::uuid AND NOT p.is_archived
+WHERE p.consignor_org_id = $8::uuid AND (NOT p.is_archived OR item.action <> 'ADD')
 `
 
 type AddProposalItemsParams struct {
@@ -87,12 +87,13 @@ func (q *Queries) ClaimInvitation(ctx context.Context, arg ClaimInvitationParams
 
 const createProposal = `-- name: CreateProposal :exec
 INSERT INTO proposals (
-    id, number, kind, consignor_org_id, store_org_id, from_org_id, invite_code, status,
-    current_revision_no, expires_at, created_at, updated_at
+    id, number, kind, consignor_org_id, store_org_id, from_org_id, awaiting_org_id, partnership_id, invite_code,
+    status, current_revision_no, expires_at, created_at, updated_at
 ) VALUES (
     $1::uuid, $2::text, $3::text, NULLIF($4::text, '')::uuid,
-    NULLIF($5::text, '')::uuid, $6::uuid, NULLIF($7::text, ''), 'OPEN',
-    1, $8::timestamptz, $9::timestamptz, $9::timestamptz
+    NULLIF($5::text, '')::uuid, $6::uuid, NULLIF($7::text, '')::uuid,
+    NULLIF($8::text, '')::uuid, NULLIF($9::text, ''), 'OPEN', 1,
+    $10::timestamptz, $11::timestamptz, $11::timestamptz
 )
 `
 
@@ -103,6 +104,8 @@ type CreateProposalParams struct {
 	ConsignorOrgID string
 	StoreOrgID     string
 	FromOrgID      string
+	AwaitingOrgID  string
+	PartnershipID  string
 	InviteCode     string
 	ExpiresAt      time.Time
 	CreatedAt      time.Time
@@ -116,6 +119,8 @@ func (q *Queries) CreateProposal(ctx context.Context, arg CreateProposalParams) 
 		arg.ConsignorOrgID,
 		arg.StoreOrgID,
 		arg.FromOrgID,
+		arg.AwaitingOrgID,
+		arg.PartnershipID,
 		arg.InviteCode,
 		arg.ExpiresAt,
 		arg.CreatedAt,

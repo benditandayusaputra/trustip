@@ -23,7 +23,7 @@ const (
 )
 
 type fakeProposals struct {
-	invitations map[string]domain.Invitation
+	invitations map[string]domain.Opening
 	claims      []domain.Claim
 	sequences   []domain.SequenceKey
 	partners    bool
@@ -32,7 +32,7 @@ type fakeProposals struct {
 }
 
 func newFakeProposals() *fakeProposals {
-	return &fakeProposals{invitations: map[string]domain.Invitation{}}
+	return &fakeProposals{invitations: map[string]domain.Opening{}}
 }
 
 func (f *fakeProposals) NextNumber(_ context.Context, key domain.SequenceKey) (int, error) {
@@ -40,11 +40,11 @@ func (f *fakeProposals) NextNumber(_ context.Context, key domain.SequenceKey) (i
 	return len(f.sequences), nil
 }
 
-func (f *fakeProposals) CreateInvitation(_ context.Context, invitation domain.Invitation) error {
+func (f *fakeProposals) Open(_ context.Context, opening domain.Opening) error {
 	if f.failCreate != nil {
 		return f.failCreate
 	}
-	f.invitations[invitation.IDs.Code] = invitation
+	f.invitations[opening.IDs.Code] = opening
 	return nil
 }
 
@@ -67,7 +67,7 @@ func (f *fakeProposals) GetInvitation(_ context.Context, code string) (domain.In
 			OrganizationID: invitation.Sender.OrganizationID, Name: "Roti Pak Anton",
 			Type: invitation.Sender.OrganizationType,
 		},
-		ConsignorID: invitation.ConsignorID(), StoreID: invitation.StoreID(), ItemCount: len(invitation.Draft.Items),
+		ConsignorID: invitation.ConsignorID, StoreID: invitation.StoreID, ItemCount: len(invitation.Draft.Items),
 	}
 	for _, claim := range f.claims {
 		view.StoreID = claim.StoreID

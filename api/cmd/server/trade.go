@@ -25,12 +25,14 @@ type tradeComponents struct {
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
 	seals := buildSealComponents(pool, sealKeys)
+	agreements := buildAgreementComponents(pool, seals)
 	return tradeComponents{
 		products: buildProductComponents(pool, clock),
 		proposals: buildProposalComponents(pool, clock, proposalCollaborators{
-			founder: newAgreementFounder(pool, seals), announcer: newOrganizationAnnouncer(pool, clock),
+			keeper: newAgreementKeeper(pool, seals), current: currentAgreements{reader: agreements.reader},
+			announcer: newOrganizationAnnouncer(pool, clock),
 		}),
-		agreements:   buildAgreementComponents(pool, seals),
+		agreements:   agreements,
 		partnerships: partnershiprepository.NewPartnerships(pool),
 	}
 }

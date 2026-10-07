@@ -9,7 +9,10 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 )
 
-const activePairConstraint = "partnerships_active_pair_key"
+const (
+	activePairConstraint = "partnerships_active_pair_key"
+	partnershipActive    = "ACTIVE"
+)
 
 type Agreements struct {
 	pool *database.Pool
@@ -66,6 +69,7 @@ func itemParams(agreement domain.Agreement) sqlc.AddAgreementItemsParams {
 		params.RetailPrices = append(params.RetailPrices, item.Terms.RetailPrice.Int64())
 		params.CommissionBps = append(params.CommissionBps, int64(item.Terms.CommissionBPS))
 		params.DepositPrices = append(params.DepositPrices, item.Terms.DepositPrice.Int64())
+		params.ActiveFlags = append(params.ActiveFlags, item.IsActive)
 	}
 	return params
 }

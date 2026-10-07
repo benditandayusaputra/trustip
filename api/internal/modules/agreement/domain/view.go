@@ -13,11 +13,12 @@ type Person struct {
 }
 
 type View struct {
-	Agreement Agreement
-	Consignor Party
-	Store     Party
-	Proposer  Person
-	Acceptor  Person
+	Agreement           Agreement
+	IsPartnershipActive bool
+	Consignor           Party
+	Store               Party
+	Proposer            Person
+	Acceptor            Person
 }
 
 type PartnershipKey struct {
@@ -51,4 +52,10 @@ type SealedView struct {
 
 func (v View) SealCheck() SealCheck {
 	return SealCheck{DocumentType: EntityType, DocumentID: v.Agreement.ID, Content: v.Agreement.Content()}
+}
+
+type VersionKey struct {
+	OrganizationID string
+	PartnershipID  string
+	Version        int
 }

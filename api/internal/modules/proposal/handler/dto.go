@@ -19,6 +19,7 @@ type termsBody struct {
 
 type itemRequest struct {
 	ProductID     string `json:"product_id"`
+	Action        string `json:"action"`
 	PricingModel  string `json:"pricing_model"`
 	RetailPrice   int64  `json:"retail_price"`
 	CommissionBPS int    `json:"commission_bps"`
@@ -39,10 +40,13 @@ func (r invitationRequest) toInput() (domain.RevisionInput, error) {
 	}
 	items := make([]domain.ItemInput, 0, len(r.Items))
 	for _, item := range r.Items {
-		items = append(items, domain.ItemInput{ProductID: item.ProductID, Terms: pricing.TermsInput{
-			Model: item.PricingModel, RetailPrice: item.RetailPrice, CommissionBPS: item.CommissionBPS,
-			DepositPrice: item.DepositPrice,
-		}})
+		items = append(items, domain.ItemInput{
+			ProductID: item.ProductID, Action: item.Action,
+			Terms: pricing.TermsInput{
+				Model: item.PricingModel, RetailPrice: item.RetailPrice, CommissionBPS: item.CommissionBPS,
+				DepositPrice: item.DepositPrice,
+			},
+		})
 	}
 	return domain.RevisionInput{
 		Terms: terms.Input{

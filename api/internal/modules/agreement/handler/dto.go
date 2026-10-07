@@ -92,7 +92,7 @@ func toResponse(sealed domain.SealedView) agreementResponse {
 		Items: toItems(agreement.Items),
 		Trail: trailResponse{
 			ProposedBy: personResponse(view.Proposer), AcceptedBy: personResponse(view.Acceptor),
-			AcceptedAt: agreement.AcceptedAt.UTC().Format(time.RFC3339), SourceProposalID: agreement.SourceProposalID,
+			AcceptedAt: timestamp(agreement.AcceptedAt), SourceProposalID: agreement.SourceProposalID,
 			SourceProposalNumber: agreement.ProposalNumber,
 		},
 		Seal: toSealResponse(sealed.Seal),
@@ -122,8 +122,12 @@ func toSealResponse(verdict domain.SealVerdict) sealResponse {
 	for _, event := range verdict.Events {
 		events = append(events, sealEventResponse{
 			EventType: event.Event, ActorOrgName: event.ActorOrgName, ActorUserName: event.ActorUserName,
-			OccurredAt: event.At.UTC().Format(time.RFC3339), Code: event.Code,
+			OccurredAt: timestamp(event.At), Code: event.Code,
 		})
 	}
 	return sealResponse{IsValid: verdict.IsValid, Events: events}
+}
+
+func timestamp(at time.Time) string {
+	return at.UTC().Format(time.RFC3339)
 }

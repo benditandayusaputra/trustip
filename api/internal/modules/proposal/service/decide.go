@@ -57,11 +57,21 @@ func (f decisionFlow) record(ctx context.Context, proposal domain.Proposal, deci
 	if err != nil {
 		return fmt.Errorf("save decision: %w", err)
 	}
+	return f.announce(ctx, proposal, decision)
+}
+
+func (f decisionFlow) announce(ctx context.Context, proposal domain.Proposal, decision domain.Decision) error {
 	if !decision.IsAnnounced() {
 		return nil
 	}
-	if err := f.deps.Announcer.Announce(ctx, proposal.NoticeOf(decision)); err != nil {
-		return fmt.Errorf("announce decision: %w", err)
+	notices := []domain.Notice{proposal.NoticeOf(decision)}
+	if decision.AgreementVersion > 0 {
+		notices = append(notices, proposal.AgreementNotices(decision, decision.AgreementVersion)...)
+	}
+	for _, notice := range notices {
+		if err := f.deps.Announcer.Announce(ctx, notice); err != nil {
+			return fmt.Errorf("announce %s: %w", notice.Type, err)
+		}
 	}
 	return nil
 }
@@ -90,7 +100,10 @@ func (uc *AcceptProposal) accept(
 	if err != nil {
 		return domain.Decision{}, fmt.Errorf("accept: %w", err)
 	}
-	partnershipID, err := uc.flow.deps.Founder.Found(ctx, founding)
+	if proposal.Kind == domain.Amendment {
+		return uc.amend(ctx, decision, founding)
+	}
+	partnershipID, err := uc.flow.deps.Keeper.Found(ctx, founding)
 	if errors.Is(err, domain.ErrAlreadyPartners) {
 		return domain.Decision{}, apperror.New(apperror.CodeAlreadyPartners).
 			WithParam(organizationParam, proposal.CounterpartOf(decider.OrganizationID))
@@ -99,6 +112,18 @@ func (uc *AcceptProposal) accept(
 		return domain.Decision{}, fmt.Errorf("found agreement: %w", err)
 	}
 	decision.PartnershipID = partnershipID
+	return decision, nil
+}
+
+func (uc *AcceptProposal) amend(
+	ctx context.Context, decision domain.Decision, founding domain.Founding,
+) (domain.Decision, error) {
+	version, err := uc.flow.deps.Keeper.Amend(ctx, founding)
+	if err != nil {
+		return domain.Decision{}, fmt.Errorf("amend agreement: %w", err)
+	}
+	decision.PartnershipID = founding.PartnershipID
+	decision.AgreementVersion = version
 	return decision, nil
 }
 
