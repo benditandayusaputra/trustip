@@ -1,0 +1,196 @@
+version: "2"
+
+run:
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - errorlint
+    - wrapcheck
+    - nilnil
+    - nilerr
+    - bodyclose
+    - rowserrcheck
+    - sqlclosecheck
+    - noctx
+    - contextcheck
+    - exhaustive
+    - unused
+    - unparam
+    - ineffassign
+    - funlen
+    - gocyclo
+    - gocognit
+    - nestif
+    - dupl
+    - goconst
+    - mnd
+    - revive
+    - varnamelen
+    - interfacebloat
+    - gochecknoglobals
+    - gochecknoinits
+    - lll
+    - misspell
+    - depguard
+    - forbidigo
+    - gosec
+  settings:
+    funlen:
+      lines: 40
+      statements: 25
+      ignore-comments: false
+    gocyclo:
+      min-complexity: 10
+    gocognit:
+      min-complexity: 15
+    nestif:
+      min-complexity: 4
+    lll:
+      line-length: 120
+      tab-width: 4
+    interfacebloat:
+      max: 4
+    exhaustive:
+      default-signifies-exhaustive: false
+    varnamelen:
+      max-distance: 6
+      ignore-names:
+        - ctx
+        - err
+        - ok
+        - tx
+        - id
+        - i
+        - tc
+        - t
+        - b
+        - c
+      ignore-decls:
+        - t *testing.T
+        - b *testing.B
+        - c fiber.Ctx
+    revive:
+      rules:
+        - name: argument-limit
+          arguments: [4]
+        - name: function-result-limit
+          arguments: [3]
+        - name: flag-parameter
+        - name: max-control-nesting
+          arguments: [2]
+        - name: file-length-limit
+          arguments:
+            - max: 300
+              skipComments: false
+              skipBlankLines: false
+        - name: early-return
+        - name: indent-error-flow
+        - name: superfluous-else
+        - name: receiver-naming
+        - name: var-naming
+        - name: exported
+          disabled: true
+    forbidigo:
+      forbid:
+        - pattern: ^fmt\.Print.*$
+          msg: write through the injected logger or an io.Writer
+        - pattern: ^panic$
+          msg: panic is only allowed in cmd during startup
+        - pattern: ^time\.Now$
+          msg: read time through platform/clock
+      analyze-types: true
+    depguard:
+      rules:
+        pure-core:
+          files:
+            - "**/internal/kernel/**"
+            - "**/internal/modules/*/domain/**"
+          allow:
+            - $gostd
+            - github.com/benditandayusaputra/trustip/api/internal/kernel
+        service:
+          files:
+            - "**/internal/modules/*/service/**"
+          allow:
+            - $gostd
+            - github.com/benditandayusaputra/trustip/api/internal/kernel
+            - github.com/benditandayusaputra/trustip/api/internal/modules
+        repository:
+          files:
+            - "**/internal/modules/*/repository/**"
+          allow:
+            - $gostd
+            - github.com/benditandayusaputra/trustip/api/internal/kernel
+            - github.com/benditandayusaputra/trustip/api/internal/modules
+            - github.com/benditandayusaputra/trustip/api/internal/db/sqlc
+            - github.com/benditandayusaputra/trustip/api/internal/platform/database
+            - github.com/jackc/pgx
+        handler:
+          files:
+            - "**/internal/modules/*/handler/**"
+          allow:
+            - $gostd
+            - github.com/benditandayusaputra/trustip/api/internal/kernel
+            - github.com/benditandayusaputra/trustip/api/internal/modules
+            - github.com/benditandayusaputra/trustip/api/internal/platform/httpserver
+            - github.com/gofiber/fiber
+        platform:
+          files:
+            - "**/internal/platform/**"
+          deny:
+            - pkg: github.com/benditandayusaputra/trustip/api/internal/modules
+              desc: platform must not depend on modules
+        pgx-boundary:
+          files:
+            - $all
+            - "!**/internal/modules/*/repository/**"
+            - "!**/internal/platform/database/**"
+            - "!**/internal/db/sqlc/**"
+            - "!**/cmd/**"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: only repository and platform/database may import pgx
+        fiber-boundary:
+          files:
+            - $all
+            - "!**/internal/modules/*/handler/**"
+            - "!**/internal/platform/httpserver/**"
+            - "!**/cmd/**"
+          deny:
+            - pkg: github.com/gofiber/fiber
+              desc: only handler and platform/httpserver may import fiber
+  exclusions:
+    generated: strict
+    rules:
+      - path: _test\.go
+        linters:
+          - funlen
+          - dupl
+          - goconst
+          - mnd
+      - path: _test\.go
+        text: file-length-limit
+      - path: cmd/
+        text: "use of `panic` forbidden"
+      - path: internal/platform/clock/
+        text: "use of `time.Now` forbidden"
+      - path: cmd/nocomment/
+        text: "use of `fmt.Fprint"
+
+formatters:
+  enable:
+    - gofumpt
+    - gci
+  settings:
+    gofumpt:
+      module-path: github.com/benditandayusaputra/trustip/api
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
