@@ -71,10 +71,13 @@ func (i tokenIssuer) HashRefreshToken(plain string) []byte {
 
 func (i tokenIssuer) SignAccessToken(claims domain.AccessClaims) (string, error) {
 	token, err := i.signer.Sign(security.AccessClaims{
-		Subject:   claims.Subject,
-		SessionID: claims.SessionFamily,
-		IssuedAt:  claims.IssuedAt.Unix(),
-		ExpiresAt: claims.ExpiresAt.Unix(),
+		Subject:          claims.Subject,
+		SessionID:        claims.SessionFamily,
+		Organization:     claims.Membership.OrganizationID,
+		OrganizationType: string(claims.Membership.OrganizationType),
+		Role:             string(claims.Membership.Role),
+		IssuedAt:         claims.IssuedAt.Unix(),
+		ExpiresAt:        claims.ExpiresAt.Unix(),
 	})
 	if err != nil {
 		return "", fmt.Errorf("sign access token: %w", err)

@@ -10,6 +10,60 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Category struct {
+	ID        string
+	Name      string
+	Slug      string
+	SortOrder int32
+	CreatedAt time.Time
+}
+
+type ConsignorProfile struct {
+	OrganizationID       string
+	DeliveryRadiusKm     pgtype.Int4
+	DeliveryDays         []string
+	PreferredStoreTypes  []string
+	BusinessIDNo         string
+	DistributionPermitNo string
+	HalalCertNo          string
+	CanProvideSample     bool
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+}
+
+type Membership struct {
+	ID                string
+	OrganizationID    string
+	UserID            string
+	Role              string
+	IsActive          bool
+	CanHandlePayments bool
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+}
+
+type Organization struct {
+	ID             string
+	Type           string
+	Name           string
+	Slug           string
+	Description    string
+	Whatsapp       string
+	Address        string
+	District       string
+	CityCode       string
+	CityName       string
+	Location       interface{}
+	LocationPublic interface{}
+	IsListed       bool
+	Status         string
+	IsDemo         bool
+	LastActiveAt   pgtype.Timestamptz
+	PaymentInfo    string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type Session struct {
 	ID        string
 	UserID    string
@@ -19,6 +73,27 @@ type Session struct {
 	RotatedAt pgtype.Timestamptz
 	RevokedAt pgtype.Timestamptz
 	CreatedAt time.Time
+}
+
+type StoreAcceptedCategory struct {
+	OrganizationID string
+	CategoryID     string
+}
+
+type StoreProfile struct {
+	OrganizationID             string
+	StoreType                  pgtype.Text
+	OpeningHours               string
+	AcceptsFixedDeposit        bool
+	AcceptsCommission          bool
+	CommissionMinBps           pgtype.Int4
+	CommissionMaxBps           pgtype.Int4
+	RequiresDistributionPermit bool
+	RequiresHalal              bool
+	RequiresSample             bool
+	OtherRequirements          string
+	CreatedAt                  time.Time
+	UpdatedAt                  time.Time
 }
 
 type User struct {

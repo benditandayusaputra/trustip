@@ -22,12 +22,13 @@ func newTokenIssuer(jwtKeys security.SecretRing) tokenIssuer {
 
 func newRefreshSession(components authComponents) *service.RefreshSession {
 	return service.NewRefreshSession(service.RefreshDeps{
-		Sessions: components.sessions,
-		Tokens:   components.tokens,
-		Access:   components.revoked,
-		Tx:       components.tx,
-		Clock:    components.clock,
-		IDs:      components.ids,
+		Sessions:    components.sessions,
+		Tokens:      components.tokens,
+		Memberships: components.memberships,
+		Access:      components.revoked,
+		Tx:          components.tx,
+		Clock:       components.clock,
+		IDs:         components.ids,
 	})
 }
 
@@ -73,5 +74,13 @@ func (v accessVerifier) VerifyAccess(token string) (actor.Actor, error) {
 	if v.revoked.IsRevoked(claims.SessionID) {
 		return actor.Actor{}, errSessionFamilyRevoked
 	}
-	return actor.Actor{UserID: claims.Subject, SessionFamily: claims.SessionID}, nil
+	return actor.Actor{UserID: claims.Subject, SessionFamily: claims.SessionID, Membership: membershipOf(claims)}, nil
+}
+
+func membershipOf(claims security.AccessClaims) actor.Membership {
+	return actor.Membership{
+		OrganizationID:   claims.Organization,
+		OrganizationType: actor.OrganizationType(claims.OrganizationType),
+		Role:             actor.Role(claims.Role),
+	}
 }

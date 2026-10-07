@@ -7,6 +7,7 @@ import (
 
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/repository"
+	orgrepository "github.com/benditandayusaputra/trustip/api/internal/modules/org/repository"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database/dbtest"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
@@ -26,7 +27,8 @@ func databaseBrowser(t *testing.T) *browser {
 	components := authComponents{
 		captcha: acceptSolvedCaptcha{}, passwords: passwordHasher{hasher: hasher},
 		users: users, accounts: users, credentials: users, sessions: sessions, userSessions: sessions,
-		tokens: newTokenIssuer(testPepper{}), accessKeys: testPepper{}, revoked: revocation.New(now), tx: pool,
+		tokens: newTokenIssuer(testPepper{}), memberships: orgrepository.NewMemberships(pool),
+		accessKeys: testPepper{}, revoked: revocation.New(now), tx: pool,
 		clock: now, ids: idgen.UUIDv7{}, cookies: authhandler.LocalCookies(),
 	}
 	server := newTestServerWith(alwaysReady, now, components)

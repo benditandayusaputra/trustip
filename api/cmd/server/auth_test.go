@@ -14,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
@@ -169,6 +170,12 @@ func (m *memorySessions) update(change func(*domain.StoredSession)) {
 	}
 }
 
+type memoryMemberships struct{}
+
+func (memoryMemberships) FindMembership(context.Context, string) (actor.Membership, bool, error) {
+	return actor.Membership{}, false, nil
+}
+
 type inlineTx struct{}
 
 func (inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
@@ -191,6 +198,7 @@ func testAuthComponents(now *clock.Manual) authComponents {
 		sessions:     sessions,
 		userSessions: sessions,
 		tokens:       newTokenIssuer(testPepper{}),
+		memberships:  memoryMemberships{},
 		accessKeys:   testPepper{},
 		revoked:      revocation.New(now),
 		tx:           inlineTx{},

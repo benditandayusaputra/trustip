@@ -31,7 +31,10 @@ func (uc *LoginUser) startSession(ctx context.Context, login successfulLogin) (L
 	}); err != nil {
 		return LoginResult{}, fmt.Errorf("start session for %s: %w", userID, err)
 	}
-	claims := domain.NewAccessClaims(userID, identity.FamilyID, login.now)
+	claims, err := uc.claimsFor(ctx, identity, login.now)
+	if err != nil {
+		return LoginResult{}, err
+	}
 	access, err := uc.deps.Tokens.SignAccessToken(claims)
 	if err != nil {
 		return LoginResult{}, fmt.Errorf("sign access token: %w", err)
@@ -43,6 +46,18 @@ func (uc *LoginUser) startSession(ctx context.Context, login successfulLogin) (L
 			Refresh: refresh.Plain, RefreshExpires: session.ExpiresAt,
 		},
 	}, nil
+}
+
+func (uc *LoginUser) claimsFor(
+	ctx context.Context, identity domain.SessionIdentity, now time.Time,
+) (domain.AccessClaims, error) {
+	claims := domain.NewAccessClaims(identity.UserID, identity.FamilyID, now)
+	membership, _, err := uc.deps.Memberships.FindMembership(ctx, identity.UserID)
+	if err != nil {
+		return domain.AccessClaims{}, fmt.Errorf("find membership for access token: %w", err)
+	}
+	claims.Membership = membership
+	return claims, nil
 }
 
 func (uc *LoginUser) newSessionIdentity(userID string) (domain.SessionIdentity, error) {

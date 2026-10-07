@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 )
 
@@ -44,6 +45,10 @@ type UserSessionRevoker interface {
 
 type AccessRevoker interface {
 	Revoke(familyID string, until time.Time)
+}
+
+type MembershipFinder interface {
+	FindMembership(ctx context.Context, userID string) (actor.Membership, bool, error)
 }
 
 type Transactor interface {

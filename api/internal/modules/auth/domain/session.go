@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
+)
 
 const (
 	RefreshTokenLifetime = 30 * 24 * time.Hour
@@ -37,6 +41,7 @@ type RefreshToken struct {
 type AccessClaims struct {
 	Subject       string
 	SessionFamily string
+	Membership    actor.Membership
 	IssuedAt      time.Time
 	ExpiresAt     time.Time
 }

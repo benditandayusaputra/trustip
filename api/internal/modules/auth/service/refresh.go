@@ -10,12 +10,13 @@ import (
 )
 
 type RefreshDeps struct {
-	Sessions SessionRotator
-	Tokens   TokenIssuer
-	Access   AccessRevoker
-	Tx       Transactor
-	Clock    Clock
-	IDs      IDGenerator
+	Sessions    SessionRotator
+	Tokens      TokenIssuer
+	Memberships MembershipFinder
+	Access      AccessRevoker
+	Tx          Transactor
+	Clock       Clock
+	IDs         IDGenerator
 }
 
 type RefreshSession struct {
@@ -67,7 +68,7 @@ func (uc *RefreshSession) decide(ctx context.Context, presented string, now time
 	case domain.RefreshRotate:
 		return uc.rotate(ctx, session, presented, now)
 	case domain.RefreshReplay:
-		return uc.issue(session, uc.deps.Tokens.SuccessorOf(presented), session.RotatedAt)
+		return uc.issue(ctx, session, uc.deps.Tokens.SuccessorOf(presented), session.RotatedAt)
 	case domain.RefreshReuseDetected:
 		return uc.revoke(ctx, session, now)
 	case domain.RefreshRejected:
@@ -89,13 +90,18 @@ func (uc *RefreshSession) rotate(
 	if err := uc.deps.Sessions.CreateSession(ctx, session.Rotate(successorID, successor.Hash, now)); err != nil {
 		return refreshOutcome{}, fmt.Errorf("create successor session: %w", err)
 	}
-	return uc.issue(session, successor, now)
+	return uc.issue(ctx, session, successor, now)
 }
 
 func (uc *RefreshSession) issue(
-	session domain.StoredSession, refresh domain.RefreshToken, issuedAt time.Time,
+	ctx context.Context, session domain.StoredSession, refresh domain.RefreshToken, issuedAt time.Time,
 ) (refreshOutcome, error) {
+	membership, _, err := uc.deps.Memberships.FindMembership(ctx, session.UserID)
+	if err != nil {
+		return refreshOutcome{}, fmt.Errorf("find membership for access token: %w", err)
+	}
 	claims := domain.NewAccessClaims(session.UserID, session.FamilyID, issuedAt)
+	claims.Membership = membership
 	access, err := uc.deps.Tokens.SignAccessToken(claims)
 	if err != nil {
 		return refreshOutcome{}, fmt.Errorf("sign access token: %w", err)

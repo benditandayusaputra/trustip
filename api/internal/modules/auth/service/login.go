@@ -17,6 +17,7 @@ type LoginDeps struct {
 	Credentials CredentialStore
 	Sessions    SessionCreator
 	Tokens      TokenIssuer
+	Memberships MembershipFinder
 	Tx          Transactor
 	Clock       Clock
 	IDs         IDGenerator

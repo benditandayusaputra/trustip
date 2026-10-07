@@ -9,6 +9,7 @@ import (
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/repository"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
+	orgrepository "github.com/benditandayusaputra/trustip/api/internal/modules/org/repository"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/captcha"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -39,6 +40,7 @@ type authComponents struct {
 	sessions     service.SessionRotator
 	userSessions service.UserSessionRevoker
 	tokens       service.TokenIssuer
+	memberships  service.MembershipFinder
 	revoked      *revocation.List
 	accessKeys   security.SecretRing
 	tx           service.Transactor
@@ -63,6 +65,7 @@ func buildAuthComponents(cfg config.Config, pool *database.Pool, clock service.C
 		sessions:     sessions,
 		userSessions: sessions,
 		tokens:       newTokenIssuer(cfg.JWTKeys),
+		memberships:  orgrepository.NewMemberships(pool),
 		accessKeys:   cfg.JWTKeys,
 		revoked:      revocation.New(clock),
 		tx:           pool,
@@ -133,6 +136,7 @@ func newLoginUser(components authComponents) *service.LoginUser {
 		Credentials: components.credentials,
 		Sessions:    components.sessions,
 		Tokens:      components.tokens,
+		Memberships: components.memberships,
 		Tx:          components.tx,
 		Clock:       components.clock,
 		IDs:         components.ids,

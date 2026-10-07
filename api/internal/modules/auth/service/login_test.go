@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
@@ -99,6 +100,21 @@ func (f *fakeTokens) SignAccessToken(claims domain.AccessClaims) (string, error)
 	return "signed-access", nil
 }
 
+type fakeMemberships struct{ byUser map[string]actor.Membership }
+
+func (f *fakeMemberships) FindMembership(_ context.Context, userID string) (actor.Membership, bool, error) {
+	membership, ok := f.byUser[userID]
+	return membership, ok, nil
+}
+
+func storeOwnerMembership() actor.Membership {
+	return actor.Membership{
+		OrganizationID:   "0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c",
+		OrganizationType: actor.Store,
+		Role:             actor.Owner,
+	}
+}
+
 type inlineTx struct{ count int }
 
 func (tx *inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
@@ -119,6 +135,7 @@ type loginFixture struct {
 	passwords   *fakePasswords
 	sessions    *fakeSessions
 	tokens      *fakeTokens
+	memberships *fakeMemberships
 	useCase     *service.LoginUser
 }
 
@@ -132,9 +149,10 @@ func newLoginFixture(attempts domain.LoginAttempts) loginFixture {
 			Password: domain.StoredPassword{Hash: "$argon2id$" + acceptableInput, PepperVersion: "v1"},
 			Attempts: attempts,
 		}}},
-		passwords: &fakePasswords{},
-		sessions:  &fakeSessions{},
-		tokens:    &fakeTokens{},
+		passwords:   &fakePasswords{},
+		sessions:    &fakeSessions{},
+		tokens:      &fakeTokens{},
+		memberships: &fakeMemberships{byUser: map[string]actor.Membership{}},
 	}
 	fixture.useCase = service.NewLoginUser(service.LoginDeps{
 		Captcha:     fixture.captcha,
@@ -142,6 +160,7 @@ func newLoginFixture(attempts domain.LoginAttempts) loginFixture {
 		Credentials: fixture.credentials,
 		Sessions:    fixture.sessions,
 		Tokens:      fixture.tokens,
+		Memberships: fixture.memberships,
 		Tx:          &inlineTx{},
 		Clock:       fixedClock{now: testNow()},
 		IDs:         &sequenceIDs{},
@@ -256,7 +275,20 @@ func TestLogin_RSEC16_AccessTokenNamesUserAndSessionFamily(t *testing.T) {
 
 	claims := fixture.tokens.signed[0]
 	if claims.Subject != knownUserID || claims.SessionFamily != "family-1" ||
-		!result.Tokens.AccessExpires.Equal(claims.ExpiresAt) {
+		!result.Tokens.AccessExpires.Equal(claims.ExpiresAt) || claims.Membership != (actor.Membership{}) {
+		t.Fatalf("claims = %+v", claims)
+	}
+}
+
+func TestLogin_RSEC16_AccessTokenCarriesTheMembership(t *testing.T) {
+	fixture := newLoginFixture(domain.LoginAttempts{})
+	fixture.memberships.byUser[knownUserID] = storeOwnerMembership()
+
+	if _, err := fixture.useCase.Execute(t.Context(), loginCommand("sari@contoh.id", acceptableInput)); err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+
+	if claims := fixture.tokens.signed[0]; claims.Membership != storeOwnerMembership() {
 		t.Fatalf("claims = %+v", claims)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
@@ -57,6 +58,7 @@ type refreshFixture struct {
 	tokens   *fakeTokens
 	access   *fakeAccessRevoker
 	tx       *inlineTx
+	members  *fakeMemberships
 	useCase  *service.RefreshSession
 }
 
@@ -74,17 +76,19 @@ func newRefreshFixture(stored ...domain.StoredSession) refreshFixture {
 		tokens:   &fakeTokens{},
 		access:   &fakeAccessRevoker{until: map[string]time.Time{}},
 		tx:       &inlineTx{},
+		members:  &fakeMemberships{byUser: map[string]actor.Membership{}},
 	}
 	for _, session := range stored {
 		fixture.sessions.byHash[string(fixture.tokens.HashRefreshToken(presentedCookie))] = session
 	}
 	fixture.useCase = service.NewRefreshSession(service.RefreshDeps{
-		Sessions: fixture.sessions,
-		Tokens:   fixture.tokens,
-		Access:   fixture.access,
-		Tx:       fixture.tx,
-		Clock:    fixedClock{now: testNow()},
-		IDs:      &sequenceIDs{},
+		Sessions:    fixture.sessions,
+		Tokens:      fixture.tokens,
+		Memberships: fixture.members,
+		Access:      fixture.access,
+		Tx:          fixture.tx,
+		Clock:       fixedClock{now: testNow()},
+		IDs:         &sequenceIDs{},
 	})
 	return fixture
 }
@@ -156,5 +160,18 @@ func TestRefresh_ExpiredSession_IsRejectedWithoutRotation(t *testing.T) {
 
 	if errorCode(err) != apperror.CodeSessionExpired || len(fixture.sessions.created) != 0 {
 		t.Fatalf("err = %v, created = %d", err, len(fixture.sessions.created))
+	}
+}
+
+func TestRefresh_RSEC16_RenewedTokenCarriesTheCurrentMembership(t *testing.T) {
+	fixture := newRefreshFixture(storedSession(time.Time{}))
+	fixture.members.byUser[knownUserID] = storeOwnerMembership()
+
+	if _, err := fixture.useCase.Execute(t.Context(), presentedCookie); err != nil {
+		t.Fatalf("refresh: %v", err)
+	}
+
+	if claims := fixture.tokens.signed[0]; claims.Membership != storeOwnerMembership() {
+		t.Fatalf("claims = %+v", claims)
 	}
 }
