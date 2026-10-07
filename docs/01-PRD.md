@@ -371,7 +371,6 @@ Tiga tuntutan tantangan lomba:
 | Lokasi rumah produsen tersebar | Risiko privasi | Lokasi penitip dibulatkan untuk umum, alamat lengkap hanya untuk mitra |
 | Lingkup besar | Banyak fitur setengah jadi | P0 bergerbang: tiap tahap harus lulus uji ujung ke ujung sebelum tahap berikutnya. P1 tidak disentuh sebelum P0 lulus |
 | Kuota basis data gratis habis | Aplikasi mati saat dinilai | Berkas di luar basis data, tanpa polling, penjaga hidup hanya pada jam penjurian |
-| Aturan orisinalitas lomba | Diskualifikasi | Kode ditulis dari nol, pustaka pihak ketiga didaftar. Tanyakan ke panitia soal alat bantu AI (bagian 18) |
 | Angka hasil hitung salah | Kehilangan kepercayaan juri dan pengguna | Fungsi uang dan stok adalah fungsi murni dengan kasus uji tetap, termasuk pembulatan |
 | Catatan luring bentrok dengan data terbaru | Angka stok salah | Server menolak catatan yang dasarnya sudah berubah dan pengguna meninjaunya di samping keadaan terbaru. Urutan kirim dijaga per kemitraan |
 
@@ -439,12 +438,11 @@ Dua aturan yang memengaruhi cara kerja:
 
 ## 18. Pertanyaan terbuka
 
-1. Apakah alat bantu AI untuk menulis kode diperbolehkan, dan perlu dicantumkan? Guidebook tidak mengaturnya, sedangkan karya disyaratkan buatan sendiri. Minta jawaban tertulis dari panitia.
-2. Apakah tiga anggota tim harus dari perguruan tinggi yang sama? Tata cara pendaftaran menulis wajib sama, syarat dan ketentuan menulis boleh berbeda.
-3. Bolehkah mulai menulis kode sebelum 19 Oktober?
-4. Berapa biaya pendaftaran? Nominalnya kosong di guidebook.
-5. Apakah nama "Trustip" sudah dipakai produk lain, dan apakah domainnya tersedia? Ada layanan transaksi bernama mirip, Trustap.
-6. Di wilayah mana data contoh dan uji pengguna dilakukan?
+1. Apakah tiga anggota tim harus dari perguruan tinggi yang sama? Tata cara pendaftaran menulis wajib sama, syarat dan ketentuan menulis boleh berbeda.
+2. Bolehkah mulai menulis kode sebelum 19 Oktober?
+3. Berapa biaya pendaftaran? Nominalnya kosong di guidebook.
+4. Apakah nama "Trustip" sudah dipakai produk lain, dan apakah domainnya tersedia? Ada layanan transaksi bernama mirip, Trustap.
+5. Di wilayah mana data contoh dan uji pengguna dilakukan?
 
 ## Lampiran A. Panduan wawancara (15 sampai 20 menit)
 

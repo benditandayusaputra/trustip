@@ -1286,7 +1286,7 @@ Arah tampilan ditetapkan di `DESIGN.md`. Ringkasnya:
 
 **Data contoh**
 
-Wilayah: satu kecamatan yang dipilih tim (PRD bagian 18 butir 6), supaya jarak di direktori masuk akal.
+Wilayah: satu kecamatan yang dipilih tim (PRD bagian 18 butir 5), supaya jarak di direktori masuk akal.
 
 | Jenis | Isi |
 |---|---|
