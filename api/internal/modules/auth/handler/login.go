@@ -24,12 +24,12 @@ func login(authenticator Authenticator, cookies CookiePolicy) fiber.Handler {
 		if err := httpserver.DecodeJSON(c, &request); err != nil {
 			return fmt.Errorf("read login: %w", err)
 		}
-		email := normalizeField("email", request.Email)
-		if err := rejectForbiddenCharacters(email); err != nil {
-			return err
+		email := httpserver.LineInput("email", request.Email)
+		if err := httpserver.RejectUncleanInputs(email); err != nil {
+			return fmt.Errorf("check login email: %w", err)
 		}
 		result, err := authenticator.Execute(c.Context(), service.LoginCommand{
-			Email:        strings.ToLower(email.value),
+			Email:        strings.ToLower(email.Value),
 			Password:     httpserver.NormalizePassword(request.Password),
 			CaptchaToken: request.CaptchaToken,
 			ClientIP:     httpserver.ClientIP(c),

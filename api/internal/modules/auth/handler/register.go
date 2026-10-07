@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
@@ -46,48 +45,24 @@ func register(registrar Registrar) fiber.Handler {
 	}
 }
 
-type normalizedField struct {
-	name  string
-	value string
-	ok    bool
-}
-
 func (r registerRequest) toCommand(clientIP string) (service.RegisterCommand, error) {
-	fullName := normalizeField("full_name", r.FullName)
-	email := normalizeField("email", r.Email)
-	whatsApp := normalizeField("whatsapp", r.WhatsApp)
-	if err := rejectForbiddenCharacters(fullName, email, whatsApp); err != nil {
-		return service.RegisterCommand{}, err
+	fullName := httpserver.LineInput("full_name", r.FullName)
+	email := httpserver.LineInput("email", r.Email)
+	whatsApp := httpserver.LineInput("whatsapp", r.WhatsApp)
+	if err := httpserver.RejectUncleanInputs(fullName, email, whatsApp); err != nil {
+		return service.RegisterCommand{}, fmt.Errorf("check registration text: %w", err)
 	}
 	return service.RegisterCommand{
 		Form: domain.RegistrationForm{
-			FullName:        fullName.value,
-			Email:           strings.ToLower(email.value),
+			FullName:        fullName.Value,
+			Email:           strings.ToLower(email.Value),
 			Password:        httpserver.NormalizePassword(r.Password),
-			WhatsApp:        whatsApp.value,
+			WhatsApp:        whatsApp.Value,
 			PrivacyAccepted: r.PrivacyAccepted,
 		},
 		CaptchaToken: r.CaptchaToken,
 		ClientIP:     clientIP,
 	}, nil
-}
-
-func normalizeField(name, raw string) normalizedField {
-	value, ok := httpserver.NormalizeLine(raw)
-	return normalizedField{name: name, value: value, ok: ok}
-}
-
-func rejectForbiddenCharacters(fields ...normalizedField) error {
-	var problems []apperror.FieldError
-	for _, field := range fields {
-		if !field.ok {
-			problems = append(problems, apperror.InvalidField(field.name, apperror.FieldInvalidCharacters))
-		}
-	}
-	if len(problems) > 0 {
-		return apperror.Validation(problems...)
-	}
-	return nil
 }
 
 func toAccountResponse(user domain.User) accountResponse {
