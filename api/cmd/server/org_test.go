@@ -110,6 +110,25 @@ func (m *memoryProfiles) UpdatePaymentInfo(_ context.Context, change domain.Paym
 	return nil
 }
 
+func (m *memoryProfiles) GetListingFacts(_ context.Context, organizationID string) (domain.ListingFacts, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	settings := m.settings[organizationID]
+	return domain.ListingFacts{
+		Type: settings.Type, HasName: settings.Profile.Name != "", HasCity: settings.Profile.CityCode != "",
+		HasLocation: settings.Profile.HasLocation,
+	}, nil
+}
+
+func (m *memoryProfiles) SetListed(_ context.Context, change domain.ListingChange) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	settings := m.settings[change.OrganizationID]
+	settings.Listing.IsListed = change.IsListed
+	m.settings[change.OrganizationID] = settings
+	return nil
+}
+
 func (memoryRegions) ListCategories(context.Context) ([]domain.Category, error) {
 	return []domain.Category{{ID: breadCategoryID, Name: "Roti dan kue basah", Slug: "roti-dan-kue-basah"}}, nil
 }
@@ -123,7 +142,7 @@ func testOrgComponents(now *clock.Manual) orgComponents {
 	profiles := &memoryProfiles{settings: map[string]domain.Settings{memberOrganizationID: store}}
 	return orgComponents{
 		founder: &memoryFounder{}, regions: memoryRegions{}, categories: memoryRegions{}, tx: inlineTx{},
-		clock: now, ids: idgen.NewSequence(), profiles: profiles, sections: profiles,
+		clock: now, ids: idgen.NewSequence(), profiles: profiles, sections: profiles, listings: profiles,
 	}
 }
 
@@ -378,4 +397,28 @@ func TestUpdatePaymentInfo_FRORG07_StoreGetsNotFound(t *testing.T) {
 		`{"payment_info":"BCA 123","payment_qr_file_id":null}`)
 
 	requireCode(t, got, "NOT_FOUND")
+}
+
+func TestSetListing_BRORG05_IncompleteStoreIsRefusedWithTheMissingList(t *testing.T) {
+	visitor := memberBrowser(t, storeOwner())
+
+	got := visitor.patch(organizationsPath+"/"+memberOrganizationID+"/listing", `{"is_listed":true}`)
+
+	requireCode(t, got, "PROFILE_INCOMPLETE")
+	if !strings.Contains(string(got.body), "Lengkapi profil dulu: nama usaha, kota, lokasi") {
+		t.Fatalf("body = %s", got.body)
+	}
+	loadContract(t).requireConforms(t, got)
+}
+
+func TestSetListing_FRORG06_HidingIsAlwaysAllowed(t *testing.T) {
+	visitor := memberBrowser(t, storeOwner())
+
+	got := visitor.patch(organizationsPath+"/"+memberOrganizationID+"/listing", `{"is_listed":false}`)
+
+	requireCode(t, got, "OK")
+	if !strings.Contains(string(got.body), `"listing":{"is_listed":false,"percent":`) {
+		t.Fatalf("body = %s", got.body)
+	}
+	loadContract(t).requireConforms(t, got)
 }

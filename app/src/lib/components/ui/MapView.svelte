@@ -12,10 +12,11 @@
 	interface Props {
 		center: GeoPoint;
 		label: string;
+		unavailableText: string;
 		onmove: (center: GeoPoint) => void;
 	}
 
-	let { center, label, onmove }: Props = $props();
+	let { center, label, unavailableText, onmove }: Props = $props();
 
 	const tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 	const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
@@ -25,21 +26,26 @@
 
 	let container: HTMLDivElement;
 	let map = $state<LeafletMap>();
+	let isUnavailable = $state(false);
 
 	onMount(() => {
 		let isMounted = true;
-		void import('leaflet').then((leaflet) => {
-			if (!isMounted) {
-				return;
-			}
-			const created = leaflet.map(container, { keyboard: true, zoomControl: true });
-			created.setView([center.latitude, center.longitude], streetZoom);
-			leaflet.tileLayer(tileUrl, { attribution, maxZoom: maxTileZoom }).addTo(created);
-			created.on('moveend', () => {
-				reportMove(created);
+		import('leaflet')
+			.then((leaflet) => {
+				if (!isMounted) {
+					return;
+				}
+				const created = leaflet.map(container, { keyboard: true, zoomControl: true });
+				created.setView([center.latitude, center.longitude], streetZoom);
+				leaflet.tileLayer(tileUrl, { attribution, maxZoom: maxTileZoom }).addTo(created);
+				created.on('moveend', () => {
+					reportMove(created);
+				});
+				map = created;
+			})
+			.catch(() => {
+				isUnavailable = isMounted;
 			});
-			map = created;
-		});
 		return () => {
 			isMounted = false;
 			map?.remove();
@@ -69,6 +75,9 @@
 	});
 </script>
 
+{#if isUnavailable}
+	<p role="status" class="text-sm text-warning">{unavailableText}</p>
+{/if}
 <div class="relative overflow-hidden rounded-control border border-border-strong">
 	<div
 		bind:this={container}

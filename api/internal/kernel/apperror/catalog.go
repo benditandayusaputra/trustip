@@ -23,6 +23,7 @@ const (
 	CodeNotFound             Code = "NOT_FOUND"
 	CodeCaptchaFailed        Code = "CAPTCHA_FAILED"
 	CodeOrganizationExists   Code = "ORGANIZATION_EXISTS"
+	CodeProfileIncomplete    Code = "PROFILE_INCOMPLETE"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -69,6 +70,9 @@ func requestEntries() map[Code]entry {
 			"Jenis isi permintaan tidak didukung.",
 		},
 		CodeCaptchaFailed: {KindValidation, http.StatusUnprocessableEntity, "Verifikasi keamanan gagal. Coba lagi."},
+		CodeProfileIncomplete: {
+			KindValidation, http.StatusUnprocessableEntity, "Lengkapi profil dulu: {daftar}.",
+		},
 	}
 }
 

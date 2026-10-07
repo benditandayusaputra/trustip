@@ -43,3 +43,8 @@ type ProfileSectionStore interface {
 type CategoryReader interface {
 	ListCategories(ctx context.Context) ([]domain.Category, error)
 }
+
+type ListingStore interface {
+	GetListingFacts(ctx context.Context, organizationID string) (domain.ListingFacts, error)
+	SetListed(ctx context.Context, change domain.ListingChange) error
+}

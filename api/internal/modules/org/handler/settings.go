@@ -95,6 +95,7 @@ func toSettingsResponse(settings domain.Settings, filesBaseURL string) organizat
 		Slug:       settings.Slug,
 		CityName:   settings.CityName,
 	})
+	response.Listing = toListingResponse(settings.Listing)
 	if settings.Logo.ID != "" {
 		response.Logo = &imageRef{ID: settings.Logo.ID, URL: filesBaseURL + "/" + settings.Logo.StorageKey}
 	}

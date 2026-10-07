@@ -525,6 +525,56 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/organizations/{id}/listing:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    patch:
+      operationId: setListing
+      tags: [org]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListingRequest"
+      responses:
+        "200":
+          description: Status tampil di Cari Mitra tersimpan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/categories:
     get:
       operationId: listCategories
@@ -858,6 +908,7 @@ components:
         - NOT_FOUND
         - CAPTCHA_FAILED
         - ORGANIZATION_EXISTS
+        - PROFILE_INCOMPLETE
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -1057,7 +1108,7 @@ components:
       additionalProperties: false
       required:
         [id, type, name, slug, description, whatsapp, city_code, city_name, district, address, location, logo,
-         store_profile, consignor_profile, payment]
+         store_profile, consignor_profile, payment, listing]
       properties:
         id:
           type: string
@@ -1101,6 +1152,44 @@ components:
           nullable: true
           allOf:
             - $ref: "#/components/schemas/PaymentInfo"
+        listing:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Listing"
+    ListingRequest:
+      type: object
+      additionalProperties: false
+      required: [is_listed]
+      properties:
+        is_listed:
+          type: boolean
+    Listing:
+      type: object
+      additionalProperties: false
+      required: [is_listed, percent, items]
+      properties:
+        is_listed:
+          type: boolean
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [requirement, is_required, is_done]
+            properties:
+              requirement:
+                type: string
+                enum:
+                  [NAME, CITY, LOCATION, STORE_TYPE, ACCEPTED_CATEGORY, ACTIVE_PRODUCT, DESCRIPTION, LOGO,
+                   STORE_PHOTO, PAYMENT_INFO]
+              is_required:
+                type: boolean
+              is_done:
+                type: boolean
     ConsignorProfile:
       type: object
       additionalProperties: false

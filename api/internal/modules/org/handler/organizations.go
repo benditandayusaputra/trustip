@@ -46,6 +46,7 @@ type organizationResponse struct {
 	StoreProfile     *storeProfileResponse `json:"store_profile"`
 	ConsignorProfile *consignorProfileBody `json:"consignor_profile"`
 	Payment          *paymentResponse      `json:"payment"`
+	Listing          *listingResponse      `json:"listing"`
 }
 
 func createOrganization(creator Creator) fiber.Handler {

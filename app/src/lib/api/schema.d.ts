@@ -236,6 +236,24 @@ export interface paths {
         patch: operations["updatePaymentInfo"];
         trace?: never;
     };
+    "/api/v1/organizations/{id}/listing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["setListing"];
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -337,7 +355,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -442,6 +460,20 @@ export interface components {
             store_profile: components["schemas"]["StoreProfile"] | null;
             consignor_profile: components["schemas"]["ConsignorProfile"] | null;
             payment: components["schemas"]["PaymentInfo"] | null;
+            listing: components["schemas"]["Listing"] | null;
+        };
+        ListingRequest: {
+            is_listed: boolean;
+        };
+        Listing: {
+            is_listed: boolean;
+            percent: number;
+            items: {
+                /** @enum {string} */
+                requirement: "NAME" | "CITY" | "LOCATION" | "STORE_TYPE" | "ACCEPTED_CATEGORY" | "ACTIVE_PRODUCT" | "DESCRIPTION" | "LOGO" | "STORE_PHOTO" | "PAYMENT_INFO";
+                is_required: boolean;
+                is_done: boolean;
+            }[];
         };
         ConsignorProfile: {
             delivery_radius_km: number | null;
@@ -1148,6 +1180,45 @@ export interface operations {
         };
         responses: {
             /** @description Info pembayaran penitip tersimpan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    setListing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingRequest"];
+            };
+        };
+        responses: {
+            /** @description Status tampil di Cari Mitra tersimpan */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["RequestId"];

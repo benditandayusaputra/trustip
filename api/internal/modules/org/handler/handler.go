@@ -17,6 +17,7 @@ const (
 	storeProfilePath  = organizationPath + "/store-profile"
 	consignorPath     = organizationPath + "/consignor-profile"
 	paymentInfoPath   = organizationPath + "/payment-info"
+	listingPath       = organizationPath + "/listing"
 	categoriesPath    = "/categories"
 	provincesPath     = "/provinces"
 	citiesPath        = "/cities"
@@ -42,6 +43,7 @@ type Deps struct {
 	EditStore     StoreProfileEditor
 	EditConsignor ConsignorProfileEditor
 	EditPayment   PaymentInfoEditor
+	EditListing   ListingEditor
 	Categories    CategoryLister
 	FilesBaseURL  string
 	Provinces     ProvinceLister
@@ -59,6 +61,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Patch(consignorPath, deps.Authenticate, writeLimit,
 		updateConsignorProfile(deps.EditConsignor, deps.FilesBaseURL))
 	api.Patch(paymentInfoPath, deps.Authenticate, writeLimit, updatePaymentInfo(deps.EditPayment, deps.FilesBaseURL))
+	api.Patch(listingPath, deps.Authenticate, writeLimit, setListing(deps.EditListing, deps.FilesBaseURL))
 	api.Get(categoriesPath, listCategories(deps.Categories))
 	api.Get(provincesPath, listProvinces(deps.Provinces))
 	api.Get(citiesPath, listCities(deps.Cities))

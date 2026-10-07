@@ -21,6 +21,7 @@ export const organization = {
 		addressHint: 'Opsional. Alamat lengkap penitip hanya terlihat oleh toko mitra.',
 		mapLabel: 'Peta lokasi usaha. Geser peta dengan tombol panah sampai pin tepat di lokasi.',
 		mapHint: 'Opsional. Geser peta sampai pin tepat di lokasi usaha Anda.',
+		mapUnavailable: 'Peta tidak bisa dimuat. Gunakan lokasi perangkat atau coba lagi nanti.',
 		useMyLocation: 'Gunakan lokasi saya',
 		locationDenied: 'Lokasi perangkat tidak bisa dipakai. Geser peta untuk menandai lokasi.',
 		pinned: 'Lokasi ditandai.',
@@ -124,5 +125,27 @@ export const organization = {
 		qrAlt: 'QRIS pembayaran',
 		save: 'Simpan info pembayaran',
 		saved: 'Info pembayaran tersimpan.'
+	},
+	listing: {
+		title: 'Tampil di Cari Mitra',
+		switchLabel: 'Tampilkan usaha saya di Cari Mitra',
+		description: 'Usaha baru bisa tampil setelah semua butir wajib terisi.',
+		meter: (percent: number) => `Kelengkapan profil ${String(percent)}%`,
+		required: 'Wajib untuk tampil',
+		done: 'Sudah diisi',
+		listed: 'Usaha Anda tampil di Cari Mitra.',
+		hidden: 'Usaha Anda tidak tampil di Cari Mitra.',
+		requirements: {
+			NAME: 'Nama usaha',
+			CITY: 'Kota',
+			LOCATION: 'Lokasi di peta',
+			STORE_TYPE: 'Jenis toko',
+			ACCEPTED_CATEGORY: 'Minimal satu kategori yang diterima',
+			ACTIVE_PRODUCT: 'Minimal satu produk aktif',
+			DESCRIPTION: 'Deskripsi singkat',
+			LOGO: 'Logo',
+			STORE_PHOTO: 'Foto toko',
+			PAYMENT_INFO: 'Info pembayaran'
+		}
 	}
 };

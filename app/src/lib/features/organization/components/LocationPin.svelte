@@ -42,6 +42,7 @@
 	<MapView
 		{center}
 		label={text.mapLabel}
+		unavailableText={text.mapUnavailable}
 		onmove={(point: GeoPoint) => {
 			onpin(point);
 		}}

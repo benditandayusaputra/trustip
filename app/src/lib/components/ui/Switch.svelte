@@ -3,9 +3,11 @@
 		label: string;
 		checked?: boolean;
 		description?: string;
+		busy?: boolean;
+		onchange?: (checked: boolean) => void;
 	}
 
-	let { label, checked = $bindable(false), description }: Props = $props();
+	let { label, checked = $bindable(false), description, busy = false, onchange }: Props = $props();
 
 	const switchId = $props.id();
 </script>
@@ -23,7 +25,12 @@
 		aria-checked={checked}
 		aria-labelledby="{switchId}-label"
 		aria-describedby={description ? `${switchId}-description` : undefined}
-		onclick={() => (checked = !checked)}
+		disabled={busy}
+		aria-busy={busy}
+		onclick={() => {
+			checked = !checked;
+			onchange?.(checked);
+		}}
 		class="relative inline-flex h-8 w-12 shrink-0 items-center rounded-pill border border-border-strong px-1 {checked
 			? 'bg-accent'
 			: 'bg-bg'}"

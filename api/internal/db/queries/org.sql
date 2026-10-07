@@ -199,3 +199,26 @@ SET
     payment_qr_file_id = NULLIF(@payment_qr_file_id::text, '')::uuid,
     updated_at = @updated_at::timestamptz
 WHERE id = @id::uuid;
+
+-- name: GetListingFacts :one
+SELECT
+    o.type,
+    o.is_listed,
+    (o.name <> '')::boolean AS has_name,
+    (o.city_code IS NOT NULL)::boolean AS has_city,
+    (o.location IS NOT NULL)::boolean AS has_location,
+    (o.description <> '')::boolean AS has_description,
+    (o.logo_file_id IS NOT NULL)::boolean AS has_logo,
+    (o.payment_info <> '' OR o.payment_qr_file_id IS NOT NULL)::boolean AS has_payment_info,
+    COALESCE(sp.store_type IS NOT NULL, false)::boolean AS has_store_type,
+    (SELECT count(*) FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id)::bigint
+        AS accepted_categories,
+    (SELECT count(*) FROM org_photos AS p WHERE p.organization_id = o.id)::bigint AS photos
+FROM organizations AS o
+LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
+WHERE o.id = @id;
+
+-- name: SetOrganizationListed :exec
+UPDATE organizations
+SET is_listed = @is_listed::boolean, updated_at = @updated_at::timestamptz
+WHERE id = @id::uuid;

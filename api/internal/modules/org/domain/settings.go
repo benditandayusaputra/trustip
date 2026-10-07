@@ -52,6 +52,18 @@ type Settings struct {
 	Store     StoreSettings
 	Consignor ConsignorProfile
 	Payment   PaymentSettings
+	Listing   Listing
+}
+
+type Listing struct {
+	IsListed     bool
+	Completeness Completeness
+}
+
+type ListingChange struct {
+	OrganizationID string
+	IsListed       bool
+	At             time.Time
 }
 
 type PaymentSettings struct {

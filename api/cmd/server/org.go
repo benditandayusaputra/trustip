@@ -20,6 +20,7 @@ type orgComponents struct {
 	founder    orgservice.OrganizationFounder
 	profiles   orgservice.ProfileStore
 	sections   orgservice.ProfileSectionStore
+	listings   orgservice.ListingStore
 	categories orgservice.CategoryReader
 	regions    orgservice.RegionReader
 	tx         orgservice.Transactor
@@ -35,6 +36,7 @@ func buildOrgComponents(pool *database.Pool, clock orgservice.Clock) orgComponen
 		founder:    orgrepository.NewFounders(pool),
 		profiles:   profiles,
 		sections:   profiles,
+		listings:   profiles,
 		regions:    regions,
 		tx:         pool,
 		clock:      clock,
@@ -65,11 +67,14 @@ func orgDeps(components orgComponents, routes orgRoutes) orghandler.Deps {
 		EditStore:     orgservice.NewUpdateStoreProfile(sectionDeps(components)),
 		EditConsignor: orgservice.NewUpdateConsignorProfile(sectionDeps(components)),
 		EditPayment:   orgservice.NewUpdatePaymentInfo(sectionDeps(components)),
-		Categories:    orgservice.NewListCategories(components.categories),
-		Provinces:     orgservice.NewListProvinces(components.regions),
-		Cities:        orgservice.NewListCities(components.regions),
-		WriteLimiter:  routes.writeLimiter,
-		SecurityLog:   routes.securityLog,
+		EditListing: orgservice.NewSetListing(orgservice.ListingDeps{
+			Profiles: components.profiles, Listings: components.listings, Tx: components.tx, Clock: components.clock,
+		}),
+		Categories:   orgservice.NewListCategories(components.categories),
+		Provinces:    orgservice.NewListProvinces(components.regions),
+		Cities:       orgservice.NewListCities(components.regions),
+		WriteLimiter: routes.writeLimiter,
+		SecurityLog:  routes.securityLog,
 	}
 }
 

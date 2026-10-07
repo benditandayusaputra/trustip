@@ -84,3 +84,14 @@ export function updatePaymentInfo(
 		request
 	);
 }
+
+export function setListing(
+	client: ApiClient,
+	organizationId: string,
+	isListed: boolean
+): Promise<Organization> {
+	return client.update<Organization>(
+		`/api/v1/organizations/${encodeURIComponent(organizationId)}/listing`,
+		{ is_listed: isListed }
+	);
+}

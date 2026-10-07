@@ -24,8 +24,19 @@ const store = {
 	address: '',
 	location: null,
 	logo: null,
-	store_profile: null
+	store_profile: null,
+	listing: {
+		is_listed: false,
+		percent: 50,
+		items: [
+			{ requirement: 'NAME', is_required: true, is_done: true },
+			{ requirement: 'STORE_TYPE', is_required: true, is_done: false },
+			{ requirement: 'LOGO', is_required: false, is_done: false },
+			{ requirement: 'CITY', is_required: true, is_done: true }
+		]
+	}
 };
+const listingPath = `PATCH /api/v1/organizations/${organizationId}/listing`;
 
 function envelope(data: unknown, status = 200): Response {
 	return Response.json({ code: 'OK', message: '', data, meta: { request_id: 'r' } }, { status });
@@ -172,5 +183,47 @@ describe('OrganizationSettings', () => {
 			.element(page.getByText('Komisi terendah tidak boleh melebihi yang tertinggi.'))
 			.toBeVisible();
 		expect(sent[storeProfilePath]).toBeUndefined();
+	});
+
+	it('FR-ORG-08 shows how complete the profile is and what is still missing', async () => {
+		serve({});
+		const { container } = await render(SettingsHarness, { organizationId, canEdit: true });
+
+		await expect.element(page.getByLabelText('Kelengkapan profil 50%')).toBeVisible();
+		await expect.element(page.getByText('Jenis toko (Wajib untuk tampil)')).toBeVisible();
+		await expect.element(page.getByRole('list').getByText('Logo', { exact: true })).toBeVisible();
+		await expectAccessible(container);
+	});
+
+	it('BR-ORG-05 explains why the store cannot be listed yet and switches back off', async () => {
+		serve({
+			[listingPath]: () =>
+				Response.json(
+					{
+						code: 'PROFILE_INCOMPLETE',
+						message: 'Lengkapi profil dulu: jenis toko.',
+						meta: { request_id: 'r' }
+					},
+					{ status: 422 }
+				)
+		});
+		await render(SettingsHarness, { organizationId, canEdit: true });
+
+		const toggle = page.getByRole('switch', { name: 'Tampilkan usaha saya di Cari Mitra' });
+		await userEvent.click(toggle);
+
+		await expect.element(page.getByText('Lengkapi profil dulu: jenis toko.')).toBeVisible();
+		await expect.element(toggle).toHaveAttribute('aria-checked', 'false');
+	});
+
+	it('FR-ORG-06 lists a complete store', async () => {
+		const listed = { ...store, listing: { ...store.listing, is_listed: true } };
+		const sent = serve({ [listingPath]: () => envelope(listed) });
+		await render(SettingsHarness, { organizationId, canEdit: true });
+
+		await userEvent.click(page.getByRole('switch', { name: 'Tampilkan usaha saya di Cari Mitra' }));
+
+		await expect.element(page.getByText('Usaha Anda tampil di Cari Mitra.')).toBeVisible();
+		expect(sent[listingPath]).toEqual({ is_listed: true });
 	});
 });

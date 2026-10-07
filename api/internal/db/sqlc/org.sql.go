@@ -262,6 +262,58 @@ func (q *Queries) GetConsignorProfile(ctx context.Context, organizationID string
 	return i, err
 }
 
+const getListingFacts = `-- name: GetListingFacts :one
+SELECT
+    o.type,
+    o.is_listed,
+    (o.name <> '')::boolean AS has_name,
+    (o.city_code IS NOT NULL)::boolean AS has_city,
+    (o.location IS NOT NULL)::boolean AS has_location,
+    (o.description <> '')::boolean AS has_description,
+    (o.logo_file_id IS NOT NULL)::boolean AS has_logo,
+    (o.payment_info <> '' OR o.payment_qr_file_id IS NOT NULL)::boolean AS has_payment_info,
+    COALESCE(sp.store_type IS NOT NULL, false)::boolean AS has_store_type,
+    (SELECT count(*) FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id)::bigint
+        AS accepted_categories,
+    (SELECT count(*) FROM org_photos AS p WHERE p.organization_id = o.id)::bigint AS photos
+FROM organizations AS o
+LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
+WHERE o.id = $1
+`
+
+type GetListingFactsRow struct {
+	Type               string
+	IsListed           bool
+	HasName            bool
+	HasCity            bool
+	HasLocation        bool
+	HasDescription     bool
+	HasLogo            bool
+	HasPaymentInfo     bool
+	HasStoreType       bool
+	AcceptedCategories int64
+	Photos             int64
+}
+
+func (q *Queries) GetListingFacts(ctx context.Context, id string) (GetListingFactsRow, error) {
+	row := q.db.QueryRow(ctx, getListingFacts, id)
+	var i GetListingFactsRow
+	err := row.Scan(
+		&i.Type,
+		&i.IsListed,
+		&i.HasName,
+		&i.HasCity,
+		&i.HasLocation,
+		&i.HasDescription,
+		&i.HasLogo,
+		&i.HasPaymentInfo,
+		&i.HasStoreType,
+		&i.AcceptedCategories,
+		&i.Photos,
+	)
+	return i, err
+}
+
 const getOrganizationSettings = `-- name: GetOrganizationSettings :one
 SELECT
     o.id, o.type, o.name, o.slug, o.description, o.whatsapp,
@@ -563,6 +615,23 @@ func (q *Queries) ListTakenSlugs(ctx context.Context, base string) ([]string, er
 		return nil, err
 	}
 	return items, nil
+}
+
+const setOrganizationListed = `-- name: SetOrganizationListed :exec
+UPDATE organizations
+SET is_listed = $1::boolean, updated_at = $2::timestamptz
+WHERE id = $3::uuid
+`
+
+type SetOrganizationListedParams struct {
+	IsListed  bool
+	UpdatedAt time.Time
+	ID        string
+}
+
+func (q *Queries) SetOrganizationListed(ctx context.Context, arg SetOrganizationListedParams) error {
+	_, err := q.db.Exec(ctx, setOrganizationListed, arg.IsListed, arg.UpdatedAt, arg.ID)
+	return err
 }
 
 const updateConsignorProfile = `-- name: UpdateConsignorProfile :execrows

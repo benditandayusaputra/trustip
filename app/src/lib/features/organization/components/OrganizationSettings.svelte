@@ -12,6 +12,7 @@
 	import { ProfileSettings, type SaveOutcome } from '../settings.svelte';
 	import LocationFields from './LocationFields.svelte';
 	import ConsignorProfileSection from './ConsignorProfileSection.svelte';
+	import ListingSection from './ListingSection.svelte';
 	import PaymentSection from './PaymentSection.svelte';
 	import StoreProfileSection from './StoreProfileSection.svelte';
 
@@ -69,6 +70,7 @@
 	<Skeleton />
 {:else}
 	{@const organization = settings.organization}
+	<ListingSection {organization} {canEdit} onsaved={keep} />
 	<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-5">
 		<p class="text-sm text-text-muted">
 			{text.typeLabel}: {fields.types[organization.type].label}. {fields.typeFixed}

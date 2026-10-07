@@ -40,6 +40,11 @@ func (r *Profiles) GetSettings(ctx context.Context, organizationID string) (doma
 	if err != nil {
 		return domain.Settings{}, err
 	}
+	facts, err := listingFacts(readCtx, queries, organizationID)
+	if err != nil {
+		return domain.Settings{}, err
+	}
+	settings.Listing = domain.Listing{IsListed: facts.IsListed, Completeness: domain.CompletenessOf(facts)}
 	if settings.Type == actor.Store {
 		settings.Store, err = storeSettings(readCtx, queries, organizationID)
 		return settings, err
