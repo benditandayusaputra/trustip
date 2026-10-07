@@ -26,6 +26,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
@@ -46,6 +47,8 @@ func (k edgeKeys) Lookup(id string) ([]byte, bool) {
 	return key, ok
 }
 
+const testRequestLimit = 10
+
 func testEdgeKey() []byte {
 	return bytes.Repeat([]byte{7}, 31)
 }
@@ -62,6 +65,7 @@ func newTestServer() testServer {
 		Build:       httpserver.BuildInfo{Version: "abc123def456"},
 		Ready:       func(context.Context) error { return nil },
 		Edge:        security.NewEdgeVerifier(edgeKeys{"v1": testEdgeKey()}, now),
+		Limiter:     ratelimit.New(ratelimit.Rule{Limit: testRequestLimit, Window: time.Minute}, now),
 	})
 	server.API().Get("/probe/deadline", func(c fiber.Ctx) error {
 		deadline, ok := c.Context().Deadline()
@@ -306,6 +310,7 @@ func TestReadyz_DatabaseAsleep_Returns503WithRetryAfter(t *testing.T) {
 		Clock:       now,
 		Ready:       func(context.Context) error { return apperror.Unavailable(5) },
 		Edge:        security.NewEdgeVerifier(edgeKeys{"v1": testEdgeKey()}, now),
+		Limiter:     ratelimit.New(ratelimit.Rule{Limit: testRequestLimit, Window: time.Minute}, now),
 	})
 	req := newRequest(t, "/readyz")
 	signRequest(t, req, fixedNow())
@@ -380,5 +385,36 @@ func TestAccessLog_UsesSignedClientIP(t *testing.T) {
 
 	if !strings.Contains(fixture.accessLogs.String(), `"ip":"203.0.113.7"`) {
 		t.Fatalf("access log = %s", fixture.accessLogs.String())
+	}
+}
+
+func TestRateLimit_EveryResponseCarriesRateLimitHeaders(t *testing.T) {
+	got := newTestServer().do(t, newRequest(t, "/api/v1/meta"))
+
+	if got.header.Get("RateLimit-Limit") != "10" || got.header.Get("RateLimit-Remaining") != "9" {
+		t.Fatalf("headers = %v", got.header)
+	}
+	if got.header.Get("RateLimit-Reset") != "6" {
+		t.Fatalf("RateLimit-Reset = %q", got.header.Get("RateLimit-Reset"))
+	}
+}
+
+func TestRateLimit_OverLimit_Returns429WithRetryAfterAndLogsEvent(t *testing.T) {
+	fixture := newTestServer()
+	for range testRequestLimit {
+		fixture.do(t, newRequest(t, "/api/v1/meta"))
+	}
+
+	got := fixture.do(t, newRequest(t, "/api/v1/meta"))
+
+	if got.status != http.StatusTooManyRequests || got.payload.Code != "RATE_LIMITED" {
+		t.Fatalf("response = %d %s", got.status, got.raw)
+	}
+	wantMessage := "Terlalu banyak percobaan. Coba lagi dalam 1 menit."
+	if got.header.Get("Retry-After") != "6" || got.payload.Message != wantMessage {
+		t.Fatalf("retry-after = %q, message = %q", got.header.Get("Retry-After"), got.payload.Message)
+	}
+	if !strings.Contains(fixture.securityLogs.String(), `"event":"rate_limited"`) {
+		t.Fatalf("security log = %s", fixture.securityLogs.String())
 	}
 }

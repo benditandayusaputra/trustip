@@ -31,6 +31,7 @@ type Options struct {
 	Build       BuildInfo
 	Ready       ReadinessCheck
 	Edge        EdgeVerifier
+	Limiter     RateLimiter
 }
 
 type Server struct {
@@ -53,6 +54,7 @@ func New(opts Options) *Server {
 		SecurityHeaders(),
 		LimitJSONBody(),
 		EdgeSignature(opts.Edge, opts.SecurityLog),
+		RateLimit(opts.Limiter, ByClientIP, opts.SecurityLog),
 		Deadline(requestTimeout),
 	)
 	app.Get(healthPath, health)

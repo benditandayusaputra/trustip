@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
@@ -14,8 +15,11 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
+
+const requestsPerMinutePerIP = 300
 
 func main() {
 	cfg, err := config.Load(os.Environ())
@@ -54,14 +58,16 @@ func serve(cfg config.Config, base *slog.Logger) error {
 }
 
 func newServer(base *slog.Logger, ready httpserver.ReadinessCheck, edge httpserver.EdgeVerifier) *httpserver.Server {
+	systemClock := clock.System{}
 	return httpserver.New(httpserver.Options{
 		AppLog:      logger.ForStream(base, logger.App),
 		AccessLog:   logger.ForStream(base, logger.Access),
 		SecurityLog: logger.ForStream(base, logger.Security),
 		IDs:         idgen.UUIDv7{},
-		Clock:       clock.System{},
+		Clock:       systemClock,
 		Build:       httpserver.ReadBuildInfo(),
 		Ready:       ready,
 		Edge:        edge,
+		Limiter:     ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
 	})
 }
