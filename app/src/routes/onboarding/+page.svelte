@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
 	import { safeNextPath, signInHref } from '#lib/features/auth/links.js';
-	import OnboardingWizard from '#lib/features/onboarding/components/OnboardingWizard.svelte';
+	import OnboardingWizard from '#lib/features/organization/components/OnboardingWizard.svelte';
 	import { id } from '#lib/i18n/id.js';
 
 	const next = $derived(safeNextPath(page.url.searchParams.get('lanjut')));
