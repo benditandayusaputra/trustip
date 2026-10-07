@@ -19,6 +19,7 @@ const (
 	productPath    = productsPath + "/:id"
 	archivePath    = productPath + "/archive"
 	reactivatePath = productPath + "/reactivate"
+	seekingPath    = productPath + "/seeking"
 )
 
 type Creator interface {
@@ -33,6 +34,10 @@ type Reader interface {
 	Execute(ctx context.Context, signedIn actor.Actor, productID string) (domain.Product, error)
 }
 
+type SeekingSetter interface {
+	Execute(ctx context.Context, signedIn actor.Actor, cmd service.SetSeekingCommand) (domain.Product, error)
+}
+
 type Lister interface {
 	Execute(ctx context.Context, signedIn actor.Actor, request service.ListRequest) (service.Page, error)
 }
@@ -45,6 +50,7 @@ type Deps struct {
 	Archive      Reader
 	Reactivate   Reader
 	List         Lister
+	SetSeeking   SeekingSetter
 	FilesBaseURL string
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
@@ -59,6 +65,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Patch(productPath, deps.Authenticate, writeLimit, update(deps.Update, present))
 	api.Post(archivePath, deps.Authenticate, writeLimit, act(deps.Archive, present))
 	api.Post(reactivatePath, deps.Authenticate, writeLimit, act(deps.Reactivate, present))
+	api.Patch(seekingPath, deps.Authenticate, writeLimit, setSeeking(deps.SetSeeking, present))
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {
@@ -155,5 +162,32 @@ func list(lister Lister, present presenter) fiber.Handler {
 		return httpserver.RespondList(c, httpserver.Page[productResponse]{
 			Items: items, NextCursor: page.NextCursor, HasMore: page.HasMore,
 		})
+	}
+}
+
+type seekingRequest struct {
+	IsSeekingStores bool `json:"is_seeking_stores"`
+}
+
+func setSeeking(setter SeekingSetter, present presenter) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		signedIn, err := signedInActor(c)
+		if err != nil {
+			return err
+		}
+		productID, err := httpserver.IDParam(c, "id")
+		if err != nil {
+			return fmt.Errorf("read product id: %w", err)
+		}
+		var request seekingRequest
+		if err := httpserver.DecodeJSON(c, &request); err != nil {
+			return fmt.Errorf("read seeking: %w", err)
+		}
+		product, err := setter.Execute(c.Context(), signedIn,
+			service.SetSeekingCommand{ProductID: productID, IsSeeking: request.IsSeekingStores})
+		if err != nil {
+			return fmt.Errorf("set seeking: %w", err)
+		}
+		return httpserver.Respond(c, httpserver.Reply{Data: present.product(product)})
 	}
 }

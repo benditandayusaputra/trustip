@@ -79,3 +79,18 @@ func TestProducts_FRPRD01_ProductPhotoUploadedByTheConsignorIsLinked(t *testing.
 	}
 	loadContract(t).requireConforms(t, got)
 }
+
+func TestProducts_FRPRD04_SeekingStoresToggleIsSaved(t *testing.T) {
+	visitor := consignorBrowser(t)
+	created := visitor.postProduct(productBody(""))
+	productPath := productsPath + "/" + quotedAfter(string(created.body), `"id":"`)
+
+	got := visitor.patch(productPath+"/seeking", `{"is_seeking_stores":true}`)
+
+	requireCode(t, got, "OK")
+	if !strings.Contains(string(got.body), `"is_seeking_stores":true`) ||
+		!strings.Contains(string(got.body), `"consignor_slug":"warung-bu-tini"`) {
+		t.Fatalf("got = %s", got.body)
+	}
+	loadContract(t).requireConforms(t, got)
+}

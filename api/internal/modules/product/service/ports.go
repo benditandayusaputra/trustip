@@ -12,6 +12,7 @@ type ProductWriter interface {
 	NextSKUNumber(ctx context.Context, series domain.SKUSeries) (int, error)
 	SaveProduct(ctx context.Context, change domain.Change) error
 	SetArchived(ctx context.Context, change domain.StatusChange) error
+	SetSeeking(ctx context.Context, change domain.SeekingChange) error
 }
 
 type ProductReader interface {

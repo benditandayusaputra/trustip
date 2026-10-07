@@ -16,6 +16,7 @@ const (
 	ProductUpdated          Action = "PRODUCT_UPDATED"
 	ProductArchived         Action = "PRODUCT_ARCHIVED"
 	ProductReactivated      Action = "PRODUCT_REACTIVATED"
+	ProductSeekingChanged   Action = "PRODUCT_SEEKING_CHANGED"
 )
 
 type EntityType string

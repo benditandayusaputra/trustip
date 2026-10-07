@@ -5,6 +5,7 @@ import {
 	getProduct,
 	listProducts,
 	reactivateProduct,
+	setProductSeeking,
 	type Product,
 	type ProductSearch
 } from '#lib/api/products.js';
@@ -95,6 +96,15 @@ export class ProductRecord {
 			this.failure = error instanceof Error ? error.message : '';
 			this.status = 'failed';
 		}
+	}
+
+	async setSeeking(isSeeking: boolean): Promise<Product> {
+		const current = this.product;
+		if (!current) {
+			throw new Error('product is not loaded');
+		}
+		this.product = await setProductSeeking(this.#client(), current.id, isSeeking);
+		return this.product;
 	}
 
 	async toggleArchive(): Promise<Product> {

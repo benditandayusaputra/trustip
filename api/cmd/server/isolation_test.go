@@ -66,6 +66,10 @@ func isolationCases() map[string]isolationCase {
 		"POST /api/v1/products/:id/reactivate": func(w isolationWorld) exchange {
 			return w.consignorStranger.post(productsPath + "/" + w.consignor.productID + "/reactivate")
 		},
+		"PATCH /api/v1/products/:id/seeking": func(w isolationWorld) exchange {
+			return w.consignorStranger.patch(productsPath+"/"+w.consignor.productID+"/seeking",
+				`{"is_seeking_stores":true}`)
+		},
 	}
 }
 

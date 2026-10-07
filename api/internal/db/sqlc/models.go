@@ -134,6 +134,7 @@ type Product struct {
 	IsArchived            bool
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+	IsSeekingStores       bool
 }
 
 type Session struct {

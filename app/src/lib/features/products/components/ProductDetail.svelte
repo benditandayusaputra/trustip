@@ -9,6 +9,8 @@
 	import { id } from '#lib/i18n/id.js';
 	import { ProductRecord } from '../catalog.svelte';
 	import ProductForm from './ProductForm.svelte';
+	import ProductQr from './ProductQr.svelte';
+	import Switch from '#lib/components/ui/Switch.svelte';
 
 	interface Props {
 		productId: string;
@@ -23,6 +25,15 @@
 	$effect(() => {
 		void record.load(productId);
 	});
+
+	async function setSeeking(isSeeking: boolean) {
+		try {
+			await record.setSeeking(isSeeking);
+			toaster.show({ tone: 'success', message: isSeeking ? text.seekingOn : text.seekingOff });
+		} catch (error) {
+			toaster.show({ tone: 'danger', message: error instanceof Error ? error.message : '' });
+		}
+	}
 
 	async function toggleArchive() {
 		try {
@@ -67,6 +78,13 @@
 	{#if product.status === 'ARCHIVED'}
 		<p role="status" class="text-sm text-warning">{text.archivedNotice}</p>
 	{/if}
+	<Switch
+		label={text.seeking}
+		description={text.seekingHint}
+		checked={product.is_seeking_stores}
+		onchange={(isSeeking: boolean) => void setSeeking(isSeeking)}
+	/>
+	<ProductQr {product} />
 	{#key product.id}
 		<ProductForm
 			{product}

@@ -17,9 +17,11 @@ SELECT
     p.id, p.consignor_org_id, p.sku, p.name, p.category_id, c.name AS category_name, p.unit, p.description,
     p.composition, p.net_content, COALESCE(p.photo_file_id::text, '')::text AS photo_file_id,
     COALESCE(f.storage_key, '')::text AS photo_storage_key, p.suggested_retail_price,
-    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.created_at, p.updated_at
+    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.is_seeking_stores, o.slug AS consignor_slug,
+    p.created_at, p.updated_at
 FROM products AS p
 JOIN categories AS c ON c.id = p.category_id
+JOIN organizations AS o ON o.id = p.consignor_org_id
 LEFT JOIN files AS f ON f.id = p.photo_file_id
 WHERE p.id = $1::uuid AND p.consignor_org_id = $2::uuid
 `
@@ -46,6 +48,8 @@ type GetProductRow struct {
 	SuggestedDepositPrice int64
 	ShelfLifeDays         pgtype.Int4
 	IsArchived            bool
+	IsSeekingStores       bool
+	ConsignorSlug         string
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 }
@@ -70,6 +74,8 @@ func (q *Queries) GetProduct(ctx context.Context, arg GetProductParams) (GetProd
 		&i.SuggestedDepositPrice,
 		&i.ShelfLifeDays,
 		&i.IsArchived,
+		&i.IsSeekingStores,
+		&i.ConsignorSlug,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -81,9 +87,11 @@ SELECT
     p.id, p.consignor_org_id, p.sku, p.name, p.category_id, c.name AS category_name, p.unit, p.description,
     p.composition, p.net_content, COALESCE(p.photo_file_id::text, '')::text AS photo_file_id,
     COALESCE(f.storage_key, '')::text AS photo_storage_key, p.suggested_retail_price,
-    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.created_at, p.updated_at
+    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.is_seeking_stores, o.slug AS consignor_slug,
+    p.created_at, p.updated_at
 FROM products AS p
 JOIN categories AS c ON c.id = p.category_id
+JOIN organizations AS o ON o.id = p.consignor_org_id
 LEFT JOIN files AS f ON f.id = p.photo_file_id
 WHERE p.consignor_org_id = $1::uuid
     AND p.is_archived = $2::boolean
@@ -126,6 +134,8 @@ type ListProductsRow struct {
 	SuggestedDepositPrice int64
 	ShelfLifeDays         pgtype.Int4
 	IsArchived            bool
+	IsSeekingStores       bool
+	ConsignorSlug         string
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 }
@@ -165,6 +175,8 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]L
 			&i.SuggestedDepositPrice,
 			&i.ShelfLifeDays,
 			&i.IsArchived,
+			&i.IsSeekingStores,
+			&i.ConsignorSlug,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -289,6 +301,32 @@ type SetProductArchivedParams struct {
 func (q *Queries) SetProductArchived(ctx context.Context, arg SetProductArchivedParams) (int64, error) {
 	result, err := q.db.Exec(ctx, setProductArchived,
 		arg.IsArchived,
+		arg.UpdatedAt,
+		arg.ID,
+		arg.ConsignorOrgID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const setProductSeeking = `-- name: SetProductSeeking :execrows
+UPDATE products
+SET is_seeking_stores = $1::boolean, updated_at = $2::timestamptz
+WHERE id = $3::uuid AND consignor_org_id = $4::uuid
+`
+
+type SetProductSeekingParams struct {
+	IsSeekingStores bool
+	UpdatedAt       time.Time
+	ID              string
+	ConsignorOrgID  string
+}
+
+func (q *Queries) SetProductSeeking(ctx context.Context, arg SetProductSeekingParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setProductSeeking,
+		arg.IsSeekingStores,
 		arg.UpdatedAt,
 		arg.ID,
 		arg.ConsignorOrgID,

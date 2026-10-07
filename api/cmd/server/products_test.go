@@ -50,6 +50,15 @@ func (m *memoryProducts) SetArchived(_ context.Context, change domain.StatusChan
 	return nil
 }
 
+func (m *memoryProducts) SetSeeking(_ context.Context, change domain.SeekingChange) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	product := m.products[change.ProductID]
+	product.IsSeekingStores = change.IsSeeking
+	m.products[change.ProductID] = product
+	return nil
+}
+
 func (m *memoryProducts) GetProduct(_ context.Context, key domain.ProductKey) (domain.Product, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

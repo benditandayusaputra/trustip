@@ -111,6 +111,22 @@ func (r *Products) SetArchived(ctx context.Context, change domain.StatusChange) 
 	return nil
 }
 
+func (r *Products) SetSeeking(ctx context.Context, change domain.SeekingChange) error {
+	writeCtx, cancel := database.WriteContext(ctx)
+	defer cancel()
+	updated, err := sqlc.New(r.pool.Querier(ctx)).SetProductSeeking(writeCtx, sqlc.SetProductSeekingParams{
+		ID: change.ProductID, ConsignorOrgID: change.ConsignorID, IsSeekingStores: change.IsSeeking,
+		UpdatedAt: change.At,
+	})
+	if err != nil {
+		return fmt.Errorf("set seeking of %s: %w", change.ProductID, err)
+	}
+	if updated == 0 {
+		return apperror.NotFound()
+	}
+	return nil
+}
+
 func (r *Products) GetProduct(ctx context.Context, key domain.ProductKey) (domain.Product, error) {
 	readCtx, cancel := database.ReadContext(ctx)
 	defer cancel()
@@ -150,7 +166,7 @@ func (r *Products) ListProducts(ctx context.Context, query domain.PageQuery) ([]
 
 func toProduct(row sqlc.ListProductsRow) domain.Product {
 	return domain.Product{
-		ID: row.ID, ConsignorID: row.ConsignorOrgID, SKU: row.Sku,
+		ID: row.ID, ConsignorID: row.ConsignorOrgID, ConsignorSlug: row.ConsignorSlug, SKU: row.Sku,
 		Details: domain.Details{
 			Name: row.Name, CategoryID: row.CategoryID, Unit: row.Unit, Description: row.Description,
 			Composition: row.Composition, NetContent: row.NetContent, PhotoFileID: row.PhotoFileID,
@@ -159,10 +175,11 @@ func toProduct(row sqlc.ListProductsRow) domain.Product {
 			},
 			ShelfLife: domain.ShelfLife{Given: row.ShelfLifeDays.Valid, Days: int(row.ShelfLifeDays.Int32)},
 		},
-		CategoryName: row.CategoryName,
-		Photo:        domain.FileRef{ID: row.PhotoFileID, StorageKey: row.PhotoStorageKey},
-		IsArchived:   row.IsArchived,
-		CreatedAt:    row.CreatedAt,
-		UpdatedAt:    row.UpdatedAt,
+		CategoryName:    row.CategoryName,
+		Photo:           domain.FileRef{ID: row.PhotoFileID, StorageKey: row.PhotoStorageKey},
+		IsArchived:      row.IsArchived,
+		IsSeekingStores: row.IsSeekingStores,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       row.UpdatedAt,
 	}
 }

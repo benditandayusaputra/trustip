@@ -52,6 +52,7 @@ func productDeps(components productComponents, routes productRoutes) producthand
 		Archive:      productservice.NewArchiveProduct(deps),
 		Reactivate:   productservice.NewReactivateProduct(deps),
 		List:         productservice.NewListProducts(components.products),
+		SetSeeking:   productservice.NewSetSeeking(deps),
 		FilesBaseURL: routes.filesBaseURL,
 		WriteLimiter: routes.writeLimiter,
 		SecurityLog:  routes.securityLog,

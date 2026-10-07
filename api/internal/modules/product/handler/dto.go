@@ -32,6 +32,7 @@ type imageRef struct {
 type productResponse struct {
 	ID                    string    `json:"id"`
 	SKU                   string    `json:"sku"`
+	ConsignorSlug         string    `json:"consignor_slug"`
 	Name                  string    `json:"name"`
 	CategoryID            string    `json:"category_id"`
 	CategoryName          string    `json:"category_name"`
@@ -44,6 +45,7 @@ type productResponse struct {
 	SuggestedDepositPrice int64     `json:"suggested_deposit_price"`
 	ShelfLifeDays         *int      `json:"shelf_life_days"`
 	Status                string    `json:"status"`
+	IsSeekingStores       bool      `json:"is_seeking_stores"`
 	CreatedAt             string    `json:"created_at"`
 	UpdatedAt             string    `json:"updated_at"`
 }
@@ -89,7 +91,8 @@ type presenter struct {
 func (p presenter) product(product domain.Product) productResponse {
 	details := product.Details
 	response := productResponse{
-		ID: product.ID, SKU: product.SKU, Name: details.Name, CategoryID: details.CategoryID,
+		ID: product.ID, SKU: product.SKU, ConsignorSlug: product.ConsignorSlug,
+		IsSeekingStores: product.IsSeekingStores, Name: details.Name, CategoryID: details.CategoryID,
 		CategoryName: product.CategoryName, Unit: details.Unit, Description: details.Description,
 		Composition: details.Composition, NetContent: details.NetContent,
 		SuggestedRetailPrice: details.Prices.Retail.Int64(), SuggestedDepositPrice: details.Prices.Deposit.Int64(),

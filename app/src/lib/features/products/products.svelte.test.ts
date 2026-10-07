@@ -22,6 +22,8 @@ const bread = {
 	suggested_deposit_price: 1750,
 	shelf_life_days: 3,
 	status: 'ACTIVE',
+	is_seeking_stores: false,
+	consignor_slug: 'roti-pak-anton',
 	created_at: '2026-10-19T08:00:00Z',
 	updated_at: '2026-10-19T08:00:00Z'
 };
@@ -176,6 +178,41 @@ describe('Product detail', () => {
 		await userEvent.click(page.getByRole('button', { name: 'Aktifkan kembali' }));
 
 		await expect.element(page.getByText('Produk aktif kembali.')).toBeVisible();
+		await expectAccessible(container);
+	});
+});
+
+describe('Product seeking and QR', () => {
+	it('FR-PRD-04 marks the product as seeking stores', async () => {
+		const sent = serve({
+			'GET /api/v1/categories': categories,
+			[`GET /api/v1/products/${productId}`]: () => envelope(bread),
+			[`PATCH /api/v1/products/${productId}/seeking`]: () =>
+				envelope({ ...bread, is_seeking_stores: true })
+		});
+		await render(ProductsHarness, { view: 'detail', productId });
+
+		await userEvent.click(page.getByRole('switch', { name: 'Sedang mencari toko' }));
+
+		await expect.element(page.getByText('Produk ditandai sedang mencari toko.')).toBeVisible();
+		expect(sent[`PATCH /api/v1/products/${productId}/seeking`]).toEqual({
+			is_seeking_stores: true
+		});
+	});
+
+	it('FR-PRD-07 shows a downloadable QR code for the product', async () => {
+		serve({
+			'GET /api/v1/categories': categories,
+			[`GET /api/v1/products/${productId}`]: () => envelope(bread)
+		});
+		const { container } = await render(ProductsHarness, { view: 'detail', productId });
+
+		await expect
+			.element(page.getByRole('img', { name: 'Kode QR untuk Roti Sobek Cokelat' }))
+			.toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: 'Unduh kode QR' }))
+			.toHaveAttribute('download', 'ROT-0001-qr.svg');
 		await expectAccessible(container);
 	});
 });

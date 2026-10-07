@@ -58,3 +58,13 @@ export function archiveProduct(client: ApiClient, productId: string): Promise<Pr
 export function reactivateProduct(client: ApiClient, productId: string): Promise<Product> {
 	return client.send<Product>(`${productPath(productId)}/reactivate`);
 }
+
+export function setProductSeeking(
+	client: ApiClient,
+	productId: string,
+	isSeekingStores: boolean
+): Promise<Product> {
+	return client.update<Product>(`${productPath(productId)}/seeking`, {
+		is_seeking_stores: isSeekingStores
+	});
+}

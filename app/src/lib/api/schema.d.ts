@@ -486,6 +486,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/products/{id}/seeking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["setProductSeeking"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -789,6 +807,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             sku: string;
+            consignor_slug: string;
             name: string;
             /** Format: uuid */
             category_id: string;
@@ -802,6 +821,7 @@ export interface components {
             suggested_deposit_price: number;
             shelf_life_days: number | null;
             status: components["schemas"]["ProductStatus"];
+            is_seeking_stores: boolean;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -818,6 +838,9 @@ export interface components {
             message: string;
             data: components["schemas"]["Product"][];
             meta: components["schemas"]["ListMeta"];
+        };
+        ProductSeekingRequest: {
+            is_seeking_stores: boolean;
         };
     };
     responses: {
@@ -1929,6 +1952,41 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    setProductSeeking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductSeekingRequest"];
+            };
+        };
+        responses: {
+            /** @description Tanda sedang mencari toko diubah */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

@@ -1126,6 +1126,48 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/products/{id}/seeking:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    patch:
+      operationId: setProductSeeking
+      tags: [product]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductSeekingRequest"
+      responses:
+        "200":
+          description: Tanda sedang mencari toko diubah
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -1967,6 +2009,7 @@ components:
       required:
         - id
         - sku
+        - consignor_slug
         - name
         - category_id
         - category_name
@@ -1979,6 +2022,7 @@ components:
         - suggested_deposit_price
         - shelf_life_days
         - status
+        - is_seeking_stores
         - created_at
         - updated_at
       properties:
@@ -1986,6 +2030,8 @@ components:
           type: string
           format: uuid
         sku:
+          type: string
+        consignor_slug:
           type: string
         name:
           type: string
@@ -2015,6 +2061,8 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/ProductStatus"
+        is_seeking_stores:
+          type: boolean
         created_at:
           type: string
           format: date-time
@@ -2049,3 +2097,10 @@ components:
             $ref: "#/components/schemas/Product"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    ProductSeekingRequest:
+      type: object
+      additionalProperties: false
+      required: [is_seeking_stores]
+      properties:
+        is_seeking_stores:
+          type: boolean

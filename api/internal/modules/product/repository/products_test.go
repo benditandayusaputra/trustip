@@ -265,3 +265,30 @@ func TestListProducts_RRES04_NewestFirstAcrossPages(t *testing.T) {
 func ownKey(index int) domain.ProductKey {
 	return domain.ProductKey{ConsignorID: consignorID, ProductID: productID(index)}
 }
+
+func TestSetSeeking_FRPRD04_FlagIsStoredWithTheConsignorSlug(t *testing.T) {
+	scene := newWorld(t)
+	scene.save(change(1, "ROT-0001", "Roti Sobek"))
+
+	err := scene.products.SetSeeking(t.Context(), domain.SeekingChange{
+		ProductID: productID(1), ConsignorID: consignorID, IsSeeking: true, At: base(),
+	})
+	got, getErr := scene.products.GetProduct(t.Context(), ownKey(1))
+
+	if err != nil || getErr != nil || !got.IsSeekingStores || got.ConsignorSlug != "kripik-mbok-darmi" {
+		t.Fatalf("got = %+v, err = %v, %v", got, err, getErr)
+	}
+}
+
+func TestSetSeeking_RSEC38_ProductOfAnotherConsignorIsNotFound(t *testing.T) {
+	scene := newWorld(t)
+	scene.save(change(1, "ROT-0001", "Roti Sobek"))
+
+	err := scene.products.SetSeeking(t.Context(), domain.SeekingChange{
+		ProductID: productID(1), ConsignorID: strangerID, IsSeeking: true, At: base(),
+	})
+
+	if apperror.From(err).Code() != apperror.CodeNotFound {
+		t.Fatalf("err = %v", err)
+	}
+}

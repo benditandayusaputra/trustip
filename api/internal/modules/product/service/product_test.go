@@ -55,6 +55,13 @@ func (f *fakeProducts) SetArchived(_ context.Context, change domain.StatusChange
 	return nil
 }
 
+func (f *fakeProducts) SetSeeking(_ context.Context, change domain.SeekingChange) error {
+	product := f.stored[change.ProductID]
+	product.IsSeekingStores = change.IsSeeking
+	f.stored[change.ProductID] = product
+	return nil
+}
+
 func (f *fakeProducts) GetProduct(_ context.Context, key domain.ProductKey) (domain.Product, error) {
 	product, ok := f.stored[key.ProductID]
 	if !ok || product.ConsignorID != key.ConsignorID {
@@ -290,6 +297,44 @@ func TestListProducts_UnknownStatusIsAValidationFailure(t *testing.T) {
 		service.ListRequest{Search: domain.SearchForm{Status: "GONE"}})
 
 	if apperror.From(err).Code() != apperror.CodeValidationFailed {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestSetSeeking_FRPRD04_ConsignorMarksAProductAsSeekingStores(t *testing.T) {
+	scene := newWorld()
+	bread := createBread(t, scene)
+
+	got, err := service.NewSetSeeking(scene.deps).Execute(t.Context(), consignorStaff(),
+		service.SetSeekingCommand{ProductID: bread.ID, IsSeeking: true})
+
+	if err != nil || !got.IsSeekingStores || scene.audit.entries[1].Action != audit.ProductSeekingChanged {
+		t.Fatalf("got = %+v, err = %v", got, err)
+	}
+}
+
+func TestSetSeeking_BRAUTHZ01_StoreIsForbidden(t *testing.T) {
+	scene := newWorld()
+	bread := createBread(t, scene)
+
+	_, err := service.NewSetSeeking(scene.deps).Execute(t.Context(), member(actor.Store, actor.Owner),
+		service.SetSeekingCommand{ProductID: bread.ID, IsSeeking: true})
+
+	if apperror.From(err).Code() != apperror.CodeForbidden {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestSetSeeking_BRAUTHZ02_ProductOfAnotherConsignorIsNotFound(t *testing.T) {
+	scene := newWorld()
+	bread := createBread(t, scene)
+	stranger := consignorStaff()
+	stranger.Membership.OrganizationID = "0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7d"
+
+	_, err := service.NewSetSeeking(scene.deps).Execute(t.Context(), stranger,
+		service.SetSeekingCommand{ProductID: bread.ID, IsSeeking: true})
+
+	if apperror.From(err).Code() != apperror.CodeNotFound {
 		t.Fatalf("err = %v", err)
 	}
 }

@@ -181,15 +181,17 @@ type FileRef struct {
 }
 
 type Product struct {
-	ID           string
-	ConsignorID  string
-	SKU          string
-	Details      Details
-	CategoryName string
-	Photo        FileRef
-	IsArchived   bool
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID              string
+	ConsignorID     string
+	ConsignorSlug   string
+	SKU             string
+	Details         Details
+	CategoryName    string
+	Photo           FileRef
+	IsArchived      bool
+	IsSeekingStores bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 func (p Product) Status() Status {
@@ -211,6 +213,13 @@ type StatusChange struct {
 	ProductID   string
 	ConsignorID string
 	IsArchived  bool
+	At          time.Time
+}
+
+type SeekingChange struct {
+	ProductID   string
+	ConsignorID string
+	IsSeeking   bool
 	At          time.Time
 }
 

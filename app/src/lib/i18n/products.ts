@@ -42,6 +42,15 @@ export const products = {
 		archivedNotice: 'Produk ini diarsipkan.',
 		backToCatalog: 'Kembali ke katalog',
 		priceOrder: 'Harga setor tidak boleh melebihi harga jual.',
-		maxLength: (count: number) => `Maksimal ${String(count)} karakter.`
+		maxLength: (count: number) => `Maksimal ${String(count)} karakter.`,
+		seeking: 'Sedang mencari toko',
+		seekingHint: 'Produk tampil di Cari Mitra untuk toko yang mencari pemasok.',
+		seekingOn: 'Produk ditandai sedang mencari toko.',
+		seekingOff: 'Tanda sedang mencari toko dilepas.',
+		qrTitle: 'Kode QR produk',
+		qrHint:
+			'Tempel di kemasan. Pembeli yang memindai melihat halaman produk dan toko yang menjualnya.',
+		qrAlt: (name: string) => `Kode QR untuk ${name}`,
+		downloadQr: 'Unduh kode QR'
 	}
 };

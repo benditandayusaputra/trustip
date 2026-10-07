@@ -43,9 +43,11 @@ SELECT
     p.id, p.consignor_org_id, p.sku, p.name, p.category_id, c.name AS category_name, p.unit, p.description,
     p.composition, p.net_content, COALESCE(p.photo_file_id::text, '')::text AS photo_file_id,
     COALESCE(f.storage_key, '')::text AS photo_storage_key, p.suggested_retail_price,
-    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.created_at, p.updated_at
+    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.is_seeking_stores, o.slug AS consignor_slug,
+    p.created_at, p.updated_at
 FROM products AS p
 JOIN categories AS c ON c.id = p.category_id
+JOIN organizations AS o ON o.id = p.consignor_org_id
 LEFT JOIN files AS f ON f.id = p.photo_file_id
 WHERE p.id = @id::uuid AND p.consignor_org_id = @consignor_org_id::uuid;
 
@@ -54,9 +56,11 @@ SELECT
     p.id, p.consignor_org_id, p.sku, p.name, p.category_id, c.name AS category_name, p.unit, p.description,
     p.composition, p.net_content, COALESCE(p.photo_file_id::text, '')::text AS photo_file_id,
     COALESCE(f.storage_key, '')::text AS photo_storage_key, p.suggested_retail_price,
-    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.created_at, p.updated_at
+    p.suggested_deposit_price, p.shelf_life_days, p.is_archived, p.is_seeking_stores, o.slug AS consignor_slug,
+    p.created_at, p.updated_at
 FROM products AS p
 JOIN categories AS c ON c.id = p.category_id
+JOIN organizations AS o ON o.id = p.consignor_org_id
 LEFT JOIN files AS f ON f.id = p.photo_file_id
 WHERE p.consignor_org_id = @consignor_org_id::uuid
     AND p.is_archived = @is_archived::boolean
@@ -69,3 +73,8 @@ WHERE p.consignor_org_id = @consignor_org_id::uuid
     AND (@from_start::boolean OR (p.created_at, p.id) < (@after_at::timestamptz, @after_id::uuid))
 ORDER BY p.created_at DESC, p.id DESC
 LIMIT @row_limit::bigint;
+
+-- name: SetProductSeeking :execrows
+UPDATE products
+SET is_seeking_stores = @is_seeking_stores::boolean, updated_at = @updated_at::timestamptz
+WHERE id = @id::uuid AND consignor_org_id = @consignor_org_id::uuid;

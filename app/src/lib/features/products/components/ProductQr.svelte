@@ -1,0 +1,25 @@
+<script lang="ts">
+	import QrCode from '#lib/components/ui/QrCode.svelte';
+	import type { Product } from '#lib/api/products.js';
+	import { id } from '#lib/i18n/id.js';
+	import { publicProductUrl } from '../links';
+
+	interface Props {
+		product: Product;
+	}
+
+	let { product }: Props = $props();
+
+	const text = id.products;
+</script>
+
+<section class="flex flex-col gap-2">
+	<h2 class="text-lg font-semibold text-text">{text.qrTitle}</h2>
+	<p class="text-sm text-text-muted">{text.qrHint}</p>
+	<QrCode
+		value={publicProductUrl(window.location.origin, product)}
+		alt={text.qrAlt(product.name)}
+		fileName="{product.sku}-qr.svg"
+		downloadLabel={text.downloadQr}
+	/>
+</section>

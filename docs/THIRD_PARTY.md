@@ -65,6 +65,7 @@ Ukuran untuk pustaka yang ikut ke peramban diukur dari bundel terkompresi. Alat 
 | `vite` | 8.3 | MIT | Alat bangun | Pembangun dan server pengembangan |
 | `@lucide/svelte` | 1.52 | ISC | Hanya ikon yang diimpor, sekitar 1 KB per ikon | Satu keluarga ikon garis berlisensi terbuka (`DESIGN.md` bagian 7) |
 | `leaflet`, `@types/leaflet` | 1.9.4, 1.9.22 | BSD-2-Clause, MIT | 42 KB JavaScript dan 4 KB CSS terkompresi, dimuat hanya saat peta tampil | Peta untuk menandai lokasi usaha. Dipakai hanya lewat komponen `MapView` (R-CC-50, R-APP-11) |
+| `uqr` | 0.1.3 | MIT | 8 KB JavaScript terkompresi tanpa dependensi, dimuat hanya saat kode QR tampil | Membangkitkan kode QR produk sebagai SVG di peramban untuk ditempel di kemasan (FR-PRD-07). Dipakai hanya lewat komponen `QrCode` (R-CC-50, R-APP-11) |
 | `tailwindcss`, `@tailwindcss/vite` | 4.3 | MIT | Hanya kelas yang dipakai | Gaya dari token desain |
 | `typescript`, `svelte-check` | 6.0, 4.6 | Apache-2.0, MIT | Alat pengembangan | Pemeriksaan tipe ketat |
 | `eslint`, `typescript-eslint`, `eslint-plugin-svelte`, `svelte-eslint-parser`, `@eslint/js`, `eslint-config-prettier`, `globals` | 10.12, 8.60, 3.23, 1.8, 10.0, 10.1, 17.6 | MIT | Alat pengembangan | Lint mutu, keamanan, dan batas lapisan |
