@@ -29,12 +29,16 @@ func newTestServer(ready httpserver.ReadinessCheck) *httpserver.Server {
 }
 
 func newTestServerAt(ready httpserver.ReadinessCheck, now *clock.Manual) *httpserver.Server {
+	return newTestServerWith(ready, now, testAuthComponents(now))
+}
+
+func newTestServerWith(ready httpserver.ReadinessCheck, now *clock.Manual, auth authComponents) *httpserver.Server {
 	return newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), serverDeps{
 		ready:   ready,
 		edge:    security.NewEdgeVerifier(edgetest.TestKeys(), now),
 		limiter: ratelimit.New(ratelimit.Rule{Limit: testRequestLimit, Window: time.Minute}, now),
 		clock:   now,
-		auth:    testAuthComponents(now),
+		auth:    auth,
 	})
 }
 

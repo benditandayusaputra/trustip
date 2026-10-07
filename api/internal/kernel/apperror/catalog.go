@@ -15,6 +15,7 @@ const (
 	CodeUnsupportedMediaType Code = "UNSUPPORTED_MEDIA_TYPE"
 	CodeUnauthenticated      Code = "UNAUTHENTICATED"
 	CodeSessionExpired       Code = "SESSION_EXPIRED"
+	CodeSessionRevoked       Code = "SESSION_REVOKED"
 	CodeLoginFailed          Code = "LOGIN_FAILED"
 	CodeEdgeSignatureInvalid Code = "EDGE_SIGNATURE_INVALID"
 	CodeForbidden            Code = "FORBIDDEN"
@@ -75,6 +76,10 @@ func accessEntries() map[Code]entry {
 		CodeSessionExpired: {
 			KindUnauthenticated, http.StatusUnauthorized,
 			"Sesi Anda berakhir. Silakan masuk lagi.",
+		},
+		CodeSessionRevoked: {
+			KindUnauthenticated, http.StatusUnauthorized,
+			"Sesi Anda dicabut demi keamanan. Silakan masuk lagi.",
 		},
 		CodeEdgeSignatureInvalid: {KindUnauthenticated, http.StatusUnauthorized, "Permintaan tidak sah."},
 		CodeLoginFailed:          {KindUnauthenticated, http.StatusUnauthorized, "Email atau kata sandi salah."},

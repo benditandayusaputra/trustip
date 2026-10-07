@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -17,7 +18,11 @@ const (
 	tokenType         = "JWT"
 	tokenPartsCount   = 3
 	refreshTokenBytes = 32
+	refreshSeparator  = "."
+	successorPurpose  = "trustip refresh token successor v1"
 )
+
+var familyFormat = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
 var (
 	ErrTokenMalformed  = errors.New("access token is malformed")
@@ -108,18 +113,44 @@ type RefreshToken struct {
 	Hash  []byte
 }
 
-func NewRefreshToken() (RefreshToken, error) {
+type RefreshTokens struct {
+	successorKey []byte
+}
+
+func NewRefreshTokens(keys SecretRing) *RefreshTokens {
+	_, key := keys.Active()
+	return &RefreshTokens{successorKey: sign(key, successorPurpose)}
+}
+
+func (r *RefreshTokens) New(familyID string) (RefreshToken, error) {
 	random := make([]byte, refreshTokenBytes)
 	if _, err := rand.Read(random); err != nil {
 		return RefreshToken{}, fmt.Errorf("read refresh token: %w", err)
 	}
-	plain := base64.RawURLEncoding.EncodeToString(random)
-	return RefreshToken{Plain: plain, Hash: HashRefreshToken(plain)}, nil
+	return refreshTokenOf(familyID, random), nil
+}
+
+func (r *RefreshTokens) Successor(previous string) RefreshToken {
+	familyID, _ := FamilyOf(previous)
+	return refreshTokenOf(familyID, sign(r.successorKey, previous))
+}
+
+func FamilyOf(token string) (string, bool) {
+	familyID, secret, found := strings.Cut(token, refreshSeparator)
+	if !found || secret == "" || !familyFormat.MatchString(familyID) {
+		return "", false
+	}
+	return familyID, true
 }
 
 func HashRefreshToken(plain string) []byte {
 	digest := sha256.Sum256([]byte(plain))
 	return digest[:]
+}
+
+func refreshTokenOf(familyID string, secret []byte) RefreshToken {
+	plain := familyID + refreshSeparator + base64.RawURLEncoding.EncodeToString(secret)
+	return RefreshToken{Plain: plain, Hash: HashRefreshToken(plain)}
 }
 
 func sign(key []byte, signingInput string) []byte {

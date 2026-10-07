@@ -3,11 +3,14 @@ package main
 import (
 	"bytes"
 	"context"
+	"maps"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -18,6 +21,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver/edgetest"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/revocation"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
@@ -96,15 +100,62 @@ func (m *memoryUsers) byID(userID string) domain.Credentials {
 }
 
 type memorySessions struct {
-	mu      sync.Mutex
-	created []domain.Session
+	mu     sync.Mutex
+	byHash map[string]domain.StoredSession
 }
 
 func (m *memorySessions) CreateSession(_ context.Context, session domain.Session) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.created = append(m.created, session)
+	m.byHash[string(session.TokenHash)] = domain.StoredSession{
+		SessionIdentity: session.SessionIdentity, ExpiresAt: session.ExpiresAt,
+	}
 	return nil
+}
+
+func (m *memorySessions) LockSession(_ context.Context, tokenHash []byte) (domain.StoredSession, bool, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	session, ok := m.byHash[string(tokenHash)]
+	return session, ok, nil
+}
+
+func (m *memorySessions) MarkRotated(_ context.Context, sessionID string, at time.Time) error {
+	m.update(func(session *domain.StoredSession) {
+		if session.ID == sessionID {
+			session.RotatedAt = at
+		}
+	})
+	return nil
+}
+
+func (m *memorySessions) RevokeFamily(_ context.Context, familyID string, at time.Time) error {
+	m.update(func(session *domain.StoredSession) {
+		if session.FamilyID == familyID && session.RevokedAt.IsZero() {
+			session.RevokedAt = at
+		}
+	})
+	return nil
+}
+
+func (m *memorySessions) RevokeUser(_ context.Context, userID string, at time.Time) ([]string, error) {
+	families := map[string]bool{}
+	m.update(func(session *domain.StoredSession) {
+		if session.UserID == userID && session.RevokedAt.IsZero() {
+			session.RevokedAt = at
+			families[session.FamilyID] = true
+		}
+	})
+	return slices.Sorted(maps.Keys(families)), nil
+}
+
+func (m *memorySessions) update(change func(*domain.StoredSession)) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for hash, session := range m.byHash {
+		change(&session)
+		m.byHash[hash] = session
+	}
 }
 
 type inlineTx struct{}
@@ -119,17 +170,20 @@ func testAuthComponents(now *clock.Manual) authComponents {
 		panic(err)
 	}
 	users := &memoryUsers{byEmail: map[string]domain.Credentials{}}
+	sessions := &memorySessions{byHash: map[string]domain.StoredSession{}}
 	return authComponents{
-		captcha:     acceptSolvedCaptcha{},
-		passwords:   passwordHasher{hasher: hasher},
-		users:       users,
-		credentials: users,
-		sessions:    &memorySessions{},
-		tokens:      tokenIssuer{signer: security.NewTokenSigner(testPepper{})},
-		tx:          inlineTx{},
-		clock:       now,
-		ids:         idgen.NewSequence(),
-		cookies:     authhandler.LocalCookies(),
+		captcha:      acceptSolvedCaptcha{},
+		passwords:    passwordHasher{hasher: hasher},
+		users:        users,
+		credentials:  users,
+		sessions:     sessions,
+		userSessions: sessions,
+		tokens:       newTokenIssuer(testPepper{}),
+		revoked:      revocation.New(now),
+		tx:           inlineTx{},
+		clock:        now,
+		ids:          idgen.NewSequence(),
+		cookies:      authhandler.LocalCookies(),
 	}
 }
 

@@ -49,15 +49,24 @@ func (h passwordHasher) VerifyAbsent(password string) error {
 }
 
 type tokenIssuer struct {
-	signer *security.TokenSigner
+	signer  *security.TokenSigner
+	refresh *security.RefreshTokens
 }
 
-func (i tokenIssuer) NewRefreshToken() (domain.RefreshToken, error) {
-	token, err := security.NewRefreshToken()
+func (i tokenIssuer) NewRefreshToken(familyID string) (domain.RefreshToken, error) {
+	token, err := i.refresh.New(familyID)
 	if err != nil {
 		return domain.RefreshToken{}, fmt.Errorf("new refresh token: %w", err)
 	}
 	return domain.RefreshToken(token), nil
+}
+
+func (i tokenIssuer) SuccessorOf(previous string) domain.RefreshToken {
+	return domain.RefreshToken(i.refresh.Successor(previous))
+}
+
+func (i tokenIssuer) HashRefreshToken(plain string) []byte {
+	return security.HashRefreshToken(plain)
 }
 
 func (i tokenIssuer) SignAccessToken(claims domain.AccessClaims) (string, error) {

@@ -40,9 +40,10 @@ func NewErrorHandler(appLog, securityLog *slog.Logger) fiber.ErrorHandler {
 
 func securityEvents() map[apperror.Code]string {
 	return map[apperror.Code]string{
-		apperror.CodeCaptchaFailed: "captcha_failed",
-		apperror.CodeLoginFailed:   "login_failed",
-		apperror.CodeAccountLocked: "account_locked",
+		apperror.CodeCaptchaFailed:  "captcha_failed",
+		apperror.CodeLoginFailed:    "login_failed",
+		apperror.CodeAccountLocked:  "account_locked",
+		apperror.CodeSessionRevoked: "refresh_token_reused",
 	}
 }
 

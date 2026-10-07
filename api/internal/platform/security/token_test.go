@@ -92,21 +92,63 @@ func TestVerify_RotatedKey_StillAcceptsTokensSignedWithTheOldKey(t *testing.T) {
 	}
 }
 
-func TestNewRefreshToken_RSEC17_IsRandomAndStoredOnlyAsSHA256(t *testing.T) {
-	first, err := security.NewRefreshToken()
+const familyID = "0192f0c4-7b1e-7c3a-9d2e-000000000001"
+
+func TestNewRefreshToken_RSEC17_IsRandomNamesItsFamilyAndIsStoredOnlyAsSHA256(t *testing.T) {
+	tokens := security.NewRefreshTokens(signingKeys())
+
+	first, err := tokens.New(familyID)
 	if err != nil {
 		t.Fatalf("new token: %v", err)
 	}
-	second, err := security.NewRefreshToken()
+	second, err := tokens.New(familyID)
 	if err != nil {
 		t.Fatalf("new token: %v", err)
 	}
 
-	if first.Plain == second.Plain || len(first.Plain) < 43 {
+	family, ok := security.FamilyOf(first.Plain)
+	if first.Plain == second.Plain || !ok || family != familyID || len(first.Plain) < len(familyID)+44 {
 		t.Fatalf("tokens = %q, %q", first.Plain, second.Plain)
 	}
 	if !bytes.Equal(first.Hash, security.HashRefreshToken(first.Plain)) || len(first.Hash) != 32 {
 		t.Fatalf("hash = %x", first.Hash)
+	}
+}
+
+func TestSuccessor_RSEC18_IsTheSameEveryTimeForOneToken(t *testing.T) {
+	tokens := security.NewRefreshTokens(signingKeys())
+	previous, err := tokens.New(familyID)
+	if err != nil {
+		t.Fatalf("new token: %v", err)
+	}
+
+	first := tokens.Successor(previous.Plain)
+	again := tokens.Successor(previous.Plain)
+
+	family, _ := security.FamilyOf(first.Plain)
+	if first.Plain != again.Plain || first.Plain == previous.Plain || family != familyID {
+		t.Fatalf("successors = %q, %q", first.Plain, again.Plain)
+	}
+}
+
+func TestSuccessor_DependsOnTheServerKey(t *testing.T) {
+	other := signingKeys()
+	other.peppers["v1"] = bytes.Repeat([]byte{9}, 32)
+	previous := familyID + ".c2VjcmV0"
+
+	mine := security.NewRefreshTokens(signingKeys()).Successor(previous)
+	theirs := security.NewRefreshTokens(other).Successor(previous)
+
+	if mine.Plain == theirs.Plain {
+		t.Fatal("successor must not be computable without the server key")
+	}
+}
+
+func TestFamilyOf_RejectsMalformedTokens(t *testing.T) {
+	for _, token := range []string{"", "no-separator", familyID + ".", "not-a-uuid.c2VjcmV0", ".c2VjcmV0"} {
+		if _, ok := security.FamilyOf(token); ok {
+			t.Errorf("%q was accepted", token)
+		}
 	}
 }
 

@@ -9,11 +9,10 @@ import (
 )
 
 const (
-	hostOnlyPrefix  = "__Host-"
-	accessCookie    = "trustip_at"
-	refreshCookie   = "trustip_rt"
-	rootCookiePath  = "/"
-	expiredLifetime = -1
+	hostOnlyPrefix = "__Host-"
+	accessCookie   = "trustip_at"
+	refreshCookie  = "trustip_rt"
+	rootCookiePath = "/"
 )
 
 type CookiePolicy struct {
@@ -46,6 +45,14 @@ func (p CookiePolicy) name(base string) string {
 func (p CookiePolicy) setSession(c fiber.Ctx, tokens domain.SessionTokens) {
 	c.Cookie(p.cookie(p.AccessName(), tokens.Access, domain.AccessTokenLifetime))
 	c.Cookie(p.cookie(p.RefreshName(), tokens.Refresh, domain.RefreshTokenLifetime))
+}
+
+func (p CookiePolicy) clear(c fiber.Ctx) {
+	for _, name := range []string{p.AccessName(), p.RefreshName()} {
+		expired := p.cookie(name, "", 0)
+		expired.Expires = time.Unix(0, 0).UTC()
+		c.Cookie(expired)
+	}
 }
 
 func (p CookiePolicy) cookie(name, value string, lifetime time.Duration) *fiber.Cookie {

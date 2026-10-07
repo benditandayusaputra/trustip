@@ -32,3 +32,25 @@ WHERE id = @id;
 -- name: CreateSession :exec
 INSERT INTO sessions (id, user_id, family_id, token_hash, expires_at, created_at)
 VALUES (@id, @user_id, @family_id, @token_hash, @expires_at, @created_at);
+
+-- name: LockSessionByTokenHash :one
+SELECT id, user_id, family_id, expires_at, rotated_at, revoked_at
+FROM sessions
+WHERE token_hash = @token_hash
+FOR UPDATE;
+
+-- name: MarkSessionRotated :exec
+UPDATE sessions
+SET rotated_at = @rotated_at
+WHERE id = @id;
+
+-- name: RevokeSessionFamily :exec
+UPDATE sessions
+SET revoked_at = @revoked_at
+WHERE family_id = @family_id AND revoked_at IS NULL;
+
+-- name: RevokeUserSessions :many
+UPDATE sessions
+SET revoked_at = @revoked_at
+WHERE user_id = @user_id AND revoked_at IS NULL
+RETURNING family_id;

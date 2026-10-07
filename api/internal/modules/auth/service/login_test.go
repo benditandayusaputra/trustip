@@ -79,8 +79,19 @@ func (f *fakeSessions) CreateSession(_ context.Context, session domain.Session) 
 
 type fakeTokens struct{ signed []domain.AccessClaims }
 
-func (f *fakeTokens) NewRefreshToken() (domain.RefreshToken, error) {
+func (f *fakeTokens) NewRefreshToken(familyID string) (domain.RefreshToken, error) {
+	if familyID == "" {
+		return domain.RefreshToken{}, errors.New("refresh token needs its family")
+	}
 	return domain.RefreshToken{Plain: "refresh-plain", Hash: []byte("refresh-hash")}, nil
+}
+
+func (f *fakeTokens) SuccessorOf(previous string) domain.RefreshToken {
+	return domain.RefreshToken{Plain: previous + "+next", Hash: f.HashRefreshToken(previous + "+next")}
+}
+
+func (f *fakeTokens) HashRefreshToken(plain string) []byte {
+	return []byte("hash-of-" + plain)
 }
 
 func (f *fakeTokens) SignAccessToken(claims domain.AccessClaims) (string, error) {

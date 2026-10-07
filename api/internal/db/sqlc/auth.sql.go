@@ -126,6 +126,100 @@ func (q *Queries) LockLoginAttempts(ctx context.Context, id string) (LockLoginAt
 	return i, err
 }
 
+const lockSessionByTokenHash = `-- name: LockSessionByTokenHash :one
+SELECT id, user_id, family_id, expires_at, rotated_at, revoked_at
+FROM sessions
+WHERE token_hash = $1
+FOR UPDATE
+`
+
+type LockSessionByTokenHashRow struct {
+	ID        string
+	UserID    string
+	FamilyID  string
+	ExpiresAt time.Time
+	RotatedAt pgtype.Timestamptz
+	RevokedAt pgtype.Timestamptz
+}
+
+func (q *Queries) LockSessionByTokenHash(ctx context.Context, tokenHash []byte) (LockSessionByTokenHashRow, error) {
+	row := q.db.QueryRow(ctx, lockSessionByTokenHash, tokenHash)
+	var i LockSessionByTokenHashRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.FamilyID,
+		&i.ExpiresAt,
+		&i.RotatedAt,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
+const markSessionRotated = `-- name: MarkSessionRotated :exec
+UPDATE sessions
+SET rotated_at = $1
+WHERE id = $2
+`
+
+type MarkSessionRotatedParams struct {
+	RotatedAt pgtype.Timestamptz
+	ID        string
+}
+
+func (q *Queries) MarkSessionRotated(ctx context.Context, arg MarkSessionRotatedParams) error {
+	_, err := q.db.Exec(ctx, markSessionRotated, arg.RotatedAt, arg.ID)
+	return err
+}
+
+const revokeSessionFamily = `-- name: RevokeSessionFamily :exec
+UPDATE sessions
+SET revoked_at = $1
+WHERE family_id = $2 AND revoked_at IS NULL
+`
+
+type RevokeSessionFamilyParams struct {
+	RevokedAt pgtype.Timestamptz
+	FamilyID  string
+}
+
+func (q *Queries) RevokeSessionFamily(ctx context.Context, arg RevokeSessionFamilyParams) error {
+	_, err := q.db.Exec(ctx, revokeSessionFamily, arg.RevokedAt, arg.FamilyID)
+	return err
+}
+
+const revokeUserSessions = `-- name: RevokeUserSessions :many
+UPDATE sessions
+SET revoked_at = $1
+WHERE user_id = $2 AND revoked_at IS NULL
+RETURNING family_id
+`
+
+type RevokeUserSessionsParams struct {
+	RevokedAt pgtype.Timestamptz
+	UserID    string
+}
+
+func (q *Queries) RevokeUserSessions(ctx context.Context, arg RevokeUserSessionsParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, revokeUserSessions, arg.RevokedAt, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var family_id string
+		if err := rows.Scan(&family_id); err != nil {
+			return nil, err
+		}
+		items = append(items, family_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const saveLoginAttempts = `-- name: SaveLoginAttempts :exec
 UPDATE users
 SET failed_login_count = $1, locked_until = $2, updated_at = now()

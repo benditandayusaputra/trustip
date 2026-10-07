@@ -33,6 +33,7 @@ func TestCatalog_StatusesFollowContractTable(t *testing.T) {
 		apperror.CodeCaptchaFailed:        http.StatusUnprocessableEntity,
 		apperror.CodeLoginFailed:          http.StatusUnauthorized,
 		apperror.CodeAccountLocked:        http.StatusTooManyRequests,
+		apperror.CodeSessionRevoked:       http.StatusUnauthorized,
 		apperror.CodeRateLimited:          http.StatusTooManyRequests,
 		apperror.CodeServiceUnavailable:   http.StatusServiceUnavailable,
 		apperror.CodeInternal:             http.StatusInternalServerError,

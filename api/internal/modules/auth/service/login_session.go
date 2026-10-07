@@ -17,13 +17,13 @@ type successfulLogin struct {
 
 func (uc *LoginUser) startSession(ctx context.Context, login successfulLogin) (LoginResult, error) {
 	userID := login.credentials.UserID
-	refresh, err := uc.deps.Tokens.NewRefreshToken()
-	if err != nil {
-		return LoginResult{}, fmt.Errorf("create refresh token: %w", err)
-	}
 	identity, err := uc.newSessionIdentity(userID)
 	if err != nil {
 		return LoginResult{}, err
+	}
+	refresh, err := uc.deps.Tokens.NewRefreshToken(identity.FamilyID)
+	if err != nil {
+		return LoginResult{}, fmt.Errorf("create refresh token: %w", err)
 	}
 	session := domain.NewSession(identity, refresh.Hash, login.now)
 	if err := uc.deps.Tx.WithinTx(ctx, func(ctx context.Context) error {

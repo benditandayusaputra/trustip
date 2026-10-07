@@ -12,9 +12,12 @@ import (
 )
 
 const (
-	usersPath    = "/users"
-	sessionsPath = "/sessions"
-	accountPath  = httpserver.APIPrefix + "/me"
+	usersPath     = "/users"
+	sessionsPath  = "/sessions"
+	refreshPath   = sessionsPath + "/refresh"
+	logoutPath    = sessionsPath + "/logout"
+	logoutAllPath = sessionsPath + "/logout-all"
+	accountPath   = httpserver.APIPrefix + "/me"
 )
 
 type Registrar interface {
@@ -32,13 +35,22 @@ type LoginLimiters struct {
 	PerEmailHour   httpserver.RateLimiter
 }
 
+type SessionEnders struct {
+	ThisDevice SessionEnder
+	AllDevices SessionEnder
+}
+
 type Deps struct {
-	Register      Registrar
-	Login         Authenticator
-	SignupLimiter httpserver.RateLimiter
-	LoginLimiters LoginLimiters
-	Cookies       CookiePolicy
-	SecurityLog   *slog.Logger
+	Register        Registrar
+	Login           Authenticator
+	Refresh         Refresher
+	LogOut          SessionEnders
+	SignupLimiter   httpserver.RateLimiter
+	LoginLimiters   LoginLimiters
+	RefreshLimiter  httpserver.RateLimiter
+	RefreshLimitKey httpserver.RateLimitKey
+	Cookies         CookiePolicy
+	SecurityLog     *slog.Logger
 }
 
 func Mount(api fiber.Router, deps Deps) {
@@ -53,11 +65,17 @@ func Mount(api fiber.Router, deps Deps) {
 		limit(deps.LoginLimiters.PerEmailHour, byLoginEmail),
 		login(deps.Login, deps.Cookies),
 	)
+	api.Post(refreshPath, limit(deps.RefreshLimiter, deps.RefreshLimitKey), refresh(deps.Refresh, deps.Cookies))
+	api.Post(logoutPath, endSession(deps.LogOut.ThisDevice, deps.Cookies))
+	api.Post(logoutAllPath, endSession(deps.LogOut.AllDevices, deps.Cookies))
 }
 
 func PublicRoutes() []httpserver.PublicRoute {
 	return []httpserver.PublicRoute{
 		{Method: fiber.MethodPost, Path: httpserver.APIPrefix + usersPath},
 		{Method: fiber.MethodPost, Path: httpserver.APIPrefix + sessionsPath},
+		{Method: fiber.MethodPost, Path: httpserver.APIPrefix + refreshPath},
+		{Method: fiber.MethodPost, Path: httpserver.APIPrefix + logoutPath},
+		{Method: fiber.MethodPost, Path: httpserver.APIPrefix + logoutAllPath},
 	}
 }

@@ -144,6 +144,84 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/sessions/refresh:
+    post:
+      operationId: refreshSession
+      tags: [auth]
+      responses:
+        "200":
+          description: Token penyegar diputar. Pasangan cookie baru dipasang
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Set-Cookie:
+              $ref: "#/components/headers/SetCookie"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/sessions/logout:
+    post:
+      operationId: logOut
+      tags: [auth]
+      responses:
+        "200":
+          description: Keluarga sesi ini dicabut dan kedua cookie dihapus
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Set-Cookie:
+              $ref: "#/components/headers/SetCookie"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/sessions/logout-all:
+    post:
+      operationId: logOutEverywhere
+      tags: [auth]
+      responses:
+        "200":
+          description: Semua sesi pengguna dicabut dan kedua cookie dihapus
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Set-Cookie:
+              $ref: "#/components/headers/SetCookie"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -237,6 +315,7 @@ components:
         - UNSUPPORTED_MEDIA_TYPE
         - UNAUTHENTICATED
         - SESSION_EXPIRED
+        - SESSION_REVOKED
         - LOGIN_FAILED
         - EDGE_SIGNATURE_INVALID
         - FORBIDDEN
@@ -408,3 +487,17 @@ components:
           type: string
         captcha_token:
           type: string
+    EmptyResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          nullable: true
+          enum: [null]
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
