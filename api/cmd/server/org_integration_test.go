@@ -84,3 +84,26 @@ func TestReadSettings_RSEC41_AnotherOrganizationIsNotFoundInTheDatabase(t *testi
 	requireCode(t, read, "NOT_FOUND")
 	requireCode(t, changed, "NOT_FOUND")
 }
+
+func TestUpdateStoreProfile_FRORG04_UploadedPhotosAppearInOrder(t *testing.T) {
+	visitor := databaseBrowser(t)
+	founded := visitor.postOrganization(onboarding(semarangCityCode))
+	organizationID := quotedAfter(string(founded.body), `"id":"`)
+	visitor.post("/api/v1/sessions/refresh")
+	var photoIDs []string
+	for range 2 {
+		uploaded := visitor.upload(part{name: "purpose", data: []byte("STORE_PHOTO")},
+			part{name: "file", filename: "rak.jpg", data: photoWithLocation(t)})
+		photoIDs = append(photoIDs, `"`+quotedAfter(string(uploaded.body), `"id":"`)+`"`)
+	}
+
+	saved := visitor.patch(organizationsPath+"/"+organizationID+"/store-profile",
+		storeProfileBody(strings.Join(photoIDs, ",")))
+
+	requireCode(t, saved, "OK")
+	if strings.Count(string(saved.body), testFilesBaseURL+"/") != 2 ||
+		!strings.Contains(string(saved.body), `"accepted_category_ids":["`+breadCategoryID+`"]`) {
+		t.Fatalf("saved = %s", saved.body)
+	}
+	loadContract(t).requireConforms(t, saved)
+}

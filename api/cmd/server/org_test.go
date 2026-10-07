@@ -82,13 +82,29 @@ func (m *memoryProfiles) UpdateProfile(_ context.Context, change domain.ProfileC
 	return nil
 }
 
+func (m *memoryProfiles) UpdateStoreProfile(_ context.Context, change domain.StoreProfileChange) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	settings := m.settings[change.OrganizationID]
+	settings.Store.Profile = change.Profile
+	m.settings[change.OrganizationID] = settings
+	return nil
+}
+
+func (memoryRegions) ListCategories(context.Context) ([]domain.Category, error) {
+	return []domain.Category{{ID: breadCategoryID, Name: "Roti dan kue basah", Slug: "roti-dan-kue-basah"}}, nil
+}
+
+const breadCategoryID = "01a1161e-0a30-752d-ab9b-7397976f0dba"
+
 func testOrgComponents(now *clock.Manual) orgComponents {
 	store := domain.Settings{
 		ID: memberOrganizationID, Type: actor.Store, Slug: "warung-bu-tini", CityName: "Kota Semarang",
 	}
+	profiles := &memoryProfiles{settings: map[string]domain.Settings{memberOrganizationID: store}}
 	return orgComponents{
-		founder: &memoryFounder{}, regions: memoryRegions{}, tx: inlineTx{}, clock: now, ids: idgen.NewSequence(),
-		profiles: &memoryProfiles{settings: map[string]domain.Settings{memberOrganizationID: store}},
+		founder: &memoryFounder{}, regions: memoryRegions{}, categories: memoryRegions{}, tx: inlineTx{},
+		clock: now, ids: idgen.NewSequence(), profiles: profiles, stores: profiles,
 	}
 }
 
@@ -274,4 +290,44 @@ func TestCreateOrganization_FRORG03_LocationOutOfRangeIsAFieldError(t *testing.T
 	if !strings.Contains(string(got.body), `"field":"location","code":"OUT_OF_RANGE"`) {
 		t.Fatalf("body = %s", got.body)
 	}
+}
+
+func storeProfileBody(photos string) string {
+	return `{"store_type":"BAKERY","accepted_category_ids":["` + breadCategoryID + `"],` +
+		`"accepts_fixed_deposit":false,"accepts_commission":true,"commission_min_bps":1000,` +
+		`"commission_max_bps":2000,"requires_distribution_permit":true,"requires_halal":false,` +
+		`"requires_sample":false,"other_requirements":"","opening_hours":"07.00-21.00","photo_file_ids":[` +
+		photos + `]}`
+}
+
+func TestUpdateStoreProfile_FRORG04_StoreSavesItsProfile(t *testing.T) {
+	visitor := memberBrowser(t, storeOwner())
+
+	got := visitor.patch(organizationsPath+"/"+memberOrganizationID+"/store-profile", storeProfileBody(""))
+
+	requireCode(t, got, "OK")
+	if !strings.Contains(string(got.body), `"store_type":"BAKERY"`) {
+		t.Fatalf("body = %s", got.body)
+	}
+	loadContract(t).requireConforms(t, got)
+}
+
+func TestUpdateStoreProfile_ConsignorGetsNotFound(t *testing.T) {
+	visitor := memberBrowser(t, actor.Membership{
+		OrganizationID: memberOrganizationID, OrganizationType: actor.Consignor, Role: actor.Owner,
+	})
+
+	got := visitor.patch(organizationsPath+"/"+memberOrganizationID+"/store-profile", storeProfileBody(""))
+
+	requireCode(t, got, "NOT_FOUND")
+}
+
+func TestListCategories_IsPublicAndFollowsTheContract(t *testing.T) {
+	server, now := serverWithAccount(t)
+	visitor := &browser{t: t, server: server, now: now}
+
+	got := visitor.get("/api/v1/categories")
+
+	requireCode(t, got, "OK")
+	loadContract(t).requireConforms(t, got)
 }

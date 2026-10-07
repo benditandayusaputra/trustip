@@ -14,6 +14,8 @@ import (
 const (
 	organizationsPath = "/organizations"
 	organizationPath  = organizationsPath + "/:id"
+	storeProfilePath  = organizationPath + "/store-profile"
+	categoriesPath    = "/categories"
 	provincesPath     = "/provinces"
 	citiesPath        = "/cities"
 )
@@ -35,6 +37,8 @@ type Deps struct {
 	Create       Creator
 	Settings     SettingsReader
 	EditProfile  ProfileEditor
+	EditStore    StoreProfileEditor
+	Categories   CategoryLister
 	FilesBaseURL string
 	Provinces    ProvinceLister
 	Cities       CityLister
@@ -47,12 +51,15 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Post(organizationsPath, deps.Authenticate, writeLimit, createOrganization(deps.Create))
 	api.Get(organizationPath, deps.Authenticate, readSettings(deps.Settings, deps.FilesBaseURL))
 	api.Patch(organizationPath, deps.Authenticate, writeLimit, updateProfile(deps.EditProfile, deps.FilesBaseURL))
+	api.Patch(storeProfilePath, deps.Authenticate, writeLimit, updateStoreProfile(deps.EditStore, deps.FilesBaseURL))
+	api.Get(categoriesPath, listCategories(deps.Categories))
 	api.Get(provincesPath, listProvinces(deps.Provinces))
 	api.Get(citiesPath, listCities(deps.Cities))
 }
 
 func PublicRoutes() []httpserver.PublicRoute {
 	return []httpserver.PublicRoute{
+		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + categoriesPath},
 		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + provincesPath},
 		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + citiesPath},
 	}

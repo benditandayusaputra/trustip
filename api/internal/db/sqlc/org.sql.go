@@ -10,6 +10,67 @@ import (
 	"time"
 )
 
+const addAcceptedCategories = `-- name: AddAcceptedCategories :execrows
+INSERT INTO store_accepted_categories (organization_id, category_id)
+SELECT $1::uuid, c.id
+FROM categories AS c
+WHERE c.id = ANY($2::uuid[])
+`
+
+type AddAcceptedCategoriesParams struct {
+	OrganizationID string
+	CategoryIds    []string
+}
+
+func (q *Queries) AddAcceptedCategories(ctx context.Context, arg AddAcceptedCategoriesParams) (int64, error) {
+	result, err := q.db.Exec(ctx, addAcceptedCategories, arg.OrganizationID, arg.CategoryIds)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const addOrganizationPhotos = `-- name: AddOrganizationPhotos :execrows
+INSERT INTO org_photos (organization_id, file_id, sort_order)
+SELECT $1::uuid, f.id, p.position::integer
+FROM unnest($2::uuid[]) WITH ORDINALITY AS p (file_id, position)
+JOIN files AS f ON f.id = p.file_id
+WHERE f.organization_id = $1::uuid AND f.purpose = 'STORE_PHOTO'
+`
+
+type AddOrganizationPhotosParams struct {
+	OrganizationID string
+	FileIds        []string
+}
+
+func (q *Queries) AddOrganizationPhotos(ctx context.Context, arg AddOrganizationPhotosParams) (int64, error) {
+	result, err := q.db.Exec(ctx, addOrganizationPhotos, arg.OrganizationID, arg.FileIds)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const clearAcceptedCategories = `-- name: ClearAcceptedCategories :exec
+DELETE FROM store_accepted_categories
+WHERE organization_id = $1
+`
+
+func (q *Queries) ClearAcceptedCategories(ctx context.Context, organizationID string) error {
+	_, err := q.db.Exec(ctx, clearAcceptedCategories, organizationID)
+	return err
+}
+
+const clearOrganizationPhotos = `-- name: ClearOrganizationPhotos :exec
+DELETE FROM org_photos
+WHERE organization_id = $1
+`
+
+func (q *Queries) ClearOrganizationPhotos(ctx context.Context, organizationID string) error {
+	_, err := q.db.Exec(ctx, clearOrganizationPhotos, organizationID)
+	return err
+}
+
 const countOrganizationFiles = `-- name: CountOrganizationFiles :one
 SELECT count(*)::integer
 FROM files
@@ -225,6 +286,91 @@ func (q *Queries) GetOrganizationSettings(ctx context.Context, id string) (GetOr
 	return i, err
 }
 
+const getStoreProfile = `-- name: GetStoreProfile :one
+SELECT
+    COALESCE(sp.store_type, '')::text AS store_type,
+    sp.opening_hours, sp.accepts_fixed_deposit, sp.accepts_commission,
+    (sp.commission_min_bps IS NOT NULL)::boolean AS has_commission,
+    COALESCE(sp.commission_min_bps, 0)::bigint AS commission_min_bps,
+    COALESCE(sp.commission_max_bps, 0)::bigint AS commission_max_bps,
+    sp.requires_distribution_permit, sp.requires_halal, sp.requires_sample, sp.other_requirements,
+    COALESCE((
+        SELECT array_agg(sac.category_id::text ORDER BY c.sort_order)
+        FROM store_accepted_categories AS sac
+        JOIN categories AS c ON c.id = sac.category_id
+        WHERE sac.organization_id = sp.organization_id
+    ), '{}')::text[] AS category_ids
+FROM store_profiles AS sp
+WHERE sp.organization_id = $1
+`
+
+type GetStoreProfileRow struct {
+	StoreType                  string
+	OpeningHours               string
+	AcceptsFixedDeposit        bool
+	AcceptsCommission          bool
+	HasCommission              bool
+	CommissionMinBps           int64
+	CommissionMaxBps           int64
+	RequiresDistributionPermit bool
+	RequiresHalal              bool
+	RequiresSample             bool
+	OtherRequirements          string
+	CategoryIds                []string
+}
+
+func (q *Queries) GetStoreProfile(ctx context.Context, organizationID string) (GetStoreProfileRow, error) {
+	row := q.db.QueryRow(ctx, getStoreProfile, organizationID)
+	var i GetStoreProfileRow
+	err := row.Scan(
+		&i.StoreType,
+		&i.OpeningHours,
+		&i.AcceptsFixedDeposit,
+		&i.AcceptsCommission,
+		&i.HasCommission,
+		&i.CommissionMinBps,
+		&i.CommissionMaxBps,
+		&i.RequiresDistributionPermit,
+		&i.RequiresHalal,
+		&i.RequiresSample,
+		&i.OtherRequirements,
+		&i.CategoryIds,
+	)
+	return i, err
+}
+
+const listCategories = `-- name: ListCategories :many
+SELECT id, name, slug
+FROM categories
+ORDER BY sort_order
+`
+
+type ListCategoriesRow struct {
+	ID   string
+	Name string
+	Slug string
+}
+
+func (q *Queries) ListCategories(ctx context.Context) ([]ListCategoriesRow, error) {
+	rows, err := q.db.Query(ctx, listCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCategoriesRow{}
+	for rows.Next() {
+		var i ListCategoriesRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Slug); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCitiesInProvince = `-- name: ListCitiesInProvince :many
 SELECT
     code, name, province_name,
@@ -259,6 +405,39 @@ func (q *Queries) ListCitiesInProvince(ctx context.Context, provinceCode string)
 			&i.Latitude,
 			&i.Longitude,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOrganizationPhotos = `-- name: ListOrganizationPhotos :many
+SELECT f.id, f.storage_key
+FROM org_photos AS p
+JOIN files AS f ON f.id = p.file_id
+WHERE p.organization_id = $1
+ORDER BY p.sort_order
+`
+
+type ListOrganizationPhotosRow struct {
+	ID         string
+	StorageKey string
+}
+
+func (q *Queries) ListOrganizationPhotos(ctx context.Context, organizationID string) ([]ListOrganizationPhotosRow, error) {
+	rows, err := q.db.Query(ctx, listOrganizationPhotos, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOrganizationPhotosRow{}
+	for rows.Next() {
+		var i ListOrganizationPhotosRow
+		if err := rows.Scan(&i.ID, &i.StorageKey); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -381,6 +560,61 @@ func (q *Queries) UpdateOrganizationProfile(ctx context.Context, arg UpdateOrgan
 		arg.UpdatedAt,
 		arg.ID,
 		arg.CityCode,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const updateStoreProfile = `-- name: UpdateStoreProfile :execrows
+UPDATE store_profiles
+SET
+    store_type = NULLIF($1::text, ''),
+    opening_hours = $2::text,
+    accepts_fixed_deposit = $3::boolean,
+    accepts_commission = $4::boolean,
+    commission_min_bps = CASE WHEN $5::boolean THEN $6::bigint END,
+    commission_max_bps = CASE WHEN $5::boolean THEN $7::bigint END,
+    requires_distribution_permit = $8::boolean,
+    requires_halal = $9::boolean,
+    requires_sample = $10::boolean,
+    other_requirements = $11::text,
+    updated_at = $12::timestamptz
+WHERE organization_id = $13::uuid
+`
+
+type UpdateStoreProfileParams struct {
+	StoreType                  string
+	OpeningHours               string
+	AcceptsFixedDeposit        bool
+	AcceptsCommission          bool
+	HasCommission              bool
+	CommissionMinBps           int64
+	CommissionMaxBps           int64
+	RequiresDistributionPermit bool
+	RequiresHalal              bool
+	RequiresSample             bool
+	OtherRequirements          string
+	UpdatedAt                  time.Time
+	OrganizationID             string
+}
+
+func (q *Queries) UpdateStoreProfile(ctx context.Context, arg UpdateStoreProfileParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateStoreProfile,
+		arg.StoreType,
+		arg.OpeningHours,
+		arg.AcceptsFixedDeposit,
+		arg.AcceptsCommission,
+		arg.HasCommission,
+		arg.CommissionMinBps,
+		arg.CommissionMaxBps,
+		arg.RequiresDistributionPermit,
+		arg.RequiresHalal,
+		arg.RequiresSample,
+		arg.OtherRequirements,
+		arg.UpdatedAt,
+		arg.OrganizationID,
 	)
 	if err != nil {
 		return 0, err

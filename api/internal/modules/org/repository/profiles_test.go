@@ -14,12 +14,12 @@ import (
 
 const logoFileID = "0192f0c4-aa00-7e66-a1bb-4d2f3e5d6a90"
 
-func (w world) file(id, organization, purpose string) {
+func (w world) file(id, purpose string) {
 	w.t.Helper()
 	digest := sha256.Sum256([]byte(id))
 	err := w.queries.CreateFile(w.t.Context(), sqlc.CreateFileParams{
-		ID: id, OrganizationID: organization, Purpose: purpose, Visibility: "PUBLIC", ContentType: "image/png",
-		SizeBytes: 10, StorageKey: strings.Repeat("c3", 16) + ".png", Sha256: digest[:], Width: 10, Height: 10,
+		ID: id, OrganizationID: organizationID, Purpose: purpose, Visibility: "PUBLIC", ContentType: "image/png",
+		SizeBytes: 10, StorageKey: strings.ReplaceAll(id, "-", "") + ".png", Sha256: digest[:], Width: 10, Height: 10,
 		CreatedBy: userID, CreatedAt: createdAt(),
 	})
 	if err != nil {
@@ -54,7 +54,7 @@ func renamed(t *testing.T, logo string) domain.ProfileChange {
 
 func TestUpdateProfile_FRORG01_SavesTheProfileAndItsLogo(t *testing.T) {
 	given := foundedConsignor(t)
-	given.file(logoFileID, organizationID, "LOGO")
+	given.file(logoFileID, "LOGO")
 	profiles := repository.NewProfiles(given.pool)
 
 	if err := profiles.UpdateProfile(t.Context(), renamed(t, logoFileID)); err != nil {
@@ -73,7 +73,7 @@ func TestUpdateProfile_FRORG01_SavesTheProfileAndItsLogo(t *testing.T) {
 
 func TestUpdateProfile_LogoMustBeALogoOfTheSameOrganization(t *testing.T) {
 	given := foundedConsignor(t)
-	given.file(logoFileID, organizationID, "PAYMENT_QR")
+	given.file(logoFileID, "PAYMENT_QR")
 
 	err := repository.NewProfiles(given.pool).UpdateProfile(t.Context(), renamed(t, logoFileID))
 

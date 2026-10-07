@@ -98,5 +98,8 @@ func toSettingsResponse(settings domain.Settings, filesBaseURL string) organizat
 	if settings.Logo.ID != "" {
 		response.Logo = &imageRef{ID: settings.Logo.ID, URL: filesBaseURL + "/" + settings.Logo.StorageKey}
 	}
+	if settings.Type == actor.Store {
+		response.StoreProfile = toStoreProfileResponse(settings.Store, filesBaseURL)
+	}
 	return response
 }

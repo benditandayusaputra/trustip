@@ -17,22 +17,28 @@ import (
 const writesPerMinutePerUser = 60
 
 type orgComponents struct {
-	founder  orgservice.OrganizationFounder
-	profiles orgservice.ProfileStore
-	regions  orgservice.RegionReader
-	tx       orgservice.Transactor
-	clock    orgservice.Clock
-	ids      orgservice.IDGenerator
+	founder    orgservice.OrganizationFounder
+	profiles   orgservice.ProfileStore
+	stores     orgservice.StoreProfileStore
+	categories orgservice.CategoryReader
+	regions    orgservice.RegionReader
+	tx         orgservice.Transactor
+	clock      orgservice.Clock
+	ids        orgservice.IDGenerator
 }
 
 func buildOrgComponents(pool *database.Pool, clock orgservice.Clock) orgComponents {
+	profiles := orgrepository.NewProfiles(pool)
+	regions := orgrepository.NewRegions(pool)
 	return orgComponents{
-		founder:  orgrepository.NewFounders(pool),
-		profiles: orgrepository.NewProfiles(pool),
-		regions:  orgrepository.NewRegions(pool),
-		tx:       pool,
-		clock:    clock,
-		ids:      idgen.UUIDv7{},
+		categories: regions,
+		founder:    orgrepository.NewFounders(pool),
+		profiles:   profiles,
+		stores:     profiles,
+		regions:    orgrepository.NewRegions(pool),
+		tx:         pool,
+		clock:      clock,
+		ids:        idgen.UUIDv7{},
 	}
 }
 
@@ -56,6 +62,10 @@ func orgDeps(components orgComponents, routes orgRoutes) orghandler.Deps {
 		Settings:     orgservice.NewGetSettings(components.profiles),
 		EditProfile:  orgservice.NewUpdateProfile(components.profiles, components.tx, components.clock),
 		FilesBaseURL: routes.filesBaseURL,
+		EditStore: orgservice.NewUpdateStoreProfile(orgservice.StoreProfileDeps{
+			Profiles: components.profiles, Stores: components.stores, Tx: components.tx, Clock: components.clock,
+		}),
+		Categories:   orgservice.NewListCategories(components.categories),
 		Provinces:    orgservice.NewListProvinces(components.regions),
 		Cities:       orgservice.NewListCities(components.regions),
 		WriteLimiter: routes.writeLimiter,

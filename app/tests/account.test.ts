@@ -82,7 +82,7 @@ test('FR-AUTH-04 FR-AUTH-06 a visitor registers, signs in, onboards, and lands o
 	await page.getByRole('link', { name: 'Lengkapi profil usaha' }).click();
 	await expect(page.getByLabel('Nama usaha')).toHaveValue('Warung Uji');
 	await page.getByLabel('Nama usaha').fill('Warung Uji Jaya');
-	await page.getByRole('button', { name: 'Simpan profil' }).click();
+	await page.getByRole('button', { name: 'Simpan profil', exact: true }).click();
 	await expect(page.getByText('Profil usaha tersimpan.')).toBeVisible();
 	await page.goto('/app/toko');
 

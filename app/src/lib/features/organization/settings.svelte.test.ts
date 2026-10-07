@@ -6,6 +6,8 @@ import { expectAccessible } from '#lib/testing/accessibility.js';
 
 const organizationId = '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c';
 const logoId = '0192f0c4-aa00-7e66-a1bb-4d2f3e5d6a90';
+const breadCategory = '01a1161e-0a30-752d-ab9b-7397976f0dba';
+const storeProfilePath = `PATCH /api/v1/organizations/${organizationId}/store-profile`;
 const tinyPng =
 	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
@@ -21,7 +23,8 @@ const store = {
 	district: 'Tembalang',
 	address: '',
 	location: null,
-	logo: null
+	logo: null,
+	store_profile: null
 };
 
 function envelope(data: unknown, status = 200): Response {
@@ -46,6 +49,8 @@ function serve(routes: Record<string, Route>) {
 		sent[key] = typeof init.body === 'string' ? JSON.parse(init.body) : init.body;
 		const all: Record<string, Route> = {
 			'GET /api/v1/provinces': () => list([{ code: '33', name: 'Jawa Tengah' }]),
+			'GET /api/v1/categories': () =>
+				list([{ id: breadCategory, name: 'Roti dan kue basah', slug: 'roti-dan-kue-basah' }]),
 			'GET /api/v1/cities?province_code=33': () =>
 				list([
 					{
@@ -98,7 +103,7 @@ describe('OrganizationSettings', () => {
 		await userEvent.upload(page.getByLabelText('Pilih gambar logo'), pngFile());
 		await expect.element(page.getByRole('img', { name: 'Logo Warung Bu Tini' })).toBeVisible();
 		await userEvent.fill(page.getByLabelText('Nama usaha'), 'Warung Bu Tini Jaya');
-		await userEvent.click(page.getByRole('button', { name: 'Simpan profil' }));
+		await userEvent.click(page.getByRole('button', { name: 'Simpan profil', exact: true }));
 
 		await expect.element(page.getByText('Profil usaha tersimpan.')).toBeVisible();
 		expect(sent[`PATCH /api/v1/organizations/${organizationId}`]).toMatchObject({
@@ -123,5 +128,49 @@ describe('OrganizationSettings', () => {
 		await render(SettingsHarness, { organizationId, canEdit: true });
 
 		await expect.element(page.getByText('Profil usaha tidak bisa dimuat.')).toBeVisible();
+	});
+
+	it('FR-ORG-04 saves the store profile with commission in basis points and a photo', async () => {
+		const sent = serve({
+			'POST /api/v1/files': () =>
+				envelope({ id: logoId, url: 'http://localhost:8080/files/b.png' }, 201),
+			[storeProfilePath]: () => envelope(store)
+		});
+		const { container } = await render(SettingsHarness, { organizationId, canEdit: true });
+
+		await userEvent.selectOptions(page.getByLabelText('Jenis toko'), 'Toko kue dan roti');
+		await userEvent.click(page.getByRole('checkbox', { name: 'Roti dan kue basah' }));
+		await userEvent.click(page.getByRole('switch', { name: 'Menerima model Komisi' }));
+		await userEvent.fill(page.getByLabelText('Komisi terendah (%)', { exact: true }), '10');
+		await userEvent.fill(page.getByLabelText('Komisi tertinggi (%)', { exact: true }), '25');
+		await userEvent.upload(page.getByLabelText('Tambah foto toko'), pngFile());
+		await expect.element(page.getByRole('img', { name: 'Foto toko 1' })).toBeVisible();
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('button', { name: 'Simpan profil toko' }));
+
+		await expect.element(page.getByText('Profil toko tersimpan.')).toBeVisible();
+		expect(sent[storeProfilePath]).toMatchObject({
+			store_type: 'BAKERY',
+			accepted_category_ids: [breadCategory],
+			accepts_commission: true,
+			commission_min_bps: 1000,
+			commission_max_bps: 2500,
+			photo_file_ids: [logoId]
+		});
+	});
+
+	it('refuses a commission range that is upside down without asking the server', async () => {
+		const sent = serve({});
+		await render(SettingsHarness, { organizationId, canEdit: true });
+
+		await userEvent.click(page.getByRole('switch', { name: 'Menerima model Komisi' }));
+		await userEvent.fill(page.getByLabelText('Komisi terendah (%)', { exact: true }), '30');
+		await userEvent.fill(page.getByLabelText('Komisi tertinggi (%)', { exact: true }), '20');
+		await userEvent.click(page.getByRole('button', { name: 'Simpan profil toko' }));
+
+		await expect
+			.element(page.getByText('Komisi terendah tidak boleh melebihi yang tertinggi.'))
+			.toBeVisible();
+		expect(sent[storeProfilePath]).toBeUndefined();
 	});
 });

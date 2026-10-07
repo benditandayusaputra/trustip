@@ -64,6 +64,12 @@ type Membership struct {
 	UpdatedAt         time.Time
 }
 
+type OrgPhoto struct {
+	OrganizationID string
+	FileID         string
+	SortOrder      int32
+}
+
 type Organization struct {
 	ID             string
 	Type           string

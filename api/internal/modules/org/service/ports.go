@@ -33,3 +33,11 @@ type ProfileStore interface {
 	GetSettings(ctx context.Context, organizationID string) (domain.Settings, error)
 	UpdateProfile(ctx context.Context, change domain.ProfileChange) error
 }
+
+type StoreProfileStore interface {
+	UpdateStoreProfile(ctx context.Context, change domain.StoreProfileChange) error
+}
+
+type CategoryReader interface {
+	ListCategories(ctx context.Context) ([]domain.Category, error)
+}

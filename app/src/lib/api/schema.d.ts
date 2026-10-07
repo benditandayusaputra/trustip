@@ -182,6 +182,40 @@ export interface paths {
         patch: operations["updateOrganizationProfile"];
         trace?: never;
     };
+    "/api/v1/organizations/{id}/store-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateStoreProfile"];
+        trace?: never;
+    };
+    "/api/v1/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/provinces": {
         parameters: {
             query?: never;
@@ -369,6 +403,40 @@ export interface components {
             address: string;
             location: components["schemas"]["GeoPoint"] | null;
             logo: components["schemas"]["ImageRef"] | null;
+            store_profile: components["schemas"]["StoreProfile"] | null;
+        };
+        /** @enum {string} */
+        StoreType: "GROCERY_STALL" | "LOCAL_MINIMARKET" | "SOUVENIR_SHOP" | "CANTEEN" | "CAFE" | "BAKERY" | "COOPERATIVE" | "MARKET_KIOSK" | "OTHER";
+        StoreProfileFields: {
+            store_type: components["schemas"]["StoreType"] | null;
+            accepted_category_ids: string[];
+            accepts_fixed_deposit: boolean;
+            accepts_commission: boolean;
+            commission_min_bps: number | null;
+            commission_max_bps: number | null;
+            requires_distribution_permit: boolean;
+            requires_halal: boolean;
+            requires_sample: boolean;
+            other_requirements: string;
+            opening_hours: string;
+        };
+        StoreProfile: components["schemas"]["StoreProfileFields"] & {
+            photos: components["schemas"]["ImageRef"][];
+        };
+        StoreProfileRequest: components["schemas"]["StoreProfileFields"] & {
+            photo_file_ids: string[];
+        };
+        Category: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+        };
+        CategoryListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Category"][];
+            meta: components["schemas"]["ListMeta"];
         };
         ImageRef: {
             /** Format: uuid */
@@ -925,6 +993,69 @@ export interface operations {
             404: components["responses"]["NotFound"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    updateStoreProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Profil toko tersimpan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kategori produk dalam urutan tampil */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryListResponse"];
+                };
+            };
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

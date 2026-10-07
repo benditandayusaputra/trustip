@@ -20,6 +20,7 @@ const (
 	FieldFileTooLarge      FieldCode = "FILE_TOO_LARGE"
 	FieldInvalidImage      FieldCode = "INVALID_IMAGE"
 	FieldImageTooLarge     FieldCode = "IMAGE_TOO_LARGE"
+	FieldTooMany           FieldCode = "TOO_MANY"
 )
 
 type Param struct {
@@ -44,6 +45,7 @@ func fieldMessages() map[FieldCode]string {
 		FieldFileTooLarge:      "Ukuran berkas maksimal {max} MB.",
 		FieldInvalidImage:      "Berkas harus gambar JPG, PNG, atau WebP.",
 		FieldImageTooLarge:     "Gambar maksimal 4096 piksel di tiap sisi.",
+		FieldTooMany:           "Maksimal {max} pilihan.",
 	}
 }
 

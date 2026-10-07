@@ -375,6 +375,76 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/organizations/{id}/store-profile:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    patch:
+      operationId: updateStoreProfile
+      tags: [org]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StoreProfileRequest"
+      responses:
+        "200":
+          description: Profil toko tersimpan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/categories:
+    get:
+      operationId: listCategories
+      tags: [org]
+      responses:
+        "200":
+          description: Kategori produk dalam urutan tampil
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryListResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/provinces:
     get:
       operationId: listProvinces
@@ -885,7 +955,9 @@ components:
     Organization:
       type: object
       additionalProperties: false
-      required: [id, type, name, slug, description, whatsapp, city_code, city_name, district, address, location, logo]
+      required:
+        [id, type, name, slug, description, whatsapp, city_code, city_name, district, address, location, logo,
+         store_profile]
       properties:
         id:
           type: string
@@ -917,6 +989,95 @@ components:
           nullable: true
           allOf:
             - $ref: "#/components/schemas/ImageRef"
+        store_profile:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/StoreProfile"
+    StoreType:
+      type: string
+      enum: [GROCERY_STALL, LOCAL_MINIMARKET, SOUVENIR_SHOP, CANTEEN, CAFE, BAKERY, COOPERATIVE, MARKET_KIOSK, OTHER]
+    StoreProfileFields:
+      type: object
+      required:
+        [store_type, accepted_category_ids, accepts_fixed_deposit, accepts_commission, commission_min_bps,
+         commission_max_bps, requires_distribution_permit, requires_halal, requires_sample, other_requirements,
+         opening_hours]
+      properties:
+        store_type:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/StoreType"
+        accepted_category_ids:
+          type: array
+          items:
+            type: string
+        accepts_fixed_deposit:
+          type: boolean
+        accepts_commission:
+          type: boolean
+        commission_min_bps:
+          type: integer
+          nullable: true
+        commission_max_bps:
+          type: integer
+          nullable: true
+        requires_distribution_permit:
+          type: boolean
+        requires_halal:
+          type: boolean
+        requires_sample:
+          type: boolean
+        other_requirements:
+          type: string
+        opening_hours:
+          type: string
+    StoreProfile:
+      allOf:
+        - $ref: "#/components/schemas/StoreProfileFields"
+        - type: object
+          required: [photos]
+          properties:
+            photos:
+              type: array
+              items:
+                $ref: "#/components/schemas/ImageRef"
+    StoreProfileRequest:
+      allOf:
+        - $ref: "#/components/schemas/StoreProfileFields"
+        - type: object
+          required: [photo_file_ids]
+          properties:
+            photo_file_ids:
+              type: array
+              items:
+                type: string
+    Category:
+      type: object
+      additionalProperties: false
+      required: [id, name, slug]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+    CategoryListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
     ImageRef:
       type: object
       additionalProperties: false

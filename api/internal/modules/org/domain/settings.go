@@ -49,4 +49,16 @@ type Settings struct {
 	Profile  Profile
 	CityName string
 	Logo     FileRef
+	Store    StoreSettings
+}
+
+type StoreSettings struct {
+	Profile StoreProfile
+	Photos  []FileRef
+}
+
+type Category struct {
+	ID   string
+	Name string
+	Slug string
 }

@@ -39,3 +39,23 @@ export function updateProfile(
 		request
 	);
 }
+
+export type StoreProfile = components['schemas']['StoreProfile'];
+export type StoreProfileRequest = components['schemas']['StoreProfileRequest'];
+export type StoreType = components['schemas']['StoreType'];
+export type Category = components['schemas']['Category'];
+
+export async function listCategories(client: ApiClient): Promise<Category[]> {
+	return (await client.list<Category>('/api/v1/categories')).items;
+}
+
+export function updateStoreProfile(
+	client: ApiClient,
+	organizationId: string,
+	request: StoreProfileRequest
+): Promise<Organization> {
+	return client.update<Organization>(
+		`/api/v1/organizations/${encodeURIComponent(organizationId)}/store-profile`,
+		request
+	);
+}

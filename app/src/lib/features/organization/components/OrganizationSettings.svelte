@@ -7,9 +7,11 @@
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
+	import type { Organization } from '#lib/api/organizations.js';
 	import { id } from '#lib/i18n/id.js';
 	import { ProfileSettings, type SaveOutcome } from '../settings.svelte';
 	import LocationFields from './LocationFields.svelte';
+	import StoreProfileSection from './StoreProfileSection.svelte';
 
 	interface Props {
 		organizationId: string;
@@ -108,4 +110,13 @@
 			<Button type="submit" busy={settings.busy}>{text.save}</Button>
 		</fieldset>
 	</form>
+	{#if organization.type === 'STORE'}
+		<StoreProfileSection
+			{organization}
+			{canEdit}
+			onsaved={(saved: Organization) => {
+				settings.organization = saved;
+			}}
+		/>
+	{/if}
 {/if}

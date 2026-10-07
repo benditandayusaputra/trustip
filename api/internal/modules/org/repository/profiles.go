@@ -28,14 +28,20 @@ func NewProfiles(pool *database.Pool) *Profiles {
 func (r *Profiles) GetSettings(ctx context.Context, organizationID string) (domain.Settings, error) {
 	readCtx, cancel := database.ReadContext(ctx)
 	defer cancel()
-	row, err := sqlc.New(r.pool.Querier(ctx)).GetOrganizationSettings(readCtx, organizationID)
+	queries := sqlc.New(r.pool.Querier(ctx))
+	row, err := queries.GetOrganizationSettings(readCtx, organizationID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.Settings{}, apperror.NotFound()
 	}
 	if err != nil {
 		return domain.Settings{}, fmt.Errorf("get settings of %s: %w", organizationID, err)
 	}
-	return toSettings(row)
+	settings, err := toSettings(row)
+	if err != nil {
+		return domain.Settings{}, err
+	}
+	settings.Store, err = storeSettings(readCtx, queries, organizationID)
+	return settings, err
 }
 
 func toSettings(row sqlc.GetOrganizationSettingsRow) (domain.Settings, error) {

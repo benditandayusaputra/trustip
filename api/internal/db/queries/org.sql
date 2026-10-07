@@ -94,3 +94,69 @@ SET
     updated_at = @updated_at::timestamptz
 FROM cities AS c
 WHERE o.id = @id::uuid AND c.code = @city_code::text;
+
+-- name: ListCategories :many
+SELECT id, name, slug
+FROM categories
+ORDER BY sort_order;
+
+-- name: GetStoreProfile :one
+SELECT
+    COALESCE(sp.store_type, '')::text AS store_type,
+    sp.opening_hours, sp.accepts_fixed_deposit, sp.accepts_commission,
+    (sp.commission_min_bps IS NOT NULL)::boolean AS has_commission,
+    COALESCE(sp.commission_min_bps, 0)::bigint AS commission_min_bps,
+    COALESCE(sp.commission_max_bps, 0)::bigint AS commission_max_bps,
+    sp.requires_distribution_permit, sp.requires_halal, sp.requires_sample, sp.other_requirements,
+    COALESCE((
+        SELECT array_agg(sac.category_id::text ORDER BY c.sort_order)
+        FROM store_accepted_categories AS sac
+        JOIN categories AS c ON c.id = sac.category_id
+        WHERE sac.organization_id = sp.organization_id
+    ), '{}')::text[] AS category_ids
+FROM store_profiles AS sp
+WHERE sp.organization_id = @organization_id;
+
+-- name: ListOrganizationPhotos :many
+SELECT f.id, f.storage_key
+FROM org_photos AS p
+JOIN files AS f ON f.id = p.file_id
+WHERE p.organization_id = @organization_id
+ORDER BY p.sort_order;
+
+-- name: UpdateStoreProfile :execrows
+UPDATE store_profiles
+SET
+    store_type = NULLIF(@store_type::text, ''),
+    opening_hours = @opening_hours::text,
+    accepts_fixed_deposit = @accepts_fixed_deposit::boolean,
+    accepts_commission = @accepts_commission::boolean,
+    commission_min_bps = CASE WHEN @has_commission::boolean THEN @commission_min_bps::bigint END,
+    commission_max_bps = CASE WHEN @has_commission::boolean THEN @commission_max_bps::bigint END,
+    requires_distribution_permit = @requires_distribution_permit::boolean,
+    requires_halal = @requires_halal::boolean,
+    requires_sample = @requires_sample::boolean,
+    other_requirements = @other_requirements::text,
+    updated_at = @updated_at::timestamptz
+WHERE organization_id = @organization_id::uuid;
+
+-- name: ClearAcceptedCategories :exec
+DELETE FROM store_accepted_categories
+WHERE organization_id = @organization_id;
+
+-- name: AddAcceptedCategories :execrows
+INSERT INTO store_accepted_categories (organization_id, category_id)
+SELECT @organization_id::uuid, c.id
+FROM categories AS c
+WHERE c.id = ANY(@category_ids::uuid[]);
+
+-- name: ClearOrganizationPhotos :exec
+DELETE FROM org_photos
+WHERE organization_id = @organization_id;
+
+-- name: AddOrganizationPhotos :execrows
+INSERT INTO org_photos (organization_id, file_id, sort_order)
+SELECT @organization_id::uuid, f.id, p.position::integer
+FROM unnest(@file_ids::uuid[]) WITH ORDINALITY AS p (file_id, position)
+JOIN files AS f ON f.id = p.file_id
+WHERE f.organization_id = @organization_id::uuid AND f.purpose = 'STORE_PHOTO';
