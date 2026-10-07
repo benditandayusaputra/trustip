@@ -1,5 +1,8 @@
+import { legal } from './legal';
+
 export const id = {
 	brand: 'Trustip',
+	legal,
 	layout: {
 		skipToContent: 'Lewati ke konten',
 		mainNavigation: 'Navigasi utama',

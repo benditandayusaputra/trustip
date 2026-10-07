@@ -26,6 +26,8 @@ test('loading public pages raises no policy violations', async ({ page }) => {
 	await expect(page.locator('input[name="cf-turnstile-response"]')).toHaveCount(1, {
 		timeout: 15_000
 	});
+	await page.goto('/privasi');
+	await page.goto('/ketentuan');
 	await page.goto('/alamat-yang-tidak-ada');
 
 	expect(violations).toEqual([]);
