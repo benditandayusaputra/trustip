@@ -10,6 +10,7 @@ import (
 
 const (
 	healthPath          = "/healthz"
+	readyPath           = "/readyz"
 	apiPrefix           = "/api/v1"
 	metaPath            = "/meta"
 	productName         = "Trustip API"
@@ -24,6 +25,7 @@ type PublicRoute struct {
 func PublicRoutes() []PublicRoute {
 	return []PublicRoute{
 		{Method: fiber.MethodGet, Path: healthPath},
+		{Method: fiber.MethodGet, Path: readyPath},
 		{Method: fiber.MethodGet, Path: apiPrefix + metaPath},
 	}
 }
@@ -56,6 +58,19 @@ func health(c fiber.Ctx) error {
 		return fmt.Errorf("write health status: %w", err)
 	}
 	return nil
+}
+
+type readinessBody struct {
+	Status string `json:"status"`
+}
+
+func readiness(check ReadinessCheck) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		if err := check(c.Context()); err != nil {
+			return fmt.Errorf("readiness check: %w", err)
+		}
+		return Respond(c, Reply{Data: readinessBody{Status: "ready"}})
+	}
 }
 
 func metaHandler(build BuildInfo, clock Clock) fiber.Handler {

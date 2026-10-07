@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/goleak"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
@@ -38,6 +39,7 @@ func newTestServer() testServer {
 		IDs:       idgen.NewSequence(),
 		Clock:     clock.NewManual(fixedNow()),
 		Build:     httpserver.BuildInfo{Version: "abc123def456"},
+		Ready:     func(context.Context) error { return nil },
 	})
 	server.API().Get("/probe/deadline", func(c fiber.Ctx) error {
 		deadline, ok := c.Context().Deadline()
@@ -234,5 +236,29 @@ func TestRun_AddressInUse_ReturnsError(t *testing.T) {
 
 	if err := newTestServer().server.Run(t.Context(), listener.Addr().String()); err == nil {
 		t.Fatal("expected listen error")
+	}
+}
+
+func TestReadyz_CheckPasses_Returns200(t *testing.T) {
+	got := newTestServer().do(t, newRequest(t, "/readyz"))
+
+	if got.status != http.StatusOK || !strings.Contains(got.raw, `"status":"ready"`) {
+		t.Fatalf("response = %d %s", got.status, got.raw)
+	}
+}
+
+func TestReadyz_DatabaseAsleep_Returns503WithRetryAfter(t *testing.T) {
+	server := httpserver.New(httpserver.Options{
+		AppLog:    logger.New(&bytes.Buffer{}, 0),
+		AccessLog: logger.New(&bytes.Buffer{}, 0),
+		IDs:       idgen.NewSequence(),
+		Clock:     clock.NewManual(fixedNow()),
+		Ready:     func(context.Context) error { return apperror.Unavailable(5) },
+	})
+
+	got := send(t, server.App(), newRequest(t, "/readyz"))
+
+	if got.status != http.StatusServiceUnavailable || got.header.Get("Retry-After") != "5" {
+		t.Fatalf("response = %d %s", got.status, got.raw)
 	}
 }

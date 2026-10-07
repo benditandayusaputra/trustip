@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +16,7 @@ import (
 func TestHealthz_ProcessAlive_ReturnsOK(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", http.NoBody)
 
-	resp, err := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo)).App().Test(req)
+	resp, err := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), alwaysReady).App().Test(req)
 	if err != nil {
 		t.Fatalf("request healthz: %v", err)
 	}
@@ -28,7 +29,7 @@ func TestHealthz_ProcessAlive_ReturnsOK(t *testing.T) {
 
 func TestRoutes_EveryRouteWithoutAuthenticationIsListedAsPublic(t *testing.T) {
 	public := httpserver.PublicRoutes()
-	app := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo)).App()
+	app := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), alwaysReady).App()
 
 	for _, route := range app.GetRoutes(true) {
 		method := route.Method
@@ -39,6 +40,10 @@ func TestRoutes_EveryRouteWithoutAuthenticationIsListedAsPublic(t *testing.T) {
 			t.Errorf("%s %s has no authentication and is not in the public route list", route.Method, route.Path)
 		}
 	}
+}
+
+func alwaysReady(context.Context) error {
+	return nil
 }
 
 func closeBody(t *testing.T, resp *http.Response) {

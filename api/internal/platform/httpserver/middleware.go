@@ -62,7 +62,7 @@ func LimitJSONBody() fiber.Handler {
 
 func Deadline(timeout time.Duration) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(c.Context(), timeout)
+		ctx, cancel := context.WithTimeout(c, timeout)
 		defer cancel()
 		c.SetContext(ctx)
 		return c.Next()

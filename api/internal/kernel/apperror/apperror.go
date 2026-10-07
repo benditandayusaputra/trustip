@@ -66,6 +66,12 @@ func (e *Error) WithParam(name, value string) *Error {
 	return &derived
 }
 
+func (e *Error) WithCause(cause error) *Error {
+	derived := *e
+	derived.cause = cause
+	return &derived
+}
+
 func (e *Error) Error() string {
 	if e.cause == nil {
 		return string(e.code)

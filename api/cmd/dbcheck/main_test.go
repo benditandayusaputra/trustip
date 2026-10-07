@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/benditandayusaputra/trustip/api/internal/platform/database/dbtest"
 )
 
 func TestReadEnvValue_QuotedValue_ReturnsUnquoted(t *testing.T) {
@@ -47,10 +49,7 @@ func TestRun_UnreachableHost_HidesConnectionString(t *testing.T) {
 }
 
 func TestRun_LocalDatabase_ReportsVersionAndExtensions(t *testing.T) {
-	databaseURL := os.Getenv("TEST_DATABASE_URL")
-	if databaseURL == "" || strings.Contains(databaseURL, "neon.tech") {
-		t.Fatal("TEST_DATABASE_URL must point to the local test database, run tests through make test")
-	}
+	databaseURL := dbtest.URL(t)
 	var out bytes.Buffer
 
 	if err := run(t.Context(), &out, databaseURL); err != nil {

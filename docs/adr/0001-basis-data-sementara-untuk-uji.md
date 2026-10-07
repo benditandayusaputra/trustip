@@ -10,7 +10,7 @@ Citra `postgis/postgis` tidak menyediakan varian arm64. Di laptop berprosesor Ap
 
 ## Keputusan
 
-1. Uji yang butuh basis data sendiri membuat basis data sementara bernama acak `trustip_test_<heksadesimal>` lalu menghapusnya di akhir uji. Hanya dua pernyataan ini yang ditulis di berkas Go, hanya di berkas `_test.go`, dan nama basis data dilewatkan `pgx.Identifier.Sanitize`.
+1. Uji yang butuh basis data sendiri membuat basis data sementara bernama acak `trustip_test_<heksadesimal>` lalu menghapusnya di akhir uji. Hanya dua pernyataan ini yang ditulis di berkas Go, hanya di paket pembantu uji `internal/platform/database/dbtest` yang tidak diimpor kode produksi, dan nama basis data dilewatkan `pgx.Identifier.Sanitize`.
 2. Semua kueri lain di uji, termasuk pemeriksaan ekstensi terpasang, memakai kueri sqlc.
 3. Uji menolak berjalan bila `TEST_DATABASE_URL` kosong atau menunjuk ke basis data Neon (R-TEST-01).
 

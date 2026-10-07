@@ -20,12 +20,15 @@ type Clock interface {
 	Now() time.Time
 }
 
+type ReadinessCheck func(ctx context.Context) error
+
 type Options struct {
 	AppLog    *slog.Logger
 	AccessLog *slog.Logger
 	IDs       IDGenerator
 	Clock     Clock
 	Build     BuildInfo
+	Ready     ReadinessCheck
 }
 
 type Server struct {
@@ -50,6 +53,7 @@ func New(opts Options) *Server {
 		Deadline(requestTimeout),
 	)
 	app.Get(healthPath, health)
+	app.Get(readyPath, readiness(opts.Ready))
 	api := app.Group(apiPrefix)
 	api.Get(metaPath, metaHandler(opts.Build, opts.Clock))
 	return &Server{app: app, api: api}

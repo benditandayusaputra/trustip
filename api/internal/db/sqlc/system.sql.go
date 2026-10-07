@@ -11,6 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getCurrentTransactionID = `-- name: GetCurrentTransactionID :one
+SELECT pg_current_xact_id()::text AS transaction_id
+`
+
+func (q *Queries) GetCurrentTransactionID(ctx context.Context) (string, error) {
+	row := q.db.QueryRow(ctx, getCurrentTransactionID)
+	var transaction_id string
+	err := row.Scan(&transaction_id)
+	return transaction_id, err
+}
+
 const getServerVersion = `-- name: GetServerVersion :one
 SELECT current_setting('server_version') AS server_version
 `
@@ -20,6 +31,19 @@ func (q *Queries) GetServerVersion(ctx context.Context) (string, error) {
 	var server_version string
 	err := row.Scan(&server_version)
 	return server_version, err
+}
+
+const isSchemaOwner = `-- name: IsSchemaOwner :one
+SELECT pg_has_role(current_user, n.nspowner, 'MEMBER') AS is_owner
+FROM pg_catalog.pg_namespace AS n
+WHERE n.nspname = 'public'
+`
+
+func (q *Queries) IsSchemaOwner(ctx context.Context) (bool, error) {
+	row := q.db.QueryRow(ctx, isSchemaOwner)
+	var is_owner bool
+	err := row.Scan(&is_owner)
+	return is_owner, err
 }
 
 const listAvailableExtensions = `-- name: ListAvailableExtensions :many

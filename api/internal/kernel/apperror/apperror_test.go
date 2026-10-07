@@ -118,3 +118,13 @@ func TestWithParam_DoesNotChangeOriginal(t *testing.T) {
 		t.Fatalf("original changed: %q", original.Message())
 	}
 }
+
+func TestWithCause_KeepsCodeAndWrapsCause(t *testing.T) {
+	cause := errors.New("dial tcp: connection refused")
+
+	err := apperror.Unavailable(5).WithCause(cause)
+
+	if err.Code() != apperror.CodeServiceUnavailable || !errors.Is(err, cause) || err.RetryAfter() != 5 {
+		t.Fatalf("code = %s, wraps = %v, retry = %d", err.Code(), errors.Is(err, cause), err.RetryAfter())
+	}
+}

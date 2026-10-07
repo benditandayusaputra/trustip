@@ -2,19 +2,13 @@ package main
 
 import (
 	"bytes"
-	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
-	"net/url"
-	"os"
 	"slices"
 	"strings"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
-
 	"github.com/benditandayusaputra/trustip/api/internal/db/sqlc"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/database/dbtest"
 )
 
 func TestRun_NoArguments_ReturnsUsage(t *testing.T) {
@@ -39,14 +33,14 @@ func TestRun_DownOnManagedDatabase_IsRefused(t *testing.T) {
 }
 
 func TestRun_UnknownCommand_ReturnsUsage(t *testing.T) {
-	err := run(t.Context(), &bytes.Buffer{}, []string{"redo"}, temporaryDatabase(t))
+	err := run(t.Context(), &bytes.Buffer{}, []string{"redo"}, dbtest.TemporaryDatabase(t))
 	if !errors.Is(err, errUsage) {
 		t.Fatalf("err = %v, want %v", err, errUsage)
 	}
 }
 
 func TestRun_UpDownUp_InstallsAndRemovesExtensions(t *testing.T) {
-	databaseURL := temporaryDatabase(t)
+	databaseURL := dbtest.TemporaryDatabase(t)
 
 	migrate(t, databaseURL, "up")
 	afterUp := installedExtensions(t, databaseURL)
@@ -63,7 +57,7 @@ func TestRun_UpDownUp_InstallsAndRemovesExtensions(t *testing.T) {
 }
 
 func TestRun_Status_ListsFirstMigration(t *testing.T) {
-	databaseURL := temporaryDatabase(t)
+	databaseURL := dbtest.TemporaryDatabase(t)
 	var out bytes.Buffer
 
 	if err := run(t.Context(), &out, []string{"status"}, databaseURL); err != nil {
@@ -84,73 +78,10 @@ func migrate(t *testing.T, databaseURL, command string) {
 
 func installedExtensions(t *testing.T, databaseURL string) []string {
 	t.Helper()
-	queries := sqlc.New(connect(t, databaseURL))
+	queries := sqlc.New(dbtest.Connect(t, databaseURL))
 	names, err := queries.ListInstalledExtensions(t.Context(), []string{"pg_trgm", "postgis"})
 	if err != nil {
 		t.Fatalf("list installed extensions: %v", err)
 	}
 	return names
-}
-
-func temporaryDatabase(t *testing.T) string {
-	t.Helper()
-	baseURL := testDatabaseURL(t)
-	name := "trustip_test_" + randomSuffix(t)
-	admin := connect(t, baseURL)
-	identifier := pgx.Identifier{name}.Sanitize()
-	if _, err := admin.Exec(t.Context(), "CREATE DATABASE "+identifier); err != nil {
-		t.Fatalf("create database: %v", err)
-	}
-	t.Cleanup(func() {
-		ctx := context.WithoutCancel(t.Context())
-		if _, err := admin.Exec(ctx, "DROP DATABASE "+identifier+" WITH (FORCE)"); err != nil {
-			t.Errorf("drop database: %v", err)
-		}
-	})
-	return withDatabaseName(t, baseURL, name)
-}
-
-func testDatabaseURL(t *testing.T) string {
-	t.Helper()
-	databaseURL := os.Getenv("TEST_DATABASE_URL")
-	if databaseURL == "" {
-		t.Fatal("TEST_DATABASE_URL is empty, run tests through make test")
-	}
-	if isManagedDatabase(databaseURL) {
-		t.Fatal("tests must never run against the managed production database")
-	}
-	return databaseURL
-}
-
-func connect(t *testing.T, databaseURL string) *pgx.Conn {
-	t.Helper()
-	conn, err := pgx.Connect(t.Context(), databaseURL)
-	if err != nil {
-		t.Fatalf("connect: %v", err)
-	}
-	t.Cleanup(func() {
-		if err := conn.Close(context.WithoutCancel(t.Context())); err != nil {
-			t.Errorf("close: %v", err)
-		}
-	})
-	return conn
-}
-
-func withDatabaseName(t *testing.T, databaseURL, name string) string {
-	t.Helper()
-	parsed, err := url.Parse(databaseURL)
-	if err != nil {
-		t.Fatalf("parse database url: %v", err)
-	}
-	parsed.Path = "/" + name
-	return parsed.String()
-}
-
-func randomSuffix(t *testing.T) string {
-	t.Helper()
-	buffer := make([]byte, 6)
-	if _, err := rand.Read(buffer); err != nil {
-		t.Fatalf("random suffix: %v", err)
-	}
-	return hex.EncodeToString(buffer)
 }
