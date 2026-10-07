@@ -91,3 +91,10 @@ func (g Grants) For(membership actor.Membership) Grant {
 	}
 	return seats[seat{membership.OrganizationType, membership.Role}]
 }
+
+func RequireNewcomer(signedIn actor.Actor) error {
+	if signedIn.IsMember() {
+		return apperror.New(apperror.CodeOrganizationExists)
+	}
+	return nil
+}

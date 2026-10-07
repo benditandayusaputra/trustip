@@ -22,6 +22,7 @@ const (
 	CodeCrossSiteRejected    Code = "CROSS_SITE_REJECTED"
 	CodeNotFound             Code = "NOT_FOUND"
 	CodeCaptchaFailed        Code = "CAPTCHA_FAILED"
+	CodeOrganizationExists   Code = "ORGANIZATION_EXISTS"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -102,6 +103,10 @@ func accessEntries() map[Code]entry {
 
 func outcomeEntries() map[Code]entry {
 	return map[Code]entry{
+		CodeOrganizationExists: {
+			KindConflict, http.StatusConflict,
+			"Akun Anda sudah terhubung ke sebuah usaha.",
+		},
 		CodeRateLimited: {
 			KindRateLimited, http.StatusTooManyRequests,
 			"Terlalu banyak percobaan. Coba lagi dalam {n} menit.",

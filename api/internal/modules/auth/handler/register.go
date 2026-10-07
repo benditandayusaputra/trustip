@@ -21,9 +21,16 @@ type registerRequest struct {
 }
 
 type accountResponse struct {
-	ID       string `json:"id"`
-	FullName string `json:"full_name"`
-	Email    string `json:"email"`
+	ID         string              `json:"id"`
+	FullName   string              `json:"full_name"`
+	Email      string              `json:"email"`
+	Membership *membershipResponse `json:"membership"`
+}
+
+type membershipResponse struct {
+	OrganizationID   string `json:"organization_id"`
+	OrganizationType string `json:"organization_type"`
+	Role             string `json:"role"`
 }
 
 func register(registrar Registrar) fiber.Handler {

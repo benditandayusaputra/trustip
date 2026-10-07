@@ -293,6 +293,17 @@ func TestLogin_RSEC16_AccessTokenCarriesTheMembership(t *testing.T) {
 	}
 }
 
+func TestLogin_FRAUTH05_SignedInAccountTellsWhetherOnboardingIsDone(t *testing.T) {
+	fixture := newLoginFixture(domain.LoginAttempts{})
+	fixture.memberships.byUser[knownUserID] = storeOwnerMembership()
+
+	result, err := fixture.useCase.Execute(t.Context(), loginCommand("sari@contoh.id", acceptableInput))
+
+	if err != nil || result.Account.Membership != storeOwnerMembership() {
+		t.Fatalf("account = %+v, err = %v", result.Account, err)
+	}
+}
+
 func TestLogin_RSEC05_OutdatedHashIsReplacedAfterSuccess(t *testing.T) {
 	fixture := newLoginFixture(domain.LoginAttempts{})
 	fixture.passwords.needsRehash = true

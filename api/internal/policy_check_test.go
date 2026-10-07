@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"strings"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func TestArchitecture_RSEC36_EveryUseCaseRequiresAPolicyFirst(t *testing.T) {
 			continue
 		}
 		for _, decl := range file.decls {
-			if isUseCase(decl) && !startsWithPolicyRequire(decl) {
+			if isUseCase(decl) && actsForSignedInUser(decl) && !startsWithPolicyRequire(decl) {
 				t.Errorf("%s: %s must call policy.Require in its first statement", file.path, receiverName(decl))
 			}
 		}
@@ -32,6 +33,7 @@ func TestStartsWithPolicyRequire(t *testing.T) {
 		`policy.Require(signedIn, policy.EditProfile)`:                                      false,
 		`if err := other.Require(signedIn, policy.EditProfile); err != nil { return err }`:  false,
 		`if err := load(); err != nil { return err }`:                                       false,
+		`if err := policy.RequireNewcomer(signedIn); err != nil { return err }`:             true,
 		``: false,
 	}
 	for body, want := range cases {
@@ -92,5 +94,18 @@ func isPolicyRequireCall(expr ast.Expr) bool {
 		return false
 	}
 	pkg, ok := selector.X.(*ast.Ident)
-	return ok && pkg.Name == "policy" && selector.Sel.Name == "Require"
+	return ok && pkg.Name == "policy" && strings.HasPrefix(selector.Sel.Name, "Require")
+}
+
+func actsForSignedInUser(decl *ast.FuncDecl) bool {
+	for _, field := range decl.Type.Params.List {
+		selector, ok := field.Type.(*ast.SelectorExpr)
+		if !ok {
+			continue
+		}
+		if pkg, ok := selector.X.(*ast.Ident); ok && pkg.Name == "actor" && selector.Sel.Name == "Actor" {
+			return true
+		}
+	}
+	return false
 }

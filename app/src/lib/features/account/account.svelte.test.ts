@@ -9,8 +9,15 @@ type Route = Record<string, () => Response>;
 const sari = {
 	id: '0192f0c4-7b1e-7c3a-9d2e-5f6a7b8c9d0e',
 	full_name: 'Sari Wulandari',
-	email: 'sari@contoh.id'
+	email: 'sari@contoh.id',
+	membership: {
+		organization_id: '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c',
+		organization_type: 'STORE',
+		role: 'OWNER'
+	}
 };
+
+const newcomer = { ...sari, membership: null };
 
 function ok(data: unknown): Response {
 	return Response.json({ code: 'OK', message: '', data, meta: { request_id: 'r1' } });
@@ -43,6 +50,31 @@ describe('AccountGate', () => {
 
 		await expect.element(page.getByRole('heading', { name: 'Halo, Sari Wulandari' })).toBeVisible();
 		await expectAccessible(container);
+	});
+
+	it('FR-AUTH-05 sends a user without an organization away instead of showing the app', async () => {
+		serve({ 'GET /api/v1/me': () => ok(newcomer) });
+		const onmisplaced = vi.fn();
+
+		await render(AccountHarness, { onsignedout: vi.fn(), onmisplaced });
+
+		await vi.waitFor(() => {
+			expect(onmisplaced).toHaveBeenCalledOnce();
+		});
+		await expect
+			.element(page.getByRole('heading', { name: 'Halo, Sari Wulandari' }))
+			.not.toBeInTheDocument();
+	});
+
+	it('sends a member away from a page meant for newcomers', async () => {
+		serve({ 'GET /api/v1/me': () => ok(sari) });
+		const onmisplaced = vi.fn();
+
+		await render(AccountHarness, { placement: 'newcomer', onsignedout: vi.fn(), onmisplaced });
+
+		await vi.waitFor(() => {
+			expect(onmisplaced).toHaveBeenCalledOnce();
+		});
 	});
 
 	it('hands over to sign in when the session cannot be refreshed', async () => {

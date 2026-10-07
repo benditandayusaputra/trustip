@@ -1,5 +1,6 @@
 const signInPath = '/masuk';
 const registerPath = '/daftar';
+const onboardingPath = '/onboarding';
 const defaultLanding = '/app';
 const probeOrigin = 'https://trustip.invalid';
 
@@ -9,6 +10,10 @@ export function signInHref(next: string | null): string {
 
 export function registerHref(next: string | null): string {
 	return withNext(registerPath, next);
+}
+
+export function onboardingHref(next: string | null): string {
+	return withNext(onboardingPath, next);
 }
 
 export function safeNextPath(raw: string | null): string {

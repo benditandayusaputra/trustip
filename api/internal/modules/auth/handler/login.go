@@ -53,5 +53,13 @@ func byLoginEmail(c fiber.Ctx) string {
 }
 
 func toSignedInAccount(account domain.Account) accountResponse {
-	return accountResponse{ID: account.ID, FullName: account.FullName, Email: account.Email}
+	response := accountResponse{ID: account.ID, FullName: account.FullName, Email: account.Email}
+	if account.Membership.OrganizationID != "" {
+		response.Membership = &membershipResponse{
+			OrganizationID:   account.Membership.OrganizationID,
+			OrganizationType: string(account.Membership.OrganizationType),
+			Role:             string(account.Membership.Role),
+		}
+	}
+	return response
 }

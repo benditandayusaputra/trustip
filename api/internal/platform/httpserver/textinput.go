@@ -25,3 +25,8 @@ func RejectUncleanInputs(inputs ...TextInput) error {
 	}
 	return nil
 }
+
+func MultilineInput(name, raw string) TextInput {
+	value, clean := NormalizeMultiline(raw)
+	return TextInput{Name: name, Value: value, clean: clean}
+}

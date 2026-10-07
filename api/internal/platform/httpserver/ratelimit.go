@@ -40,3 +40,10 @@ func RateLimit(limiter RateLimiter, keyOf RateLimitKey, securityLog *slog.Logger
 func ByClientIP(c fiber.Ctx) string {
 	return "ip:" + ClientIP(c)
 }
+
+func BySignedInUser(c fiber.Ctx) string {
+	if signedIn, ok := ActorFrom(c); ok {
+		return "user:" + signedIn.UserID
+	}
+	return ByClientIP(c)
+}

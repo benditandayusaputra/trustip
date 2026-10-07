@@ -34,12 +34,22 @@ func newTestServerAt(ready httpserver.ReadinessCheck, now *clock.Manual) *httpse
 }
 
 func newTestServerWith(ready httpserver.ReadinessCheck, now *clock.Manual, auth authComponents) *httpserver.Server {
+	return newServerFrom(ready, now, testModules{auth: auth, org: testOrgComponents(now)})
+}
+
+type testModules struct {
+	auth authComponents
+	org  orgComponents
+}
+
+func newServerFrom(ready httpserver.ReadinessCheck, now *clock.Manual, modules testModules) *httpserver.Server {
 	return newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), serverDeps{
 		ready:     ready,
 		edge:      security.NewEdgeVerifier(edgetest.TestKeys(), now),
 		limiter:   ratelimit.New(ratelimit.Rule{Limit: testRequestLimit, Window: time.Minute}, now),
 		clock:     now,
-		auth:      auth,
+		auth:      modules.auth,
+		org:       modules.org,
 		appOrigin: testAppOrigin,
 	})
 }

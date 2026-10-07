@@ -13,5 +13,5 @@
 	<h1 class="text-xl font-semibold text-text">
 		{id.account.greeting(session.account?.full_name ?? '')}
 	</h1>
-	<p class="text-base text-text-muted">{id.account.nextStep}</p>
+	<p class="text-base text-text-muted">{id.account.emptyDashboard}</p>
 </section>

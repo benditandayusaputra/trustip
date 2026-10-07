@@ -25,5 +25,6 @@ func (uc *GetAccount) Execute(ctx context.Context, signedIn actor.Actor) (domain
 	if err != nil {
 		return domain.Account{}, fmt.Errorf("get account of %s: %w", signedIn.UserID, err)
 	}
+	account.Membership = signedIn.Membership
 	return account, nil
 }

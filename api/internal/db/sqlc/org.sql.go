@@ -10,6 +10,21 @@ import (
 	"time"
 )
 
+const createConsignorProfile = `-- name: CreateConsignorProfile :exec
+INSERT INTO consignor_profiles (organization_id, created_at, updated_at)
+VALUES ($1, $2, $2)
+`
+
+type CreateConsignorProfileParams struct {
+	OrganizationID string
+	CreatedAt      time.Time
+}
+
+func (q *Queries) CreateConsignorProfile(ctx context.Context, arg CreateConsignorProfileParams) error {
+	_, err := q.db.Exec(ctx, createConsignorProfile, arg.OrganizationID, arg.CreatedAt)
+	return err
+}
+
 const createMembership = `-- name: CreateMembership :exec
 INSERT INTO memberships (id, organization_id, user_id, role, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $5)
@@ -34,29 +49,61 @@ func (q *Queries) CreateMembership(ctx context.Context, arg CreateMembershipPara
 	return err
 }
 
-const createOrganization = `-- name: CreateOrganization :exec
-INSERT INTO organizations (id, type, name, slug, whatsapp, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $6)
+const createOrganization = `-- name: CreateOrganization :one
+INSERT INTO organizations (
+    id, type, name, slug, description, whatsapp, city_code, city_name, district, address, created_at, updated_at
+)
+SELECT
+    $1::uuid, $2::text, $3::text, $4::text, $5::text, $6::text,
+    c.code, c.name, $7::text, $8::text, $9::timestamptz, $9::timestamptz
+FROM cities AS c
+WHERE c.code = $10::text
+RETURNING city_name
 `
 
 type CreateOrganizationParams struct {
-	ID        string
-	Type      string
-	Name      string
-	Slug      string
-	Whatsapp  string
-	CreatedAt time.Time
+	ID          string
+	Type        string
+	Name        string
+	Slug        string
+	Description string
+	Whatsapp    string
+	District    string
+	Address     string
+	CreatedAt   time.Time
+	CityCode    string
 }
 
-func (q *Queries) CreateOrganization(ctx context.Context, arg CreateOrganizationParams) error {
-	_, err := q.db.Exec(ctx, createOrganization,
+func (q *Queries) CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (string, error) {
+	row := q.db.QueryRow(ctx, createOrganization,
 		arg.ID,
 		arg.Type,
 		arg.Name,
 		arg.Slug,
+		arg.Description,
 		arg.Whatsapp,
+		arg.District,
+		arg.Address,
 		arg.CreatedAt,
+		arg.CityCode,
 	)
+	var city_name string
+	err := row.Scan(&city_name)
+	return city_name, err
+}
+
+const createStoreProfile = `-- name: CreateStoreProfile :exec
+INSERT INTO store_profiles (organization_id, created_at, updated_at)
+VALUES ($1, $2, $2)
+`
+
+type CreateStoreProfileParams struct {
+	OrganizationID string
+	CreatedAt      time.Time
+}
+
+func (q *Queries) CreateStoreProfile(ctx context.Context, arg CreateStoreProfileParams) error {
+	_, err := q.db.Exec(ctx, createStoreProfile, arg.OrganizationID, arg.CreatedAt)
 	return err
 }
 
@@ -78,4 +125,94 @@ func (q *Queries) FindActiveMembership(ctx context.Context, userID string) (Find
 	var i FindActiveMembershipRow
 	err := row.Scan(&i.OrganizationID, &i.OrganizationType, &i.Role)
 	return i, err
+}
+
+const listCitiesInProvince = `-- name: ListCitiesInProvince :many
+SELECT code, name, province_name
+FROM cities
+WHERE left(code, 2) = $1::text
+ORDER BY name
+`
+
+type ListCitiesInProvinceRow struct {
+	Code         string
+	Name         string
+	ProvinceName string
+}
+
+func (q *Queries) ListCitiesInProvince(ctx context.Context, provinceCode string) ([]ListCitiesInProvinceRow, error) {
+	rows, err := q.db.Query(ctx, listCitiesInProvince, provinceCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCitiesInProvinceRow{}
+	for rows.Next() {
+		var i ListCitiesInProvinceRow
+		if err := rows.Scan(&i.Code, &i.Name, &i.ProvinceName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProvinces = `-- name: ListProvinces :many
+SELECT DISTINCT left(code, 2)::text AS province_code, province_name
+FROM cities
+ORDER BY province_code
+`
+
+type ListProvincesRow struct {
+	ProvinceCode string
+	ProvinceName string
+}
+
+func (q *Queries) ListProvinces(ctx context.Context) ([]ListProvincesRow, error) {
+	rows, err := q.db.Query(ctx, listProvinces)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListProvincesRow{}
+	for rows.Next() {
+		var i ListProvincesRow
+		if err := rows.Scan(&i.ProvinceCode, &i.ProvinceName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTakenSlugs = `-- name: ListTakenSlugs :many
+SELECT slug
+FROM organizations
+WHERE slug ~ ('^' || $1::text || '(-[0-9]+)?$')
+`
+
+func (q *Queries) ListTakenSlugs(ctx context.Context, base string) ([]string, error) {
+	rows, err := q.db.Query(ctx, listTakenSlugs, base)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var slug string
+		if err := rows.Scan(&slug); err != nil {
+			return nil, err
+		}
+		items = append(items, slug)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

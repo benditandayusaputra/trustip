@@ -40,3 +40,14 @@ func TestGetAccount_FRAUTH06_ReturnsTheSignedInUsersOwnAccount(t *testing.T) {
 		t.Fatalf("account = %+v, err = %v", account, err)
 	}
 }
+
+func TestGetAccount_FRAUTH05_ReportsTheMembershipOfTheSession(t *testing.T) {
+	sari := domain.Account{ID: knownUserID, Email: "sari@contoh.id", FullName: "Sari Wulandari"}
+	signedIn := actor.Actor{UserID: knownUserID, SessionFamily: "family-1", Membership: storeOwnerMembership()}
+
+	account, err := service.NewGetAccount(fakeAccounts{knownUserID: sari}).Execute(t.Context(), signedIn)
+
+	if err != nil || account.Membership != storeOwnerMembership() {
+		t.Fatalf("account = %+v, err = %v", account, err)
+	}
+}

@@ -100,7 +100,7 @@ export const id = {
 	},
 	account: {
 		greeting: (name: string) => `Halo, ${name}`,
-		nextStep: 'Akun Anda siap. Langkah berikutnya adalah menentukan tipe usaha.',
+		emptyDashboard: 'Dasbor akan terisi setelah Anda punya mitra dan mulai mencatat titipan.',
 		menu: 'Akun',
 		logOut: 'Keluar',
 		logOutEverywhere: 'Keluar dari semua perangkat',
@@ -109,6 +109,40 @@ export const id = {
 			'Semua sesi di HP dan komputer lain akan berakhir. Anda perlu masuk lagi di setiap perangkat.',
 		cancel: 'Batal',
 		loadFailed: 'Akun tidak bisa dimuat.'
+	},
+	onboarding: {
+		title: 'Daftarkan usaha Anda',
+		progress: (step: number, total: number) => `Langkah ${String(step)} dari ${String(total)}`,
+		steps: { type: 'Tipe usaha', profile: 'Profil usaha', location: 'Lokasi usaha' },
+		types: {
+			CONSIGNOR: { label: 'Penitip', body: 'Saya membuat produk dan menitipkannya ke toko.' },
+			STORE: { label: 'Toko', body: 'Saya menerima titipan produk untuk dijual.' }
+		},
+		typeFixed: 'Tipe usaha tidak bisa diubah setelah disimpan.',
+		name: 'Nama usaha',
+		description: 'Deskripsi singkat',
+		descriptionHint: 'Opsional. Ceritakan produk atau toko Anda.',
+		whatsapp: 'Nomor WhatsApp usaha',
+		whatsappHint: 'Contoh: 0812 3456 7890',
+		province: 'Provinsi',
+		city: 'Kabupaten atau kota',
+		choose: 'Pilih',
+		district: 'Kecamatan',
+		address: 'Alamat',
+		addressHint: 'Opsional. Alamat lengkap penitip hanya terlihat oleh toko mitra.',
+		regionsFailed: {
+			title: 'Daftar wilayah tidak bisa dimuat.',
+			body: 'Periksa koneksi lalu coba lagi.'
+		},
+		back: 'Kembali',
+		next: 'Lanjut',
+		submit: 'Simpan dan mulai',
+		founded: 'Usaha Anda terdaftar.',
+		offline: 'Menyimpan profil butuh koneksi internet.',
+		validation: {
+			choose: 'Pilih salah satu.',
+			maxLength: (count: number) => `Maksimal ${String(count)} karakter.`
+		}
 	},
 	captcha: {
 		label: 'Verifikasi keamanan',

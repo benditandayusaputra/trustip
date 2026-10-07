@@ -6,15 +6,23 @@
 	import SkipLink from '#lib/components/layout/SkipLink.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { id } from '#lib/i18n/id.js';
-	import { AccountSession, setAccountSession } from '../session.svelte';
+	import type { Account } from '#lib/api/users.js';
+	import {
+		AccountSession,
+		isPlacedFor,
+		setAccountSession,
+		type Placement
+	} from '../session.svelte';
 	import AccountMenu from './AccountMenu.svelte';
 
 	interface Props {
+		placement: Placement;
 		onsignedout: () => void;
+		onmisplaced: (account: Account) => void;
 		children: Snippet;
 	}
 
-	let { onsignedout, children }: Props = $props();
+	let { placement, onsignedout, onmisplaced, children }: Props = $props();
 
 	const session = new AccountSession(apiClient);
 	setAccountSession(session);
@@ -23,9 +31,21 @@
 		void session.load();
 	});
 
+	const isPlaced = $derived(
+		session.status === 'ready' &&
+			session.account !== undefined &&
+			isPlacedFor(session.account, placement)
+	);
+
 	$effect(() => {
 		if (session.status === 'signedOut') {
 			onsignedout();
+		}
+	});
+
+	$effect(() => {
+		if (session.status === 'ready' && session.account && !isPlaced) {
+			onmisplaced(session.account);
 		}
 	});
 </script>
@@ -41,7 +61,7 @@
 		</div>
 	</header>
 	<main id="konten" tabindex="-1" class="mx-auto w-full max-w-content flex-1 px-4 py-6">
-		{#if session.status === 'ready'}
+		{#if isPlaced}
 			{@render children()}
 		{:else if session.status === 'failed'}
 			<Alert title={id.account.loadFailed}>

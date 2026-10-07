@@ -14,6 +14,8 @@ const (
 	FieldInvalidCharacters FieldCode = "INVALID_CHARACTERS"
 	FieldConsentRequired   FieldCode = "CONSENT_REQUIRED"
 	FieldEmailTaken        FieldCode = "EMAIL_TAKEN"
+	FieldRequired          FieldCode = "REQUIRED"
+	FieldUnknownChoice     FieldCode = "UNKNOWN_CHOICE"
 )
 
 type Param struct {
@@ -32,6 +34,8 @@ func fieldMessages() map[FieldCode]string {
 		FieldInvalidCharacters: "Isian memuat karakter yang tidak diizinkan.",
 		FieldConsentRequired:   "Setujui kebijakan privasi dan ketentuan untuk mendaftar.",
 		FieldEmailTaken:        "Email sudah terdaftar. Silakan masuk.",
+		FieldRequired:          "Wajib diisi.",
+		FieldUnknownChoice:     "Pilih salah satu dari daftar.",
 	}
 }
 

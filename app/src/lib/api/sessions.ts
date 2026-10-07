@@ -15,3 +15,7 @@ export function logOut(client: ApiClient): Promise<null> {
 export function logOutEverywhere(client: ApiClient): Promise<null> {
 	return client.send<null>('/api/v1/sessions/logout-all');
 }
+
+export function refreshSession(client: ApiClient): Promise<null> {
+	return client.send<null>('/api/v1/sessions/refresh');
+}

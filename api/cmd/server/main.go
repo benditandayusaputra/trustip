@@ -10,6 +10,7 @@ import (
 	"time"
 
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
+	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -59,6 +60,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		limiter:   ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
 		clock:     systemClock,
 		auth:      components,
+		org:       buildOrgComponents(pool, systemClock),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -76,6 +78,7 @@ type serverDeps struct {
 	limiter   httpserver.RateLimiter
 	clock     serverClock
 	auth      authComponents
+	org       orgComponents
 	appOrigin string
 }
 
@@ -98,9 +101,15 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 		AppOrigin:   deps.appOrigin,
 	})
 	authhandler.Mount(server.API(), authDeps(deps.auth, securityLog, deps.clock))
+	orghandler.Mount(server.API(), orgDeps(deps.org, orgRoutes{
+		authenticate: httpserver.Authenticate(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName()),
+		writeLimiter: newWriteLimiter(deps.clock),
+		securityLog:  securityLog,
+	}))
 	return server
 }
 
 func publicRoutes() []httpserver.PublicRoute {
-	return append(httpserver.PublicRoutes(), authhandler.PublicRoutes()...)
+	routes := append(httpserver.PublicRoutes(), authhandler.PublicRoutes()...)
+	return append(routes, orghandler.PublicRoutes()...)
 }

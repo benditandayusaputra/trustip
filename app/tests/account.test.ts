@@ -24,6 +24,18 @@ async function signIn(page: Page, email: string): Promise<void> {
 	await page.getByRole('button', { name: 'Masuk' }).click();
 }
 
+async function onboardStore(page: Page): Promise<void> {
+	await page.getByRole('radio', { name: /Toko/u }).check();
+	await page.getByRole('button', { name: 'Lanjut' }).click();
+	await page.getByLabel('Nama usaha').fill('Warung Uji');
+	await page.getByLabel('Nomor WhatsApp usaha').fill('0812 3456 7890');
+	await page.getByRole('button', { name: 'Lanjut' }).click();
+	await page.getByLabel('Provinsi').selectOption({ label: 'Jawa Tengah' });
+	await expect(page.getByRole('option', { name: 'Kota Semarang' })).toBeAttached();
+	await page.getByLabel('Kabupaten atau kota').selectOption({ label: 'Kota Semarang' });
+	await page.getByRole('button', { name: 'Simpan dan mulai' }).click();
+}
+
 async function expectTokensHiddenFromScripts(page: Page): Promise<void> {
 	const cookies = await page.context().cookies();
 	const session = cookies.filter(
@@ -44,7 +56,7 @@ async function expectTokensHiddenFromScripts(page: Page): Promise<void> {
 	});
 }
 
-test('FR-AUTH-06 the app area sends a visitor through registration and sign in and back again', async ({
+test('FR-AUTH-04 FR-AUTH-06 a visitor registers, signs in, onboards, and lands on the dashboard', async ({
 	page
 }, testInfo) => {
 	const email = `e2e-${testInfo.project.name}-${String(Date.now())}@contoh.id`;
@@ -57,6 +69,9 @@ test('FR-AUTH-06 the app area sends a visitor through registration and sign in a
 	await expect(page).toHaveURL(/\/masuk\?lanjut=%2Fapp$/u);
 	await expect(page.getByText('Akun dibuat. Silakan masuk.')).toBeVisible();
 	await signIn(page, email);
+	await expect(page).toHaveURL(/\/onboarding\?lanjut=%2Fapp$/u);
+	await onboardStore(page);
+	await expect(page).toHaveURL(/\/app\/toko$/u);
 	await expect(greeting).toBeVisible();
 	await expectTokensHiddenFromScripts(page);
 
@@ -66,7 +81,7 @@ test('FR-AUTH-06 the app area sends a visitor through registration and sign in a
 	await expectTokensHiddenFromScripts(page);
 
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
-	await expect(page).toHaveURL(/\/masuk\?lanjut=%2Fapp$/u);
+	await expect(page).toHaveURL(/\/masuk\?lanjut=%2Fapp%2Ftoko$/u);
 	expect(await page.context().cookies()).toHaveLength(0);
 	await page.goto('/app');
 	await expect(page).toHaveURL(/\/masuk\?lanjut=%2Fapp$/u);

@@ -1,16 +1,21 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
-	import { signInHref } from '#lib/features/auth/links.js';
+	import { onboardingHref, signInHref } from '#lib/features/auth/links.js';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
+
+	const here = $derived(page.url.pathname + page.url.search);
 </script>
 
 <AccountGate
+	placement="member"
 	onsignedout={() => {
-		window.location.assign(signInHref(page.url.pathname + page.url.search));
+		window.location.assign(signInHref(here));
 	}}
+	onmisplaced={() => void goto(onboardingHref(here), { replaceState: true })}
 >
 	{@render children()}
 </AccountGate>

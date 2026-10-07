@@ -3,9 +3,24 @@ import type { ApiClient } from '#lib/api/client.js';
 import { getAccount } from '#lib/api/account.js';
 import { ApiError } from '#lib/api/errors.js';
 import { logOut, logOutEverywhere } from '#lib/api/sessions.js';
+import type { OrganizationType } from '#lib/api/organizations.js';
 import type { Account } from '#lib/api/users.js';
 
 export type AccountStatus = 'loading' | 'ready' | 'failed' | 'signedOut';
+export type Placement = 'member' | 'newcomer';
+
+const dashboards: Record<OrganizationType, string> = {
+	CONSIGNOR: '/app/penitip',
+	STORE: '/app/toko'
+};
+
+export function dashboardPath(type: OrganizationType): string {
+	return dashboards[type];
+}
+
+export function isPlacedFor(account: Account, placement: Placement): boolean {
+	return (account.membership !== null) === (placement === 'member');
+}
 
 export class AccountSession {
 	account = $state<Account | undefined>();

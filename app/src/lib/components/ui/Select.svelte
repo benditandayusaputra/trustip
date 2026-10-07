@@ -14,8 +14,9 @@
 		value?: string;
 		name?: string;
 		required?: boolean;
-		hint?: string;
-		error?: string;
+		hint?: string | undefined;
+		error?: string | undefined;
+		onchange?: (value: string) => void;
 	}
 
 	let {
@@ -25,7 +26,8 @@
 		name,
 		required = false,
 		hint,
-		error
+		error,
+		onchange
 	}: Props = $props();
 
 	const inputId = $props.id();
@@ -38,6 +40,7 @@
 			{name}
 			{required}
 			bind:value
+			onchange={() => onchange?.(value)}
 			aria-invalid={error ? true : undefined}
 			aria-describedby={describedBy(inputId, hint, error)}
 			class="{inputClass} appearance-none pr-12"

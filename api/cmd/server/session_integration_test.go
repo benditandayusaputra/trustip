@@ -31,13 +31,26 @@ func databaseBrowser(t *testing.T) *browser {
 		accessKeys: testPepper{}, revoked: revocation.New(now), tx: pool,
 		clock: now, ids: idgen.UUIDv7{}, cookies: authhandler.LocalCookies(),
 	}
-	server := newTestServerWith(alwaysReady, now, components)
+	server := newServerFrom(alwaysReady, now, testModules{auth: components, org: buildOrgComponents(pool, now)})
 	if got := perform(t, server, postUsers(t, registration("sari@contoh.id"))); got.status != http.StatusCreated {
 		t.Fatalf("register = %d %s", got.status, got.body)
 	}
 	visitor := &browser{t: t, server: server, now: now}
 	visitor.signIn()
 	return visitor
+}
+
+func (b *browser) anotherUserOnTheSameServer(email string) *browser {
+	b.t.Helper()
+	if got := perform(b.t, b.server, postUsers(b.t, registration(email))); got.status != http.StatusCreated {
+		b.t.Fatalf("register %s = %d %s", email, got.status, got.body)
+	}
+	other := &browser{t: b.t, server: b.server, now: b.now, visits: b.visits}
+	login := postSessions(b.t, attemptAt(credentials(email, acceptedInput), b.now.Now()))
+	if got := other.send(login); got.status != http.StatusOK {
+		b.t.Fatalf("login %s = %d %s", email, got.status, got.body)
+	}
+	return other
 }
 
 func TestRefresh_RSEC18_ConcurrentRefreshesOfOneTokenAgreeOnOnePair(t *testing.T) {

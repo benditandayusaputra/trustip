@@ -15,7 +15,8 @@ Modul `auth` (daftar, masuk, segarkan, keluar, baca akun) berjalan sebelum pengg
 3. Tabel memuat semua baris spesifikasi, termasuk baris P1, supaya uji `TestTable_RSEC37_*` bisa membandingkannya baris demi baris dengan membaca tabel di `docs/02-SPESIFIKASI-FITUR.md`.
 4. Sel "Bila diizinkan OWNER" disimpan sebagai `DelegatedByOwner`. `Require` memperlakukannya sebagai ditolak sampai P1.2 menambah izin dari OWNER.
 5. Pengguna tanpa organisasi dan aksi yang tidak ada di tabel dibalas `FORBIDDEN`.
-6. Uji `TestArchitecture_RSEC36_EveryUseCaseRequiresAPolicyFirst` memeriksa setiap metode `Execute` di lapisan `service`. Modul `auth` dikecualikan karena kasus pakainya membentuk sesi itu sendiri.
+6. Uji `TestArchitecture_RSEC36_EveryUseCaseRequiresAPolicyFirst` memeriksa setiap metode `Execute` di lapisan `service` yang menerima `actor.Actor`. Modul `auth` dikecualikan karena kasus pakainya membentuk sesi itu sendiri. Kasus pakai publik tanpa pelaku, seperti daftar provinsi dan kota, tidak punya peran untuk diperiksa.
+7. Onboarding memanggil `policy.RequireNewcomer`, yang hanya meloloskan pengguna tanpa organisasi dan membalas yang lain dengan 409 `ORGANIZATION_EXISTS`. Uji arsitektur menerima fungsi `policy.Require*` mana pun di baris pertama.
 
 ## Akibat
 

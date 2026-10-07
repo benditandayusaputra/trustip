@@ -40,7 +40,10 @@ func (uc *LoginUser) startSession(ctx context.Context, login successfulLogin) (L
 		return LoginResult{}, fmt.Errorf("sign access token: %w", err)
 	}
 	return LoginResult{
-		Account: domain.Account{ID: userID, Email: login.credentials.Email, FullName: login.credentials.FullName},
+		Account: domain.Account{
+			ID: userID, Email: login.credentials.Email, FullName: login.credentials.FullName,
+			Membership: claims.Membership,
+		},
 		Tokens: domain.SessionTokens{
 			Access: access, AccessExpires: claims.ExpiresAt,
 			Refresh: refresh.Plain, RefreshExpires: session.ExpiresAt,

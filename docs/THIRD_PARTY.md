@@ -33,6 +33,7 @@ Dipasang `make setup` ke `.bin/` dengan versi terkunci di `Makefile`. Tidak ikut
 | Data | Sumber | Lisensi | Ukuran | Alasan dipakai |
 |---|---|---|---|---|
 | Daftar kata sandi umum (`api/internal/modules/auth/domain/common_passwords.txt`) | `100k-most-used-passwords-NCSC.txt` dari SecLists, disaring ke 10 sampai 128 karakter ASCII, huruf kecil, tanpa duplikat: 9.113 baris | MIT | 104 KB, ditanam ke biner | Menolak kata sandi yang paling sering bocor saat mendaftar (R-SEC-01) |
+| Kabupaten dan kota (`api/internal/db/migrations/00004_cities.sql`) | Berkas `db/wilayah_level_1_2.sql` dari `github.com/cahyadsn/wilayah`, mengikuti Kepmendagri Nomor 300.2.2-2430 Tahun 2025. Diambil kode, nama, provinsi, dan titik tengah 514 kabupaten dan kota, tanpa poligon batas. Bujur Kabupaten Wakatobi (74.07) di sumber tertulis 23,53890 dan dikoreksi menjadi 123,53890 sesuai poligon batasnya | MIT | 61 KB, sebagai migrasi | Kode wilayah resmi untuk kolom kota organisasi dan titik tengah kota untuk Cari Mitra (FR-ORG-01, FR-DIR-04) |
 
 ## Huruf
 

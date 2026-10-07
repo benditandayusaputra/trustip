@@ -18,6 +18,13 @@ type Category struct {
 	CreatedAt time.Time
 }
 
+type City struct {
+	Code         string
+	Name         string
+	ProvinceName string
+	Centroid     interface{}
+}
+
 type ConsignorProfile struct {
 	OrganizationID       string
 	DeliveryRadiusKm     pgtype.Int4
@@ -51,7 +58,7 @@ type Organization struct {
 	Whatsapp       string
 	Address        string
 	District       string
-	CityCode       string
+	CityCode       pgtype.Text
 	CityName       string
 	Location       interface{}
 	LocationPublic interface{}

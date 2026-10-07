@@ -31,3 +31,19 @@ func TestRejectUncleanInputs_CleanInputsPass(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestMultilineInput_RSEC51_KeepsLineBreaksAndTidiesEachLine(t *testing.T) {
+	got := httpserver.MultilineInput("description", "\r\n  Roti  manis \r\nTanpa   pengawet\n\n")
+
+	if got.Value != "Roti manis\nTanpa pengawet" {
+		t.Fatalf("value = %q", got.Value)
+	}
+}
+
+func TestMultilineInput_RSEC51_OtherControlCharactersAreRejected(t *testing.T) {
+	err := httpserver.RejectUncleanInputs(httpserver.MultilineInput("description", "Roti\tmanis"))
+
+	if fields := apperror.From(err).Fields(); len(fields) != 1 || fields[0].Field != "description" {
+		t.Fatalf("err = %v", err)
+	}
+}

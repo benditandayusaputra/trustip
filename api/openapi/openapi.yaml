@@ -254,6 +254,101 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/organizations:
+    post:
+      operationId: createOrganization
+      tags: [org]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingRequest"
+      responses:
+        "201":
+          description: Organisasi dan keanggotaan OWNER dibuat dalam satu transaksi
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/CrossSite"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/provinces:
+    get:
+      operationId: listProvinces
+      tags: [org]
+      responses:
+        "200":
+          description: Semua provinsi menurut kode Kemendagri
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProvinceListResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/cities:
+    get:
+      operationId: listCities
+      tags: [org]
+      parameters:
+        - name: province_code
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9]{2}$"
+      responses:
+        "200":
+          description: Kabupaten dan kota di satu provinsi
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CityListResponse"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -312,6 +407,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Bentrok dengan keadaan data saat ini
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
       description: Belum masuk, sesi habis, atau tanda tangan tepi tidak sah
       content:
@@ -360,6 +461,7 @@ components:
         - CROSS_SITE_REJECTED
         - NOT_FOUND
         - CAPTCHA_FAILED
+        - ORGANIZATION_EXISTS
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -493,7 +595,7 @@ components:
     Account:
       type: object
       additionalProperties: false
-      required: [id, full_name, email]
+      required: [id, full_name, email, membership]
       properties:
         id:
           type: string
@@ -502,6 +604,135 @@ components:
           type: string
         email:
           type: string
+        membership:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Membership"
+    OrganizationType:
+      type: string
+      enum: [CONSIGNOR, STORE]
+    Membership:
+      type: object
+      additionalProperties: false
+      required: [organization_id, organization_type, role]
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+        organization_type:
+          $ref: "#/components/schemas/OrganizationType"
+        role:
+          type: string
+          enum: [OWNER, STAFF]
+    OnboardingRequest:
+      type: object
+      additionalProperties: false
+      required: [type, name, description, whatsapp, city_code, district, address]
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        whatsapp:
+          type: string
+        city_code:
+          type: string
+        district:
+          type: string
+        address:
+          type: string
+    Organization:
+      type: object
+      additionalProperties: false
+      required: [id, type, name, slug, description, whatsapp, city_code, city_name, district, address]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: "#/components/schemas/OrganizationType"
+        name:
+          type: string
+        slug:
+          type: string
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        description:
+          type: string
+        whatsapp:
+          type: string
+        city_code:
+          type: string
+        city_name:
+          type: string
+        district:
+          type: string
+        address:
+          type: string
+    OrganizationResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Organization"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    Province:
+      type: object
+      additionalProperties: false
+      required: [code, name]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    ProvinceListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Province"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    City:
+      type: object
+      additionalProperties: false
+      required: [code, name, province_name]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        province_name:
+          type: string
+    CityListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/City"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
     AccountResponse:
       type: object
       additionalProperties: false

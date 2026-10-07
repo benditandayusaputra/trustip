@@ -21,3 +21,16 @@ func NormalizePassword(raw string) string {
 func isForbiddenInLine(r rune) bool {
 	return unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Cf, r)
 }
+
+func NormalizeMultiline(raw string) (string, bool) {
+	lines := strings.Split(strings.ReplaceAll(raw, "\r\n", "\n"), "\n")
+	normalized := make([]string, 0, len(lines))
+	for _, line := range lines {
+		value, clean := NormalizeLine(line)
+		if !clean {
+			return "", false
+		}
+		normalized = append(normalized, value)
+	}
+	return strings.Trim(strings.Join(normalized, "\n"), "\n"), true
+}

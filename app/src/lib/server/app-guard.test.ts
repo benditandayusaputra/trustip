@@ -25,7 +25,13 @@ describe('signInRedirectFor (FR-AUTH-06)', () => {
 		}
 	);
 
-	it.each(['/', '/masuk', '/application', '/apps/x'])('leaves %s alone', (path) => {
+	it('FR-AUTH-05 guards onboarding, which needs a signed-in user', () => {
+		expect(signInRedirectFor(new URL('https://trustip.id/onboarding'), noCookies)).toBe(
+			'/masuk?lanjut=%2Fonboarding'
+		);
+	});
+
+	it.each(['/', '/masuk', '/application', '/apps/x', '/onboardingx'])('leaves %s alone', (path) => {
 		expect(signInRedirectFor(new URL(`https://trustip.id${path}`), noCookies)).toBeUndefined();
 	});
 });

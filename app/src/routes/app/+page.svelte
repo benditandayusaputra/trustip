@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AccountWelcome from '#lib/features/account/components/AccountWelcome.svelte';
+	import DashboardRedirect from '#lib/features/account/components/DashboardRedirect.svelte';
 </script>
 
-<AccountWelcome />
+<DashboardRedirect />

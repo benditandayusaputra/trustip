@@ -75,3 +75,19 @@ func TestRequire_UnknownRoleIsForbidden(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestRequireNewcomer_BRAUTH02_UserWithoutOrganizationMayFoundOne(t *testing.T) {
+	visitor := actor.Actor{UserID: "0192f0c4-7b1e-7c3a-9d2e-5f6a7b8c9d0e"}
+
+	if err := policy.RequireNewcomer(visitor); err != nil {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestRequireNewcomer_MemberCannotFoundASecondOrganization(t *testing.T) {
+	err := policy.RequireNewcomer(member(actor.Store, actor.Owner))
+
+	if apperror.From(err).Code() != apperror.CodeOrganizationExists {
+		t.Fatalf("err = %v", err)
+	}
+}
