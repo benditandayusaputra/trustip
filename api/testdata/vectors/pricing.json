@@ -1,0 +1,65 @@
+{
+  "description": "Pricing vectors shared by api and app. Per-allocation split from 02-SPESIFIKASI-FITUR BR-STL-04, totals add lines without recomputing commission, rounding half up per line (BR-AGR-04).",
+  "allocations": [
+    {
+      "name": "commission 20 percent, keripik pedas from the section 13 example",
+      "terms": { "model": "COMMISSION", "retail_price": 15000, "commission_bps": 2000, "deposit_price": 0 },
+      "qty": 27,
+      "split": { "gross": 405000, "store_share": 81000, "consignor_share": 324000 }
+    },
+    {
+      "name": "commission 17.5 percent rounds 11812.5 up to 11813, kue bawang from the section 13 example",
+      "terms": { "model": "COMMISSION", "retail_price": 22500, "commission_bps": 1750, "deposit_price": 0 },
+      "qty": 3,
+      "split": { "gross": 67500, "store_share": 11813, "consignor_share": 55687 }
+    },
+    {
+      "name": "fixed deposit, sambal roa from the section 13 example",
+      "terms": { "model": "FIXED_DEPOSIT", "retail_price": 35000, "commission_bps": 0, "deposit_price": 28000 },
+      "qty": 10,
+      "split": { "gross": 350000, "store_share": 70000, "consignor_share": 280000 }
+    },
+    {
+      "name": "fixed deposit, roti manis from the section 13 example",
+      "terms": { "model": "FIXED_DEPOSIT", "retail_price": 2000, "commission_bps": 0, "deposit_price": 1750 },
+      "qty": 18,
+      "split": { "gross": 36000, "store_share": 4500, "consignor_share": 31500 }
+    },
+    {
+      "name": "nothing sold",
+      "terms": { "model": "COMMISSION", "retail_price": 15000, "commission_bps": 2000, "deposit_price": 0 },
+      "qty": 0,
+      "split": { "gross": 0, "store_share": 0, "consignor_share": 0 }
+    },
+    {
+      "name": "deposit price equal to retail price leaves the store nothing",
+      "terms": { "model": "FIXED_DEPOSIT", "retail_price": 5000, "commission_bps": 0, "deposit_price": 5000 },
+      "qty": 4,
+      "split": { "gross": 20000, "store_share": 0, "consignor_share": 20000 }
+    },
+    {
+      "name": "commission 0 percent",
+      "terms": { "model": "COMMISSION", "retail_price": 9999, "commission_bps": 0, "deposit_price": 0 },
+      "qty": 7,
+      "split": { "gross": 69993, "store_share": 0, "consignor_share": 69993 }
+    },
+    {
+      "name": "commission 50 percent rounds half up on an odd gross",
+      "terms": { "model": "COMMISSION", "retail_price": 999, "commission_bps": 5000, "deposit_price": 0 },
+      "qty": 1,
+      "split": { "gross": 999, "store_share": 500, "consignor_share": 499 }
+    },
+    {
+      "name": "commission just below half a rupiah rounds down",
+      "terms": { "model": "COMMISSION", "retail_price": 4999, "commission_bps": 1, "deposit_price": 0 },
+      "qty": 1,
+      "split": { "gross": 4999, "store_share": 0, "consignor_share": 4999 }
+    }
+  ],
+  "summary": {
+    "name": "total of the four section 13 lines",
+    "lines": [0, 1, 2, 3],
+    "total": { "gross": 858500, "store_share": 167313, "consignor_share": 691187 }
+  },
+  "example_quantity": 10
+}
