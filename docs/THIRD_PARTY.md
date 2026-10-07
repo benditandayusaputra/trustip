@@ -8,6 +8,7 @@ Setiap pustaka atau layanan pihak ketiga dicatat di sini dalam commit yang sama 
 |---|---|---|---|---|
 | `github.com/gofiber/fiber/v3` | 3.5.0 | MIT | Biner server 8,3 MB setelah `-s -w` | Kerangka HTTP yang cepat dengan uji tanpa jaringan lewat `app.Test` |
 | `github.com/jackc/pgx/v5` | 5.11.0 | MIT | Bersama goose, biner migrasi 9,8 MB setelah `-s -w` | Driver PostgreSQL dengan kumpulan koneksi dan dukungan `channel_binding` untuk Neon |
+| `github.com/google/uuid` | 1.6.0 | BSD-3-Clause | Sudah ikut lewat Fiber | Pembangkit UUIDv7 yang terurut waktu untuk semua ID |
 | `github.com/pressly/goose/v3` | 3.28.0 | MIT | Lihat baris pgx | Migrasi bernomor dengan arah naik dan turun, dibaca dari berkas yang ditanam ke biner |
 
 ## Alat pengembangan
