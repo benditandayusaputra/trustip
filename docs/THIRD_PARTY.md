@@ -8,6 +8,18 @@ Setiap pustaka atau layanan pihak ketiga dicatat di sini dalam commit yang sama 
 |---|---|---|---|---|
 | `github.com/gofiber/fiber/v3` | 3.5.0 | MIT | Biner server 8,3 MB setelah `-s -w` | Kerangka HTTP yang cepat dengan uji tanpa jaringan lewat `app.Test` |
 
+## Alat pengembangan
+
+Dipasang `make setup` ke `.bin/` dengan versi terkunci di `Makefile`. Tidak ikut ke biner atau bundel.
+
+| Alat | Versi | Lisensi | Alasan dipakai |
+|---|---|---|---|
+| `golangci-lint` | 2.14.0 | GPL-3.0 | Menjalankan semua pemeriksa Go di tabel 3.13 dan format `gofumpt` |
+| `gitleaks` | 8.30.1 | MIT | Pemindai rahasia di kait pra-commit dan di CI |
+| `lefthook` | 2.1.17 | MIT | Pengelola kait git |
+| `govulncheck` | 1.8.0 | BSD-3-Clause | Pemindai kerentanan dependensi Go |
+| `deadcode` | 0.51.0 | BSD-3-Clause | Pencari kode mati |
+
 ## App (SvelteKit)
 
 Ukuran untuk pustaka yang ikut ke peramban diukur dari bundel terkompresi. Alat pengembangan tidak ikut ke bundel.

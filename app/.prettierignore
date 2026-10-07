@@ -2,3 +2,6 @@ package-lock.json
 /static/
 /.svelte-kit/
 /.vercel/
+/test-results/
+/playwright-report/
+/coverage/

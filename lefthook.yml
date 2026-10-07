@@ -1,0 +1,26 @@
+lefthook: .bin/lefthook
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: secrets
+      run: .bin/gitleaks git --staged --no-banner --redact .
+    - name: comments
+      run: go -C api run ./cmd/nocomment
+    - name: format-api
+      glob: "api/**/*.go"
+      run: cd api && ../.bin/golangci-lint fmt --diff ./...
+    - name: format-app
+      root: app/
+      glob: "*.{ts,js,svelte,css,json,html}"
+      run: npx prettier --check {staged_files}
+
+commit-msg:
+  jobs:
+    - name: message-shape
+      run: go -C api run ./cmd/commitmsg < {1}
+
+pre-push:
+  jobs:
+    - name: check-and-test
+      run: make check test
