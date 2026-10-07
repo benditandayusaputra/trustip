@@ -8,6 +8,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
 )
 
 const (
@@ -40,19 +41,19 @@ type Item struct {
 }
 
 type RevisionInput struct {
-	Terms   TermsInput
+	Terms   terms.Input
 	Items   []ItemInput
 	Message string
 }
 
 type RevisionDraft struct {
-	Terms   GeneralTerms
+	Terms   terms.General
 	Items   []Item
 	Message string
 }
 
 func NewRevisionDraft(input RevisionInput) (RevisionDraft, error) {
-	terms, termProblems := checkTerms(input.Terms)
+	terms, termProblems := terms.Check(input.Terms)
 	problems := field.Collect(append(termProblems,
 		field.CheckLength("message", input.Message, field.Length{Max: MaxMessageLength}),
 		findItemCountProblem(len(input.Items)),

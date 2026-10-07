@@ -10,6 +10,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 )
@@ -140,7 +141,7 @@ func owner(organizationID string, organizationType actor.OrganizationType) actor
 
 func invitationInput() domain.RevisionInput {
 	return domain.RevisionInput{
-		Terms: domain.TermsInput{SettlementSchedule: "ON_COUNT", PaymentTermsDays: 3, CountRhythm: "DAILY"},
+		Terms: terms.Input{SettlementSchedule: "ON_COUNT", PaymentTermsDays: 3, CountRhythm: "DAILY"},
 		Items: []domain.ItemInput{{ProductID: breadID, Terms: pricing.TermsInput{
 			Model: "FIXED_DEPOSIT", RetailPrice: 2000, DepositPrice: 1750,
 		}}},

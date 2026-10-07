@@ -3,6 +3,8 @@ package domain
 import (
 	"errors"
 	"time"
+
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
 )
 
 var (
@@ -20,7 +22,7 @@ type Revision struct {
 	ID          string
 	No          int
 	AuthorOrgID string
-	Terms       GeneralTerms
+	Terms       terms.General
 	Message     string
 	Items       []Item
 	At          time.Time

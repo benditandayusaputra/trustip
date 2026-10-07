@@ -10,6 +10,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
 )
 
 const (
@@ -26,7 +27,9 @@ func sentAt() time.Time {
 
 func validInput() RevisionInput {
 	return RevisionInput{
-		Terms: TermsInput{SettlementSchedule: "WEEKLY", PaymentTermsDays: 7, CountRhythm: "DAILY", Notes: "Rak depan."},
+		Terms: terms.Input{
+			SettlementSchedule: "WEEKLY", PaymentTermsDays: 7, CountRhythm: "DAILY", Notes: "Rak depan.",
+		},
 		Items: []ItemInput{
 			{ProductID: breadID, Terms: depositTerms(2000, 1750)},
 			{ProductID: chipsID, Terms: commissionTerms(15000, 2000)},
@@ -52,7 +55,7 @@ func TestNewRevisionDraft_FRPRP02_ProductsWithTermsAndGeneralTerms(t *testing.T)
 	draft, err := NewRevisionDraft(validInput())
 
 	if err != nil || len(draft.Items) != 2 || draft.Items[0].Action != Add ||
-		draft.Items[1].Terms.CommissionBPS != 2000 || draft.Terms.Schedule != ScheduleWeekly {
+		draft.Items[1].Terms.CommissionBPS != 2000 || draft.Terms.Schedule != terms.ScheduleWeekly {
 		t.Fatalf("draft = %+v, err = %v", draft, err)
 	}
 }
@@ -72,34 +75,34 @@ func TestNewRevisionDraft_RSEC47_ItemProblemsNameTheirRow(t *testing.T) {
 func TestNewRevisionDraft_GeneralTermsBoundaries(t *testing.T) {
 	cases := []struct {
 		name  string
-		terms TermsInput
+		terms terms.Input
 		field string
 		code  string
 	}{
 		{
 			"payment terms 30 days",
-			TermsInput{SettlementSchedule: "ON_COUNT", PaymentTermsDays: 30, CountRhythm: "WEEKLY"},
+			terms.Input{SettlementSchedule: "ON_COUNT", PaymentTermsDays: 30, CountRhythm: "WEEKLY"},
 			"", "",
 		},
 		{
 			"payment terms 31 days",
-			TermsInput{SettlementSchedule: "ON_COUNT", PaymentTermsDays: 31, CountRhythm: "WEEKLY"},
+			terms.Input{SettlementSchedule: "ON_COUNT", PaymentTermsDays: 31, CountRhythm: "WEEKLY"},
 			"terms.payment_terms_days", "OUT_OF_RANGE",
 		},
 		{
 			"negative payment terms",
-			TermsInput{SettlementSchedule: "MONTHLY", PaymentTermsDays: -1, CountRhythm: "DAILY"},
+			terms.Input{SettlementSchedule: "MONTHLY", PaymentTermsDays: -1, CountRhythm: "DAILY"},
 			"terms.payment_terms_days", "OUT_OF_RANGE",
 		},
 		{
 			"unknown schedule",
-			TermsInput{SettlementSchedule: "DAILY", CountRhythm: "DAILY"},
+			terms.Input{SettlementSchedule: "DAILY", CountRhythm: "DAILY"},
 			"terms.settlement_schedule", "UNKNOWN_CHOICE",
 		},
-		{"missing rhythm", TermsInput{SettlementSchedule: "WEEKLY"}, "terms.count_rhythm", "REQUIRED"},
-		{"notes 501 characters", TermsInput{
+		{"missing rhythm", terms.Input{SettlementSchedule: "WEEKLY"}, "terms.count_rhythm", "REQUIRED"},
+		{"notes 501 characters", terms.Input{
 			SettlementSchedule: "WEEKLY", CountRhythm: "EACH_VISIT",
-			Notes: strings.Repeat("a", MaxNotesLength+1),
+			Notes: strings.Repeat("a", terms.MaxNotesLength+1),
 		}, "terms.notes", "TOO_LONG"},
 	}
 	for _, tc := range cases {

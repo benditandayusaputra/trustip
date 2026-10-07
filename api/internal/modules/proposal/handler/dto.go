@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 )
@@ -44,7 +45,7 @@ func (r invitationRequest) toInput() (domain.RevisionInput, error) {
 		}})
 	}
 	return domain.RevisionInput{
-		Terms: domain.TermsInput{
+		Terms: terms.Input{
 			SettlementSchedule: r.Terms.SettlementSchedule, PaymentTermsDays: r.Terms.PaymentTermsDays,
 			CountRhythm: r.Terms.CountRhythm, Notes: notes.Value,
 		},

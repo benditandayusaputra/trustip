@@ -1,4 +1,4 @@
-package domain
+package terms
 
 import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
@@ -26,21 +26,21 @@ const (
 	RhythmWeekly    Rhythm = "WEEKLY"
 )
 
-type TermsInput struct {
+type Input struct {
 	SettlementSchedule string
 	PaymentTermsDays   int
 	CountRhythm        string
 	Notes              string
 }
 
-type GeneralTerms struct {
+type General struct {
 	Schedule         Schedule
 	PaymentTermsDays int
 	Rhythm           Rhythm
 	Notes            string
 }
 
-func checkTerms(input TermsInput) (GeneralTerms, []field.Problem) {
+func Check(input Input) (General, []field.Problem) {
 	problems := []field.Problem{
 		findRequiredChoice("terms.settlement_schedule", input.SettlementSchedule,
 			[]string{string(ScheduleOnCount), string(ScheduleWeekly), string(ScheduleMonthly)}),
@@ -49,7 +49,7 @@ func checkTerms(input TermsInput) (GeneralTerms, []field.Problem) {
 		findPaymentTermsProblem(input.PaymentTermsDays),
 		field.CheckLength("terms.notes", input.Notes, field.Length{Max: MaxNotesLength}),
 	}
-	return GeneralTerms{
+	return General{
 		Schedule: Schedule(input.SettlementSchedule), PaymentTermsDays: input.PaymentTermsDays,
 		Rhythm: Rhythm(input.CountRhythm), Notes: input.Notes,
 	}, problems

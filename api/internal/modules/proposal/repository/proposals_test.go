@@ -12,6 +12,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/repository"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -95,7 +96,7 @@ func invitation(index int, sender string, productIDs ...string) domain.Invitatio
 		items = append(items, domain.Item{ProductID: productID, Action: domain.Add, Terms: terms})
 	}
 	draft := domain.RevisionDraft{
-		Terms: domain.GeneralTerms{Schedule: domain.ScheduleWeekly, PaymentTermsDays: 7, Rhythm: domain.RhythmDaily},
+		Terms: terms.General{Schedule: terms.ScheduleWeekly, PaymentTermsDays: 7, Rhythm: terms.RhythmDaily},
 		Items: items, Message: "Salam kenal.",
 	}
 	senderType := actor.Consignor
@@ -139,7 +140,7 @@ func TestCreateInvitation_FRPRP02_SenderReadsTheProductsAndTerms(t *testing.T) {
 	if err != nil || got.Number != "AJ-202610-0001" || got.InviteCode != created.IDs.Code ||
 		got.Store.OrganizationID != "" ||
 		len(got.Revision.Items) != 1 || got.Revision.Items[0].SKU != "SKU-101" ||
-		got.Revision.Items[0].Terms.DepositPrice != 1750 || got.Revision.Terms.Schedule != domain.ScheduleWeekly {
+		got.Revision.Items[0].Terms.DepositPrice != 1750 || got.Revision.Terms.Schedule != terms.ScheduleWeekly {
 		t.Fatalf("got = %+v, err = %v", got, err)
 	}
 }

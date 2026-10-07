@@ -11,6 +11,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/money"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 )
@@ -49,9 +50,9 @@ func toProposal(row sqlc.GetProposalRow) domain.Proposal {
 		CreatedAt:     row.CreatedAt,
 		Revision: domain.Revision{
 			ID: row.RevisionID, No: int(row.CurrentRevisionNo), AuthorOrgID: row.AuthorOrgID,
-			Terms: domain.GeneralTerms{
-				Schedule: domain.Schedule(row.SettlementSchedule), PaymentTermsDays: int(row.PaymentTermsDays),
-				Rhythm: domain.Rhythm(row.CountRhythm), Notes: row.Notes,
+			Terms: terms.General{
+				Schedule: terms.Schedule(row.SettlementSchedule), PaymentTermsDays: int(row.PaymentTermsDays),
+				Rhythm: terms.Rhythm(row.CountRhythm), Notes: row.Notes,
 			},
 			Message: row.Message, At: row.RevisedAt,
 		},
