@@ -120,7 +120,7 @@ export default defineConfig(
 		rules: { 'no-restricted-globals': 'off' }
 	},
 	{
-		files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**'],
+		files: ['**/*.test.ts', '**/*.test.js', 'tests/**'],
 		rules: {
 			'max-lines-per-function': 'off',
 			'max-lines': 'off',

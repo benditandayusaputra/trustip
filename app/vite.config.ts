@@ -47,7 +47,7 @@ export default defineConfig({
 				test: {
 					name: 'tooling',
 					environment: 'node',
-					include: ['eslint/**/*.test.js']
+					include: ['eslint/**/*.test.js', 'scripts/**/*.test.js']
 				}
 			}
 		]

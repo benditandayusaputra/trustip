@@ -26,6 +26,15 @@ Dipasang `make setup` ke `.bin/` dengan versi terkunci di `Makefile`. Tidak ikut
 | `deadcode` | 0.51.0 | BSD-3-Clause | Pencari kode mati |
 | `sqlc` | 1.31.1 | MIT | Membangkitkan kode Go bertipe dari berkas SQL |
 
+## Huruf
+
+Disajikan dari server sendiri, subset Latin, format WOFF2, diambil dari paket Fontsource 5.3.0. Berkas ada di `app/src/lib/assets/fonts/`.
+
+| Huruf | Berkas | Lisensi | Ukuran | Alasan dipakai |
+|---|---|---|---|---|
+| Inter | 400, 600 | OFL-1.1 | 23 KB dan 24 KB | Huruf teks, mudah dibaca di layar kecil |
+| JetBrains Mono | 500, 700 | OFL-1.1 | 21 KB dan 21 KB | Angka uang dan jumlah dengan lebar tetap |
+
 ## Layanan dan citra
 
 | Layanan atau citra | Versi | Lisensi | Alasan dipakai |

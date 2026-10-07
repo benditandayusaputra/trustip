@@ -3,9 +3,9 @@ import path from 'node:path';
 const libRoot = path.join('src', 'lib');
 
 const allowedTargets = {
-	routes: ['features', 'components', 'api', 'i18n', 'styles', 'server'],
+	routes: ['features', 'components', 'api', 'i18n', 'styles', 'server', 'assets'],
 	features: ['components', 'api', 'domain', 'offline', 'i18n'],
-	components: ['styles', 'i18n'],
+	components: ['styles', 'i18n', 'assets'],
 	domain: [],
 	offline: ['api', 'domain']
 };
