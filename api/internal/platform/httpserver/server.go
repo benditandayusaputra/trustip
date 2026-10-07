@@ -43,11 +43,12 @@ type Server struct {
 func New(opts Options) *Server {
 	errorHandler := NewErrorHandler(opts.AppLog, opts.SecurityLog)
 	app := fiber.New(fiber.Config{
-		ErrorHandler: errorHandler,
-		Immutable:    true,
-		BodyLimit:    uploadBodyLimit,
-		ReadTimeout:  readTimeout,
-		IdleTimeout:  idleTimeout,
+		ErrorHandler:                 errorHandler,
+		Immutable:                    true,
+		DisablePreParseMultipartForm: true,
+		BodyLimit:                    uploadBodyLimit,
+		ReadTimeout:                  readTimeout,
+		IdleTimeout:                  idleTimeout,
 	})
 	app.Use(
 		RequestID(opts.IDs),

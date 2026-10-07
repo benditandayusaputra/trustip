@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
 	"strings"
 	"sync"
 	"testing"
@@ -167,7 +168,11 @@ func writePart(writer *multipart.Writer, formPart part) error {
 		}
 		return nil
 	}
-	target, err := writer.CreateFormFile(formPart.name, formPart.filename)
+	header := textproto.MIMEHeader{}
+	header.Set("Content-Disposition",
+		fmt.Sprintf(`form-data; name=%q; filename=%q`, formPart.name, formPart.filename))
+	header.Set("Content-Type", "image/jpeg")
+	target, err := writer.CreatePart(header)
 	if err != nil {
 		return fmt.Errorf("create file part: %w", err)
 	}
@@ -242,6 +247,17 @@ func TestUpload_RSEC70_ContentThatIsNotAnImageIsRejected(t *testing.T) {
 		t.Fatalf("body = %s", got.body)
 	}
 	loadContract(t).requireConforms(t, got)
+}
+
+func TestUpload_RSEC23_FileSentBeforeItsPurposeKeepsTheEdgeSignature(t *testing.T) {
+	visitor := memberBrowser(t, storeOwner())
+
+	got := visitor.upload(part{name: "file", filename: "image", data: photoWithLocation(t)},
+		part{name: "purpose", data: []byte("LOGO")})
+
+	if got.status != http.StatusCreated {
+		t.Fatalf("upload = %d %s", got.status, got.body)
+	}
 }
 
 func TestUpload_RRES05_UnknownFormPartIsRejected(t *testing.T) {
