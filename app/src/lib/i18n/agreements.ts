@@ -11,7 +11,17 @@ export const agreements = {
 			`Diusulkan ${name} (${organization}) lewat Ajuan ${number}.`,
 		acceptedBy: (name: string, organization: string, date: string) =>
 			`Disetujui ${name} (${organization}) pada ${date}.`,
-		backToProposal: 'Lihat Ajuan sumber'
+		backToProposal: 'Lihat Ajuan sumber',
+		history: 'Riwayat versi',
+		historyFailed: 'Riwayat versi tidak bisa dimuat.',
+		openVersion: (version: number) => `Buka versi ${String(version)}`,
+		superseded: 'Versi lama',
+		active: 'Berlaku',
+		changeKinds: { ADDED: 'Ditambah', UPDATED: 'Diubah', STOPPED: 'Dihentikan' },
+		termChange: (label: string, before: string, after: string) =>
+			`${label}: ${before} menjadi ${after}`,
+		amend: 'Ajukan perubahan',
+		emptyNotes: '(kosong)'
 	},
 	seal: {
 		valid: 'Segel sah',

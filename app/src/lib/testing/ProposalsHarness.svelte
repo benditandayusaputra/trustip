@@ -6,9 +6,10 @@
 	import InvitationLandingView from '#lib/features/proposals/components/InvitationLandingView.svelte';
 	import ProposalDetail from '#lib/features/proposals/components/ProposalDetail.svelte';
 	import ProposalList from '#lib/features/proposals/components/ProposalList.svelte';
+	import AmendmentForm from '#lib/features/proposals/components/AmendmentForm.svelte';
 
 	interface Props {
-		view: 'form' | 'detail' | 'landing' | 'list';
+		view: 'form' | 'detail' | 'landing' | 'list' | 'amend';
 		isConsignor?: boolean;
 		proposalId?: string;
 		viewerOrganizationId?: string;
@@ -34,6 +35,8 @@
 	<ProposalDetail {proposalId} {viewerOrganizationId} />
 {:else if view === 'list'}
 	<ProposalList organizationId={viewerOrganizationId} />
+{:else if view === 'amend'}
+	<AmendmentForm partnershipId={proposalId} prefillProductId={code} onsent={ondone} />
 {:else}
 	<InvitationLandingView
 		{code}

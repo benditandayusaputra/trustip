@@ -64,3 +64,14 @@ export function listProposals(
 	}
 	return client.list<ProposalSummary>(`/api/v1/proposals?${query.toString()}`);
 }
+
+export function sendAmendment(
+	client: ApiClient,
+	partnershipId: string,
+	request: InvitationRequest
+): Promise<Proposal> {
+	return client.send<Proposal>(
+		`/api/v1/partnerships/${encodeURIComponent(partnershipId)}/amendments`,
+		request
+	);
+}

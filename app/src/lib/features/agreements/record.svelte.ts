@@ -13,10 +13,10 @@ export class AgreementRecord {
 		this.#client = client;
 	}
 
-	async load(partnershipId: string): Promise<void> {
+	async load(partnershipId: string, version = 0): Promise<void> {
 		this.status = 'loading';
 		try {
-			this.agreement = await getAgreement(this.#client(), partnershipId);
+			this.agreement = await getAgreement(this.#client(), partnershipId, version);
 			this.status = 'ready';
 		} catch (error) {
 			this.failure = error instanceof Error ? error.message : '';

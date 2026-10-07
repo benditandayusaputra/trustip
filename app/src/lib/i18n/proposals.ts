@@ -100,7 +100,22 @@ export const proposals = {
 		withdrawn: 'Ajuan ditarik.',
 		cancel: 'Batal',
 		declineReason: (reason: string) => `Alasan: ${reason}`,
-		openPartnership: 'Lihat kemitraan'
+		openPartnership: 'Lihat kemitraan',
+		amendTitle: 'Ajukan perubahan Kesepakatan',
+		amendIntro:
+			'Ubah syarat umum, ubah atau hentikan produk, atau tambah produk. Perubahan berlaku setelah mitra menerima.',
+		currentProducts: 'Produk di Kesepakatan',
+		modes: { KEEP: 'Tetap', UPDATE: 'Ubah syarat', STOP: 'Hentikan' },
+		modeLabel: (name: string) => `Perubahan untuk ${name}`,
+		addProducts: 'Tambah produk',
+		chooseProduct: 'Pilih produk',
+		addProduct: 'Tambahkan',
+		removeProduct: (name: string) => `Batalkan tambah ${name}`,
+		nothingToAdd: 'Semua produk penitip sudah ada di Kesepakatan.',
+		sendAmendment: 'Kirim Ajuan perubahan',
+		amendmentSent: 'Ajuan perubahan terkirim. Menunggu mitra menerima.',
+		proposeToStore: 'Usulkan ke toko',
+		kinds: { NEW: 'Ajuan baru', AMENDMENT: 'Ajuan perubahan' }
 	},
 	invitation: {
 		title: 'Undangan kerja sama',

@@ -13,7 +13,7 @@
 {#if view === 'list'}
 	<PartnerList />
 {:else}
-	<PartnerPage {partnershipId}>
+	<PartnerPage {partnershipId} canAmend={true} isConsignor={true}>
 		{#snippet agreement()}
 			<p>Kesepakatan tampil di sini</p>
 		{/snippet}

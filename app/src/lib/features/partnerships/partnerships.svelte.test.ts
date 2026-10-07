@@ -131,3 +131,26 @@ describe('Partners', () => {
 		await expect.element(page.getByText('Rp1.750')).toBeVisible();
 	});
 });
+
+describe('Partner agreement actions', () => {
+	it('FR-AGR-06 offers the owner an amendment and a quick add for each new product', async () => {
+		serve({
+			[`/api/v1/partnerships/${partnershipId}`]: () =>
+				Response.json({ code: 'OK', message: '', data: partnership, meta: { request_id: 'r' } }),
+			[`/api/v1/partnerships/${partnershipId}/catalog`]: () => list([catalogItem('Keripik', null)])
+		});
+		await render(PartnersHarness, { view: 'page', partnershipId });
+
+		await userEvent.click(page.getByRole('tab', { name: 'Kesepakatan' }));
+
+		await expect
+			.element(page.getByRole('link', { name: 'Ajukan perubahan' }))
+			.toHaveAttribute('href', `/app/mitra/${partnershipId}/perubahan`);
+		await expect
+			.element(page.getByRole('link', { name: 'Usulkan ke toko' }))
+			.toHaveAttribute(
+				'href',
+				`/app/mitra/${partnershipId}/perubahan?tambah=0192f0c4-0000-7000-8000-000000000107`
+			);
+	});
+});

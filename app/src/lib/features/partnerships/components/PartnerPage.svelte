@@ -13,10 +13,14 @@
 
 	interface Props {
 		partnershipId: string;
+		canAmend: boolean;
+		isConsignor: boolean;
 		agreement: Snippet;
 	}
 
-	let { partnershipId, agreement }: Props = $props();
+	let { partnershipId, canAmend, isConsignor, agreement }: Props = $props();
+
+	const amendHref = $derived(`/app/mitra/${partnershipId}/perubahan`);
 
 	const text = id.partners;
 	const record = new PartnerRecord(apiClient);
@@ -46,9 +50,18 @@
 			{#if key === 'summary'}
 				<PartnerSummary {partnership} />
 			{:else if key === 'agreement'}
+				{@const isAmendable = canAmend && partnership.status === 'ACTIVE'}
 				<div class="flex flex-col gap-6">
+					{#if isAmendable}
+						<a href={amendHref} class="font-semibold text-accent">{id.agreement.amend}</a>
+					{/if}
 					{@render agreement()}
-					<PartnerCatalog items={record.catalog} />
+					<PartnerCatalog
+						items={record.catalog}
+						proposeHref={isAmendable && isConsignor
+							? (productId: string) => `${amendHref}?tambah=${productId}`
+							: undefined}
+					/>
 				</div>
 			{:else}
 				<EmptyState icon={ClipboardList} message={upcoming[key] ?? ''}>

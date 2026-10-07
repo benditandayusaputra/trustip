@@ -11,9 +11,10 @@
 
 	interface Props {
 		partnershipId: string;
+		version?: number;
 	}
 
-	let { partnershipId }: Props = $props();
+	let { partnershipId, version = 0 }: Props = $props();
 
 	const text = id.agreement;
 	const terms = id.proposals;
@@ -27,7 +28,7 @@
 	];
 
 	$effect(() => {
-		void record.load(partnershipId);
+		void record.load(partnershipId, version);
 	});
 </script>
 

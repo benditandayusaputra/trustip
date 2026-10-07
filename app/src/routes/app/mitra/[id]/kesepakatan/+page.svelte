@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import AgreementHistory from '#lib/features/agreements/components/AgreementHistory.svelte';
 	import AgreementView from '#lib/features/agreements/components/AgreementView.svelte';
 	import { id } from '#lib/i18n/id.js';
 </script>
@@ -12,5 +13,6 @@
 	<h1 class="text-xl font-semibold text-text">{id.agreement.title}</h1>
 	{#key page.params.id}
 		<AgreementView partnershipId={page.params.id ?? ''} />
+		<AgreementHistory partnershipId={page.params.id ?? ''} />
 	{/key}
 </section>

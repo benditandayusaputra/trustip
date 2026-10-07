@@ -6,9 +6,10 @@
 
 	interface Props {
 		items: PartnerCatalogItem[];
+		proposeHref?: ((productId: string) => string) | undefined;
 	}
 
-	let { items }: Props = $props();
+	let { items, proposeHref }: Props = $props();
 
 	const text = id.partners;
 	const terms = id.proposals;
@@ -23,6 +24,11 @@
 					<span class="text-base font-semibold text-text">{item.name}</span>
 					{#if !item.terms}
 						<Badge tone="neutral" label={text.notAgreed} />
+						{#if proposeHref}
+							<a href={proposeHref(item.product_id)} class="text-sm font-semibold text-accent">
+								{id.proposals.proposeToStore}
+							</a>
+						{/if}
 					{:else if !item.is_active}
 						<Badge tone="neutral" label={text.stoppedItem} />
 					{/if}
