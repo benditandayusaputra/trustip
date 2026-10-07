@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/benditandayusaputra/trustip/api/internal/db/sqlc"
@@ -21,6 +22,7 @@ const (
 	writeTimeout            = 10 * time.Second
 	unavailableRetrySeconds = 5
 	slowQueryThreshold      = 200 * time.Millisecond
+	uniqueViolationCode     = "23505"
 )
 
 var (
@@ -106,7 +108,7 @@ func (p *Pool) WithinTx(ctx context.Context, work func(context.Context) error) e
 	if _, ok := ctx.Value(txKey{}).(pgx.Tx); ok {
 		return work(ctx)
 	}
-	writeCtx, cancel := context.WithTimeout(ctx, writeTimeout)
+	writeCtx, cancel := WriteContext(ctx)
 	defer cancel()
 	tx, err := p.pool.Begin(writeCtx)
 	if err != nil {
@@ -133,6 +135,15 @@ func ReadContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(ctx, readTimeout)
 }
 
+func WriteContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(ctx, writeTimeout)
+}
+
 func unavailable(cause error) error {
 	return apperror.Unavailable(unavailableRetrySeconds).WithCause(cause)
+}
+
+func IsUniqueViolation(err error, constraint string) bool {
+	pgErr, ok := errors.AsType[*pgconn.PgError](err)
+	return ok && pgErr.Code == uniqueViolationCode && pgErr.ConstraintName == constraint
 }

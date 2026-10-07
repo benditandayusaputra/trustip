@@ -60,7 +60,7 @@ func New(opts Options) *Server {
 	)
 	app.Get(healthPath, health)
 	app.Get(readyPath, readiness(opts.Ready))
-	api := app.Group(apiPrefix)
+	api := app.Group(APIPrefix)
 	api.Get(metaPath, metaHandler(opts.Build, opts.Clock))
 	return &Server{app: app, api: api}
 }

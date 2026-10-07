@@ -11,7 +11,7 @@ import (
 const (
 	healthPath          = "/healthz"
 	readyPath           = "/readyz"
-	apiPrefix           = "/api/v1"
+	APIPrefix           = "/api/v1"
 	metaPath            = "/meta"
 	productName         = "Trustip API"
 	shortRevisionLength = 12
@@ -26,7 +26,7 @@ func PublicRoutes() []PublicRoute {
 	return []PublicRoute{
 		{Method: fiber.MethodGet, Path: healthPath},
 		{Method: fiber.MethodGet, Path: readyPath},
-		{Method: fiber.MethodGet, Path: apiPrefix + metaPath},
+		{Method: fiber.MethodGet, Path: APIPrefix + metaPath},
 	}
 }
 

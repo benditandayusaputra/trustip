@@ -13,6 +13,7 @@ Setiap pustaka atau layanan pihak ketiga dicatat di sini dalam commit yang sama 
 | `go.uber.org/goleak` | 1.3.0 | MIT | Hanya di uji | Memastikan tidak ada goroutine yang bocor setelah server berhenti (R-CC-72) |
 | `github.com/pressly/goose/v3` | 3.28.0 | MIT | Lihat baris pgx | Migrasi bernomor dengan arah naik dan turun, dibaca dari berkas yang ditanam ke biner |
 | `golang.org/x/crypto` | 0.55.0 | BSD-3-Clause | Hanya paket `argon2`, menambah 34 KB ke biner setelah `-s -w` | Hash kata sandi Argon2id (R-SEC-03). Pustaka standar Go belum menyediakan Argon2 |
+| `golang.org/x/text` | 0.41.0 | BSD-3-Clause | Hanya paket `unicode/norm`, menambah 115 KB ke biner setelah `-s -w` | Normalisasi NFC untuk teks bebas dan NFKC untuk kata sandi (R-SEC-01, R-SEC-50). Pustaka standar Go belum menyediakannya |
 
 ## Alat pengembangan
 

@@ -5,22 +5,24 @@
 package sqlc
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Session struct {
-	ID        pgtype.UUID
-	UserID    pgtype.UUID
-	FamilyID  pgtype.UUID
+	ID        string
+	UserID    string
+	FamilyID  string
 	TokenHash []byte
-	ExpiresAt pgtype.Timestamptz
+	ExpiresAt time.Time
 	RotatedAt pgtype.Timestamptz
 	RevokedAt pgtype.Timestamptz
-	CreatedAt pgtype.Timestamptz
+	CreatedAt time.Time
 }
 
 type User struct {
-	ID                pgtype.UUID
+	ID                string
 	Email             string
 	PasswordHash      string
 	PepperVersion     string
@@ -29,7 +31,7 @@ type User struct {
 	IsPlatformAdmin   bool
 	FailedLoginCount  int32
 	LockedUntil       pgtype.Timestamptz
-	PrivacyAcceptedAt pgtype.Timestamptz
-	CreatedAt         pgtype.Timestamptz
-	UpdatedAt         pgtype.Timestamptz
+	PrivacyAcceptedAt time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }

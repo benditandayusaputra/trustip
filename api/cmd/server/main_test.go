@@ -31,6 +31,7 @@ func newTestServer(ready httpserver.ReadinessCheck) *httpserver.Server {
 		edge:    security.NewEdgeVerifier(edgetest.TestKeys(), now),
 		limiter: ratelimit.New(ratelimit.Rule{Limit: testRequestLimit, Window: time.Minute}, now),
 		clock:   now,
+		auth:    testAuthComponents(now),
 	})
 }
 
@@ -53,7 +54,7 @@ func TestHealthz_ProcessAlive_ReturnsOK(t *testing.T) {
 }
 
 func TestRoutes_EveryRouteWithoutAuthenticationIsListedAsPublic(t *testing.T) {
-	public := httpserver.PublicRoutes()
+	public := publicRoutes()
 
 	for _, route := range newTestServer(alwaysReady).App().GetRoutes(true) {
 		method := route.Method

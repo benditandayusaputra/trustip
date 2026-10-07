@@ -3,9 +3,13 @@
 	import interRegular from '#lib/assets/fonts/inter-latin-400-normal.woff2';
 	import { themeColor } from '#lib/styles/tokens.js';
 	import UpdateNotice from '#lib/features/system/UpdateNotice.svelte';
+	import Toaster from '#lib/components/ui/Toaster.svelte';
+	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
+
+	setToaster(new ToastQueue());
 </script>
 
 <svelte:head>
@@ -18,3 +22,4 @@
 
 <UpdateNotice />
 {@render children()}
+<Toaster />

@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -48,11 +49,16 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	}
 	defer pool.Close()
 	systemClock := clock.System{}
+	components, err := buildAuthComponents(cfg, pool, systemClock)
+	if err != nil {
+		return err
+	}
 	server := newServer(base, serverDeps{
 		ready:   pool.Ping,
 		edge:    security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
 		limiter: ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
 		clock:   systemClock,
+		auth:    components,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -67,14 +73,20 @@ type serverDeps struct {
 	ready   httpserver.ReadinessCheck
 	edge    httpserver.EdgeVerifier
 	limiter httpserver.RateLimiter
-	clock   httpserver.Clock
+	clock   serverClock
+	auth    authComponents
+}
+
+type serverClock interface {
+	Now() time.Time
 }
 
 func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
-	return httpserver.New(httpserver.Options{
+	securityLog := logger.ForStream(base, logger.Security)
+	server := httpserver.New(httpserver.Options{
 		AppLog:      logger.ForStream(base, logger.App),
 		AccessLog:   logger.ForStream(base, logger.Access),
-		SecurityLog: logger.ForStream(base, logger.Security),
+		SecurityLog: securityLog,
 		IDs:         idgen.UUIDv7{},
 		Clock:       deps.clock,
 		Build:       httpserver.ReadBuildInfo(),
@@ -82,4 +94,10 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 		Edge:        deps.edge,
 		Limiter:     deps.limiter,
 	})
+	authhandler.Mount(server.API(), authDeps(deps.auth, securityLog, deps.clock))
+	return server
+}
+
+func publicRoutes() []httpserver.PublicRoute {
+	return append(httpserver.PublicRoutes(), authhandler.PublicRoutes()...)
 }

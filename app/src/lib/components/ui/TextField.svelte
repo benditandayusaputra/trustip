@@ -10,8 +10,8 @@
 		autocomplete?: HTMLInputElement['autocomplete'];
 		required?: boolean;
 		maxlength?: number;
-		hint?: string;
-		error?: string;
+		hint?: string | undefined;
+		error?: string | undefined;
 	}
 
 	let {

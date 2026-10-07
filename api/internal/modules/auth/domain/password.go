@@ -2,7 +2,6 @@ package domain
 
 import (
 	_ "embed"
-	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -44,19 +43,15 @@ func (p PasswordPolicy) FindProblem(candidate PasswordCandidate) (apperror.Field
 	lowered := strings.ToLower(candidate.Password)
 	switch {
 	case length < MinPasswordLength:
-		return lengthProblem(apperror.FieldTooShort, "min", MinPasswordLength), true
+		return apperror.InvalidField(passwordField, apperror.FieldTooShort, lengthParam("min", MinPasswordLength)), true
 	case length > MaxPasswordLength:
-		return lengthProblem(apperror.FieldTooLong, "max", MaxPasswordLength), true
+		return apperror.InvalidField(passwordField, apperror.FieldTooLong, lengthParam("max", MaxPasswordLength)), true
 	case p.isCommon(lowered):
 		return apperror.InvalidField(passwordField, apperror.FieldTooCommon), true
 	case containsAny(lowered, identityTokens(candidate)):
 		return apperror.InvalidField(passwordField, apperror.FieldContainsIdentity), true
 	}
 	return apperror.FieldError{}, false
-}
-
-func lengthProblem(code apperror.FieldCode, param string, limit int) apperror.FieldError {
-	return apperror.InvalidField(passwordField, code, apperror.Param{Name: param, Value: strconv.Itoa(limit)})
 }
 
 func (p PasswordPolicy) isCommon(lowered string) bool {

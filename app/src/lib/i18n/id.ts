@@ -57,6 +57,33 @@ export const id = {
 		dismissToast: 'Tutup pemberitahuan',
 		notifications: 'Pemberitahuan'
 	},
+	auth: {
+		register: {
+			title: 'Daftar akun',
+			intro: 'Satu akun untuk mencatat titipan, hitungan, dan setoran bersama mitra.',
+			fullName: 'Nama lengkap',
+			email: 'Email',
+			password: 'Kata sandi',
+			passwordHint: 'Minimal 10 karakter. Jangan memuat nama atau email Anda.',
+			whatsapp: 'Nomor WhatsApp',
+			whatsappHint: 'Contoh: 0812 3456 7890',
+			consentPrefix: 'Saya menyetujui',
+			consentJoin: 'dan',
+			submit: 'Daftar',
+			hasAccount: 'Sudah punya akun?',
+			signIn: 'Masuk',
+			created: 'Akun dibuat. Silakan masuk.',
+			offline: 'Daftar butuh koneksi internet. Sambungkan lalu coba lagi.'
+		},
+		validation: {
+			required: 'Wajib diisi.',
+			minLength: (count: number) => `Minimal ${String(count)} karakter.`,
+			consent: 'Setujui kebijakan privasi dan ketentuan untuk mendaftar.',
+			captcha: 'Selesaikan verifikasi keamanan dulu.'
+		},
+		retry: 'Coba lagi',
+		opensInNewTab: '(tab baru)'
+	},
 	captcha: {
 		label: 'Verifikasi keamanan',
 		loadFailed: 'Verifikasi keamanan tidak bisa dimuat. Periksa koneksi lalu muat ulang halaman.'

@@ -10,3 +10,8 @@ sql:
         sql_package: pgx/v5
         emit_empty_slices: true
         emit_result_struct_pointers: false
+        overrides:
+          - db_type: uuid
+            go_type: string
+          - db_type: timestamptz
+            go_type: time.Time

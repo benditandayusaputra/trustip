@@ -60,6 +60,48 @@ paths:
           $ref: "#/components/responses/RateLimited"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/users:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Akun dibuat
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -78,12 +120,36 @@ components:
       required: true
       schema:
         type: integer
+    Location:
+      required: true
+      schema:
+        type: string
     RetryAfter:
       required: true
       schema:
         type: integer
         minimum: 1
   responses:
+    BadRequest:
+      description: Permintaan tidak terbaca atau memuat isian tak dikenal
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UnsupportedMediaType:
+      description: Jenis isi selain application/json
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unprocessable:
+      description: Isian melanggar validasi, atau verifikasi keamanan gagal
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/ValidationErrorResponse"
+              - $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
       description: Belum masuk, sesi habis, atau tanda tangan tepi tidak sah
       content:
@@ -239,5 +305,47 @@ components:
           type: string
         data:
           $ref: "#/components/schemas/Readiness"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [full_name, email, password, whatsapp, privacy_accepted, captcha_token]
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        whatsapp:
+          type: string
+        privacy_accepted:
+          type: boolean
+        captcha_token:
+          type: string
+    Account:
+      type: object
+      additionalProperties: false
+      required: [id, full_name, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        email:
+          type: string
+    AccountResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Account"
         meta:
           $ref: "#/components/schemas/ResponseMeta"

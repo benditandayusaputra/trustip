@@ -10,7 +10,7 @@ export default defineConfig({
 		{
 			command: 'cd ../api && set -a && . ./.env && set +a && go run ./cmd/server',
 			url: apiHealthUrl,
-			reuseExistingServer: !process.env.CI,
+			reuseExistingServer: false,
 			timeout: 120_000
 		},
 		{ command: 'npm run build && npm run preview', port: previewPort }

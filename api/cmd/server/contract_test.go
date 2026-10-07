@@ -190,3 +190,33 @@ func TestContract_ErrorCodesMatchCatalog(t *testing.T) {
 		t.Fatalf("openapi ErrorCode = %v\ncatalog = %v", documented, catalog)
 	}
 }
+
+func TestContract_RegisterUserResponses(t *testing.T) {
+	spec := loadContract(t)
+	unknownField := strings.Replace(registration("baru@contoh.id"), `{`, `{"role":"OWNER",`, 1)
+	invalidFields := `{"full_name":"S","email":"x","password":"a","whatsapp":"1",` +
+		`"privacy_accepted":false,"captcha_token":"` + solvedCaptcha + `"}`
+	forgedCaptcha := strings.Replace(registration("cap@contoh.id"), solvedCaptcha, "forged", 1)
+	wrongType := postUsers(t, registration("tipe@contoh.id"))
+	wrongType.Header.Set(fiber.HeaderContentType, "text/plain")
+	cases := []struct {
+		name    string
+		request *http.Request
+		status  int
+	}{
+		{"created", postUsers(t, registration("sari@contoh.id")), http.StatusCreated},
+		{"invalid fields", postUsers(t, invalidFields), http.StatusUnprocessableEntity},
+		{"captcha failed", postUsers(t, forgedCaptcha), http.StatusUnprocessableEntity},
+		{"unknown field", postUsers(t, unknownField), http.StatusBadRequest},
+		{"not json", wrongType, http.StatusUnsupportedMediaType},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := perform(t, newTestServer(alwaysReady), tc.request)
+			if got.status != tc.status {
+				t.Fatalf("status = %d, want %d: %s", got.status, tc.status, got.body)
+			}
+			spec.requireConforms(t, got)
+		})
+	}
+}

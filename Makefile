@@ -37,7 +37,7 @@ hooks:
 db:
 	$(COMPOSE) up -d --wait
 
-migrate: db
+migrate: $(if $(CI),,db)
 	cd api && DATABASE_MIGRATE_URL='$(LOCAL_DATABASE_URL)' go run ./cmd/migrate up
 
 neon-check:
@@ -85,5 +85,5 @@ build:
 	cd api && go build -trimpath -o $(BIN)/trustip-api ./cmd/server
 	cd app && npm run build
 
-e2e:
+e2e: migrate
 	cd app && npx playwright test
