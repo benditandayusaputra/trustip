@@ -275,7 +275,9 @@ SELECT
     COALESCE(sp.store_type IS NOT NULL, false)::boolean AS has_store_type,
     (SELECT count(*) FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id)::bigint
         AS accepted_categories,
-    (SELECT count(*) FROM org_photos AS p WHERE p.organization_id = o.id)::bigint AS photos
+    (SELECT count(*) FROM org_photos AS p WHERE p.organization_id = o.id)::bigint AS photos,
+    (SELECT count(*) FROM products AS pr WHERE pr.consignor_org_id = o.id AND NOT pr.is_archived)::bigint
+        AS active_products
 FROM organizations AS o
 LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
 WHERE o.id = $1
@@ -293,6 +295,7 @@ type GetListingFactsRow struct {
 	HasStoreType       bool
 	AcceptedCategories int64
 	Photos             int64
+	ActiveProducts     int64
 }
 
 func (q *Queries) GetListingFacts(ctx context.Context, id string) (GetListingFactsRow, error) {
@@ -310,6 +313,7 @@ func (q *Queries) GetListingFacts(ctx context.Context, id string) (GetListingFac
 		&i.HasStoreType,
 		&i.AcceptedCategories,
 		&i.Photos,
+		&i.ActiveProducts,
 	)
 	return i, err
 }

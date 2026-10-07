@@ -21,6 +21,7 @@ type organizationFixture struct {
 	id             string
 	fileID         string
 	notificationID string
+	productID      string
 }
 
 type isolationCase func(world isolationWorld) exchange
@@ -52,6 +53,18 @@ func isolationCases() map[string]isolationCase {
 		},
 		"POST /api/v1/notifications/:id/read": func(w isolationWorld) exchange {
 			return w.consignorStranger.post("/api/v1/notifications/" + w.consignor.notificationID + "/read")
+		},
+		"GET /api/v1/products/:id": func(w isolationWorld) exchange {
+			return w.consignorStranger.get(productsPath + "/" + w.consignor.productID)
+		},
+		"PATCH /api/v1/products/:id": func(w isolationWorld) exchange {
+			return w.consignorStranger.patch(productsPath+"/"+w.consignor.productID, productBody(""))
+		},
+		"POST /api/v1/products/:id/archive": func(w isolationWorld) exchange {
+			return w.consignorStranger.post(productsPath + "/" + w.consignor.productID + "/archive")
+		},
+		"POST /api/v1/products/:id/reactivate": func(w isolationWorld) exchange {
+			return w.consignorStranger.post(productsPath + "/" + w.consignor.productID + "/reactivate")
 		},
 	}
 }

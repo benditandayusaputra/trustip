@@ -32,7 +32,7 @@ func listingFacts(ctx context.Context, queries *sqlc.Queries, organizationID str
 		Type: actor.OrganizationType(row.Type), IsListed: row.IsListed, HasName: row.HasName,
 		HasCity: row.HasCity, HasLocation: row.HasLocation, HasDescription: row.HasDescription,
 		HasLogo: row.HasLogo, HasStoreType: row.HasStoreType, AcceptedCategories: int(row.AcceptedCategories),
-		Photos: int(row.Photos), HasPaymentInfo: row.HasPaymentInfo,
+		Photos: int(row.Photos), HasPaymentInfo: row.HasPaymentInfo, ActiveProducts: int(row.ActiveProducts),
 	}, nil
 }
 

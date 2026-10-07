@@ -117,6 +117,25 @@ type Organization struct {
 	PaymentQrFileID pgtype.UUID
 }
 
+type Product struct {
+	ID                    string
+	ConsignorOrgID        string
+	Sku                   string
+	Name                  string
+	CategoryID            string
+	Unit                  string
+	Description           string
+	Composition           string
+	NetContent            string
+	PhotoFileID           pgtype.UUID
+	SuggestedRetailPrice  int64
+	SuggestedDepositPrice int64
+	ShelfLifeDays         pgtype.Int4
+	IsArchived            bool
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+}
+
 type Session struct {
 	ID        string
 	UserID    string

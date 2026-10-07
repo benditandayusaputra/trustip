@@ -9,6 +9,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/policy"
 )
 
 const (
@@ -25,9 +26,10 @@ var (
 type Purpose string
 
 const (
-	Logo       Purpose = "LOGO"
-	StorePhoto Purpose = "STORE_PHOTO"
-	PaymentQR  Purpose = "PAYMENT_QR"
+	Logo         Purpose = "LOGO"
+	StorePhoto   Purpose = "STORE_PHOTO"
+	PaymentQR    Purpose = "PAYMENT_QR"
+	ProductPhoto Purpose = "PRODUCT_PHOTO"
 )
 
 type Visibility string
@@ -40,13 +42,18 @@ const (
 type purposeRule struct {
 	visibility Visibility
 	allowedFor []actor.OrganizationType
+	action     policy.Action
 }
 
 func purposeRules() map[Purpose]purposeRule {
+	bothTypes := []actor.OrganizationType{actor.Store, actor.Consignor}
+	stores := []actor.OrganizationType{actor.Store}
+	consignors := []actor.OrganizationType{actor.Consignor}
 	return map[Purpose]purposeRule{
-		Logo:       {visibility: Public, allowedFor: []actor.OrganizationType{actor.Store, actor.Consignor}},
-		StorePhoto: {visibility: Public, allowedFor: []actor.OrganizationType{actor.Store}},
-		PaymentQR:  {visibility: Private, allowedFor: []actor.OrganizationType{actor.Consignor}},
+		Logo:         {visibility: Public, allowedFor: bothTypes, action: policy.EditProfile},
+		StorePhoto:   {visibility: Public, allowedFor: stores, action: policy.EditProfile},
+		PaymentQR:    {visibility: Private, allowedFor: consignors, action: policy.EditProfile},
+		ProductPhoto: {visibility: Public, allowedFor: consignors, action: policy.ManageProducts},
 	}
 }
 
@@ -59,6 +66,13 @@ func ParsePurpose(raw string, organizationType actor.OrganizationType) (Purpose,
 		}
 	}
 	return "", apperror.Validation(apperror.InvalidField("purpose", apperror.FieldUnknownChoice))
+}
+
+func RequiredAction(rawPurpose string) policy.Action {
+	if rule, known := purposeRules()[Purpose(rawPurpose)]; known {
+		return rule.action
+	}
+	return policy.EditProfile
 }
 
 func (p Purpose) Visibility() Visibility {

@@ -12,6 +12,10 @@ const (
 	ConsignorProfileUpdated Action = "CONSIGNOR_PROFILE_UPDATED"
 	PaymentInfoUpdated      Action = "PAYMENT_INFO_UPDATED"
 	ListingChanged          Action = "LISTING_CHANGED"
+	ProductCreated          Action = "PRODUCT_CREATED"
+	ProductUpdated          Action = "PRODUCT_UPDATED"
+	ProductArchived         Action = "PRODUCT_ARCHIVED"
+	ProductReactivated      Action = "PRODUCT_REACTIVATED"
 )
 
 type EntityType string
@@ -19,6 +23,7 @@ type EntityType string
 const (
 	UserEntity         EntityType = "USER"
 	OrganizationEntity EntityType = "ORGANIZATION"
+	ProductEntity      EntityType = "PRODUCT"
 )
 
 type Entry struct {

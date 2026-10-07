@@ -32,6 +32,8 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	consignorOwner := storeOwner.anotherUserOnTheSameServer("darmi@contoh.id")
 	world.consignor = consignorOwner.found(consignorOnboarding(), "PAYMENT_QR")
 	world.consignor.notificationID = consignorOwner.receiveNotification()
+	product := consignorOwner.postProduct(productBody(""))
+	world.consignor.productID = quotedAfter(string(product.body), `"id":"`)
 	world.storeStranger = storeOwner.anotherUserOnTheSameServer("tini@contoh.id")
 	world.storeStranger.found(strings.Replace(onboarding(semarangCityCode), "Warung Bu Tini", "Toko Lain", 1), "LOGO")
 	world.consignorStranger = storeOwner.anotherUserOnTheSameServer("ani@contoh.id")

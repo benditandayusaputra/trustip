@@ -7,6 +7,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/policy"
 )
 
 func fieldCode(t *testing.T, err error, field string) string {
@@ -32,6 +33,8 @@ func TestParsePurpose_NFR09_EachPurposeBelongsToTheRightOrganizationType(t *test
 		{"STORE_PHOTO", actor.Consignor, false},
 		{"PAYMENT_QR", actor.Consignor, true},
 		{"PAYMENT_QR", actor.Store, false},
+		{"PRODUCT_PHOTO", actor.Consignor, true},
+		{"PRODUCT_PHOTO", actor.Store, false},
 		{"AVATAR", actor.Store, false},
 		{"", actor.Store, false},
 	}
@@ -48,7 +51,7 @@ func TestParsePurpose_NFR09_EachPurposeBelongsToTheRightOrganizationType(t *test
 }
 
 func TestVisibility_NFR09_PaymentQRIsPrivateAndProfileImagesArePublic(t *testing.T) {
-	want := map[Purpose]Visibility{Logo: Public, StorePhoto: Public, PaymentQR: Private}
+	want := map[Purpose]Visibility{Logo: Public, StorePhoto: Public, PaymentQR: Private, ProductPhoto: Public}
 	for purpose, visibility := range want {
 		if got := purpose.Visibility(); got != visibility {
 			t.Errorf("%s = %s, want %s", purpose, got, visibility)
@@ -86,6 +89,21 @@ func TestContentTypeOfKey_FollowsTheStoredExtension(t *testing.T) {
 	for key, want := range cases {
 		if got := ContentTypeOfKey(key); got != want {
 			t.Errorf("%s = %q", key, got)
+		}
+	}
+}
+
+func TestRequiredAction_FRPRD01_ProductPhotosFollowProductManagement(t *testing.T) {
+	cases := map[string]policy.Action{
+		"PRODUCT_PHOTO": policy.ManageProducts,
+		"LOGO":          policy.EditProfile,
+		"STORE_PHOTO":   policy.EditProfile,
+		"PAYMENT_QR":    policy.EditProfile,
+		"AVATAR":        policy.EditProfile,
+	}
+	for raw, want := range cases {
+		if got := RequiredAction(raw); got != want {
+			t.Errorf("%s = %s, want %s", raw, got, want)
 		}
 	}
 }

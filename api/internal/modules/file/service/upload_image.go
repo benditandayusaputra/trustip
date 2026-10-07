@@ -33,7 +33,7 @@ func NewUploadImage(deps UploadDeps) *UploadImage {
 }
 
 func (uc *UploadImage) Execute(ctx context.Context, signedIn actor.Actor, cmd UploadCommand) (domain.File, error) {
-	if err := policy.Require(signedIn, policy.EditProfile); err != nil {
+	if err := policy.Require(signedIn, domain.RequiredAction(cmd.Purpose)); err != nil {
 		return domain.File{}, fmt.Errorf("check upload permission: %w", err)
 	}
 	purpose, err := domain.ParsePurpose(cmd.Purpose, signedIn.Membership.OrganizationType)

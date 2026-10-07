@@ -21,6 +21,8 @@ const (
 	FieldInvalidImage      FieldCode = "INVALID_IMAGE"
 	FieldImageTooLarge     FieldCode = "IMAGE_TOO_LARGE"
 	FieldTooMany           FieldCode = "TOO_MANY"
+	FieldTaken             FieldCode = "TAKEN"
+	FieldExceedsRetail     FieldCode = "EXCEEDS_RETAIL_PRICE"
 )
 
 type Param struct {
@@ -46,6 +48,8 @@ func fieldMessages() map[FieldCode]string {
 		FieldInvalidImage:      "Berkas harus gambar JPG, PNG, atau WebP.",
 		FieldImageTooLarge:     "Gambar maksimal 4096 piksel di tiap sisi.",
 		FieldTooMany:           "Maksimal {max} pilihan.",
+		FieldTaken:             "Sudah dipakai. Pilih yang lain.",
+		FieldExceedsRetail:     "Harga setor tidak boleh melebihi harga jual.",
 	}
 }
 

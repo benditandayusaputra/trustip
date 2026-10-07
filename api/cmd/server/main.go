@@ -13,6 +13,7 @@ import (
 	filehandler "github.com/benditandayusaputra/trustip/api/internal/modules/file/handler"
 	notificationhandler "github.com/benditandayusaputra/trustip/api/internal/modules/notification/handler"
 	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
+	producthandler "github.com/benditandayusaputra/trustip/api/internal/modules/product/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -65,6 +66,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		org:       buildOrgComponents(pool, systemClock),
 		files:     buildFileComponents(pool, cfg, systemClock),
 		inbox:     buildNotificationComponents(pool, systemClock),
+		products:  buildProductComponents(pool, systemClock),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -85,6 +87,7 @@ type serverDeps struct {
 	org       orgComponents
 	files     fileComponents
 	inbox     notificationComponents
+	products  productComponents
 	appOrigin string
 }
 
@@ -122,6 +125,10 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	filehandler.MountPublic(server.App(), files)
 	notificationhandler.Mount(server.API(), notificationDeps(deps.inbox, notificationRoutes{
 		authenticate: authenticate, writeLimiter: writeLimiter, securityLog: securityLog,
+	}))
+	producthandler.Mount(server.API(), productDeps(deps.products, productRoutes{
+		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
+		securityLog: securityLog,
 	}))
 	return server
 }

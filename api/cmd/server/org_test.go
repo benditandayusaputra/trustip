@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -154,7 +155,7 @@ func (b *browser) patch(path, body string) exchange {
 	b.attachCookies(req)
 	fromApp(req)
 	b.visits++
-	edgetest.SignFrom(b.t, req, edgetest.Origin{At: b.now.Now(), ClientIP: "198.51.100.220"})
+	edgetest.SignFrom(b.t, req, edgetest.Origin{At: b.now.Now(), ClientIP: fmt.Sprintf("198.51.100.%d", b.visits)})
 	return b.send(req)
 }
 

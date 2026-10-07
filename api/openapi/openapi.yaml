@@ -662,7 +662,7 @@ paths:
                   format: binary
                 purpose:
                   type: string
-                  enum: [LOGO, STORE_PHOTO, PAYMENT_QR]
+                  enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO]
       responses:
         "201":
           description: Gambar dikode ulang dan disimpan
@@ -894,6 +894,232 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/products:
+    get:
+      operationId: listProducts
+      tags: [product]
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 80
+        - name: category_id
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ProductStatus"
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Katalog produk penitip, terbaru lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+    post:
+      operationId: createProduct
+      tags: [product]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductRequest"
+      responses:
+        "201":
+          description: Produk dibuat, SKU dibangkitkan bila kosong
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getProduct
+      tags: [product]
+      responses:
+        "200":
+          description: Satu produk milik penitip
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+    patch:
+      operationId: updateProduct
+      tags: [product]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductRequest"
+      responses:
+        "200":
+          description: Produk diubah
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/products/{id}/archive:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: archiveProduct
+      tags: [product]
+      responses:
+        "200":
+          description: Produk diarsipkan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/products/{id}/reactivate:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: reactivateProduct
+      tags: [product]
+      responses:
+        "200":
+          description: Produk diaktifkan kembali
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
         "500":
@@ -1591,7 +1817,7 @@ components:
           format: uuid
         purpose:
           type: string
-          enum: [LOGO, STORE_PHOTO, PAYMENT_QR]
+          enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO]
         visibility:
           type: string
           enum: [PUBLIC, PRIVATE]
@@ -1679,3 +1905,147 @@ components:
           $ref: "#/components/schemas/UnreadCount"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    ProductStatus:
+      type: string
+      enum: [ACTIVE, ARCHIVED]
+    ProductRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sku
+        - name
+        - category_id
+        - unit
+        - description
+        - composition
+        - net_content
+        - photo_file_id
+        - suggested_retail_price
+        - suggested_deposit_price
+        - shelf_life_days
+      properties:
+        sku:
+          type: string
+          maxLength: 20
+        name:
+          type: string
+          minLength: 2
+          maxLength: 80
+        category_id:
+          type: string
+        unit:
+          type: string
+          maxLength: 20
+        description:
+          type: string
+          maxLength: 1000
+        composition:
+          type: string
+          maxLength: 500
+        net_content:
+          type: string
+          maxLength: 40
+        photo_file_id:
+          type: string
+          nullable: true
+        suggested_retail_price:
+          type: integer
+          minimum: 0
+          maximum: 100000000
+        suggested_deposit_price:
+          type: integer
+          minimum: 0
+          maximum: 100000000
+        shelf_life_days:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 730
+    Product:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - sku
+        - name
+        - category_id
+        - category_name
+        - unit
+        - description
+        - composition
+        - net_content
+        - photo
+        - suggested_retail_price
+        - suggested_deposit_price
+        - shelf_life_days
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        name:
+          type: string
+        category_id:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+        unit:
+          type: string
+        description:
+          type: string
+        composition:
+          type: string
+        net_content:
+          type: string
+        photo:
+          allOf:
+            - $ref: "#/components/schemas/ImageRef"
+          nullable: true
+        suggested_retail_price:
+          type: integer
+        suggested_deposit_price:
+          type: integer
+        shelf_life_days:
+          type: integer
+          nullable: true
+        status:
+          $ref: "#/components/schemas/ProductStatus"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ProductResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Product"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ProductListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
