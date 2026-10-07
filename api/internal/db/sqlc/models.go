@@ -230,6 +230,27 @@ type ProposalRevision struct {
 	CreatedAt          time.Time
 }
 
+type Seal struct {
+	ID            string
+	PartnershipID string
+	Seq           int32
+	FormatVersion int32
+	EventType     string
+	EntityType    string
+	EntityID      string
+	EntityNumber  string
+	ContentHash   []byte
+	ActorUserID   string
+	ActorOrgID    string
+	OccurredAt    time.Time
+	PrevHash      []byte
+	EntryHash     []byte
+	Signature     []byte
+	KeyID         string
+	Code          string
+	CreatedAt     time.Time
+}
+
 type Session struct {
 	ID        string
 	UserID    string

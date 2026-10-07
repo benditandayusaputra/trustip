@@ -224,3 +224,6 @@ WHERE o.id = @id;
 UPDATE organizations
 SET is_listed = @is_listed::boolean, updated_at = @updated_at::timestamptz
 WHERE id = @id::uuid;
+
+-- name: SetOrganizationDemo :exec
+UPDATE organizations SET is_demo = @is_demo::boolean WHERE id = @id::uuid;

@@ -1,0 +1,22 @@
+{
+  "description": "Seal vectors from 03-ATURAN-REKAYASA 7.7. Content and entry use the canonical form (sorted keys, no whitespace, strings and integers only). Entry hash is SHA-256 of the canonical entry, signed with Ed25519 using the RFC 8032 test seed.",
+  "seed_hex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+  "content_canonical": "{\"agreement_id\":\"0192f0c4-0000-7000-8000-000000000401\",\"items\":[{\"deposit_price\":1750,\"pricing_model\":\"FIXED_DEPOSIT\",\"product_id\":\"0192f0c4-0000-7000-8000-000000000101\",\"retail_price\":2000}],\"version\":1}",
+  "content_hash": "0101d40916d7e49ec1912a3dda348cac4c7bb0ea8c2e2fab84066bb31fff09ef",
+  "entry": {
+    "partnership_id": "0192f0c4-0000-7000-8000-000000000501",
+    "seq": 1,
+    "event_type": "AGREEMENT_ACCEPTED",
+    "entity_type": "AGREEMENT",
+    "entity_id": "0192f0c4-0000-7000-8000-000000000401",
+    "entity_number": "KS-1",
+    "actor_user_id": "0192f0c4-7b1e-7c3a-9d2e-5f6a7b8c9d0e",
+    "actor_org_id": "0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7d",
+    "occurred_at": "2026-10-19T08:00:00.123456Z",
+    "prev_hash": ""
+  },
+  "entry_canonical": "{\"actor_org_id\":\"0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7d\",\"actor_user_id\":\"0192f0c4-7b1e-7c3a-9d2e-5f6a7b8c9d0e\",\"content_hash\":\"0101d40916d7e49ec1912a3dda348cac4c7bb0ea8c2e2fab84066bb31fff09ef\",\"entity_id\":\"0192f0c4-0000-7000-8000-000000000401\",\"entity_number\":\"KS-1\",\"entity_type\":\"AGREEMENT\",\"event_type\":\"AGREEMENT_ACCEPTED\",\"occurred_at\":\"2026-10-19T08:00:00.123456Z\",\"partnership_id\":\"0192f0c4-0000-7000-8000-000000000501\",\"prev_hash\":\"\",\"seq\":1,\"v\":1}",
+  "entry_hash": "afd401e018d6399d94d76287da051882aebd4c6b93639b8cc8db1ac4fa5338ac",
+  "code": "V7KA-DYAY-2Y4Z-3FGX",
+  "signature": "e242b3cf74a29a8aebd7b2154d544e80f27cf5564b3397922a98f621c267a73c68651c8a233d610c058708325c7343671db5850b94d7ee829dab72e4e9b85905"
+}

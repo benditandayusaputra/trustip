@@ -621,6 +621,20 @@ func (q *Queries) ListTakenSlugs(ctx context.Context, base string) ([]string, er
 	return items, nil
 }
 
+const setOrganizationDemo = `-- name: SetOrganizationDemo :exec
+UPDATE organizations SET is_demo = $1::boolean WHERE id = $2::uuid
+`
+
+type SetOrganizationDemoParams struct {
+	IsDemo bool
+	ID     string
+}
+
+func (q *Queries) SetOrganizationDemo(ctx context.Context, arg SetOrganizationDemoParams) error {
+	_, err := q.db.Exec(ctx, setOrganizationDemo, arg.IsDemo, arg.ID)
+	return err
+}
+
 const setOrganizationListed = `-- name: SetOrganizationListed :exec
 UPDATE organizations
 SET is_listed = $1::boolean, updated_at = $2::timestamptz
