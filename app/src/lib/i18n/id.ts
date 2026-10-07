@@ -1,4 +1,10 @@
 export const id = {
+	feedback: {
+		loading: 'Memuat',
+		close: 'Tutup',
+		dismissToast: 'Tutup pemberitahuan',
+		notifications: 'Pemberitahuan'
+	},
 	form: {
 		saving: 'Menyimpan',
 		decrease: (label: string) => `Kurangi ${label}`,

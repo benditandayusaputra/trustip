@@ -16,6 +16,9 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
+	optimizeDeps: {
+		include: ['@lucide/svelte/icons/*']
+	},
 	test: {
 		passWithNoTests: true,
 		projects: [
