@@ -31,7 +31,7 @@ func AccessLog(accessLog *slog.Logger, clock Clock, handleError fiber.ErrorHandl
 			"status", c.Response().StatusCode(),
 			"duration_ms", clock.Now().Sub(started).Milliseconds(),
 			"bytes", len(c.Response().Body()),
-			"ip", c.IP(),
+			"ip", ClientIP(c),
 		)
 		return nil
 	}

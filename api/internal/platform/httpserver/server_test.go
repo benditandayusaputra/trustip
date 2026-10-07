@@ -4,10 +4,16 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -20,6 +26,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
 func fixedNow() time.Time {
@@ -27,19 +34,34 @@ func fixedNow() time.Time {
 }
 
 type testServer struct {
-	server     *httpserver.Server
-	accessLogs *bytes.Buffer
+	server       *httpserver.Server
+	accessLogs   *bytes.Buffer
+	securityLogs *bytes.Buffer
+}
+
+type edgeKeys map[string][]byte
+
+func (k edgeKeys) Lookup(id string) ([]byte, bool) {
+	key, ok := k[id]
+	return key, ok
+}
+
+func testEdgeKey() []byte {
+	return bytes.Repeat([]byte{7}, 31)
 }
 
 func newTestServer() testServer {
-	accessLogs := &bytes.Buffer{}
+	accessLogs, securityLogs := &bytes.Buffer{}, &bytes.Buffer{}
+	now := clock.NewManual(fixedNow())
 	server := httpserver.New(httpserver.Options{
-		AppLog:    logger.New(&bytes.Buffer{}, 0),
-		AccessLog: logger.ForStream(logger.New(accessLogs, 0), logger.Access),
-		IDs:       idgen.NewSequence(),
-		Clock:     clock.NewManual(fixedNow()),
-		Build:     httpserver.BuildInfo{Version: "abc123def456"},
-		Ready:     func(context.Context) error { return nil },
+		AppLog:      logger.New(&bytes.Buffer{}, 0),
+		AccessLog:   logger.ForStream(logger.New(accessLogs, 0), logger.Access),
+		SecurityLog: logger.ForStream(logger.New(securityLogs, 0), logger.Security),
+		IDs:         idgen.NewSequence(),
+		Clock:       now,
+		Build:       httpserver.BuildInfo{Version: "abc123def456"},
+		Ready:       func(context.Context) error { return nil },
+		Edge:        security.NewEdgeVerifier(edgeKeys{"v1": testEdgeKey()}, now),
 	})
 	server.API().Get("/probe/deadline", func(c fiber.Ctx) error {
 		deadline, ok := c.Context().Deadline()
@@ -49,12 +71,39 @@ func newTestServer() testServer {
 		var missing *httpserver.Reply
 		return httpserver.Respond(c, *missing)
 	})
-	return testServer{server: server, accessLogs: accessLogs}
+	return testServer{server: server, accessLogs: accessLogs, securityLogs: securityLogs}
 }
 
 func (fixture testServer) do(t *testing.T, req *http.Request) response {
 	t.Helper()
+	signRequest(t, req, fixedNow())
 	return send(t, fixture.server.App(), req)
+}
+
+func signRequest(t *testing.T, req *http.Request, signedAt time.Time) {
+	t.Helper()
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		t.Fatalf("read request body: %v", err)
+	}
+	req.Body = io.NopCloser(bytes.NewReader(body))
+	nonce := make([]byte, 16)
+	if _, err := rand.Read(nonce); err != nil {
+		t.Fatalf("nonce: %v", err)
+	}
+	signed := security.SignedRequest{
+		KeyID: "v1", Method: req.Method, URI: req.URL.RequestURI(), Timestamp: strconv.FormatInt(signedAt.Unix(), 10),
+		Nonce: hex.EncodeToString(nonce), ClientIP: "203.0.113.7", Body: body,
+	}
+	mac := hmac.New(sha256.New, testEdgeKey())
+	mac.Write([]byte(signed.CanonicalString()))
+	for name, value := range map[string]string{
+		httpserver.HeaderEdgeKeyID: signed.KeyID, httpserver.HeaderEdgeTimestamp: signed.Timestamp,
+		httpserver.HeaderEdgeNonce: signed.Nonce, httpserver.HeaderEdgeClientIP: signed.ClientIP,
+		httpserver.HeaderEdgeSignature: hex.EncodeToString(mac.Sum(nil)),
+	} {
+		req.Header.Set(name, value)
+	}
 }
 
 func TestMeta_ReturnsNameVersionAndServerTime(t *testing.T) {
@@ -248,17 +297,88 @@ func TestReadyz_CheckPasses_Returns200(t *testing.T) {
 }
 
 func TestReadyz_DatabaseAsleep_Returns503WithRetryAfter(t *testing.T) {
+	now := clock.NewManual(fixedNow())
 	server := httpserver.New(httpserver.Options{
-		AppLog:    logger.New(&bytes.Buffer{}, 0),
-		AccessLog: logger.New(&bytes.Buffer{}, 0),
-		IDs:       idgen.NewSequence(),
-		Clock:     clock.NewManual(fixedNow()),
-		Ready:     func(context.Context) error { return apperror.Unavailable(5) },
+		AppLog:      logger.New(&bytes.Buffer{}, 0),
+		AccessLog:   logger.New(&bytes.Buffer{}, 0),
+		SecurityLog: logger.New(&bytes.Buffer{}, 0),
+		IDs:         idgen.NewSequence(),
+		Clock:       now,
+		Ready:       func(context.Context) error { return apperror.Unavailable(5) },
+		Edge:        security.NewEdgeVerifier(edgeKeys{"v1": testEdgeKey()}, now),
 	})
+	req := newRequest(t, "/readyz")
+	signRequest(t, req, fixedNow())
 
-	got := send(t, server.App(), newRequest(t, "/readyz"))
+	got := send(t, server.App(), req)
 
 	if got.status != http.StatusServiceUnavailable || got.header.Get("Retry-After") != "5" {
 		t.Fatalf("response = %d %s", got.status, got.raw)
+	}
+}
+
+func TestEdgeSignature_UnsignedRequest_Returns401AndLogsSecurityEvent(t *testing.T) {
+	fixture := newTestServer()
+
+	got := send(t, fixture.server.App(), newRequest(t, "/api/v1/meta"))
+
+	if got.status != http.StatusUnauthorized || got.payload.Code != "EDGE_SIGNATURE_INVALID" {
+		t.Fatalf("response = %d %s", got.status, got.raw)
+	}
+	if !strings.Contains(fixture.securityLogs.String(), `"event":"edge_signature_invalid"`) {
+		t.Fatalf("security log = %s", fixture.securityLogs.String())
+	}
+}
+
+func TestEdgeSignature_ExpiredSignature_Returns401(t *testing.T) {
+	fixture := newTestServer()
+	req := newRequest(t, "/api/v1/meta")
+	signRequest(t, req, fixedNow().Add(-61*time.Second))
+
+	got := send(t, fixture.server.App(), req)
+
+	if got.status != http.StatusUnauthorized {
+		t.Fatalf("response = %d %s", got.status, got.raw)
+	}
+}
+
+func TestEdgeSignature_ReplayedNonce_Returns401(t *testing.T) {
+	fixture := newTestServer()
+	first := newRequest(t, "/api/v1/meta")
+	signRequest(t, first, fixedNow())
+	replay := newRequest(t, "/api/v1/meta")
+	replay.Header = first.Header.Clone()
+
+	send(t, fixture.server.App(), first)
+	got := send(t, fixture.server.App(), replay)
+
+	if got.status != http.StatusUnauthorized {
+		t.Fatalf("replay response = %d %s", got.status, got.raw)
+	}
+}
+
+func TestEdgeSignature_Healthz_NeedsNoSignature(t *testing.T) {
+	req := newRequest(t, "/healthz")
+
+	resp, err := newTestServer().server.App().Test(req)
+	if err != nil {
+		t.Fatalf("request: %v", err)
+	}
+	defer closeBody(t, resp)
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d", resp.StatusCode)
+	}
+}
+
+func TestAccessLog_UsesSignedClientIP(t *testing.T) {
+	fixture := newTestServer()
+	req := newRequest(t, "/api/v1/meta")
+	req.Header.Set("X-Forwarded-For", "10.9.9.9")
+
+	fixture.do(t, req)
+
+	if !strings.Contains(fixture.accessLogs.String(), `"ip":"203.0.113.7"`) {
+		t.Fatalf("access log = %s", fixture.accessLogs.String())
 	}
 }

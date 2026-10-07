@@ -23,12 +23,14 @@ type Clock interface {
 type ReadinessCheck func(ctx context.Context) error
 
 type Options struct {
-	AppLog    *slog.Logger
-	AccessLog *slog.Logger
-	IDs       IDGenerator
-	Clock     Clock
-	Build     BuildInfo
-	Ready     ReadinessCheck
+	AppLog      *slog.Logger
+	AccessLog   *slog.Logger
+	SecurityLog *slog.Logger
+	IDs         IDGenerator
+	Clock       Clock
+	Build       BuildInfo
+	Ready       ReadinessCheck
+	Edge        EdgeVerifier
 }
 
 type Server struct {
@@ -50,6 +52,7 @@ func New(opts Options) *Server {
 		Recover(),
 		SecurityHeaders(),
 		LimitJSONBody(),
+		EdgeSignature(opts.Edge, opts.SecurityLog),
 		Deadline(requestTimeout),
 	)
 	app.Get(healthPath, health)

@@ -1,0 +1,40 @@
+{
+  "description": "Edge signature vectors shared by api and app. Canonical string per 03-ATURAN-REKAYASA 7.6.",
+  "key_id": "v1",
+  "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "cases": [
+    {
+      "name": "get without query",
+      "method": "GET",
+      "uri": "/api/v1/meta",
+      "timestamp": 1791000000,
+      "nonce": "00112233445566778899aabbccddeeff",
+      "client_ip": "203.0.113.7",
+      "body": "",
+      "canonical": "v1\nGET\n/api/v1/meta\n1791000000\n00112233445566778899aabbccddeeff\n203.0.113.7\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "signature": "6054247cc6c246ae9a36ba7bfe92162957349b7eb7b778fb838f24d3fcec0ac6"
+    },
+    {
+      "name": "get with query",
+      "method": "GET",
+      "uri": "/api/v1/drops?limit=20&cursor=abc",
+      "timestamp": 1791000000,
+      "nonce": "ffeeddccbbaa99887766554433221100",
+      "client_ip": "203.0.113.7",
+      "body": "",
+      "canonical": "v1\nGET\n/api/v1/drops?limit=20&cursor=abc\n1791000000\nffeeddccbbaa99887766554433221100\n203.0.113.7\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "signature": "2428687f7442bc357b97bd1bc4c0851aa166cf3f2d924d383b99f762a26c0dcc"
+    },
+    {
+      "name": "post with json body",
+      "method": "POST",
+      "uri": "/api/v1/counts",
+      "timestamp": 1791000060,
+      "nonce": "0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+      "client_ip": "2001:db8::1",
+      "body": "{\"partnership_id\":\"0192f0c4\",\"items\":[{\"qty\":2}]}",
+      "canonical": "v1\nPOST\n/api/v1/counts\n1791000060\n0f1e2d3c4b5a69788796a5b4c3d2e1f0\n2001:db8::1\n17d8459b6b85795409443f16f926beeefdee2b9656a4378b9f9de5267daf6311",
+      "signature": "6c44bd9e1ffd9880b7301147dbe1f64cec45c59a9cc1f24b7b5c532bb14fbd05"
+    }
+  ]
+}

@@ -11,12 +11,13 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
 func TestHealthz_ProcessAlive_ReturnsOK(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", http.NoBody)
 
-	resp, err := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), alwaysReady).App().Test(req)
+	resp, err := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), alwaysReady, rejectAll{}).App().Test(req)
 	if err != nil {
 		t.Fatalf("request healthz: %v", err)
 	}
@@ -29,7 +30,7 @@ func TestHealthz_ProcessAlive_ReturnsOK(t *testing.T) {
 
 func TestRoutes_EveryRouteWithoutAuthenticationIsListedAsPublic(t *testing.T) {
 	public := httpserver.PublicRoutes()
-	app := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), alwaysReady).App()
+	app := newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), alwaysReady, rejectAll{}).App()
 
 	for _, route := range app.GetRoutes(true) {
 		method := route.Method
@@ -40,6 +41,12 @@ func TestRoutes_EveryRouteWithoutAuthenticationIsListedAsPublic(t *testing.T) {
 			t.Errorf("%s %s has no authentication and is not in the public route list", route.Method, route.Path)
 		}
 	}
+}
+
+type rejectAll struct{}
+
+func (rejectAll) Verify(security.SignedRequest) error {
+	return security.ErrEdgeBadSignature
 }
 
 func alwaysReady(context.Context) error {

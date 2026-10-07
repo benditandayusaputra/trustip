@@ -14,6 +14,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
 func main() {
@@ -42,7 +43,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		return fmt.Errorf("open database: %w", err)
 	}
 	defer pool.Close()
-	server := newServer(base, pool.Ping)
+	server := newServer(base, pool.Ping, security.NewEdgeVerifier(cfg.EdgeKeys, clock.System{}))
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	logger.ForStream(base, logger.App).Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
@@ -52,13 +53,15 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	return nil
 }
 
-func newServer(base *slog.Logger, ready httpserver.ReadinessCheck) *httpserver.Server {
+func newServer(base *slog.Logger, ready httpserver.ReadinessCheck, edge httpserver.EdgeVerifier) *httpserver.Server {
 	return httpserver.New(httpserver.Options{
-		AppLog:    logger.ForStream(base, logger.App),
-		AccessLog: logger.ForStream(base, logger.Access),
-		IDs:       idgen.UUIDv7{},
-		Clock:     clock.System{},
-		Build:     httpserver.ReadBuildInfo(),
-		Ready:     ready,
+		AppLog:      logger.ForStream(base, logger.App),
+		AccessLog:   logger.ForStream(base, logger.Access),
+		SecurityLog: logger.ForStream(base, logger.Security),
+		IDs:         idgen.UUIDv7{},
+		Clock:       clock.System{},
+		Build:       httpserver.ReadBuildInfo(),
+		Ready:       ready,
+		Edge:        edge,
 	})
 }
