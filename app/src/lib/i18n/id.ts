@@ -112,6 +112,18 @@ export const id = {
 		cancel: 'Batal',
 		loadFailed: 'Akun tidak bisa dimuat.'
 	},
+	notifications: {
+		title: 'Pemberitahuan',
+		bell: (count: number) =>
+			count > 0 ? `Pemberitahuan, ${String(count)} belum dibaca` : 'Pemberitahuan',
+		empty: 'Belum ada pemberitahuan. Kabar dari mitra akan muncul di sini.',
+		backToDashboard: 'Kembali ke dasbor',
+		markAll: 'Tandai semua dibaca',
+		loadMore: 'Muat lebih banyak',
+		loadFailed: 'Pemberitahuan tidak bisa dimuat.',
+		unread: 'Belum dibaca',
+		markedAll: 'Semua pemberitahuan ditandai dibaca.'
+	},
 	captcha: {
 		label: 'Verifikasi keamanan',
 		loadFailed: 'Verifikasi keamanan tidak bisa dimuat. Periksa koneksi lalu muat ulang halaman.'

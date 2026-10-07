@@ -36,6 +36,7 @@ func databaseBrowser(t *testing.T) *browser {
 	}
 	server := newServerFrom(alwaysReady, now, testModules{
 		auth: components, org: buildOrgComponents(pool, now), files: databaseFileComponents(t, pool, now),
+		inbox: buildNotificationComponents(pool, now),
 	})
 	if got := perform(t, server, postUsers(t, registration("sari@contoh.id"))); got.status != http.StatusCreated {
 		t.Fatalf("register = %d %s", got.status, got.body)
@@ -52,7 +53,7 @@ func (b *browser) anotherUserOnTheSameServer(email string) *browser {
 	if got := perform(b.t, b.server, signup); got.status != http.StatusCreated {
 		b.t.Fatalf("register %s = %d %s", email, got.status, got.body)
 	}
-	other := &browser{t: b.t, server: b.server, now: b.now, visits: b.visits}
+	other := &browser{t: b.t, server: b.server, now: b.now, visits: b.visits, pool: b.pool}
 	login := postSessions(b.t, attemptAt(credentials(email, acceptedInput), b.now.Now()))
 	if got := other.send(login); got.status != http.StatusOK {
 		b.t.Fatalf("login %s = %d %s", email, got.status, got.body)

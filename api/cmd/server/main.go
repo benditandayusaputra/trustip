@@ -11,6 +11,7 @@ import (
 
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	filehandler "github.com/benditandayusaputra/trustip/api/internal/modules/file/handler"
+	notificationhandler "github.com/benditandayusaputra/trustip/api/internal/modules/notification/handler"
 	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
@@ -63,6 +64,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		auth:      components,
 		org:       buildOrgComponents(pool, systemClock),
 		files:     buildFileComponents(pool, cfg, systemClock),
+		inbox:     buildNotificationComponents(pool, systemClock),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -82,6 +84,7 @@ type serverDeps struct {
 	auth      authComponents
 	org       orgComponents
 	files     fileComponents
+	inbox     notificationComponents
 	appOrigin string
 }
 
@@ -105,10 +108,11 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	})
 	authhandler.Mount(server.API(), authDeps(deps.auth, securityLog, deps.clock))
 	authenticate := httpserver.Authenticate(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName())
+	writeLimiter := newWriteLimiter(deps.clock)
 	orghandler.Mount(server.API(), orgDeps(deps.org, orgRoutes{
 		authenticate: authenticate,
 		filesBaseURL: deps.files.publicBaseURL,
-		writeLimiter: newWriteLimiter(deps.clock),
+		writeLimiter: writeLimiter,
 		securityLog:  securityLog,
 	}))
 	files := fileDeps(deps.files, fileRoutes{
@@ -116,6 +120,9 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	})
 	filehandler.Mount(server.API(), files)
 	filehandler.MountPublic(server.App(), files)
+	notificationhandler.Mount(server.API(), notificationDeps(deps.inbox, notificationRoutes{
+		authenticate: authenticate, writeLimiter: writeLimiter, securityLog: securityLog,
+	}))
 	return server
 }
 

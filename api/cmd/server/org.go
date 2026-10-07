@@ -11,6 +11,7 @@ import (
 	orgrepository "github.com/benditandayusaputra/trustip/api/internal/modules/org/repository"
 	orgservice "github.com/benditandayusaputra/trustip/api/internal/modules/org/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
 )
@@ -50,7 +51,7 @@ func buildOrgComponents(pool *database.Pool, clock orgservice.Clock) orgComponen
 type orgRoutes struct {
 	authenticate fiber.Handler
 	filesBaseURL string
-	writeLimiter *ratelimit.Limiter
+	writeLimiter httpserver.RateLimiter
 	securityLog  *slog.Logger
 }
 

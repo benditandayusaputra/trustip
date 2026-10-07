@@ -19,10 +19,11 @@
 		placement: Placement;
 		onsignedout: () => void;
 		onmisplaced: (account: Account) => void;
+		actions?: Snippet;
 		children: Snippet;
 	}
 
-	let { placement, onsignedout, onmisplaced, children }: Props = $props();
+	let { placement, onsignedout, onmisplaced, actions, children }: Props = $props();
 
 	const session = new AccountSession(apiClient);
 	setAccountSession(session);
@@ -56,7 +57,12 @@
 		<div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-4 px-4 py-2">
 			<a href="/app" class="text-lg font-semibold text-text">{id.brand}</a>
 			{#if session.status === 'ready'}
-				<AccountMenu />
+				<div class="flex flex-wrap items-center gap-2">
+					{#if isPlaced && actions}
+						{@render actions()}
+					{/if}
+					<AccountMenu />
+				</div>
 			{/if}
 		</div>
 	</header>

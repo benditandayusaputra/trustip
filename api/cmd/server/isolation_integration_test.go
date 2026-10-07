@@ -3,17 +3,20 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"github.com/benditandayusaputra/trustip/api/internal/modules/notification/domain"
+	notificationrepository "github.com/benditandayusaputra/trustip/api/internal/modules/notification/repository"
 )
 
-func (owner *browser) found(body, purpose string) organizationFixture {
-	t := owner.t
+func (b *browser) found(body, purpose string) organizationFixture {
+	t := b.t
 	t.Helper()
-	founded := owner.postOrganization(body)
-	owner.post("/api/v1/sessions/refresh")
-	uploaded := owner.upload(part{name: "purpose", data: []byte(purpose)},
+	founded := b.postOrganization(body)
+	b.post("/api/v1/sessions/refresh")
+	uploaded := b.upload(part{name: "purpose", data: []byte(purpose)},
 		part{name: "file", filename: "image", data: photoWithLocation(t)})
 	fixture := organizationFixture{
-		owner: owner, id: quotedAfter(string(founded.body), `"id":"`),
+		owner: b, id: quotedAfter(string(founded.body), `"id":"`),
 		fileID: quotedAfter(string(uploaded.body), `"id":"`),
 	}
 	if fixture.id == "" || fixture.fileID == "" {
@@ -28,6 +31,7 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	world := isolationWorld{store: storeOwner.found(onboarding(semarangCityCode), "LOGO")}
 	consignorOwner := storeOwner.anotherUserOnTheSameServer("darmi@contoh.id")
 	world.consignor = consignorOwner.found(consignorOnboarding(), "PAYMENT_QR")
+	world.consignor.notificationID = consignorOwner.receiveNotification()
 	world.storeStranger = storeOwner.anotherUserOnTheSameServer("tini@contoh.id")
 	world.storeStranger.found(strings.Replace(onboarding(semarangCityCode), "Warung Bu Tini", "Toko Lain", 1), "LOGO")
 	world.consignorStranger = storeOwner.anotherUserOnTheSameServer("ani@contoh.id")
@@ -47,4 +51,18 @@ func TestIsolation_RSEC41_OtherOrganizationsGetNotFoundOnEveryRouteWithAnID(t *t
 			contract.requireConforms(t, got)
 		})
 	}
+}
+
+func (b *browser) receiveNotification() string {
+	b.t.Helper()
+	account := b.getAccount()
+	notificationID := "0192f0c4-0000-7000-8000-000000000201"
+	err := notificationrepository.NewInbox(b.pool).Deliver(b.t.Context(), []domain.Notification{{
+		ID: notificationID, UserID: quotedAfter(string(account.body), `"id":"`), Type: "DROP_RECORDED",
+		Title: "Titipan masuk", Body: "Warung mencatat titipan.", Link: "/app/titipan", CreatedAt: testNow(),
+	}})
+	if err != nil {
+		b.t.Fatalf("deliver notification: %v", err)
+	}
+	return notificationID
 }

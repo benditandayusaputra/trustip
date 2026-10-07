@@ -76,6 +76,17 @@ type Membership struct {
 	UpdatedAt         time.Time
 }
 
+type Notification struct {
+	ID        string
+	UserID    string
+	Type      string
+	Title     string
+	Body      string
+	Link      string
+	ReadAt    pgtype.Timestamptz
+	CreatedAt time.Time
+}
+
 type OrgPhoto struct {
 	OrganizationID string
 	FileID         string

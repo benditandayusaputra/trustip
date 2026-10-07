@@ -17,9 +17,10 @@ type isolationWorld struct {
 }
 
 type organizationFixture struct {
-	owner  *browser
-	id     string
-	fileID string
+	owner          *browser
+	id             string
+	fileID         string
+	notificationID string
 }
 
 type isolationCase func(world isolationWorld) exchange
@@ -48,6 +49,9 @@ func isolationCases() map[string]isolationCase {
 		},
 		"GET /api/v1/files/:id": func(w isolationWorld) exchange {
 			return w.consignorStranger.get("/api/v1/files/" + w.consignor.fileID)
+		},
+		"POST /api/v1/notifications/:id/read": func(w isolationWorld) exchange {
+			return w.consignorStranger.post("/api/v1/notifications/" + w.consignor.notificationID + "/read")
 		},
 	}
 }
