@@ -418,3 +418,36 @@ func TestRateLimit_OverLimit_Returns429WithRetryAfterAndLogsEvent(t *testing.T) 
 		t.Fatalf("security log = %s", fixture.securityLogs.String())
 	}
 }
+
+func TestEdgeSignature_ManySequentialRequests_NoneMistakenForReplay(t *testing.T) {
+	fixture := newTestServer()
+
+	for i := range 200 {
+		req := newRequest(t, "/api/v1/meta")
+		signRequest(t, req, fixedNow())
+		got := send(t, fixture.server.App(), req)
+		if got.status == http.StatusUnauthorized {
+			t.Fatalf("request %d rejected: %s\nsecurity log: %s", i+1, got.raw, fixture.securityLogs.String())
+		}
+	}
+}
+
+func TestEdgeSignature_NonceReusedAfterManyRequests_IsStillRejected(t *testing.T) {
+	fixture := newTestServer()
+	first := newRequest(t, "/api/v1/meta")
+	signRequest(t, first, fixedNow())
+	send(t, fixture.server.App(), first)
+	for range 50 {
+		resp, err := fixture.server.App().Test(newRequest(t, "/healthz"))
+		if err != nil {
+			t.Fatalf("health request: %v", err)
+		}
+		closeBody(t, resp)
+	}
+	replay := newRequest(t, "/api/v1/meta")
+	replay.Header = first.Header.Clone()
+
+	if got := send(t, fixture.server.App(), replay); got.status != http.StatusUnauthorized {
+		t.Fatalf("replay after other traffic = %d", got.status)
+	}
+}

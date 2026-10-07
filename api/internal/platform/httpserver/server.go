@@ -43,6 +43,7 @@ func New(opts Options) *Server {
 	errorHandler := NewErrorHandler(opts.AppLog)
 	app := fiber.New(fiber.Config{
 		ErrorHandler: errorHandler,
+		Immutable:    true,
 		BodyLimit:    uploadBodyLimit,
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,

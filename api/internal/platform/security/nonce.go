@@ -1,6 +1,7 @@
 package security
 
 import (
+	"strings"
 	"sync"
 	"time"
 )
@@ -23,7 +24,7 @@ func (c *nonceCache) claim(nonce string, now time.Time) bool {
 	if usedAt, ok := c.seen[nonce]; ok && now.Sub(usedAt) < c.lifetime {
 		return false
 	}
-	c.seen[nonce] = now
+	c.seen[strings.Clone(nonce)] = now
 	return true
 }
 
