@@ -1,4 +1,4 @@
-export interface LegalSection {
+interface LegalSection {
 	heading: string;
 	points: string[];
 }
