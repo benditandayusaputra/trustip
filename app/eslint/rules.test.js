@@ -52,7 +52,11 @@ tester.run('layer-imports', layerImports, {
 		},
 		{ code: "import { x } from './state.svelte';", filename: inSource('lib/features/drop/a.ts') },
 		{ code: "import { x } from './money';", filename: inSource('lib/domain/fefo.ts') },
-		{ code: "import { x } from '#lib/domain/money';", filename: inSource('lib/offline/outbox.ts') }
+		{ code: "import { x } from '#lib/domain/money';", filename: inSource('lib/offline/outbox.ts') },
+		{
+			code: "import { x } from '#lib/testing/accessibility.js';",
+			filename: inSource('lib/components/ui/controls.svelte.test.ts')
+		}
 	],
 	invalid: [
 		{
@@ -73,6 +77,11 @@ tester.run('layer-imports', layerImports, {
 		{
 			code: "import { x } from '#lib/domain/fefo';",
 			filename: inSource('routes/+page.ts'),
+			errors: [{ messageId: 'forbidden' }]
+		},
+		{
+			code: "import { x } from '#lib/testing/accessibility.js';",
+			filename: inSource('lib/components/ui/Button.ts'),
 			errors: [{ messageId: 'forbidden' }]
 		},
 		{

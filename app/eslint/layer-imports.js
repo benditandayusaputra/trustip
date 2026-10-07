@@ -39,7 +39,14 @@ function layerOfImport(specifier, filename) {
 	return layerOfLibPath(path.relative(path.resolve(libRoot), absolute));
 }
 
-function isAllowed(source, target) {
+function isTestFile(filename) {
+	return /\.test\.[jt]s$/u.test(filename);
+}
+
+function isAllowed(source, target, filename) {
+	if (target?.name === 'testing') {
+		return isTestFile(filename);
+	}
 	const allowed = allowedTargets[source.name];
 	if (!allowed || !target || source.unit === target.unit) {
 		return true;
@@ -58,7 +65,7 @@ export const layerImports = {
 		return {
 			ImportDeclaration(node) {
 				const target = layerOfImport(node.source.value, context.filename);
-				if (source && !isAllowed(source, target)) {
+				if (source && !isAllowed(source, target, context.filename)) {
 					context.report({
 						node,
 						messageId: 'forbidden',

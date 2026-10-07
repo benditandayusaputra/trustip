@@ -52,11 +52,14 @@ Ukuran untuk pustaka yang ikut ke peramban diukur dari bundel terkompresi. Alat 
 | `@sveltejs/kit` | 3.0 | MIT | Ikut bundel per rute | Rute, render server, proxy, service worker |
 | `@sveltejs/adapter-vercel` | 7.0 | MIT | Alat bangun | Deploy app ke Vercel |
 | `vite` | 8.3 | MIT | Alat bangun | Pembangun dan server pengembangan |
+| `@lucide/svelte` | 1.52 | ISC | Hanya ikon yang diimpor, sekitar 1 KB per ikon | Satu keluarga ikon garis berlisensi terbuka (`DESIGN.md` bagian 7) |
 | `tailwindcss`, `@tailwindcss/vite` | 4.3 | MIT | Hanya kelas yang dipakai | Gaya dari token desain |
 | `typescript`, `svelte-check` | 6.0, 4.6 | Apache-2.0, MIT | Alat pengembangan | Pemeriksaan tipe ketat |
 | `eslint`, `typescript-eslint`, `eslint-plugin-svelte`, `svelte-eslint-parser`, `@eslint/js`, `eslint-config-prettier`, `globals` | 10.12, 8.60, 3.23, 1.8, 10.0, 10.1, 17.6 | MIT | Alat pengembangan | Lint mutu, keamanan, dan batas lapisan |
 | `prettier`, `prettier-plugin-svelte`, `prettier-plugin-tailwindcss` | 3.9, 4.1, 0.8 | MIT | Alat pengembangan | Format otomatis |
 | `vitest`, `@vitest/browser-playwright` | 4.1 | MIT | Alat pengembangan | Uji unit dan komponen |
+| `vitest-browser-svelte` | 3.1 | MIT | Alat pengembangan | Merender komponen Svelte di peramban nyata saat uji |
+| `axe-core` | 4.14 | MPL-2.0 | Alat pengembangan | Pemeriksa aksesibilitas otomatis di uji komponen |
 | `@playwright/test`, `playwright` | 1.63 | Apache-2.0 | Alat pengembangan | Uji ujung ke ujung di HP dan desktop |
 | `knip` | 6.40 | ISC | Alat pengembangan | Pencari ekspor dan dependensi tak terpakai |
 | `openapi-typescript` | 7.13 | MIT | Alat pengembangan | Membangkitkan `src/lib/api/schema.d.ts` dari `openapi.yaml`. Dipasang dengan `overrides` karena versi ini masih menulis TypeScript 5 sebagai rekan, padahal hanya memakai API pembangun sintaks yang sama di TypeScript 6 |
