@@ -37,7 +37,12 @@ export const id = {
 		backHome: 'Kembali ke beranda'
 	},
 	apiErrors: {
-		serviceUnavailable: 'Layanan sedang sibuk. Coba lagi sebentar lagi.'
+		serviceUnavailable: 'Layanan sedang sibuk. Coba lagi sebentar lagi.',
+		network: 'Tidak ada koneksi. Periksa sinyal lalu coba lagi.',
+		unreadable: 'Jawaban server tidak bisa dibaca. Coba lagi.'
+	},
+	system: {
+		apiVersion: (version: string) => `Versi API ${version}`
 	},
 	feedback: {
 		loading: 'Memuat',
