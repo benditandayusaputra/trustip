@@ -35,10 +35,6 @@ func NotFound() *Error {
 	return New(CodeNotFound)
 }
 
-func Forbidden() *Error {
-	return New(CodeForbidden)
-}
-
 func Internal(cause error) *Error {
 	return &Error{code: CodeInternal, cause: cause}
 }
