@@ -2,9 +2,10 @@ import { expect, test, type Page } from '@playwright/test';
 
 const password = 'Kp7#mQz2vX';
 const captchaAnswer = 'input[name="cf-turnstile-response"]';
+const networkTimeoutMs = 15_000;
 
 async function waitForCaptcha(page: Page): Promise<void> {
-	await expect(page.locator(captchaAnswer)).not.toHaveValue('', { timeout: 15_000 });
+	await expect(page.locator(captchaAnswer)).not.toHaveValue('', { timeout: networkTimeoutMs });
 }
 
 async function register(page: Page, email: string): Promise<void> {
@@ -24,10 +25,21 @@ async function signIn(page: Page, email: string): Promise<void> {
 	await page.getByRole('button', { name: 'Masuk' }).click();
 }
 
-async function onboardStore(page: Page): Promise<void> {
-	await page.getByRole('radio', { name: /Toko/u }).check();
+interface Business {
+	choice: RegExp;
+	name: string;
+	dashboard: string;
+}
+
+const businessByProject: Record<string, Business> = {
+	mobile: { choice: /Penitip/u, name: 'Kripik Uji', dashboard: '/app/penitip' },
+	desktop: { choice: /Toko/u, name: 'Warung Uji', dashboard: '/app/toko' }
+};
+
+async function onboard(page: Page, business: Business): Promise<void> {
+	await page.getByRole('radio', { name: business.choice }).check();
 	await page.getByRole('button', { name: 'Lanjut' }).click();
-	await page.getByLabel('Nama usaha').fill('Warung Uji');
+	await page.getByLabel('Nama usaha').fill(business.name);
 	await page.getByLabel('Nomor WhatsApp usaha').fill('0812 3456 7890');
 	await page.getByRole('button', { name: 'Lanjut' }).click();
 	await page.getByLabel('Provinsi').selectOption({ label: 'Jawa Tengah' });
@@ -60,10 +72,15 @@ async function expectTokensHiddenFromScripts(page: Page): Promise<void> {
 	});
 }
 
-test('FR-AUTH-04 FR-AUTH-06 a visitor registers, signs in, onboards, and lands on the dashboard', async ({
+test('FR-AUTH-04 FR-AUTH-06 a consignor on a phone and a store on a desktop each reach an empty dashboard', async ({
 	page
 }, testInfo) => {
 	const email = `e2e-${testInfo.project.name}-${String(Date.now())}@contoh.id`;
+	const business = businessByProject[testInfo.project.name];
+	if (!business) {
+		throw new Error(`no business for project ${testInfo.project.name}`);
+	}
+	const dashboard = new RegExp(`${business.dashboard}$`, 'u');
 	const greeting = page.getByRole('heading', { name: 'Halo, Sari Wulandari' });
 
 	await page.goto('/app');
@@ -74,19 +91,19 @@ test('FR-AUTH-04 FR-AUTH-06 a visitor registers, signs in, onboards, and lands o
 	await expect(page.getByText('Akun dibuat. Silakan masuk.')).toBeVisible();
 	await signIn(page, email);
 	await expect(page).toHaveURL(/\/onboarding\?lanjut=%2Fapp$/u);
-	await onboardStore(page);
-	await expect(page).toHaveURL(/\/app\/toko$/u);
+	await onboard(page, business);
+	await expect(page).toHaveURL(dashboard, { timeout: networkTimeoutMs });
 	await expect(greeting).toBeVisible();
 	await expectTokensHiddenFromScripts(page);
 
 	await page.getByRole('link', { name: 'Lengkapi profil usaha' }).click();
-	await expect(page.getByLabel('Nama usaha')).toHaveValue('Warung Uji');
-	await page.getByLabel('Nama usaha').fill('Warung Uji Jaya');
+	await expect(page.getByLabel('Nama usaha')).toHaveValue(business.name);
+	await page.getByLabel('Nama usaha').fill(`${business.name} Jaya`);
 	await page.getByRole('button', { name: 'Simpan profil', exact: true }).click();
 	await expect(page.getByText('Profil usaha tersimpan.')).toBeVisible();
 	await page.getByRole('link', { name: 'Pemberitahuan', exact: true }).click();
 	await expect(page.getByText(/Belum ada pemberitahuan/u)).toBeVisible();
-	await page.goto('/app/toko');
+	await page.goto(business.dashboard);
 
 	await page.context().clearCookies({ name: 'trustip_at' });
 	await page.reload();
@@ -94,7 +111,9 @@ test('FR-AUTH-04 FR-AUTH-06 a visitor registers, signs in, onboards, and lands o
 	await expectTokensHiddenFromScripts(page);
 
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
-	await expect(page).toHaveURL(/\/masuk\?lanjut=%2Fapp%2Ftoko$/u);
+	await expect(page).toHaveURL(
+		new RegExp(`/masuk\\?lanjut=${encodeURIComponent(business.dashboard)}$`, 'u')
+	);
 	expect(await page.context().cookies()).toHaveLength(0);
 	await page.goto('/app');
 	await expect(page).toHaveURL(/\/masuk\?lanjut=%2Fapp$/u);
