@@ -5,6 +5,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
 )
 
 const (
@@ -60,10 +61,10 @@ func snapToGrid(degrees float64) float64 {
 	return math.Round(degrees/publicGridDegrees) * publicGridDegrees
 }
 
-func locate(organizationType actor.OrganizationType, input LocationInput) (Location, problem) {
+func locate(organizationType actor.OrganizationType, input LocationInput) (Location, field.Problem) {
 	exact, err := NewCoordinates(input.Latitude, input.Longitude)
 	if err != nil {
-		return Location{}, invalid(locationField, apperror.FieldOutOfRange)
+		return Location{}, field.Invalid(locationField, apperror.FieldOutOfRange)
 	}
-	return Location{Exact: exact, Public: PublicLocation(organizationType, exact)}, problem{}
+	return Location{Exact: exact, Public: PublicLocation(organizationType, exact)}, field.Problem{}
 }

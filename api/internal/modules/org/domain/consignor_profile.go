@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
 )
 
 const (
@@ -45,14 +46,14 @@ type ConsignorProfileChange struct {
 }
 
 func NewConsignorProfile(form ConsignorProfileForm) (ConsignorProfile, error) {
-	problems := collectProblems(
+	problems := field.Collect(
 		findRadiusProblem(form.DeliveryRadius),
 		findChoicesProblem("delivery_days", form.DeliveryDays, DeliveryDays()),
 		findChoicesProblem("preferred_store_types", form.PreferredStoreTypes, StoreTypes()),
-		findLengthProblem("business_id_no", form.Legal.BusinessIDNo, lengthRange{max: MaxLegalNumberLength}),
-		findLengthProblem("distribution_permit_no", form.Legal.DistributionPermitNo,
-			lengthRange{max: MaxLegalNumberLength}),
-		findLengthProblem("halal_cert_no", form.Legal.HalalCertNo, lengthRange{max: MaxLegalNumberLength}),
+		field.CheckLength("business_id_no", form.Legal.BusinessIDNo, field.Length{Max: MaxLegalNumberLength}),
+		field.CheckLength("distribution_permit_no", form.Legal.DistributionPermitNo,
+			field.Length{Max: MaxLegalNumberLength}),
+		field.CheckLength("halal_cert_no", form.Legal.HalalCertNo, field.Length{Max: MaxLegalNumberLength}),
 	)
 	if len(problems) > 0 {
 		return ConsignorProfile{}, apperror.Validation(problems...)
@@ -60,22 +61,22 @@ func NewConsignorProfile(form ConsignorProfileForm) (ConsignorProfile, error) {
 	return ConsignorProfile(form), nil
 }
 
-func findRadiusProblem(radius DeliveryRadius) problem {
+func findRadiusProblem(radius DeliveryRadius) field.Problem {
 	if !radius.Given || (radius.Kilometres >= 1 && radius.Kilometres <= MaxDeliveryRadiusKM) {
-		return problem{}
+		return field.Problem{}
 	}
-	return invalid("delivery_radius_km", apperror.FieldOutOfRange)
+	return field.Invalid("delivery_radius_km", apperror.FieldOutOfRange)
 }
 
-func findChoicesProblem(field string, values, choices []string) problem {
+func findChoicesProblem(name string, values, choices []string) field.Problem {
 	seen := map[string]bool{}
 	for _, value := range values {
 		if seen[value] || !slices.Contains(choices, value) {
-			return invalid(field, apperror.FieldUnknownChoice)
+			return field.Invalid(name, apperror.FieldUnknownChoice)
 		}
 		seen[value] = true
 	}
-	return problem{}
+	return field.Problem{}
 }
 
 type PaymentInfoForm struct {
@@ -92,8 +93,8 @@ type PaymentInfoChange struct {
 }
 
 func NewPaymentInfo(form PaymentInfoForm) (PaymentInfo, error) {
-	problems := collectProblems(
-		findLengthProblem("payment_info", form.Info, lengthRange{max: MaxPaymentInfoLength}),
+	problems := field.Collect(
+		field.CheckLength("payment_info", form.Info, field.Length{Max: MaxPaymentInfoLength}),
 	)
 	if form.QRFileID != "" && !fileIDFormat.MatchString(form.QRFileID) {
 		problems = append(problems, apperror.InvalidField("payment_qr_file_id", apperror.FieldUnknownChoice))

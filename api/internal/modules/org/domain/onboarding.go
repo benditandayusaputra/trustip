@@ -2,13 +2,12 @@ package domain
 
 import (
 	"regexp"
-	"strconv"
 	"time"
-	"unicode/utf8"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/contact"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
 )
 
 const (
@@ -55,7 +54,7 @@ type Onboarding struct {
 func NewOnboarding(form OnboardingForm) (Onboarding, error) {
 	organizationType := actor.OrganizationType(form.Type)
 	profile, problems := checkProfile(form.ProfileForm, organizationType)
-	problems = append(collectProblems(findTypeProblem(form.Type)), problems...)
+	problems = append(field.Collect(findTypeProblem(form.Type)), problems...)
 	if len(problems) > 0 {
 		return Onboarding{}, apperror.Validation(problems...)
 	}
@@ -65,13 +64,13 @@ func NewOnboarding(form OnboardingForm) (Onboarding, error) {
 func checkProfile(form ProfileForm, organizationType actor.OrganizationType) (Profile, []apperror.FieldError) {
 	whatsApp, whatsAppErr := contact.ParseWhatsAppNumber(form.WhatsApp)
 	location, locationProblem := locateIfGiven(organizationType, form.Location)
-	problems := collectProblems(
-		findLengthProblem("name", form.Name, lengthRange{min: MinNameLength, max: MaxNameLength}),
-		findLengthProblem("description", form.Description, lengthRange{max: MaxDescriptionLength}),
+	problems := field.Collect(
+		field.CheckLength("name", form.Name, field.Length{Min: MinNameLength, Max: MaxNameLength}),
+		field.CheckLength("description", form.Description, field.Length{Max: MaxDescriptionLength}),
 		findWhatsAppProblem(whatsAppErr),
 		findCityProblem(form.CityCode),
-		findLengthProblem("district", form.District, lengthRange{max: MaxDistrictLength}),
-		findLengthProblem("address", form.Address, lengthRange{max: MaxAddressLength}),
+		field.CheckLength("district", form.District, field.Length{Max: MaxDistrictLength}),
+		field.CheckLength("address", form.Address, field.Length{Max: MaxAddressLength}),
 		locationProblem,
 	)
 	return Profile{
@@ -86,74 +85,35 @@ func checkProfile(form ProfileForm, organizationType actor.OrganizationType) (Pr
 	}, problems
 }
 
-func locateIfGiven(organizationType actor.OrganizationType, input LocationInput) (Location, problem) {
+func locateIfGiven(organizationType actor.OrganizationType, input LocationInput) (Location, field.Problem) {
 	if !input.Given {
-		return Location{}, problem{}
+		return Location{}, field.Problem{}
 	}
 	return locate(organizationType, input)
 }
 
-type problem struct {
-	field apperror.FieldError
-	found bool
-}
-
-func collectProblems(candidates ...problem) []apperror.FieldError {
-	var problems []apperror.FieldError
-	for _, candidate := range candidates {
-		if candidate.found {
-			problems = append(problems, candidate.field)
-		}
-	}
-	return problems
-}
-
-func invalid(field string, code apperror.FieldCode, params ...apperror.Param) problem {
-	return problem{field: apperror.InvalidField(field, code, params...), found: true}
-}
-
-func findTypeProblem(organizationType string) problem {
+func findTypeProblem(organizationType string) field.Problem {
 	if organizationType == string(actor.Consignor) || organizationType == string(actor.Store) {
-		return problem{}
+		return field.Problem{}
 	}
-	return invalid("type", apperror.FieldUnknownChoice)
+	return field.Invalid("type", apperror.FieldUnknownChoice)
 }
 
-func findWhatsAppProblem(err error) problem {
+func findWhatsAppProblem(err error) field.Problem {
 	if err == nil {
-		return problem{}
+		return field.Problem{}
 	}
-	return invalid("whatsapp", apperror.FieldInvalidWhatsApp)
+	return field.Invalid("whatsapp", apperror.FieldInvalidWhatsApp)
 }
 
-func findCityProblem(cityCode string) problem {
+func findCityProblem(cityCode string) field.Problem {
 	if cityCode == "" {
-		return invalid("city_code", apperror.FieldRequired)
+		return field.Invalid("city_code", apperror.FieldRequired)
 	}
 	if !cityCodeFormat.MatchString(cityCode) {
-		return invalid("city_code", apperror.FieldUnknownChoice)
+		return field.Invalid("city_code", apperror.FieldUnknownChoice)
 	}
-	return problem{}
-}
-
-type lengthRange struct {
-	min int
-	max int
-}
-
-func findLengthProblem(field, value string, allowed lengthRange) problem {
-	length := utf8.RuneCountInString(value)
-	if length < allowed.min {
-		return invalid(field, apperror.FieldTooShort, limitParam("min", allowed.min))
-	}
-	if length > allowed.max {
-		return invalid(field, apperror.FieldTooLong, limitParam("max", allowed.max))
-	}
-	return problem{}
-}
-
-func limitParam(name string, limit int) apperror.Param {
-	return apperror.Param{Name: name, Value: strconv.Itoa(limit)}
+	return field.Problem{}
 }
 
 type FoundingIDs struct {
