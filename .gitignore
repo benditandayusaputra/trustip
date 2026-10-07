@@ -14,3 +14,5 @@ test-results/
 playwright-report/
 api/tmp/
 api/storage/
+.vercel/
+.output/

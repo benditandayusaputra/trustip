@@ -29,7 +29,7 @@ func scannerFor(path string) (scanFunc, error) {
 func scannerByName(name string) (scanFunc, bool) {
 	switch name {
 	case "Makefile", "Dockerfile", "Caddyfile", ".gitignore", ".editorconfig", ".dockerignore",
-		".gitattributes", ".npmrc", ".prettierignore", ".env.example":
+		".gitattributes", ".npmrc", ".prettierignore", ".env.example", "robots.txt":
 		return infallible(scanHashComments), true
 	}
 	return nil, false
