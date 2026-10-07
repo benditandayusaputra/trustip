@@ -37,17 +37,19 @@ func newTestServerAt(ready httpserver.ReadinessCheck, now *clock.Manual) *httpse
 func newTestServerWith(ready httpserver.ReadinessCheck, now *clock.Manual, auth authComponents) *httpserver.Server {
 	modules := testModules{
 		auth: auth, org: testOrgComponents(now), files: testFileComponents(now), inbox: testNotificationComponents(now),
-		products: testProductComponents(now),
+		products:  testProductComponents(now),
+		proposals: testProposalComponents(now),
 	}
 	return newServerFrom(ready, now, modules)
 }
 
 type testModules struct {
-	auth     authComponents
-	org      orgComponents
-	files    fileComponents
-	inbox    notificationComponents
-	products productComponents
+	auth      authComponents
+	org       orgComponents
+	files     fileComponents
+	inbox     notificationComponents
+	products  productComponents
+	proposals proposalComponents
 }
 
 func newServerFrom(ready httpserver.ReadinessCheck, now *clock.Manual, modules testModules) *httpserver.Server {
@@ -61,6 +63,7 @@ func newServerFrom(ready httpserver.ReadinessCheck, now *clock.Manual, modules t
 		files:     modules.files,
 		inbox:     modules.inbox,
 		products:  modules.products,
+		proposals: modules.proposals,
 		appOrigin: testAppOrigin,
 	})
 }

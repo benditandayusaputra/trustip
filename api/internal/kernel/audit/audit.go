@@ -17,6 +17,8 @@ const (
 	ProductArchived         Action = "PRODUCT_ARCHIVED"
 	ProductReactivated      Action = "PRODUCT_REACTIVATED"
 	ProductSeekingChanged   Action = "PRODUCT_SEEKING_CHANGED"
+	ProposalSent            Action = "PROPOSAL_SENT"
+	InvitationClaimed       Action = "INVITATION_CLAIMED"
 )
 
 type EntityType string
@@ -25,6 +27,7 @@ const (
 	UserEntity         EntityType = "USER"
 	OrganizationEntity EntityType = "ORGANIZATION"
 	ProductEntity      EntityType = "PRODUCT"
+	ProposalEntity     EntityType = "PROPOSAL"
 )
 
 type Entry struct {

@@ -86,9 +86,9 @@ func testProductComponents(now *clock.Manual) productComponents {
 	}
 }
 
-func (b *browser) postProduct(body string) exchange {
+func (b *browser) postJSON(path, body string) exchange {
 	b.t.Helper()
-	req := httptest.NewRequestWithContext(b.t.Context(), http.MethodPost, productsPath, strings.NewReader(body))
+	req := httptest.NewRequestWithContext(b.t.Context(), http.MethodPost, path, strings.NewReader(body))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	b.attachCookies(req)
 	fromApp(req)
@@ -106,7 +106,7 @@ func productBody(sku string) string {
 func TestCreateProduct_FRPRD02_EmptySKUIsGeneratedFromTheName(t *testing.T) {
 	visitor := memberBrowser(t, consignorOwner())
 
-	got := visitor.postProduct(productBody(""))
+	got := visitor.postJSON(productsPath, productBody(""))
 
 	if got.status != http.StatusCreated || !strings.Contains(string(got.body), `"sku":"ROT-0001"`) ||
 		!strings.HasPrefix(got.header.Get(fiber.HeaderLocation), productsPath+"/") {
@@ -118,7 +118,7 @@ func TestCreateProduct_FRPRD02_EmptySKUIsGeneratedFromTheName(t *testing.T) {
 func TestCreateProduct_BRAUTHZ01_StoreOwnerIsForbidden(t *testing.T) {
 	visitor := memberBrowser(t, storeOwner())
 
-	got := visitor.postProduct(productBody(""))
+	got := visitor.postJSON(productsPath, productBody(""))
 
 	requireCode(t, got, "FORBIDDEN")
 	loadContract(t).requireConforms(t, got)
@@ -129,7 +129,7 @@ func TestCreateProduct_RSEC47_EveryInvalidFieldIsReported(t *testing.T) {
 	body := strings.NewReplacer(`"name":"Roti Sobek Cokelat"`, `"name":"R"`,
 		`"suggested_deposit_price":1750`, `"suggested_deposit_price":2500`).Replace(productBody(""))
 
-	got := visitor.postProduct(body)
+	got := visitor.postJSON(productsPath, body)
 
 	requireCode(t, got, "VALIDATION_FAILED")
 	if !strings.Contains(string(got.body), `"field":"name"`) ||
@@ -142,7 +142,7 @@ func TestCreateProduct_RSEC47_EveryInvalidFieldIsReported(t *testing.T) {
 func TestCreateProduct_RRES05_UnknownFieldIsRejected(t *testing.T) {
 	visitor := memberBrowser(t, consignorOwner())
 
-	got := visitor.postProduct(strings.Replace(productBody(""), `{`, `{"consignor_org_id":"x",`, 1))
+	got := visitor.postJSON(productsPath, strings.Replace(productBody(""), `{`, `{"consignor_org_id":"x",`, 1))
 
 	requireCode(t, got, "UNKNOWN_FIELD")
 }

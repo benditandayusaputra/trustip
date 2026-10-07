@@ -22,6 +22,8 @@ type organizationFixture struct {
 	fileID         string
 	notificationID string
 	productID      string
+	inviteCode     string
+	proposalID     string
 }
 
 type isolationCase func(world isolationWorld) exchange
@@ -69,6 +71,15 @@ func isolationCases() map[string]isolationCase {
 		"PATCH /api/v1/products/:id/seeking": func(w isolationWorld) exchange {
 			return w.consignorStranger.patch(productsPath+"/"+w.consignor.productID+"/seeking",
 				`{"is_seeking_stores":true}`)
+		},
+		"GET /api/v1/invitations/:code": func(w isolationWorld) exchange {
+			return w.storeStranger.get(invitationsPath + "/" + w.consignor.inviteCode)
+		},
+		"POST /api/v1/invitations/:code/claim": func(w isolationWorld) exchange {
+			return w.storeStranger.post(invitationsPath + "/" + w.consignor.inviteCode + "/claim")
+		},
+		"GET /api/v1/proposals/:id": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/proposals/" + w.consignor.proposalID)
 		},
 	}
 }

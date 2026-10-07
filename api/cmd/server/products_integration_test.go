@@ -17,7 +17,7 @@ func consignorBrowser(t *testing.T) *browser {
 func TestProducts_FRPRD03_CreateEditArchiveAndReactivateAgainstTheDatabase(t *testing.T) {
 	visitor := consignorBrowser(t)
 	contract := loadContract(t)
-	created := visitor.postProduct(productBody(""))
+	created := visitor.postJSON(productsPath, productBody(""))
 	productPath := productsPath + "/" + quotedAfter(string(created.body), `"id":"`)
 
 	edited := visitor.patch(productPath, strings.Replace(productBody("ROT-0001"), `"pcs"`, `"bungkus"`, 1))
@@ -38,8 +38,8 @@ func TestProducts_FRPRD03_CreateEditArchiveAndReactivateAgainstTheDatabase(t *te
 
 func TestProducts_FRPRD05_SearchFindsByNameAndSKU(t *testing.T) {
 	visitor := consignorBrowser(t)
-	visitor.postProduct(productBody(""))
-	visitor.postProduct(strings.Replace(productBody(""), "Roti Sobek Cokelat", "Keripik Pedas", 1))
+	visitor.postJSON(productsPath, productBody(""))
+	visitor.postJSON(productsPath, strings.Replace(productBody(""), "Roti Sobek Cokelat", "Keripik Pedas", 1))
 
 	byName := visitor.get(productsPath + "?q=keripik")
 	bySKU := visitor.get(productsPath + "?q=rot-0001")
@@ -54,9 +54,9 @@ func TestProducts_FRPRD05_SearchFindsByNameAndSKU(t *testing.T) {
 
 func TestProducts_BRPRD01_DuplicateSKUIsAFieldError(t *testing.T) {
 	visitor := consignorBrowser(t)
-	visitor.postProduct(productBody("ROT-0001"))
+	visitor.postJSON(productsPath, productBody("ROT-0001"))
 
-	got := visitor.postProduct(productBody("rot-0001"))
+	got := visitor.postJSON(productsPath, productBody("rot-0001"))
 
 	requireCode(t, got, "VALIDATION_FAILED")
 	if got.status != http.StatusUnprocessableEntity || !strings.Contains(string(got.body), `"code":"TAKEN"`) {
@@ -71,7 +71,7 @@ func TestProducts_FRPRD01_ProductPhotoUploadedByTheConsignorIsLinked(t *testing.
 		part{name: "file", filename: "roti.jpg", data: photoWithLocation(t)})
 	photoID := quotedAfter(string(uploaded.body), `"id":"`)
 
-	got := visitor.postProduct(strings.Replace(productBody(""), `"photo_file_id":null`,
+	got := visitor.postJSON(productsPath, strings.Replace(productBody(""), `"photo_file_id":null`,
 		`"photo_file_id":"`+photoID+`"`, 1))
 
 	if got.status != http.StatusCreated || !strings.Contains(string(got.body), `"photo":{"id":"`+photoID+`"`) {
@@ -82,7 +82,7 @@ func TestProducts_FRPRD01_ProductPhotoUploadedByTheConsignorIsLinked(t *testing.
 
 func TestProducts_FRPRD04_SeekingStoresToggleIsSaved(t *testing.T) {
 	visitor := consignorBrowser(t)
-	created := visitor.postProduct(productBody(""))
+	created := visitor.postJSON(productsPath, productBody(""))
 	productPath := productsPath + "/" + quotedAfter(string(created.body), `"id":"`)
 
 	got := visitor.patch(productPath+"/seeking", `{"is_seeking_stores":true}`)

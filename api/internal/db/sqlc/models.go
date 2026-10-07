@@ -10,6 +10,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Agreement struct {
+	ID                 string
+	PartnershipID      string
+	Version            int32
+	Status             string
+	SettlementSchedule string
+	PaymentTermsDays   int32
+	CountRhythm        string
+	Notes              string
+	SourceProposalID   string
+	ProposedBy         string
+	AcceptedBy         string
+	AcceptedAt         time.Time
+	EffectiveFrom      time.Time
+	CreatedAt          time.Time
+}
+
+type AgreementItem struct {
+	AgreementID   string
+	ProductID     string
+	PricingModel  string
+	RetailPrice   int64
+	CommissionBps int32
+	DepositPrice  int64
+	IsActive      bool
+}
+
 type AuditLog struct {
 	ID             string
 	OrganizationID pgtype.UUID
@@ -48,6 +75,13 @@ type ConsignorProfile struct {
 	CanProvideSample     bool
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
+}
+
+type DocumentSequence struct {
+	OrganizationID string
+	Prefix         string
+	Period         string
+	LastValue      int32
 }
 
 type File struct {
@@ -117,6 +151,22 @@ type Organization struct {
 	PaymentQrFileID pgtype.UUID
 }
 
+type Partnership struct {
+	ID             string
+	ConsignorOrgID string
+	StoreOrgID     string
+	Status         string
+	ShowOnPublic   bool
+	StartedAt      time.Time
+	EndedAt        pgtype.Timestamptz
+	EndedByOrgID   pgtype.UUID
+	EndReason      string
+	SealSeq        int32
+	SealHeadHash   []byte
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type Product struct {
 	ID                    string
 	ConsignorOrgID        string
@@ -135,6 +185,49 @@ type Product struct {
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 	IsSeekingStores       bool
+}
+
+type Proposal struct {
+	ID                string
+	Number            string
+	Kind              string
+	ConsignorOrgID    pgtype.UUID
+	StoreOrgID        pgtype.UUID
+	FromOrgID         string
+	AwaitingOrgID     pgtype.UUID
+	PartnershipID     pgtype.UUID
+	InviteCode        pgtype.Text
+	Status            string
+	CurrentRevisionNo int32
+	ExpiresAt         time.Time
+	DecidedBy         pgtype.UUID
+	DecidedAt         pgtype.Timestamptz
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+}
+
+type ProposalItem struct {
+	RevisionID    string
+	ProductID     string
+	Action        string
+	PricingModel  string
+	RetailPrice   int64
+	CommissionBps int32
+	DepositPrice  int64
+}
+
+type ProposalRevision struct {
+	ID                 string
+	ProposalID         string
+	RevisionNo         int32
+	AuthorOrgID        string
+	AuthorUserID       string
+	SettlementSchedule string
+	PaymentTermsDays   int32
+	CountRhythm        string
+	Notes              string
+	Message            string
+	CreatedAt          time.Time
 }
 
 type Session struct {

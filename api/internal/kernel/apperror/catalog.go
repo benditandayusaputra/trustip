@@ -24,6 +24,10 @@ const (
 	CodeCaptchaFailed        Code = "CAPTCHA_FAILED"
 	CodeOrganizationExists   Code = "ORGANIZATION_EXISTS"
 	CodeProfileIncomplete    Code = "PROFILE_INCOMPLETE"
+	CodeInviteWrongOrgType   Code = "INVITE_WRONG_ORG_TYPE"
+	CodeProposalExpired      Code = "PROPOSAL_EXPIRED"
+	CodeProposalAlreadyOpen  Code = "PROPOSAL_ALREADY_OPEN"
+	CodeAlreadyPartners      Code = "ALREADY_PARTNERS"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -73,6 +77,7 @@ func requestEntries() map[Code]entry {
 		CodeProfileIncomplete: {
 			KindValidation, http.StatusUnprocessableEntity, "Lengkapi profil dulu: {daftar}.",
 		},
+		CodeInviteWrongOrgType: {KindValidation, http.StatusUnprocessableEntity, "Undangan ini untuk {jenis}."},
 	}
 }
 
@@ -110,6 +115,14 @@ func outcomeEntries() map[Code]entry {
 		CodeOrganizationExists: {
 			KindConflict, http.StatusConflict,
 			"Akun Anda sudah terhubung ke sebuah usaha.",
+		},
+		CodeProposalExpired: {KindConflict, http.StatusConflict, "Ajuan ini sudah kedaluwarsa."},
+		CodeProposalAlreadyOpen: {
+			KindConflict, http.StatusConflict, "Masih ada Ajuan yang terbuka dengan {organisasi}.",
+		},
+		CodeAlreadyPartners: {
+			KindConflict, http.StatusConflict,
+			"Anda sudah bermitra dengan {organisasi}. Ajukan perubahan Kesepakatan.",
 		},
 		CodeRateLimited: {
 			KindRateLimited, http.StatusTooManyRequests,

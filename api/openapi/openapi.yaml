@@ -1168,6 +1168,154 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/invitations:
+    post:
+      operationId: sendInvitation
+      tags: [proposal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationRequest"
+      responses:
+        "201":
+          description: Ajuan tanpa sasaran dengan kode undangan dibuat
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/invitations/{code}:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: viewInvitation
+      tags: [proposal]
+      responses:
+        "200":
+          description: Ringkasan undangan untuk organisasi bertipe berlawanan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/invitations/{code}/claim:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: claimInvitation
+      tags: [proposal]
+      responses:
+        "200":
+          description: Organisasi pelaku menjadi pihak lawan Ajuan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/proposals/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getProposal
+      tags: [proposal]
+      responses:
+        "200":
+          description: Ajuan beserta revisi terakhirnya, hanya untuk kedua pihak
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -1294,6 +1442,10 @@ components:
         - CAPTCHA_FAILED
         - ORGANIZATION_EXISTS
         - PROFILE_INCOMPLETE
+        - INVITE_WRONG_ORG_TYPE
+        - PROPOSAL_EXPIRED
+        - PROPOSAL_ALREADY_OPEN
+        - ALREADY_PARTNERS
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -2104,3 +2256,238 @@ components:
       properties:
         is_seeking_stores:
           type: boolean
+    SettlementSchedule:
+      type: string
+      enum: [ON_COUNT, WEEKLY, MONTHLY]
+    CountRhythm:
+      type: string
+      enum: [DAILY, EACH_VISIT, WEEKLY]
+    PricingModel:
+      type: string
+      enum: [FIXED_DEPOSIT, COMMISSION]
+    GeneralTerms:
+      type: object
+      additionalProperties: false
+      required: [settlement_schedule, payment_terms_days, count_rhythm, notes]
+      properties:
+        settlement_schedule:
+          $ref: "#/components/schemas/SettlementSchedule"
+        payment_terms_days:
+          type: integer
+          minimum: 0
+          maximum: 30
+        count_rhythm:
+          $ref: "#/components/schemas/CountRhythm"
+        notes:
+          type: string
+          maxLength: 500
+    ProposalItemRequest:
+      type: object
+      additionalProperties: false
+      required: [product_id, pricing_model, retail_price, commission_bps, deposit_price]
+      properties:
+        product_id:
+          type: string
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        retail_price:
+          type: integer
+          minimum: 0
+          maximum: 100000000
+        commission_bps:
+          type: integer
+          minimum: 0
+          maximum: 5000
+        deposit_price:
+          type: integer
+          minimum: 0
+          maximum: 100000000
+    InvitationRequest:
+      type: object
+      additionalProperties: false
+      required: [terms, items, message]
+      properties:
+        terms:
+          $ref: "#/components/schemas/GeneralTerms"
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/ProposalItemRequest"
+        message:
+          type: string
+          maxLength: 1000
+    Split:
+      type: object
+      additionalProperties: false
+      required: [gross, store_share, consignor_share]
+      properties:
+        gross:
+          type: integer
+        store_share:
+          type: integer
+        consignor_share:
+          type: integer
+    ProposalItem:
+      type: object
+      additionalProperties: false
+      required:
+        - product_id
+        - product_name
+        - sku
+        - unit
+        - action
+        - pricing_model
+        - retail_price
+        - commission_bps
+        - deposit_price
+        - per_unit
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        action:
+          type: string
+          enum: [ADD, UPDATE, STOP]
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        retail_price:
+          type: integer
+        commission_bps:
+          type: integer
+        deposit_price:
+          type: integer
+        per_unit:
+          $ref: "#/components/schemas/Split"
+    PartyRef:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    ProposalRevision:
+      type: object
+      additionalProperties: false
+      required: [revision_no, author_org_id, terms, message, items, created_at]
+      properties:
+        revision_no:
+          type: integer
+          minimum: 1
+        author_org_id:
+          type: string
+          format: uuid
+        terms:
+          $ref: "#/components/schemas/GeneralTerms"
+        message:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalItem"
+        created_at:
+          type: string
+          format: date-time
+    Proposal:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - kind
+        - status
+        - consignor
+        - store
+        - from_org_id
+        - awaiting_org_id
+        - invite_code
+        - expires_at
+        - created_at
+        - revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        kind:
+          type: string
+          enum: [NEW, AMENDMENT]
+        status:
+          type: string
+          enum: [OPEN, ACCEPTED, DECLINED, WITHDRAWN, EXPIRED]
+        consignor:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/PartyRef"
+        store:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/PartyRef"
+        from_org_id:
+          type: string
+          format: uuid
+        awaiting_org_id:
+          type: string
+          nullable: true
+        invite_code:
+          type: string
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        revision:
+          $ref: "#/components/schemas/ProposalRevision"
+    ProposalResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Proposal"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    Invitation:
+      type: object
+      additionalProperties: false
+      required: [sender_name, sender_type, item_count, expires_at]
+      properties:
+        sender_name:
+          type: string
+        sender_type:
+          $ref: "#/components/schemas/OrganizationType"
+        item_count:
+          type: integer
+          minimum: 0
+        expires_at:
+          type: string
+          format: date-time
+    InvitationResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Invitation"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
