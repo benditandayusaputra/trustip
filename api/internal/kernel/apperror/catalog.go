@@ -1,6 +1,9 @@
 package apperror
 
-import "net/http"
+import (
+	"maps"
+	"net/http"
+)
 
 type Code string
 
@@ -12,11 +15,13 @@ const (
 	CodeUnsupportedMediaType Code = "UNSUPPORTED_MEDIA_TYPE"
 	CodeUnauthenticated      Code = "UNAUTHENTICATED"
 	CodeSessionExpired       Code = "SESSION_EXPIRED"
+	CodeLoginFailed          Code = "LOGIN_FAILED"
 	CodeEdgeSignatureInvalid Code = "EDGE_SIGNATURE_INVALID"
 	CodeForbidden            Code = "FORBIDDEN"
 	CodeNotFound             Code = "NOT_FOUND"
 	CodeCaptchaFailed        Code = "CAPTCHA_FAILED"
 	CodeRateLimited          Code = "RATE_LIMITED"
+	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
 	CodeInternal             Code = "INTERNAL"
 )
@@ -41,6 +46,13 @@ type entry struct {
 }
 
 func catalog() map[Code]entry {
+	entries := requestEntries()
+	maps.Copy(entries, accessEntries())
+	maps.Copy(entries, outcomeEntries())
+	return entries
+}
+
+func requestEntries() map[Code]entry {
 	return map[Code]entry{
 		CodeValidationFailed: {KindValidation, http.StatusUnprocessableEntity, "Periksa kembali isian Anda."},
 		CodeUnknownField: {
@@ -53,18 +65,33 @@ func catalog() map[Code]entry {
 			KindValidation, http.StatusUnsupportedMediaType,
 			"Jenis isi permintaan tidak didukung.",
 		},
+		CodeCaptchaFailed: {KindValidation, http.StatusUnprocessableEntity, "Verifikasi keamanan gagal. Coba lagi."},
+	}
+}
+
+func accessEntries() map[Code]entry {
+	return map[Code]entry{
 		CodeUnauthenticated: {KindUnauthenticated, http.StatusUnauthorized, "Silakan masuk dulu."},
 		CodeSessionExpired: {
 			KindUnauthenticated, http.StatusUnauthorized,
 			"Sesi Anda berakhir. Silakan masuk lagi.",
 		},
 		CodeEdgeSignatureInvalid: {KindUnauthenticated, http.StatusUnauthorized, "Permintaan tidak sah."},
-		CodeForbidden:            {KindForbidden, http.StatusForbidden, "Peran Anda tidak diizinkan melakukan ini."},
+		CodeLoginFailed:          {KindUnauthenticated, http.StatusUnauthorized, "Email atau kata sandi salah."},
+		CodeAccountLocked: {
+			KindRateLimited, http.StatusTooManyRequests,
+			"Akun dikunci sementara karena terlalu banyak percobaan masuk. Coba lagi dalam {n} menit.",
+		},
+		CodeForbidden: {KindForbidden, http.StatusForbidden, "Peran Anda tidak diizinkan melakukan ini."},
 		CodeNotFound: {
 			KindNotFound, http.StatusNotFound,
 			"Data tidak ditemukan atau Anda tidak punya akses.",
 		},
-		CodeCaptchaFailed: {KindValidation, http.StatusUnprocessableEntity, "Verifikasi keamanan gagal. Coba lagi."},
+	}
+}
+
+func outcomeEntries() map[Code]entry {
+	return map[Code]entry{
 		CodeRateLimited: {
 			KindRateLimited, http.StatusTooManyRequests,
 			"Terlalu banyak percobaan. Coba lagi dalam {n} menit.",

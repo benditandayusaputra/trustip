@@ -3,24 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import RegisterHarness from '#lib/testing/RegisterHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
-import type { TurnstileApi, TurnstileRenderOptions } from '#lib/components/ui/turnstile.js';
+import { installFakeCaptcha, type FakeCaptcha } from '#lib/testing/captcha.js';
 
-let solveCaptcha: (token: string) => void = () => undefined;
-let resetCount = 0;
-
-function installCaptcha(): void {
-	const api: TurnstileApi = {
-		render: (_container, options: TurnstileRenderOptions) => {
-			solveCaptcha = options.callback;
-			return 'widget-1';
-		},
-		reset: () => {
-			resetCount += 1;
-		},
-		remove: () => undefined
-	};
-	window.turnstile = api;
-}
+let captcha: FakeCaptcha;
 
 function jsonResponse(status: number, body: unknown): Response {
 	return Response.json(body, { status });
@@ -33,13 +18,12 @@ async function fillValidForm(): Promise<void> {
 	await userEvent.fill(page.getByLabelText('Nomor WhatsApp'), '0812 3456 7890');
 	await userEvent.click(page.getByRole('checkbox'));
 	await vi.waitFor(() => {
-		solveCaptcha('solved-token');
+		captcha.solve('solved-token');
 	});
 }
 
 beforeEach(() => {
-	resetCount = 0;
-	installCaptcha();
+	captcha = installFakeCaptcha();
 });
 
 afterEach(() => {
@@ -113,7 +97,7 @@ describe('RegisterForm', () => {
 
 		await expect.element(page.getByLabelText('Email')).toHaveFocus();
 		await expect.element(page.getByText('Email sudah terdaftar. Silakan masuk.')).toBeVisible();
-		expect(resetCount).toBe(1);
+		expect(captcha.resets()).toBe(1);
 	});
 
 	it('keeps the input and offers a retry when the network fails', async () => {

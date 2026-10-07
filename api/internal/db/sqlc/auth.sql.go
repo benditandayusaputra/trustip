@@ -12,6 +12,32 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createSession = `-- name: CreateSession :exec
+INSERT INTO sessions (id, user_id, family_id, token_hash, expires_at, created_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type CreateSessionParams struct {
+	ID        string
+	UserID    string
+	FamilyID  string
+	TokenHash []byte
+	ExpiresAt time.Time
+	CreatedAt time.Time
+}
+
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
+	_, err := q.db.Exec(ctx, createSession,
+		arg.ID,
+		arg.UserID,
+		arg.FamilyID,
+		arg.TokenHash,
+		arg.ExpiresAt,
+		arg.CreatedAt,
+	)
+	return err
+}
+
 const createUser = `-- name: CreateUser :exec
 INSERT INTO users (
     id, email, password_hash, pepper_version, full_name, whatsapp,
@@ -79,4 +105,57 @@ func (q *Queries) FindUserByEmail(ctx context.Context, email string) (FindUserBy
 		&i.PrivacyAcceptedAt,
 	)
 	return i, err
+}
+
+const lockLoginAttempts = `-- name: LockLoginAttempts :one
+SELECT failed_login_count, locked_until
+FROM users
+WHERE id = $1
+FOR UPDATE
+`
+
+type LockLoginAttemptsRow struct {
+	FailedLoginCount int32
+	LockedUntil      pgtype.Timestamptz
+}
+
+func (q *Queries) LockLoginAttempts(ctx context.Context, id string) (LockLoginAttemptsRow, error) {
+	row := q.db.QueryRow(ctx, lockLoginAttempts, id)
+	var i LockLoginAttemptsRow
+	err := row.Scan(&i.FailedLoginCount, &i.LockedUntil)
+	return i, err
+}
+
+const saveLoginAttempts = `-- name: SaveLoginAttempts :exec
+UPDATE users
+SET failed_login_count = $1, locked_until = $2, updated_at = now()
+WHERE id = $3
+`
+
+type SaveLoginAttemptsParams struct {
+	FailedLoginCount int32
+	LockedUntil      pgtype.Timestamptz
+	ID               string
+}
+
+func (q *Queries) SaveLoginAttempts(ctx context.Context, arg SaveLoginAttemptsParams) error {
+	_, err := q.db.Exec(ctx, saveLoginAttempts, arg.FailedLoginCount, arg.LockedUntil, arg.ID)
+	return err
+}
+
+const savePassword = `-- name: SavePassword :exec
+UPDATE users
+SET password_hash = $1, pepper_version = $2, updated_at = now()
+WHERE id = $3
+`
+
+type SavePasswordParams struct {
+	PasswordHash  string
+	PepperVersion string
+	ID            string
+}
+
+func (q *Queries) SavePassword(ctx context.Context, arg SavePasswordParams) error {
+	_, err := q.db.Exec(ctx, savePassword, arg.PasswordHash, arg.PepperVersion, arg.ID)
+	return err
 }

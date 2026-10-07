@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"time"
@@ -18,18 +17,27 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
-const signupsPerHourPerIP = 3
+const (
+	signupsPerHourPerIP = 3
+	loginsPerMinute     = 5
+	loginsPerHour       = 20
+)
 
 func passwordHashing() security.Argon2Params {
 	return security.MinimumArgon2Params()
 }
 
 type authComponents struct {
-	captcha service.CaptchaVerifier
-	hasher  service.PasswordHasher
-	users   service.UserCreator
-	clock   service.Clock
-	ids     service.IDGenerator
+	captcha     service.CaptchaVerifier
+	passwords   service.PasswordVerifier
+	users       service.UserCreator
+	credentials service.CredentialStore
+	sessions    service.SessionCreator
+	tokens      service.TokenIssuer
+	tx          service.Transactor
+	clock       service.Clock
+	ids         service.IDGenerator
+	cookies     authhandler.CookiePolicy
 }
 
 func buildAuthComponents(cfg config.Config, pool *database.Pool, clock service.Clock) (authComponents, error) {
@@ -37,55 +45,75 @@ func buildAuthComponents(cfg config.Config, pool *database.Pool, clock service.C
 	if err != nil {
 		return authComponents{}, fmt.Errorf("build password hasher: %w", err)
 	}
-	turnstile := captcha.NewTurnstile(captcha.Options{
-		Secret:           cfg.Turnstile.SecretKey,
-		ExpectedHostname: cfg.Turnstile.ExpectedHostname,
-		Endpoint:         captcha.SiteVerifyURL,
-		Timeout:          captcha.DefaultTimeout,
-	})
+	users := repository.NewUsers(pool)
 	return authComponents{
-		captcha: captchaVerifier{turnstile: turnstile},
-		hasher:  passwordHasher{hasher: hasher},
-		users:   repository.NewUsers(pool),
-		clock:   clock,
-		ids:     idgen.UUIDv7{},
+		captcha:     captchaVerifier{turnstile: newTurnstile(cfg.Turnstile)},
+		passwords:   passwordHasher{hasher: hasher},
+		users:       users,
+		credentials: users,
+		sessions:    repository.NewSessions(pool),
+		tokens:      tokenIssuer{signer: security.NewTokenSigner(cfg.JWTKeys)},
+		tx:          pool,
+		clock:       clock,
+		ids:         idgen.UUIDv7{},
+		cookies:     cookiePolicy(cfg.Environment),
 	}, nil
 }
 
+func newTurnstile(cfg config.Turnstile) *captcha.Turnstile {
+	return captcha.NewTurnstile(captcha.Options{
+		Secret:           cfg.SecretKey,
+		ExpectedHostname: cfg.ExpectedHostname,
+		Endpoint:         captcha.SiteVerifyURL,
+		Timeout:          captcha.DefaultTimeout,
+	})
+}
+
+func cookiePolicy(environment config.Environment) authhandler.CookiePolicy {
+	if environment == config.Production {
+		return authhandler.ProductionCookies()
+	}
+	return authhandler.LocalCookies()
+}
+
 func authDeps(components authComponents, securityLog *slog.Logger, limiterClock ratelimit.Clock) authhandler.Deps {
+	perMinute := ratelimit.Rule{Limit: loginsPerMinute, Window: time.Minute}
+	perHour := ratelimit.Rule{Limit: loginsPerHour, Window: time.Hour}
 	return authhandler.Deps{
-		Register: service.NewRegisterUser(service.RegisterDeps{
-			Captcha: components.captcha,
-			Hasher:  components.hasher,
-			Users:   components.users,
-			Policy:  domain.NewPasswordPolicy(),
-			Clock:   components.clock,
-			IDs:     components.ids,
-		}),
+		Register:      newRegisterUser(components),
+		Login:         newLoginUser(components),
 		SignupLimiter: ratelimit.New(ratelimit.Rule{Limit: signupsPerHourPerIP, Window: time.Hour}, limiterClock),
-		SecurityLog:   securityLog,
+		LoginLimiters: authhandler.LoginLimiters{
+			PerIPMinute:    ratelimit.New(perMinute, limiterClock),
+			PerIPHour:      ratelimit.New(perHour, limiterClock),
+			PerEmailMinute: ratelimit.New(perMinute, limiterClock),
+			PerEmailHour:   ratelimit.New(perHour, limiterClock),
+		},
+		Cookies:     components.cookies,
+		SecurityLog: securityLog,
 	}
 }
 
-type captchaVerifier struct {
-	turnstile *captcha.Turnstile
+func newRegisterUser(components authComponents) *service.RegisterUser {
+	return service.NewRegisterUser(service.RegisterDeps{
+		Captcha: components.captcha,
+		Hasher:  components.passwords,
+		Users:   components.users,
+		Policy:  domain.NewPasswordPolicy(),
+		Clock:   components.clock,
+		IDs:     components.ids,
+	})
 }
 
-func (v captchaVerifier) Verify(ctx context.Context, challenge service.CaptchaChallenge) error {
-	if err := v.turnstile.Verify(ctx, captcha.Challenge(challenge)); err != nil {
-		return fmt.Errorf("verify captcha: %w", err)
-	}
-	return nil
-}
-
-type passwordHasher struct {
-	hasher *security.PasswordHasher
-}
-
-func (h passwordHasher) Hash(password string) (domain.StoredPassword, error) {
-	stored, err := h.hasher.Hash(password)
-	if err != nil {
-		return domain.StoredPassword{}, fmt.Errorf("hash password: %w", err)
-	}
-	return domain.StoredPassword(stored), nil
+func newLoginUser(components authComponents) *service.LoginUser {
+	return service.NewLoginUser(service.LoginDeps{
+		Captcha:     components.captcha,
+		Passwords:   components.passwords,
+		Credentials: components.credentials,
+		Sessions:    components.sessions,
+		Tokens:      components.tokens,
+		Tx:          components.tx,
+		Clock:       components.clock,
+		IDs:         components.ids,
+	})
 }

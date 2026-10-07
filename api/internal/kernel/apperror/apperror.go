@@ -40,8 +40,16 @@ func Internal(cause error) *Error {
 }
 
 func RateLimited(retryAfterSeconds int) *Error {
+	return retryLater(CodeRateLimited, retryAfterSeconds)
+}
+
+func AccountLocked(retryAfterSeconds int) *Error {
+	return retryLater(CodeAccountLocked, retryAfterSeconds)
+}
+
+func retryLater(code Code, retryAfterSeconds int) *Error {
 	minutes := (retryAfterSeconds + secondsPerMinute - 1) / secondsPerMinute
-	limited := &Error{code: CodeRateLimited, retryAfter: retryAfterSeconds}
+	limited := &Error{code: code, retryAfter: retryAfterSeconds}
 	return limited.WithParam("n", strconv.Itoa(minutes))
 }
 

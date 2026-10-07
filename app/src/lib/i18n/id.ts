@@ -75,6 +75,16 @@ export const id = {
 			created: 'Akun dibuat. Silakan masuk.',
 			offline: 'Daftar butuh koneksi internet. Sambungkan lalu coba lagi.'
 		},
+		login: {
+			title: 'Masuk',
+			intro: 'Masuk untuk melanjutkan pencatatan bersama mitra.',
+			email: 'Email',
+			password: 'Kata sandi',
+			submit: 'Masuk',
+			noAccount: 'Belum punya akun?',
+			register: 'Daftar',
+			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.'
+		},
 		validation: {
 			required: 'Wajib diisi.',
 			minLength: (count: number) => `Minimal ${String(count)} karakter.`,

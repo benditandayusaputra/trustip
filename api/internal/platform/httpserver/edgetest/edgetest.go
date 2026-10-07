@@ -37,7 +37,17 @@ func TestKeys() Keys {
 	return Keys{KeyID: Key()}
 }
 
+type Origin struct {
+	At       time.Time
+	ClientIP string
+}
+
 func Sign(t *testing.T, req *http.Request, signedAt time.Time) {
+	t.Helper()
+	SignFrom(t, req, Origin{At: signedAt, ClientIP: ClientIP})
+}
+
+func SignFrom(t *testing.T, req *http.Request, origin Origin) {
 	t.Helper()
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -48,9 +58,9 @@ func Sign(t *testing.T, req *http.Request, signedAt time.Time) {
 		KeyID:     KeyID,
 		Method:    req.Method,
 		URI:       req.URL.RequestURI(),
-		Timestamp: strconv.FormatInt(signedAt.Unix(), 10),
+		Timestamp: strconv.FormatInt(origin.At.Unix(), 10),
 		Nonce:     randomNonce(t),
-		ClientIP:  ClientIP,
+		ClientIP:  origin.ClientIP,
 		Body:      body,
 	}
 	mac := hmac.New(sha256.New, Key())

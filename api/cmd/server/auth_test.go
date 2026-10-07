@@ -13,6 +13,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
+	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver/edgetest"
@@ -38,18 +39,78 @@ func (acceptSolvedCaptcha) Verify(_ context.Context, challenge service.CaptchaCh
 }
 
 type memoryUsers struct {
-	mu     sync.Mutex
-	emails map[string]bool
+	mu      sync.Mutex
+	byEmail map[string]domain.Credentials
 }
 
 func (m *memoryUsers) CreateUser(_ context.Context, user domain.User) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if m.emails[user.Email] {
+	if _, taken := m.byEmail[user.Email]; taken {
 		return domain.ErrEmailTaken
 	}
-	m.emails[user.Email] = true
+	m.byEmail[user.Email] = domain.Credentials{
+		UserID: user.ID, Email: user.Email, FullName: user.FullName, Password: user.Password,
+	}
 	return nil
+}
+
+func (m *memoryUsers) FindCredentials(_ context.Context, email string) (domain.Credentials, bool, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	credentials, ok := m.byEmail[email]
+	return credentials, ok, nil
+}
+
+func (m *memoryUsers) LockLoginAttempts(_ context.Context, userID string) (domain.LoginAttempts, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.byID(userID).Attempts, nil
+}
+
+func (m *memoryUsers) SaveLoginAttempts(_ context.Context, userID string, attempts domain.LoginAttempts) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	credentials := m.byID(userID)
+	credentials.Attempts = attempts
+	m.byEmail[credentials.Email] = credentials
+	return nil
+}
+
+func (m *memoryUsers) SavePassword(_ context.Context, userID string, password domain.StoredPassword) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	credentials := m.byID(userID)
+	credentials.Password = password
+	m.byEmail[credentials.Email] = credentials
+	return nil
+}
+
+func (m *memoryUsers) byID(userID string) domain.Credentials {
+	for _, credentials := range m.byEmail {
+		if credentials.UserID == userID {
+			return credentials
+		}
+	}
+	return domain.Credentials{}
+}
+
+type memorySessions struct {
+	mu      sync.Mutex
+	created []domain.Session
+}
+
+func (m *memorySessions) CreateSession(_ context.Context, session domain.Session) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.created = append(m.created, session)
+	return nil
+}
+
+type inlineTx struct{}
+
+func (inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
+	return work(ctx)
 }
 
 func testAuthComponents(now *clock.Manual) authComponents {
@@ -57,12 +118,18 @@ func testAuthComponents(now *clock.Manual) authComponents {
 	if err != nil {
 		panic(err)
 	}
+	users := &memoryUsers{byEmail: map[string]domain.Credentials{}}
 	return authComponents{
-		captcha: acceptSolvedCaptcha{},
-		hasher:  passwordHasher{hasher: hasher},
-		users:   &memoryUsers{emails: map[string]bool{}},
-		clock:   now,
-		ids:     idgen.NewSequence(),
+		captcha:     acceptSolvedCaptcha{},
+		passwords:   passwordHasher{hasher: hasher},
+		users:       users,
+		credentials: users,
+		sessions:    &memorySessions{},
+		tokens:      tokenIssuer{signer: security.NewTokenSigner(testPepper{})},
+		tx:          inlineTx{},
+		clock:       now,
+		ids:         idgen.NewSequence(),
+		cookies:     authhandler.LocalCookies(),
 	}
 }
 

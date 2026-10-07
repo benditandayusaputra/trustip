@@ -47,7 +47,7 @@ func (p Argon2Params) isWeakerThan(other Argon2Params) bool {
 	return p.MemoryKiB < other.MemoryKiB || p.Iterations < other.Iterations || p.Parallelism < other.Parallelism
 }
 
-type PepperRing interface {
+type SecretRing interface {
 	Active() (string, []byte)
 	Lookup(id string) ([]byte, bool)
 }
@@ -63,12 +63,12 @@ type PasswordCheck struct {
 }
 
 type PasswordHasher struct {
-	peppers PepperRing
+	peppers SecretRing
 	params  Argon2Params
 	slots   chan struct{}
 }
 
-func NewPasswordHasher(peppers PepperRing, params Argon2Params) (*PasswordHasher, error) {
+func NewPasswordHasher(peppers SecretRing, params Argon2Params) (*PasswordHasher, error) {
 	if params.isWeakerThan(MinimumArgon2Params()) {
 		return nil, ErrWeakArgon2Params
 	}

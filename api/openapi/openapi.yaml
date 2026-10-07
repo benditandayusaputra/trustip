@@ -102,6 +102,48 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/sessions:
+    post:
+      operationId: logIn
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Masuk berhasil. Token akses dan token penyegar dipasang sebagai cookie HttpOnly, tidak pernah di isi jawaban
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Set-Cookie:
+              $ref: "#/components/headers/SetCookie"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -121,6 +163,10 @@ components:
       schema:
         type: integer
     Location:
+      required: true
+      schema:
+        type: string
+    SetCookie:
       required: true
       schema:
         type: string
@@ -191,11 +237,13 @@ components:
         - UNSUPPORTED_MEDIA_TYPE
         - UNAUTHENTICATED
         - SESSION_EXPIRED
+        - LOGIN_FAILED
         - EDGE_SIGNATURE_INVALID
         - FORBIDDEN
         - NOT_FOUND
         - CAPTCHA_FAILED
         - RATE_LIMITED
+        - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
         - INTERNAL
     ResponseMeta:
@@ -349,3 +397,14 @@ components:
           $ref: "#/components/schemas/Account"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, captcha_token]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        captcha_token:
+          type: string

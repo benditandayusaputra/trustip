@@ -31,6 +31,8 @@ func TestCatalog_StatusesFollowContractTable(t *testing.T) {
 		apperror.CodeForbidden:            http.StatusForbidden,
 		apperror.CodeNotFound:             http.StatusNotFound,
 		apperror.CodeCaptchaFailed:        http.StatusUnprocessableEntity,
+		apperror.CodeLoginFailed:          http.StatusUnauthorized,
+		apperror.CodeAccountLocked:        http.StatusTooManyRequests,
 		apperror.CodeRateLimited:          http.StatusTooManyRequests,
 		apperror.CodeServiceUnavailable:   http.StatusServiceUnavailable,
 		apperror.CodeInternal:             http.StatusInternalServerError,
@@ -128,5 +130,14 @@ func TestWithCause_KeepsCodeAndWrapsCause(t *testing.T) {
 
 	if err.Code() != apperror.CodeServiceUnavailable || !errors.Is(err, cause) || err.RetryAfter() != 5 {
 		t.Fatalf("code = %s, wraps = %v, retry = %d", err.Code(), errors.Is(err, cause), err.RetryAfter())
+	}
+}
+
+func TestAccountLocked_CarriesRetryAfterAndMinutes(t *testing.T) {
+	err := apperror.AccountLocked(900)
+
+	if err.RetryAfter() != 900 || err.Message() !=
+		"Akun dikunci sementara karena terlalu banyak percobaan masuk. Coba lagi dalam 15 menit." {
+		t.Fatalf("retry = %d, message = %q", err.RetryAfter(), err.Message())
 	}
 }

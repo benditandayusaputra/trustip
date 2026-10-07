@@ -25,7 +25,10 @@ func testNow() time.Time {
 }
 
 func newTestServer(ready httpserver.ReadinessCheck) *httpserver.Server {
-	now := clock.NewManual(testNow())
+	return newTestServerAt(ready, clock.NewManual(testNow()))
+}
+
+func newTestServerAt(ready httpserver.ReadinessCheck, now *clock.Manual) *httpserver.Server {
 	return newServer(logger.New(&bytes.Buffer{}, slog.LevelInfo), serverDeps{
 		ready:   ready,
 		edge:    security.NewEdgeVerifier(edgetest.TestKeys(), now),
