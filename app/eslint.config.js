@@ -116,7 +116,7 @@ export default defineConfig(
 		extends: [ts.configs.disableTypeChecked]
 	},
 	{
-		files: ['src/lib/api/client.ts', 'src/lib/server/**'],
+		files: ['src/lib/api/client.ts', 'src/lib/server/**', 'src/service-worker/**'],
 		rules: { 'no-restricted-globals': 'off' }
 	},
 	{

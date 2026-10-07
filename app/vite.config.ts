@@ -7,6 +7,8 @@ import adapter from '@sveltejs/adapter-vercel';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { contentSecurityPolicy } from './csp.config';
 
+const versionPollMs = 300_000;
+
 const isLibraryFile = (filename: string) => filename.split(/[/\\]/).includes('node_modules');
 
 function kitPlugin(mode: string) {
@@ -16,6 +18,8 @@ function kitPlugin(mode: string) {
 			runes: ({ filename }) => (isLibraryFile(filename) ? undefined : true)
 		},
 		adapter: adapter(),
+		version: { pollInterval: versionPollMs },
+		prerender: { crawl: false },
 		csp: {
 			mode: 'hash',
 			directives: contentSecurityPolicy({

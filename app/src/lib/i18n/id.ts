@@ -42,7 +42,14 @@ export const id = {
 		unreadable: 'Jawaban server tidak bisa dibaca. Coba lagi.'
 	},
 	system: {
-		apiVersion: (version: string) => `Versi API ${version}`
+		apiVersion: (version: string) => `Versi API ${version}`,
+		updateAvailable: 'Versi baru Trustip tersedia.',
+		reload: 'Muat ulang'
+	},
+	offline: {
+		title: 'Tanpa koneksi',
+		body: 'Halaman ini belum tersimpan di perangkat. Sambungkan internet lalu coba lagi.',
+		retry: 'Coba lagi'
 	},
 	feedback: {
 		loading: 'Memuat',
