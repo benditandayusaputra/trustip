@@ -225,7 +225,7 @@ func (b *browser) get(path string) exchange {
 	req := httptest.NewRequestWithContext(b.t.Context(), http.MethodGet, path, http.NoBody)
 	b.attachCookies(req)
 	b.visits++
-	edgetest.SignFrom(b.t, req, edgetest.Origin{At: b.now.Now(), ClientIP: "198.51.100.201"})
+	edgetest.SignFrom(b.t, req, edgetest.Origin{At: b.now.Now(), ClientIP: fmt.Sprintf("198.51.100.%d", b.visits)})
 	return b.send(req)
 }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	agreementdomain "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/domain"
+	agreementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/handler"
 	agreementrepository "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/repository"
 	agreementservice "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/service"
 	proposaldomain "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
@@ -26,9 +27,67 @@ func (s sealSigner) Sign(digest []byte) sealdomain.Signature {
 	return sealdomain.Signature{KeyID: signature.KeyID, Bytes: signature.Bytes}
 }
 
-func newSealRecorder(pool *database.Pool, keys security.ActiveKeyring) *sealservice.Recorder {
-	return sealservice.NewRecorder(sealrepository.NewSeals(pool), sealSigner{sealer: security.NewSealer(keys)},
-		idgen.UUIDv7{})
+func (s sealSigner) Verify(digest []byte, signature sealdomain.Signature) (bool, error) {
+	isValid, err := s.sealer.Verify(digest, security.Signature(signature))
+	if err != nil {
+		return false, fmt.Errorf("verify seal signature: %w", err)
+	}
+	return isValid, nil
+}
+
+type sealComponents struct {
+	recorder *sealservice.Recorder
+	verifier *sealservice.Verifier
+}
+
+func buildSealComponents(pool *database.Pool, keys security.ActiveKeyring) sealComponents {
+	seals, signer := sealrepository.NewSeals(pool), sealSigner{sealer: security.NewSealer(keys)}
+	return sealComponents{
+		recorder: sealservice.NewRecorder(seals, signer, idgen.UUIDv7{}),
+		verifier: sealservice.NewVerifier(seals, signer),
+	}
+}
+
+type agreementSealChecker struct {
+	verifier *sealservice.Verifier
+}
+
+func (c agreementSealChecker) Check(
+	ctx context.Context, check agreementdomain.SealCheck,
+) (agreementdomain.SealVerdict, error) {
+	verdict, err := c.verifier.Check(ctx, sealdomain.Check{
+		Document: sealdomain.Document{Type: check.DocumentType, ID: check.DocumentID}, Content: check.Content,
+	})
+	if err != nil {
+		return agreementdomain.SealVerdict{}, fmt.Errorf("check seal: %w", err)
+	}
+	events := make([]agreementdomain.SealEvent, 0, len(verdict.Trail))
+	for _, entry := range verdict.Trail {
+		events = append(events, agreementdomain.SealEvent{
+			Event: string(entry.Seal.Entry.Event), ActorOrgName: entry.ActorOrgName, ActorUserName: entry.ActorUserName,
+			At: entry.Seal.Entry.OccurredAt, Code: entry.Seal.Code,
+		})
+	}
+	return agreementdomain.SealVerdict{IsValid: verdict.IsValid, Events: events}, nil
+}
+
+type agreementComponents struct {
+	reader  agreementservice.AgreementReader
+	checker agreementservice.SealChecker
+}
+
+func buildAgreementComponents(pool *database.Pool, seals sealComponents) agreementComponents {
+	return agreementComponents{
+		reader: agreementrepository.NewAgreements(pool), checker: agreementSealChecker{verifier: seals.verifier},
+	}
+}
+
+func agreementDeps(components agreementComponents, routes proposalRoutes) agreementhandler.Deps {
+	return agreementhandler.Deps{
+		Authenticate: routes.authenticate,
+		Get:          agreementservice.NewGetAgreement(components.reader, components.checker),
+		SecurityLog:  routes.securityLog,
+	}
 }
 
 type agreementSealer struct {
@@ -53,9 +112,9 @@ type agreementFounder struct {
 	founder *agreementservice.Founder
 }
 
-func newAgreementFounder(pool *database.Pool, recorder *sealservice.Recorder) agreementFounder {
+func newAgreementFounder(pool *database.Pool, seals sealComponents) agreementFounder {
 	return agreementFounder{founder: agreementservice.NewFounder(agreementservice.FounderDeps{
-		Agreements: agreementrepository.NewAgreements(pool), Sealer: agreementSealer{recorder: recorder},
+		Agreements: agreementrepository.NewAgreements(pool), Sealer: agreementSealer{recorder: seals.recorder},
 		IDs: idgen.UUIDv7{},
 	})}
 }

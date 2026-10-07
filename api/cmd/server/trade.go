@@ -1,0 +1,47 @@
+package main
+
+import (
+	"log/slog"
+
+	"github.com/gofiber/fiber/v3"
+
+	agreementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/handler"
+	producthandler "github.com/benditandayusaputra/trustip/api/internal/modules/product/handler"
+	proposalhandler "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/handler"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
+)
+
+type tradeComponents struct {
+	products   productComponents
+	proposals  proposalComponents
+	agreements agreementComponents
+}
+
+func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
+	seals := buildSealComponents(pool, sealKeys)
+	return tradeComponents{
+		products: buildProductComponents(pool, clock),
+		proposals: buildProposalComponents(pool, clock, proposalCollaborators{
+			founder: newAgreementFounder(pool, seals), announcer: newOrganizationAnnouncer(pool, clock),
+		}),
+		agreements: buildAgreementComponents(pool, seals),
+	}
+}
+
+type tradeRoutes struct {
+	authenticate fiber.Handler
+	filesBaseURL string
+	writeLimiter httpserver.RateLimiter
+	securityLog  *slog.Logger
+}
+
+func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes) {
+	producthandler.Mount(api, productDeps(components.products, productRoutes(routes)))
+	negotiation := proposalRoutes{
+		authenticate: routes.authenticate, writeLimiter: routes.writeLimiter, securityLog: routes.securityLog,
+	}
+	proposalhandler.Mount(api, proposalDeps(components.proposals, negotiation))
+	agreementhandler.Mount(api, agreementDeps(components.agreements, negotiation))
+}

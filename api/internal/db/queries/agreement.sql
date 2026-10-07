@@ -18,3 +18,33 @@ FROM (
         unnest(@retail_prices::bigint[]) AS retail_price, unnest(@commission_bps::bigint[]) AS commission_bps,
         unnest(@deposit_prices::bigint[]) AS deposit_price
 ) AS item;
+
+-- name: GetActiveAgreement :one
+SELECT
+    a.id, a.partnership_id, a.version, a.status, a.settlement_schedule, a.payment_terms_days, a.count_rhythm,
+    a.notes, a.source_proposal_id, pr.number AS proposal_number, a.proposed_by, a.accepted_by, a.accepted_at,
+    pu.full_name AS proposer_name, COALESCE(po.name, '')::text AS proposer_org_name,
+    au.full_name AS acceptor_name, COALESCE(ao.name, '')::text AS acceptor_org_name,
+    p.consignor_org_id, c.name AS consignor_name, p.store_org_id, s.name AS store_name
+FROM agreements AS a
+JOIN partnerships AS p ON p.id = a.partnership_id
+JOIN proposals AS pr ON pr.id = a.source_proposal_id
+JOIN organizations AS c ON c.id = p.consignor_org_id
+JOIN organizations AS s ON s.id = p.store_org_id
+JOIN users AS pu ON pu.id = a.proposed_by
+JOIN users AS au ON au.id = a.accepted_by
+LEFT JOIN memberships AS pm ON pm.user_id = a.proposed_by
+LEFT JOIN organizations AS po ON po.id = pm.organization_id
+LEFT JOIN memberships AS am ON am.user_id = a.accepted_by
+LEFT JOIN organizations AS ao ON ao.id = am.organization_id
+WHERE a.partnership_id = @partnership_id::uuid AND a.status = 'ACTIVE'
+    AND (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organization_id::uuid);
+
+-- name: ListAgreementItems :many
+SELECT
+    i.product_id, pr.name AS product_name, pr.sku, pr.unit, i.pricing_model, i.retail_price, i.commission_bps,
+    i.deposit_price, i.is_active
+FROM agreement_items AS i
+JOIN products AS pr ON pr.id = i.product_id
+WHERE i.agreement_id = @agreement_id::uuid
+ORDER BY pr.name, pr.id;

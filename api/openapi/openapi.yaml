@@ -1476,6 +1476,38 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/agreement:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getActiveAgreement
+      tags: [agreement]
+      responses:
+        "200":
+          description: Kesepakatan aktif yang sama untuk kedua pihak, dengan status segel yang dihitung ulang
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgreementResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -2713,3 +2745,137 @@ components:
             $ref: "#/components/schemas/ProposalSummary"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    AgreementItem:
+      type: object
+      additionalProperties: false
+      required:
+        - product_id
+        - product_name
+        - sku
+        - unit
+        - pricing_model
+        - retail_price
+        - commission_bps
+        - deposit_price
+        - is_active
+        - per_unit
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        retail_price:
+          type: integer
+        commission_bps:
+          type: integer
+        deposit_price:
+          type: integer
+        is_active:
+          type: boolean
+        per_unit:
+          $ref: "#/components/schemas/Split"
+    Person:
+      type: object
+      additionalProperties: false
+      required: [name, organization_name]
+      properties:
+        name:
+          type: string
+        organization_name:
+          type: string
+    SealEvent:
+      type: object
+      additionalProperties: false
+      required: [event_type, actor_org_name, actor_user_name, occurred_at, code]
+      properties:
+        event_type:
+          type: string
+        actor_org_name:
+          type: string
+        actor_user_name:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        code:
+          type: string
+          pattern: "^[A-Z2-7]{4}(-[A-Z2-7]{4}){3}$"
+    SealStatus:
+      type: object
+      additionalProperties: false
+      required: [is_valid, events]
+      properties:
+        is_valid:
+          type: boolean
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/SealEvent"
+    Agreement:
+      type: object
+      additionalProperties: false
+      required: [id, partnership_id, version, status, number, consignor, store, terms, items, trail, seal]
+      properties:
+        id:
+          type: string
+          format: uuid
+        partnership_id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [ACTIVE, SUPERSEDED]
+        number:
+          type: string
+        consignor:
+          $ref: "#/components/schemas/PartyRef"
+        store:
+          $ref: "#/components/schemas/PartyRef"
+        terms:
+          $ref: "#/components/schemas/GeneralTerms"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgreementItem"
+        trail:
+          type: object
+          additionalProperties: false
+          required: [proposed_by, accepted_by, accepted_at, source_proposal_id, source_proposal_number]
+          properties:
+            proposed_by:
+              $ref: "#/components/schemas/Person"
+            accepted_by:
+              $ref: "#/components/schemas/Person"
+            accepted_at:
+              type: string
+              format: date-time
+            source_proposal_id:
+              type: string
+              format: uuid
+            source_proposal_number:
+              type: string
+        seal:
+          $ref: "#/components/schemas/SealStatus"
+    AgreementResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Agreement"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"

@@ -168,3 +168,31 @@ func VerifyChain(seals []Seal) error {
 	}
 	return nil
 }
+
+type TrailEntry struct {
+	Seal          Seal
+	ActorOrgName  string
+	ActorUserName string
+}
+
+type Check struct {
+	Document Document
+	Content  any
+}
+
+type Verdict struct {
+	IsValid bool
+	Trail   []TrailEntry
+}
+
+func Judge(trail []TrailEntry, contentHash []byte, isSigned func(Seal) bool) Verdict {
+	if len(trail) == 0 {
+		return Verdict{Trail: trail}
+	}
+	latest := trail[len(trail)-1].Seal
+	isValid := bytes.Equal(latest.Entry.ContentHash, contentHash)
+	for _, entry := range trail {
+		isValid = isValid && entry.Seal.CheckEntry() == nil && isSigned(entry.Seal)
+	}
+	return Verdict{IsValid: isValid, Trail: trail}
+}

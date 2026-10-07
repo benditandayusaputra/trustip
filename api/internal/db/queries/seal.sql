@@ -30,3 +30,14 @@ ORDER BY seq;
 
 -- name: DeleteSealsOfPartnership :execrows
 DELETE FROM seals WHERE partnership_id = @partnership_id::uuid;
+
+-- name: ListEntitySeals :many
+SELECT
+    s.id, s.partnership_id, s.seq, s.event_type, s.entity_type, s.entity_id, s.entity_number, s.content_hash,
+    s.actor_user_id, s.actor_org_id, s.occurred_at, s.prev_hash, s.entry_hash, s.signature, s.key_id, s.code,
+    o.name AS actor_org_name, u.full_name AS actor_user_name
+FROM seals AS s
+JOIN organizations AS o ON o.id = s.actor_org_id
+JOIN users AS u ON u.id = s.actor_user_id
+WHERE s.entity_type = @entity_type::text AND s.entity_id = @entity_id::uuid
+ORDER BY s.seq;

@@ -84,3 +84,135 @@ func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams
 	)
 	return err
 }
+
+const getActiveAgreement = `-- name: GetActiveAgreement :one
+SELECT
+    a.id, a.partnership_id, a.version, a.status, a.settlement_schedule, a.payment_terms_days, a.count_rhythm,
+    a.notes, a.source_proposal_id, pr.number AS proposal_number, a.proposed_by, a.accepted_by, a.accepted_at,
+    pu.full_name AS proposer_name, COALESCE(po.name, '')::text AS proposer_org_name,
+    au.full_name AS acceptor_name, COALESCE(ao.name, '')::text AS acceptor_org_name,
+    p.consignor_org_id, c.name AS consignor_name, p.store_org_id, s.name AS store_name
+FROM agreements AS a
+JOIN partnerships AS p ON p.id = a.partnership_id
+JOIN proposals AS pr ON pr.id = a.source_proposal_id
+JOIN organizations AS c ON c.id = p.consignor_org_id
+JOIN organizations AS s ON s.id = p.store_org_id
+JOIN users AS pu ON pu.id = a.proposed_by
+JOIN users AS au ON au.id = a.accepted_by
+LEFT JOIN memberships AS pm ON pm.user_id = a.proposed_by
+LEFT JOIN organizations AS po ON po.id = pm.organization_id
+LEFT JOIN memberships AS am ON am.user_id = a.accepted_by
+LEFT JOIN organizations AS ao ON ao.id = am.organization_id
+WHERE a.partnership_id = $1::uuid AND a.status = 'ACTIVE'
+    AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+`
+
+type GetActiveAgreementParams struct {
+	PartnershipID  string
+	OrganizationID string
+}
+
+type GetActiveAgreementRow struct {
+	ID                 string
+	PartnershipID      string
+	Version            int32
+	Status             string
+	SettlementSchedule string
+	PaymentTermsDays   int32
+	CountRhythm        string
+	Notes              string
+	SourceProposalID   string
+	ProposalNumber     string
+	ProposedBy         string
+	AcceptedBy         string
+	AcceptedAt         time.Time
+	ProposerName       string
+	ProposerOrgName    string
+	AcceptorName       string
+	AcceptorOrgName    string
+	ConsignorOrgID     string
+	ConsignorName      string
+	StoreOrgID         string
+	StoreName          string
+}
+
+func (q *Queries) GetActiveAgreement(ctx context.Context, arg GetActiveAgreementParams) (GetActiveAgreementRow, error) {
+	row := q.db.QueryRow(ctx, getActiveAgreement, arg.PartnershipID, arg.OrganizationID)
+	var i GetActiveAgreementRow
+	err := row.Scan(
+		&i.ID,
+		&i.PartnershipID,
+		&i.Version,
+		&i.Status,
+		&i.SettlementSchedule,
+		&i.PaymentTermsDays,
+		&i.CountRhythm,
+		&i.Notes,
+		&i.SourceProposalID,
+		&i.ProposalNumber,
+		&i.ProposedBy,
+		&i.AcceptedBy,
+		&i.AcceptedAt,
+		&i.ProposerName,
+		&i.ProposerOrgName,
+		&i.AcceptorName,
+		&i.AcceptorOrgName,
+		&i.ConsignorOrgID,
+		&i.ConsignorName,
+		&i.StoreOrgID,
+		&i.StoreName,
+	)
+	return i, err
+}
+
+const listAgreementItems = `-- name: ListAgreementItems :many
+SELECT
+    i.product_id, pr.name AS product_name, pr.sku, pr.unit, i.pricing_model, i.retail_price, i.commission_bps,
+    i.deposit_price, i.is_active
+FROM agreement_items AS i
+JOIN products AS pr ON pr.id = i.product_id
+WHERE i.agreement_id = $1::uuid
+ORDER BY pr.name, pr.id
+`
+
+type ListAgreementItemsRow struct {
+	ProductID     string
+	ProductName   string
+	Sku           string
+	Unit          string
+	PricingModel  string
+	RetailPrice   int64
+	CommissionBps int32
+	DepositPrice  int64
+	IsActive      bool
+}
+
+func (q *Queries) ListAgreementItems(ctx context.Context, agreementID string) ([]ListAgreementItemsRow, error) {
+	rows, err := q.db.Query(ctx, listAgreementItems, agreementID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAgreementItemsRow{}
+	for rows.Next() {
+		var i ListAgreementItemsRow
+		if err := rows.Scan(
+			&i.ProductID,
+			&i.ProductName,
+			&i.Sku,
+			&i.Unit,
+			&i.PricingModel,
+			&i.RetailPrice,
+			&i.CommissionBps,
+			&i.DepositPrice,
+			&i.IsActive,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

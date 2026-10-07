@@ -179,3 +179,47 @@ func TestSealed_RSEC28_InvalidTextInTheEntryIsRefused(t *testing.T) {
 		t.Fatalf("seal = %v, check = %v", sealErr, checkErr)
 	}
 }
+
+func signed(Seal) bool { return true }
+
+func trailOf(t *testing.T, length int) ([]TrailEntry, []byte) {
+	t.Helper()
+	trail := []TrailEntry{}
+	for _, seal := range chainOf(t, length) {
+		trail = append(trail, TrailEntry{Seal: seal, ActorOrgName: "Warung Bu Sri"})
+	}
+	return trail, trail[len(trail)-1].Seal.Entry.ContentHash
+}
+
+func TestJudge_RSEC33_UnchangedContentWithSignedEntriesIsValid(t *testing.T) {
+	trail, contentHash := trailOf(t, 2)
+
+	if verdict := Judge(trail, contentHash, signed); !verdict.IsValid || len(verdict.Trail) != 2 {
+		t.Fatalf("verdict = %+v", verdict)
+	}
+}
+
+func TestJudge_RSEC33_ChangedContentIsInvalid(t *testing.T) {
+	trail, _ := trailOf(t, 1)
+
+	if Judge(trail, []byte("other"), signed).IsValid {
+		t.Fatal("changed content judged valid")
+	}
+}
+
+func TestJudge_RSEC33_BadSignatureOrRewrittenEntryIsInvalid(t *testing.T) {
+	trail, contentHash := trailOf(t, 2)
+	unsigned := func(Seal) bool { return false }
+	rewritten := append([]TrailEntry{}, trail...)
+	rewritten[0].Seal.Entry.ActorUserID = "someone-else"
+
+	if Judge(trail, contentHash, unsigned).IsValid || Judge(rewritten, contentHash, signed).IsValid {
+		t.Fatal("tampered trail judged valid")
+	}
+}
+
+func TestJudge_RSEC33_DocumentWithoutSealIsInvalid(t *testing.T) {
+	if Judge(nil, []byte("x"), signed).IsValid {
+		t.Fatal("unsealed document judged valid")
+	}
+}

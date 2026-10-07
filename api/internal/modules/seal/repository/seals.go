@@ -93,3 +93,28 @@ func toSeal(row sqlc.ListPartnershipSealsRow) domain.Seal {
 		Code:      row.Code,
 	}
 }
+
+func (r *Seals) ListEntitySeals(ctx context.Context, document domain.Document) ([]domain.TrailEntry, error) {
+	readCtx, cancel := database.ReadContext(ctx)
+	defer cancel()
+	rows, err := sqlc.New(r.pool.Querier(ctx)).ListEntitySeals(readCtx, sqlc.ListEntitySealsParams{
+		EntityType: document.Type, EntityID: document.ID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list seals of %s %s: %w", document.Type, document.ID, err)
+	}
+	trail := make([]domain.TrailEntry, 0, len(rows))
+	for _, row := range rows {
+		seal := toSeal(sqlc.ListPartnershipSealsRow{
+			ID: row.ID, PartnershipID: row.PartnershipID, Seq: row.Seq, EventType: row.EventType,
+			EntityType: row.EntityType, EntityID: row.EntityID, EntityNumber: row.EntityNumber,
+			ContentHash: row.ContentHash, ActorUserID: row.ActorUserID, ActorOrgID: row.ActorOrgID,
+			OccurredAt: row.OccurredAt, PrevHash: row.PrevHash, EntryHash: row.EntryHash, Signature: row.Signature,
+			KeyID: row.KeyID, Code: row.Code,
+		})
+		trail = append(trail, domain.TrailEntry{
+			Seal: seal, ActorOrgName: row.ActorOrgName, ActorUserName: row.ActorUserName,
+		})
+	}
+	return trail, nil
+}

@@ -644,6 +644,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/partnerships/{id}/agreement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getActiveAgreement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1106,6 +1124,65 @@ export interface components {
             message: string;
             data: components["schemas"]["ProposalSummary"][];
             meta: components["schemas"]["ListMeta"];
+        };
+        AgreementItem: {
+            /** Format: uuid */
+            product_id: string;
+            product_name: string;
+            sku: string;
+            unit: string;
+            pricing_model: components["schemas"]["PricingModel"];
+            retail_price: number;
+            commission_bps: number;
+            deposit_price: number;
+            is_active: boolean;
+            per_unit: components["schemas"]["Split"];
+        };
+        Person: {
+            name: string;
+            organization_name: string;
+        };
+        SealEvent: {
+            event_type: string;
+            actor_org_name: string;
+            actor_user_name: string;
+            /** Format: date-time */
+            occurred_at: string;
+            code: string;
+        };
+        SealStatus: {
+            is_valid: boolean;
+            events: components["schemas"]["SealEvent"][];
+        };
+        Agreement: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            partnership_id: string;
+            version: number;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUPERSEDED";
+            number: string;
+            consignor: components["schemas"]["PartyRef"];
+            store: components["schemas"]["PartyRef"];
+            terms: components["schemas"]["GeneralTerms"];
+            items: components["schemas"]["AgreementItem"][];
+            trail: {
+                proposed_by: components["schemas"]["Person"];
+                accepted_by: components["schemas"]["Person"];
+                /** Format: date-time */
+                accepted_at: string;
+                /** Format: uuid */
+                source_proposal_id: string;
+                source_proposal_number: string;
+            };
+            seal: components["schemas"]["SealStatus"];
+        };
+        AgreementResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Agreement"];
+            meta: components["schemas"]["ResponseMeta"];
         };
     };
     responses: {
@@ -2510,6 +2587,35 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getActiveAgreement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kesepakatan aktif yang sama untuk kedua pihak, dengan status segel yang dihitung ulang */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgreementResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

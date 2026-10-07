@@ -38,6 +38,8 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	world.consignor.inviteCode = quotedAfter(string(sent.body), `"invite_code":"`)
 	world.consignor.proposalID = quotedAfter(string(sent.body), `"id":"`)
 	storeOwner.post(invitationsPath + "/" + world.consignor.inviteCode + "/claim")
+	accepted := storeOwner.post("/api/v1/proposals/" + world.consignor.proposalID + "/accept")
+	world.consignor.partnershipID = quotedAfter(string(accepted.body), `"partnership_id":"`)
 	world.storeStranger = storeOwner.anotherUserOnTheSameServer("tini@contoh.id")
 	world.storeStranger.found(strings.Replace(onboarding(semarangCityCode), "Warung Bu Tini", "Toko Lain", 1), "LOGO")
 	world.consignorStranger = storeOwner.anotherUserOnTheSameServer("ani@contoh.id")

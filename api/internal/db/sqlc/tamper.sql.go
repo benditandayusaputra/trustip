@@ -9,6 +9,25 @@ import (
 	"context"
 )
 
+const tamperAgreementItemPrice = `-- name: TamperAgreementItemPrice :execrows
+UPDATE agreement_items SET retail_price = $1::bigint
+WHERE agreement_id = $2::uuid AND product_id = $3::uuid
+`
+
+type TamperAgreementItemPriceParams struct {
+	RetailPrice int64
+	AgreementID string
+	ProductID   string
+}
+
+func (q *Queries) TamperAgreementItemPrice(ctx context.Context, arg TamperAgreementItemPriceParams) (int64, error) {
+	result, err := q.db.Exec(ctx, tamperAgreementItemPrice, arg.RetailPrice, arg.AgreementID, arg.ProductID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const tamperSealNumber = `-- name: TamperSealNumber :execrows
 UPDATE seals SET entity_number = $1::text WHERE id = $2::uuid
 `

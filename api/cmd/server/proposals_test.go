@@ -9,6 +9,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	agreementdomain "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
@@ -132,4 +133,20 @@ func TestViewInvitation_MalformedCodeIsNotFound(t *testing.T) {
 
 	requireCode(t, got, "NOT_FOUND")
 	loadContract(t).requireConforms(t, got)
+}
+
+type missingAgreements struct{}
+
+func (missingAgreements) GetActiveAgreement(
+	context.Context, agreementdomain.PartnershipKey,
+) (agreementdomain.View, error) {
+	return agreementdomain.View{}, apperror.NotFound()
+}
+
+func (missingAgreements) Check(context.Context, agreementdomain.SealCheck) (agreementdomain.SealVerdict, error) {
+	return agreementdomain.SealVerdict{}, nil
+}
+
+func testAgreementComponents() agreementComponents {
+	return agreementComponents{reader: missingAgreements{}, checker: missingAgreements{}}
 }

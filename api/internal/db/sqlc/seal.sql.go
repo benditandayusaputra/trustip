@@ -94,6 +94,83 @@ func (q *Queries) DeleteSealsOfPartnership(ctx context.Context, partnershipID st
 	return result.RowsAffected(), nil
 }
 
+const listEntitySeals = `-- name: ListEntitySeals :many
+SELECT
+    s.id, s.partnership_id, s.seq, s.event_type, s.entity_type, s.entity_id, s.entity_number, s.content_hash,
+    s.actor_user_id, s.actor_org_id, s.occurred_at, s.prev_hash, s.entry_hash, s.signature, s.key_id, s.code,
+    o.name AS actor_org_name, u.full_name AS actor_user_name
+FROM seals AS s
+JOIN organizations AS o ON o.id = s.actor_org_id
+JOIN users AS u ON u.id = s.actor_user_id
+WHERE s.entity_type = $1::text AND s.entity_id = $2::uuid
+ORDER BY s.seq
+`
+
+type ListEntitySealsParams struct {
+	EntityType string
+	EntityID   string
+}
+
+type ListEntitySealsRow struct {
+	ID            string
+	PartnershipID string
+	Seq           int32
+	EventType     string
+	EntityType    string
+	EntityID      string
+	EntityNumber  string
+	ContentHash   []byte
+	ActorUserID   string
+	ActorOrgID    string
+	OccurredAt    time.Time
+	PrevHash      []byte
+	EntryHash     []byte
+	Signature     []byte
+	KeyID         string
+	Code          string
+	ActorOrgName  string
+	ActorUserName string
+}
+
+func (q *Queries) ListEntitySeals(ctx context.Context, arg ListEntitySealsParams) ([]ListEntitySealsRow, error) {
+	rows, err := q.db.Query(ctx, listEntitySeals, arg.EntityType, arg.EntityID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListEntitySealsRow{}
+	for rows.Next() {
+		var i ListEntitySealsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PartnershipID,
+			&i.Seq,
+			&i.EventType,
+			&i.EntityType,
+			&i.EntityID,
+			&i.EntityNumber,
+			&i.ContentHash,
+			&i.ActorUserID,
+			&i.ActorOrgID,
+			&i.OccurredAt,
+			&i.PrevHash,
+			&i.EntryHash,
+			&i.Signature,
+			&i.KeyID,
+			&i.Code,
+			&i.ActorOrgName,
+			&i.ActorUserName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPartnershipSeals = `-- name: ListPartnershipSeals :many
 SELECT
     id, partnership_id, seq, event_type, entity_type, entity_id, entity_number, content_hash, actor_user_id,

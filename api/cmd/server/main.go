@@ -13,8 +13,6 @@ import (
 	filehandler "github.com/benditandayusaputra/trustip/api/internal/modules/file/handler"
 	notificationhandler "github.com/benditandayusaputra/trustip/api/internal/modules/notification/handler"
 	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
-	producthandler "github.com/benditandayusaputra/trustip/api/internal/modules/product/handler"
-	proposalhandler "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -59,19 +57,15 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		return err
 	}
 	server := newServer(base, serverDeps{
-		ready:    pool.Ping,
-		edge:     security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
-		limiter:  ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
-		clock:    systemClock,
-		auth:     components,
-		org:      buildOrgComponents(pool, systemClock),
-		files:    buildFileComponents(pool, cfg, systemClock),
-		inbox:    buildNotificationComponents(pool, systemClock),
-		products: buildProductComponents(pool, systemClock),
-		proposals: buildProposalComponents(pool, systemClock, proposalCollaborators{
-			founder:   newAgreementFounder(pool, newSealRecorder(pool, cfg.SealKeys)),
-			announcer: newOrganizationAnnouncer(pool, systemClock),
-		}),
+		ready:     pool.Ping,
+		edge:      security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
+		limiter:   ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
+		clock:     systemClock,
+		auth:      components,
+		org:       buildOrgComponents(pool, systemClock),
+		files:     buildFileComponents(pool, cfg, systemClock),
+		inbox:     buildNotificationComponents(pool, systemClock),
+		trade:     buildTradeComponents(pool, systemClock, cfg.SealKeys),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -92,8 +86,7 @@ type serverDeps struct {
 	org       orgComponents
 	files     fileComponents
 	inbox     notificationComponents
-	products  productComponents
-	proposals proposalComponents
+	trade     tradeComponents
 	appOrigin string
 }
 
@@ -132,13 +125,10 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	notificationhandler.Mount(server.API(), notificationDeps(deps.inbox, notificationRoutes{
 		authenticate: authenticate, writeLimiter: writeLimiter, securityLog: securityLog,
 	}))
-	producthandler.Mount(server.API(), productDeps(deps.products, productRoutes{
+	mountTrade(server.API(), deps.trade, tradeRoutes{
 		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
 		securityLog: securityLog,
-	}))
-	proposalhandler.Mount(server.API(), proposalDeps(deps.proposals, proposalRoutes{
-		authenticate: authenticate, writeLimiter: writeLimiter, securityLog: securityLog,
-	}))
+	})
 	return server
 }
 
