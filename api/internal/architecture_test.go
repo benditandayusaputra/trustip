@@ -32,6 +32,7 @@ type layer struct {
 
 type sourceFile struct {
 	path    string
+	ownPath string
 	layer   layer
 	imports []string
 	decls   []*ast.FuncDecl
@@ -40,7 +41,7 @@ type sourceFile struct {
 func TestArchitecture_ImportsFollowLayerRules(t *testing.T) {
 	for _, file := range loadSourceFiles(t) {
 		for _, imported := range file.imports {
-			if !isImportAllowed(file.layer, imported) {
+			if imported != file.ownPath && !isImportAllowed(file.layer, imported) {
 				t.Errorf("%s (%s) must not import %s", file.path, file.layer.kind, imported)
 			}
 		}
@@ -239,6 +240,7 @@ func parseSourceFile(t *testing.T, path string) (sourceFile, bool) {
 	}
 	return sourceFile{
 		path:    path,
+		ownPath: importPathOf(path),
 		layer:   layerOf(relativeToInternal(path)),
 		imports: importPaths(parsed),
 		decls:   funcDecls(parsed),
@@ -251,6 +253,10 @@ func relativeToInternal(path string) string {
 		return "."
 	}
 	return relative
+}
+
+func importPathOf(path string) string {
+	return modulePath + "/" + filepath.ToSlash(filepath.Dir(strings.TrimPrefix(path, "../")))
 }
 
 func importPaths(file *ast.File) []string {
