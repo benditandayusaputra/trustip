@@ -7,16 +7,18 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
 )
 
 func main() {
 	cfg, err := config.Load(os.Environ())
 	if err != nil {
-		slog.Error("refusing to start", "error", err)
+		logger.New(os.Stderr, slog.LevelInfo).Error("refusing to start", "error", err)
 		os.Exit(1)
 	}
+	appLog := logger.ForStream(logger.New(os.Stdout, cfg.LogLevel), logger.App)
 	if err := newApp().Listen(cfg.HTTPAddr); err != nil {
-		slog.Error("server stopped", "error", err)
+		appLog.Error("server stopped", "error", err)
 		os.Exit(1)
 	}
 }
