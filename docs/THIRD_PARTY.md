@@ -47,8 +47,8 @@ Disajikan dari server sendiri, subset Latin, format WOFF2, diambil dari paket Fo
 
 | Layanan atau citra | Versi | Lisensi | Alasan dipakai |
 |---|---|---|---|
-| PostgreSQL di Neon | 17 | PostgreSQL License | Basis data aplikasi yang live |
-| `postgis/postgis` | 17-3.5 | GPL-2.0 (PostGIS), PostgreSQL License | Basis data lokal dan CI dengan PostGIS dan pg_trgm, setara dengan Neon |
+| PostgreSQL di Neon | 18.6, PostGIS 3.6.4, pg_trgm 1.6 | PostgreSQL License | Basis data aplikasi yang live, dipakai juga untuk pengembangan dan uji (ADR 0009) |
+| `postgis/postgis` | 17-3.5 | GPL-2.0 (PostGIS), PostgreSQL License | Basis data uji di CI selama CI belum punya akses ke Neon |
 | Cloudflare Turnstile | API `v0` | Layanan gratis, tunduk pada ketentuan Cloudflare | Captcha pada daftar, masuk, dan akun demo. Widget dimuat hanya di halaman yang memakainya, token diverifikasi di server (R-SEC-09 sampai 13) |
 
 ## App (SvelteKit)

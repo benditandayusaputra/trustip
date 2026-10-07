@@ -27,10 +27,15 @@ func TestRun_EmptyURL_ReturnsMissingURL(t *testing.T) {
 	}
 }
 
-func TestRun_DownOnManagedDatabase_IsRefused(t *testing.T) {
-	err := run(t.Context(), &bytes.Buffer{}, []string{"down"}, "postgres://u@ep-x.ap-southeast-1.aws.neon.tech/db")
-	if !errors.Is(err, errDownOnManaged) {
-		t.Fatalf("err = %v, want %v", err, errDownOnManaged)
+func TestRun_DownOnTheApplicationDatabase_IsRefused(t *testing.T) {
+	for _, target := range []string{
+		"postgres://u@ep-x.ap-southeast-1.aws.neon.tech/neondb?sslmode=require",
+		"postgres://trustip@localhost:54329/trustip",
+		"postgres://u@ep-x.neon.tech/neondb?options=trustip_test_",
+	} {
+		if err := run(t.Context(), &bytes.Buffer{}, []string{"down"}, target); !errors.Is(err, errDownOnLiveData) {
+			t.Errorf("%s: err = %v, want %v", target, err, errDownOnLiveData)
+		}
 	}
 }
 

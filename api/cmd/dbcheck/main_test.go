@@ -48,7 +48,7 @@ func TestRun_UnreachableHost_HidesConnectionString(t *testing.T) {
 	}
 }
 
-func TestRun_LocalDatabase_ReportsVersionAndExtensions(t *testing.T) {
+func TestRun_TestDatabase_ReportsVersionAndExtensions(t *testing.T) {
 	databaseURL := dbtest.URL(t)
 	var out bytes.Buffer
 
@@ -56,7 +56,7 @@ func TestRun_LocalDatabase_ReportsVersionAndExtensions(t *testing.T) {
 		t.Fatalf("run: %v", err)
 	}
 
-	for _, want := range []string{"server_version 17", "extension pg_trgm", "extension postgis"} {
+	for _, want := range []string{"server_version ", "extension pg_trgm", "extension postgis"} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("output %q does not contain %q", out.String(), want)
 		}

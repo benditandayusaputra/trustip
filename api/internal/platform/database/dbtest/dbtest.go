@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -23,8 +22,8 @@ import (
 )
 
 const (
-	managedDatabaseHost = "neon.tech"
-	suffixBytes         = 6
+	TemporaryPrefix = "trustip_test_"
+	suffixBytes     = 6
 )
 
 func URL(t *testing.T) string {
@@ -32,9 +31,6 @@ func URL(t *testing.T) string {
 	databaseURL := os.Getenv("TEST_DATABASE_URL")
 	if databaseURL == "" {
 		t.Fatal("TEST_DATABASE_URL is empty, run tests through make test")
-	}
-	if strings.Contains(strings.ToLower(databaseURL), managedDatabaseHost) {
-		t.Fatal("tests must never run against the managed production database")
 	}
 	return databaseURL
 }
@@ -56,7 +52,7 @@ func Connect(t *testing.T, databaseURL string) *pgx.Conn {
 func TemporaryDatabase(t *testing.T) string {
 	t.Helper()
 	baseURL := URL(t)
-	name := "trustip_test_" + randomSuffix(t)
+	name := TemporaryPrefix + randomSuffix(t)
 	admin := Connect(t, baseURL)
 	identifier := pgx.Identifier{name}.Sanitize()
 	if _, err := admin.Exec(t.Context(), "CREATE DATABASE "+identifier); err != nil {

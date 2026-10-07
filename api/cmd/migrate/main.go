@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strings"
 
@@ -15,12 +16,12 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/db/migrations"
 )
 
-const managedDatabaseHost = "neon.tech"
+const temporaryTestPrefix = "trustip_test_"
 
 var (
-	errUsage         = errors.New("usage: migrate up|down|status")
-	errMissingURL    = errors.New("DATABASE_MIGRATE_URL is empty")
-	errDownOnManaged = errors.New("refusing to migrate down on the managed production database")
+	errUsage          = errors.New("usage: migrate up|down|status")
+	errMissingURL     = errors.New("DATABASE_MIGRATE_URL is empty")
+	errDownOnLiveData = errors.New("refusing to migrate down outside a temporary test database")
 )
 
 func main() {
@@ -38,8 +39,8 @@ func run(ctx context.Context, out io.Writer, args []string, databaseURL string) 
 	if databaseURL == "" {
 		return errMissingURL
 	}
-	if args[0] == "down" && isManagedDatabase(databaseURL) {
-		return errDownOnManaged
+	if args[0] == "down" && !isTemporaryTestDatabase(databaseURL) {
+		return errDownOnLiveData
 	}
 	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
@@ -48,8 +49,9 @@ func run(ctx context.Context, out io.Writer, args []string, databaseURL string) 
 	return errors.Join(execute(ctx, out, db, args[0]), db.Close())
 }
 
-func isManagedDatabase(databaseURL string) bool {
-	return strings.Contains(strings.ToLower(databaseURL), managedDatabaseHost)
+func isTemporaryTestDatabase(databaseURL string) bool {
+	parsed, err := url.Parse(databaseURL)
+	return err == nil && strings.HasPrefix(strings.TrimPrefix(parsed.Path, "/"), temporaryTestPrefix)
 }
 
 func execute(ctx context.Context, out io.Writer, db *sql.DB, command string) error {

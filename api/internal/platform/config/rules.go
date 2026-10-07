@@ -5,15 +5,9 @@ import (
 	"strings"
 )
 
-const managedDatabaseHost = "neon.tech"
-
 func (r *reader) checkEnvironmentRules(cfg Config) {
 	if cfg.Environment == Production {
 		r.checkProductionRules(cfg)
-		return
-	}
-	if strings.Contains(strings.ToLower(cfg.DatabaseURL), managedDatabaseHost) {
-		r.reject("DATABASE_URL", "must point to the local database outside production")
 	}
 }
 

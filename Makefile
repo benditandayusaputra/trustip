@@ -8,11 +8,9 @@ GOVULNCHECK_VERSION := v1.8.0
 DEADCODE_VERSION := v0.51.0
 SQLC_VERSION := v1.31.1
 
-LOCAL_DATABASE_URL := postgres://trustip@localhost:54329/trustip?sslmode=disable
-TEST_DATABASE_URL ?= $(LOCAL_DATABASE_URL)
-COMPOSE := docker compose -f api/deploy/compose.dev.yaml
+WITH_API_ENV := cd api && set -a && . ./.env && set +a
 
-.PHONY: setup tools app-deps hooks env db migrate neon-check dev dev-api dev-app check check-api \
+.PHONY: setup tools app-deps hooks env migrate neon-check dev dev-api dev-app check check-api \
 	check-app check-repo test test-api test-app build gen e2e
 
 setup: tools app-deps env hooks
@@ -34,11 +32,8 @@ env:
 hooks:
 	$(BIN)/lefthook install
 
-db:
-	$(COMPOSE) up -d --wait
-
-migrate: $(if $(CI),,db)
-	cd api && DATABASE_MIGRATE_URL='$(LOCAL_DATABASE_URL)' go run ./cmd/migrate up
+migrate:
+	$(WITH_API_ENV) && go run ./cmd/migrate up
 
 neon-check:
 	cd api && go run ./cmd/dbcheck .env.production
@@ -47,7 +42,7 @@ dev: migrate
 	$(MAKE) -j2 dev-api dev-app
 
 dev-api:
-	cd api && set -a && source .env && set +a && go run ./cmd/server
+	$(WITH_API_ENV) && go run ./cmd/server
 
 dev-app:
 	cd app && npm run dev
@@ -71,8 +66,8 @@ check-app:
 
 test: test-api test-app
 
-test-api: $(if $(CI),,db)
-	cd api && TEST_DATABASE_URL='$(TEST_DATABASE_URL)' go test -race ./...
+test-api:
+	$(WITH_API_ENV) && TEST_DATABASE_URL="$${TEST_DATABASE_URL:-$$DATABASE_MIGRATE_URL}" go test -race ./...
 
 test-app:
 	cd app && npm test

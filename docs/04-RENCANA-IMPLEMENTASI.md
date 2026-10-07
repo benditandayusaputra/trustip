@@ -38,7 +38,7 @@ Disiapkan tim sebelum fitur pertama dikerjakan. Pelaksana tidak membuat akun ata
 
 Catatan basis data:
 
-- Basis data Neon adalah basis data **aplikasi yang live**. Pengembangan dan semua uji memakai PostgreSQL ber-PostGIS lokal di kontainer (`03-ATURAN-REKAYASA.md` R-TEST-01).
+- Basis data Neon adalah basis data **aplikasi yang live**, dan juga dipakai untuk pengembangan dan semua uji (`03-ATURAN-REKAYASA.md` R-TEST-01, ADR 0009). `api/.env` memakai string koneksi yang sama dengan `DATABASE_MIGRATE_URL` di `api/.env.production`, dengan nilai diapit tanda kutip tunggal karena memuat `&`. CI tetap memakai PostgreSQL di kontainer layanan sampai CI diberi akses ke Neon.
 - String koneksi dari panel Neon biasanya memakai host berakhiran `-pooler`. Untuk migrasi, pakai host langsung, yaitu nama host yang sama tanpa `-pooler`. Server API juga memakai host langsung karena ia punya kumpulan koneksinya sendiri.
 - Bila driver menolak parameter `channel_binding` pada string koneksi, pakai versi driver yang mendukungnya. Jangan menurunkan `sslmode` di bawah `require`.
 - String koneksi hanya ditulis di berkas `.env` yang tidak dilacak git. Repositori ini publik.
@@ -106,7 +106,7 @@ Pekerjaan berjalan terus dari satu fitur ke fitur berikutnya, kecuali pada salah
 2. Dua dokumen bertentangan dan urutan otoritas di `03-ATURAN-REKAYASA.md` tidak menyelesaikannya.
 3. Sebuah gerbang tahap tetap gagal setelah tiga kali perbaikan.
 4. Satu-satunya cara maju adalah melanggar sebuah aturan `R-`.
-5. Sebuah perintah akan menghapus atau mengubah data di basis data Neon selain migrasi naik dan pengisian data contoh.
+5. Sebuah perintah akan menjalankan migrasi turun, `DROP`, `TRUNCATE`, atau `DELETE` massal terhadap basis data aplikasi di Neon. Basis data uji sementara `trustip_test_*` dikecualikan.
 6. Layanan luar yang dibutuhkan tidak bisa dijangkau.
 
 ## 5. Peta tahap

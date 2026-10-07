@@ -113,11 +113,13 @@ func TestLoad_UnknownEnvironment_IsRejected(t *testing.T) {
 	requireInvalid(t, err, "APP_ENV")
 }
 
-func TestLoad_ManagedDatabaseOutsideProduction_IsRejected(t *testing.T) {
+func TestLoad_ManagedDatabaseOutsideProduction_IsAccepted(t *testing.T) {
 	_, err := loadWith(t, func(values map[string]string) {
 		values["DATABASE_URL"] = "postgres://u@ep-x.ap-southeast-1.aws.neon.tech/db?sslmode=require"
 	})
-	requireInvalid(t, err, "DATABASE_URL")
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
 }
 
 func TestLoad_ProductionWithTurnstileTestKey_IsRejected(t *testing.T) {

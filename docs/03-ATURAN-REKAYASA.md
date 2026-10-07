@@ -1026,7 +1026,7 @@ Jejak bisnis (siapa mengubah apa) bukan log, melainkan tabel `audit_logs` (NFR-1
 | Aksesibilitas | Pemeriksa otomatis di Playwright | Setiap halaman, tanpa pelanggaran serius |
 | Performa | Lighthouse CI, uji beban ringan | Anggaran 10.1 |
 
-- **R-TEST-01** Uji integrasi dan ujung ke ujung memakai PostgreSQL lokal ber-PostGIS di kontainer. **Uji tidak pernah berjalan terhadap basis data Neon.** Server uji menolak mulai bila nama host basis data mengandung `neon.tech`.
+- **R-TEST-01** Pengembangan, uji integrasi, dan uji ujung ke ujung memakai server Neon yang sama dengan aplikasi live (ADR 0009). Uji integrasi bekerja di basis data sementara `trustip_test_<acak>` yang dibuat dan dihapus di server itu, tidak pernah di basis data aplikasi. Uji ujung ke ujung dan `make dev` memakai basis data aplikasi, sehingga data uji ikut tersimpan di sana. Migrasi turun hanya boleh ke basis data `trustip_test_*`.
 - **R-TEST-02** Setiap aturan `BR-` punya minimal satu uji yang menyebut ID-nya di nama atau sub-nama uji.
 - **R-TEST-03** Setiap "contoh wajib jadi kasus uji" di spesifikasi menjadi vektor di `api/testdata/vectors/`.
 - **R-TEST-04** Vektor yang sama dijalankan oleh uji Go dan uji TypeScript, sehingga hitungan server dan pratinjau app tidak bisa menyimpang.
