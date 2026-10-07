@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.DS_Store
+.bin/
+node_modules/
+coverage/
+dist/
+build/
+.svelte-kit/
+test-results/
+playwright-report/
+api/tmp/
+api/storage/
