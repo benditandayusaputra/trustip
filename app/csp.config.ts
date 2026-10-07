@@ -4,6 +4,7 @@ type CspDirectives = NonNullable<NonNullable<Config['csp']>['directives']>;
 type Source = NonNullable<CspDirectives['img-src']>[number];
 
 const captchaOrigin = 'https://challenges.cloudflare.com';
+const mapTileOrigin = 'https://tile.openstreetmap.org';
 
 interface PublicOrigins {
 	files?: string | undefined;
@@ -27,7 +28,7 @@ export function contentSecurityPolicy(origins: PublicOrigins): CspDirectives {
 		'script-src': ['self', captchaOrigin],
 		'style-src': ['self'],
 		'style-src-attr': ['unsafe-inline'],
-		'img-src': ['self', 'data:', 'blob:', ...originOf(origins.files)],
+		'img-src': ['self', 'data:', 'blob:', mapTileOrigin, ...originOf(origins.files)],
 		'font-src': ['self'],
 		'connect-src': ['self', ...originOf(origins.stream)],
 		'frame-src': [captchaOrigin],

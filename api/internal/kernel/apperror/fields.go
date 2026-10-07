@@ -16,6 +16,7 @@ const (
 	FieldEmailTaken        FieldCode = "EMAIL_TAKEN"
 	FieldRequired          FieldCode = "REQUIRED"
 	FieldUnknownChoice     FieldCode = "UNKNOWN_CHOICE"
+	FieldOutOfRange        FieldCode = "OUT_OF_RANGE"
 )
 
 type Param struct {
@@ -36,6 +37,7 @@ func fieldMessages() map[FieldCode]string {
 		FieldEmailTaken:        "Email sudah terdaftar. Silakan masuk.",
 		FieldRequired:          "Wajib diisi.",
 		FieldUnknownChoice:     "Pilih salah satu dari daftar.",
+		FieldOutOfRange:        "Nilai di luar rentang yang diizinkan.",
 	}
 }
 

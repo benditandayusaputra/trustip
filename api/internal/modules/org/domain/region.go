@@ -9,4 +9,5 @@ type City struct {
 	Code         string
 	Name         string
 	ProvinceName string
+	Centroid     Coordinates
 }

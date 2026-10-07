@@ -40,7 +40,10 @@ func (r *Regions) ListCities(ctx context.Context, provinceCode string) ([]domain
 	}
 	cities := make([]domain.City, 0, len(rows))
 	for _, row := range rows {
-		cities = append(cities, domain.City{Code: row.Code, Name: row.Name, ProvinceName: row.ProvinceName})
+		cities = append(cities, domain.City{
+			Code: row.Code, Name: row.Name, ProvinceName: row.ProvinceName,
+			Centroid: domain.Coordinates{Latitude: row.Latitude, Longitude: row.Longitude},
+		})
 	}
 	return cities, nil
 }

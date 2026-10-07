@@ -5,6 +5,7 @@
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { id } from '#lib/i18n/id.js';
 	import type { OnboardingWizard } from '../wizard.svelte';
+	import LocationPin from './LocationPin.svelte';
 
 	interface Props {
 		wizard: OnboardingWizard;
@@ -45,8 +46,14 @@
 	name="city_code"
 	options={cityOptions}
 	bind:value={wizard.values.cityCode}
+	onchange={() => {
+		wizard.chooseCity();
+	}}
 	error={wizard.errors.cityCode}
 />
+{#if wizard.mapCenter}
+	<LocationPin {wizard} center={wizard.mapCenter} />
+{/if}
 <TextField
 	label={text.district}
 	name="district"

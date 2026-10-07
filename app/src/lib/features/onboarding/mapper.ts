@@ -9,7 +9,8 @@ const fieldsFromServer: Record<string, OnboardingField | undefined> = {
 	whatsapp: 'whatsapp',
 	city_code: 'cityCode',
 	district: 'district',
-	address: 'address'
+	address: 'address',
+	location: 'location'
 };
 
 export function toOnboardingErrors(fields: FieldError[]): OnboardingErrors {
@@ -31,6 +32,7 @@ export function toOnboardingRequest(values: OnboardingValues): OnboardingRequest
 		whatsapp: values.whatsapp,
 		city_code: values.cityCode,
 		district: values.district,
-		address: values.address
+		address: values.address,
+		location: values.location
 	};
 }

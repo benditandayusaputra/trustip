@@ -3,6 +3,11 @@ import { id } from '#lib/i18n/id.js';
 export const steps = ['type', 'profile', 'location'] as const;
 export type Step = (typeof steps)[number];
 
+export interface GeoPoint {
+	latitude: number;
+	longitude: number;
+}
+
 export interface OnboardingValues {
 	type: '' | 'CONSIGNOR' | 'STORE';
 	name: string;
@@ -12,13 +17,14 @@ export interface OnboardingValues {
 	cityCode: string;
 	district: string;
 	address: string;
+	location: GeoPoint | null;
 }
 
 export type OnboardingField = keyof OnboardingValues;
 export type OnboardingErrors = Partial<Record<OnboardingField, string>>;
 
 interface TextRule {
-	field: Exclude<OnboardingField, 'type' | 'provinceCode' | 'cityCode'>;
+	field: Exclude<OnboardingField, 'type' | 'provinceCode' | 'cityCode' | 'location'>;
 	min: number;
 	max: number;
 }
@@ -48,6 +54,8 @@ const choiceFields: Record<Step, OnboardingField[]> = {
 	location: ['provinceCode', 'cityCode']
 };
 
+const locationFields: OnboardingField[] = ['location'];
+
 export function emptyValues(): OnboardingValues {
 	return {
 		type: '',
@@ -57,7 +65,8 @@ export function emptyValues(): OnboardingValues {
 		provinceCode: '',
 		cityCode: '',
 		district: '',
-		address: ''
+		address: '',
+		location: null
 	};
 }
 
@@ -97,7 +106,7 @@ export function stepOf(field: OnboardingField): Step {
 		steps.find(
 			(step) =>
 				choiceFields[step].includes(field) || textRules[step].some((rule) => rule.field === field)
-		) ?? 'type'
+		) ?? (locationFields.includes(field) ? 'location' : 'type')
 	);
 }
 

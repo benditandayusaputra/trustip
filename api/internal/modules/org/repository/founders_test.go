@@ -2,8 +2,11 @@ package repository_test
 
 import (
 	"errors"
+	"math"
 	"slices"
 	"testing"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
@@ -102,4 +105,46 @@ func TestTakenSlugs_BRORG02_ListsTheBaseAndItsNumberedVariantsOnly(t *testing.T)
 	if err != nil || !slices.Equal(taken, []domain.Slug{"kripik"}) {
 		t.Fatalf("taken = %v, err = %v", taken, err)
 	}
+}
+
+func TestCreateOrganization_BRORG03_StoresExactAndPublicLocation(t *testing.T) {
+	given := newWorld(t)
+	given.user(userID, "darmi@contoh.id")
+	located := founding(t, firstFounder(), "kripik")
+	located.Organization.HasLocation = true
+	located.Organization.Location = domain.Location{
+		Exact:  domain.Coordinates{Latitude: -7.0546, Longitude: 110.4386},
+		Public: domain.Coordinates{Latitude: -7.056, Longitude: 110.439},
+	}
+
+	if _, err := repository.NewFounders(given.pool).CreateOrganization(t.Context(), located); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	row, err := given.queries.FindOrganizationLocation(t.Context(), organizationID)
+	if err != nil {
+		t.Fatalf("find location: %v", err)
+	}
+	if !near(row.Latitude, -7.0546) || !near(row.Longitude, 110.4386) ||
+		!near(row.PublicLatitude, -7.056) || !near(row.PublicLongitude, 110.439) {
+		t.Fatalf("row = %+v", row)
+	}
+}
+
+func TestCreateOrganization_WithoutLocationLeavesBothPointsEmpty(t *testing.T) {
+	given := newWorld(t)
+	given.user(userID, "darmi@contoh.id")
+
+	unlocated := founding(t, firstFounder(), "kripik")
+	if _, err := repository.NewFounders(given.pool).CreateOrganization(t.Context(), unlocated); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	if _, err := given.queries.FindOrganizationLocation(t.Context(), organizationID); !errors.Is(err, pgx.ErrNoRows) {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func near(got, want float64) bool {
+	return math.Abs(got-want) < 1e-9
 }

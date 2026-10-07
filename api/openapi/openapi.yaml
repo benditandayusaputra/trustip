@@ -624,10 +624,19 @@ components:
         role:
           type: string
           enum: [OWNER, STAFF]
+    GeoPoint:
+      type: object
+      additionalProperties: false
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
     OnboardingRequest:
       type: object
       additionalProperties: false
-      required: [type, name, description, whatsapp, city_code, district, address]
+      required: [type, name, description, whatsapp, city_code, district, address, location]
       properties:
         type:
           type: string
@@ -643,10 +652,14 @@ components:
           type: string
         address:
           type: string
+        location:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/GeoPoint"
     Organization:
       type: object
       additionalProperties: false
-      required: [id, type, name, slug, description, whatsapp, city_code, city_name, district, address]
+      required: [id, type, name, slug, description, whatsapp, city_code, city_name, district, address, location]
       properties:
         id:
           type: string
@@ -670,6 +683,10 @@ components:
           type: string
         address:
           type: string
+        location:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/GeoPoint"
     OrganizationResponse:
       type: object
       additionalProperties: false
@@ -710,7 +727,7 @@ components:
     City:
       type: object
       additionalProperties: false
-      required: [code, name, province_name]
+      required: [code, name, province_name, latitude, longitude]
       properties:
         code:
           type: string
@@ -718,6 +735,10 @@ components:
           type: string
         province_name:
           type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
     CityListResponse:
       type: object
       additionalProperties: false

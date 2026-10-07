@@ -1,10 +1,18 @@
 -- name: CreateOrganization :one
 INSERT INTO organizations (
-    id, type, name, slug, description, whatsapp, city_code, city_name, district, address, created_at, updated_at
+    id, type, name, slug, description, whatsapp, city_code, city_name, district, address,
+    location, location_public, created_at, updated_at
 )
 SELECT
     @id::uuid, @type::text, @name::text, @slug::text, @description::text, @whatsapp::text,
-    c.code, c.name, @district::text, @address::text, @created_at::timestamptz, @created_at::timestamptz
+    c.code, c.name, @district::text, @address::text,
+    CASE WHEN @has_location::boolean
+        THEN ST_SetSRID(ST_MakePoint(@longitude::float8, @latitude::float8), 4326)::geography
+    END,
+    CASE WHEN @has_location::boolean
+        THEN ST_SetSRID(ST_MakePoint(@public_longitude::float8, @public_latitude::float8), 4326)::geography
+    END,
+    @created_at::timestamptz, @created_at::timestamptz
 FROM cities AS c
 WHERE c.code = @city_code::text
 RETURNING city_name;
@@ -38,7 +46,19 @@ FROM cities
 ORDER BY province_code;
 
 -- name: ListCitiesInProvince :many
-SELECT code, name, province_name
+SELECT
+    code, name, province_name,
+    ST_Y(centroid::geometry)::float8 AS latitude,
+    ST_X(centroid::geometry)::float8 AS longitude
 FROM cities
 WHERE left(code, 2) = @province_code::text
 ORDER BY name;
+
+-- name: FindOrganizationLocation :one
+SELECT
+    ST_Y(location::geometry)::float8 AS latitude,
+    ST_X(location::geometry)::float8 AS longitude,
+    ST_Y(location_public::geometry)::float8 AS public_latitude,
+    ST_X(location_public::geometry)::float8 AS public_longitude
+FROM organizations
+WHERE id = @id AND location IS NOT NULL;

@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"cmp"
+	"math"
 	"slices"
 	"testing"
 
@@ -38,9 +39,14 @@ func TestListCities_OneProvinceInNameOrder(t *testing.T) {
 		t.Fatalf("list cities: %v", err)
 	}
 
-	semarang := domain.City{Code: semarangCode, Name: "Kota Semarang", ProvinceName: "Jawa Tengah"}
 	isSorted := slices.IsSortedFunc(cities, func(a, b domain.City) int { return cmp.Compare(a.Name, b.Name) })
-	if len(cities) != citiesInCentralJava || !isSorted || !slices.Contains(cities, semarang) {
+	index := slices.IndexFunc(cities, func(city domain.City) bool { return city.Code == semarangCode })
+	if len(cities) != citiesInCentralJava || !isSorted || index < 0 {
 		t.Fatalf("cities = %d %+v", len(cities), cities)
+	}
+	semarang := cities[index]
+	if semarang.Name != "Kota Semarang" || math.Abs(semarang.Centroid.Latitude+6.99) > 0.1 ||
+		math.Abs(semarang.Centroid.Longitude-110.42) > 0.1 {
+		t.Fatalf("semarang = %+v", semarang)
 	}
 }

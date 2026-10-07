@@ -59,16 +59,21 @@ func (r *Founders) CreateOrganization(ctx context.Context, founding domain.Found
 
 func insertOrganization(ctx context.Context, queries *sqlc.Queries, organization domain.Organization) (string, error) {
 	cityName, err := queries.CreateOrganization(ctx, sqlc.CreateOrganizationParams{
-		ID:          organization.ID,
-		Type:        string(organization.Type),
-		Name:        organization.Name,
-		Slug:        string(organization.Slug),
-		Description: organization.Description,
-		Whatsapp:    organization.WhatsApp.String(),
-		CityCode:    organization.CityCode,
-		District:    organization.District,
-		Address:     organization.Address,
-		CreatedAt:   organization.CreatedAt,
+		ID:              organization.ID,
+		Type:            string(organization.Type),
+		Name:            organization.Name,
+		Slug:            string(organization.Slug),
+		Description:     organization.Description,
+		Whatsapp:        organization.WhatsApp.String(),
+		CityCode:        organization.CityCode,
+		District:        organization.District,
+		Address:         organization.Address,
+		HasLocation:     organization.HasLocation,
+		Latitude:        organization.Location.Exact.Latitude,
+		Longitude:       organization.Location.Exact.Longitude,
+		PublicLatitude:  organization.Location.Public.Latitude,
+		PublicLongitude: organization.Location.Public.Longitude,
+		CreatedAt:       organization.CreatedAt,
 	})
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):

@@ -45,7 +45,10 @@ func (memoryRegions) ListCities(_ context.Context, provinceCode string) ([]domai
 	if provinceCode != "33" {
 		return []domain.City{}, nil
 	}
-	return []domain.City{{Code: semarangCityCode, Name: "Kota Semarang", ProvinceName: "Jawa Tengah"}}, nil
+	return []domain.City{{
+		Code: semarangCityCode, Name: "Kota Semarang", ProvinceName: "Jawa Tengah",
+		Centroid: domain.Coordinates{Latitude: -6.99, Longitude: 110.42},
+	}}, nil
 }
 
 const (
@@ -63,7 +66,7 @@ func testOrgComponents(now *clock.Manual) orgComponents {
 func onboarding(cityCode string) string {
 	return `{"type":"STORE","name":"Warung Bu Tini","description":"Dekat SD.\nBuka pagi.",` +
 		`"whatsapp":"0812-3456-7890","city_code":"` + cityCode + `",` +
-		`"district":"Tembalang","address":"Jl. Sirojudin 12"}`
+		`"district":"Tembalang","address":"Jl. Sirojudin 12","location":null}`
 }
 
 func (b *browser) postOrganization(body string) exchange {
@@ -161,4 +164,30 @@ func TestListCities_ListsOneProvinceAndRejectsAMalformedCode(t *testing.T) {
 	requireCode(t, malformed, "VALIDATION_FAILED")
 	loadContract(t).requireConforms(t, found)
 	loadContract(t).requireConforms(t, malformed)
+}
+
+func TestCreateOrganization_FRORG03_PinnedLocationIsSavedAndEchoedToTheOwner(t *testing.T) {
+	visitor := signedInBrowser(t)
+	pinned := strings.Replace(onboarding(semarangCityCode), `"location":null`,
+		`"location":{"latitude":-7.0546,"longitude":110.4386}`, 1)
+
+	got := visitor.postOrganization(pinned)
+
+	if got.status != http.StatusCreated || !strings.Contains(string(got.body), `"location":{"latitude":-7.0546`) {
+		t.Fatalf("response = %d %s", got.status, got.body)
+	}
+	loadContract(t).requireConforms(t, got)
+}
+
+func TestCreateOrganization_FRORG03_LocationOutOfRangeIsAFieldError(t *testing.T) {
+	visitor := signedInBrowser(t)
+	wrong := strings.Replace(onboarding(semarangCityCode), `"location":null`,
+		`"location":{"latitude":-97,"longitude":110.4386}`, 1)
+
+	got := visitor.postOrganization(wrong)
+
+	requireCode(t, got, "VALIDATION_FAILED")
+	if !strings.Contains(string(got.body), `"field":"location","code":"OUT_OF_RANGE"`) {
+		t.Fatalf("body = %s", got.body)
+	}
 }

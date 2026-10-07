@@ -50,6 +50,7 @@ Disajikan dari server sendiri, subset Latin, format WOFF2, diambil dari paket Fo
 |---|---|---|---|
 | PostgreSQL di Neon | 18.6, PostGIS 3.6.4, pg_trgm 1.6 | PostgreSQL License | Basis data aplikasi yang live, dipakai juga untuk pengembangan dan uji (ADR 0009) |
 | `postgis/postgis` | 17-3.5 | GPL-2.0 (PostGIS), PostgreSQL License | Basis data uji di CI selama CI belum punya akses ke Neon |
+| Ubin peta OpenStreetMap (`tile.openstreetmap.org`) | Layanan ubin standar | Data ODbL, atribusi wajib tampil di peta | Latar peta di `MapView`. Tunduk pada kebijakan pemakaian ubin OSM. Untuk pemakaian besar, ganti ke penyedia ubin berbayar (spesifikasi 21.2) |
 | Cloudflare Turnstile | API `v0` | Layanan gratis, tunduk pada ketentuan Cloudflare | Captcha pada daftar, masuk, dan akun demo. Widget dimuat hanya di halaman yang memakainya, token diverifikasi di server (R-SEC-09 sampai 13) |
 
 ## App (SvelteKit)
@@ -63,6 +64,7 @@ Ukuran untuk pustaka yang ikut ke peramban diukur dari bundel terkompresi. Alat 
 | `@sveltejs/adapter-vercel` | 7.0 | MIT | Alat bangun | Deploy app ke Vercel |
 | `vite` | 8.3 | MIT | Alat bangun | Pembangun dan server pengembangan |
 | `@lucide/svelte` | 1.52 | ISC | Hanya ikon yang diimpor, sekitar 1 KB per ikon | Satu keluarga ikon garis berlisensi terbuka (`DESIGN.md` bagian 7) |
+| `leaflet`, `@types/leaflet` | 1.9.4, 1.9.22 | BSD-2-Clause, MIT | 42 KB JavaScript dan 4 KB CSS terkompresi, dimuat hanya saat peta tampil | Peta untuk menandai lokasi usaha. Dipakai hanya lewat komponen `MapView` (R-CC-50, R-APP-11) |
 | `tailwindcss`, `@tailwindcss/vite` | 4.3 | MIT | Hanya kelas yang dipakai | Gaya dari token desain |
 | `typescript`, `svelte-check` | 6.0, 4.6 | Apache-2.0, MIT | Alat pengembangan | Pemeriksaan tipe ketat |
 | `eslint`, `typescript-eslint`, `eslint-plugin-svelte`, `svelte-eslint-parser`, `@eslint/js`, `eslint-config-prettier`, `globals` | 10.12, 8.60, 3.23, 1.8, 10.0, 10.1, 17.6 | MIT | Alat pengembangan | Lint mutu, keamanan, dan batas lapisan |

@@ -51,27 +51,40 @@ func (q *Queries) CreateMembership(ctx context.Context, arg CreateMembershipPara
 
 const createOrganization = `-- name: CreateOrganization :one
 INSERT INTO organizations (
-    id, type, name, slug, description, whatsapp, city_code, city_name, district, address, created_at, updated_at
+    id, type, name, slug, description, whatsapp, city_code, city_name, district, address,
+    location, location_public, created_at, updated_at
 )
 SELECT
     $1::uuid, $2::text, $3::text, $4::text, $5::text, $6::text,
-    c.code, c.name, $7::text, $8::text, $9::timestamptz, $9::timestamptz
+    c.code, c.name, $7::text, $8::text,
+    CASE WHEN $9::boolean
+        THEN ST_SetSRID(ST_MakePoint($10::float8, $11::float8), 4326)::geography
+    END,
+    CASE WHEN $9::boolean
+        THEN ST_SetSRID(ST_MakePoint($12::float8, $13::float8), 4326)::geography
+    END,
+    $14::timestamptz, $14::timestamptz
 FROM cities AS c
-WHERE c.code = $10::text
+WHERE c.code = $15::text
 RETURNING city_name
 `
 
 type CreateOrganizationParams struct {
-	ID          string
-	Type        string
-	Name        string
-	Slug        string
-	Description string
-	Whatsapp    string
-	District    string
-	Address     string
-	CreatedAt   time.Time
-	CityCode    string
+	ID              string
+	Type            string
+	Name            string
+	Slug            string
+	Description     string
+	Whatsapp        string
+	District        string
+	Address         string
+	HasLocation     bool
+	Longitude       float64
+	Latitude        float64
+	PublicLongitude float64
+	PublicLatitude  float64
+	CreatedAt       time.Time
+	CityCode        string
 }
 
 func (q *Queries) CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (string, error) {
@@ -84,6 +97,11 @@ func (q *Queries) CreateOrganization(ctx context.Context, arg CreateOrganization
 		arg.Whatsapp,
 		arg.District,
 		arg.Address,
+		arg.HasLocation,
+		arg.Longitude,
+		arg.Latitude,
+		arg.PublicLongitude,
+		arg.PublicLatitude,
 		arg.CreatedAt,
 		arg.CityCode,
 	)
@@ -127,8 +145,40 @@ func (q *Queries) FindActiveMembership(ctx context.Context, userID string) (Find
 	return i, err
 }
 
+const findOrganizationLocation = `-- name: FindOrganizationLocation :one
+SELECT
+    ST_Y(location::geometry)::float8 AS latitude,
+    ST_X(location::geometry)::float8 AS longitude,
+    ST_Y(location_public::geometry)::float8 AS public_latitude,
+    ST_X(location_public::geometry)::float8 AS public_longitude
+FROM organizations
+WHERE id = $1 AND location IS NOT NULL
+`
+
+type FindOrganizationLocationRow struct {
+	Latitude        float64
+	Longitude       float64
+	PublicLatitude  float64
+	PublicLongitude float64
+}
+
+func (q *Queries) FindOrganizationLocation(ctx context.Context, id string) (FindOrganizationLocationRow, error) {
+	row := q.db.QueryRow(ctx, findOrganizationLocation, id)
+	var i FindOrganizationLocationRow
+	err := row.Scan(
+		&i.Latitude,
+		&i.Longitude,
+		&i.PublicLatitude,
+		&i.PublicLongitude,
+	)
+	return i, err
+}
+
 const listCitiesInProvince = `-- name: ListCitiesInProvince :many
-SELECT code, name, province_name
+SELECT
+    code, name, province_name,
+    ST_Y(centroid::geometry)::float8 AS latitude,
+    ST_X(centroid::geometry)::float8 AS longitude
 FROM cities
 WHERE left(code, 2) = $1::text
 ORDER BY name
@@ -138,6 +188,8 @@ type ListCitiesInProvinceRow struct {
 	Code         string
 	Name         string
 	ProvinceName string
+	Latitude     float64
+	Longitude    float64
 }
 
 func (q *Queries) ListCitiesInProvince(ctx context.Context, provinceCode string) ([]ListCitiesInProvinceRow, error) {
@@ -149,7 +201,13 @@ func (q *Queries) ListCitiesInProvince(ctx context.Context, provinceCode string)
 	items := []ListCitiesInProvinceRow{}
 	for rows.Next() {
 		var i ListCitiesInProvinceRow
-		if err := rows.Scan(&i.Code, &i.Name, &i.ProvinceName); err != nil {
+		if err := rows.Scan(
+			&i.Code,
+			&i.Name,
+			&i.ProvinceName,
+			&i.Latitude,
+			&i.Longitude,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

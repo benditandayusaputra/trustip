@@ -130,6 +130,13 @@ export const id = {
 		district: 'Kecamatan',
 		address: 'Alamat',
 		addressHint: 'Opsional. Alamat lengkap penitip hanya terlihat oleh toko mitra.',
+		mapLabel: 'Peta lokasi usaha. Geser peta dengan tombol panah sampai pin tepat di lokasi.',
+		mapHint: 'Opsional. Geser peta sampai pin tepat di lokasi usaha Anda.',
+		useMyLocation: 'Gunakan lokasi saya',
+		locationDenied: 'Lokasi perangkat tidak bisa dipakai. Geser peta untuk menandai lokasi.',
+		pinned: 'Lokasi ditandai.',
+		consignorPrivacy:
+			'Untuk penitip, Cari Mitra hanya menampilkan titik yang dibulatkan sekitar 500 meter.',
 		regionsFailed: {
 			title: 'Daftar wilayah tidak bisa dimuat.',
 			body: 'Periksa koneksi lalu coba lagi.'

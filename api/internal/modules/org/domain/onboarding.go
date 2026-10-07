@@ -29,6 +29,7 @@ type OnboardingForm struct {
 	CityCode    string
 	District    string
 	Address     string
+	Location    LocationInput
 }
 
 type Onboarding struct {
@@ -39,10 +40,13 @@ type Onboarding struct {
 	CityCode    string
 	District    string
 	Address     string
+	Location    Location
+	HasLocation bool
 }
 
 func NewOnboarding(form OnboardingForm) (Onboarding, error) {
 	whatsApp, whatsAppErr := contact.ParseWhatsAppNumber(form.WhatsApp)
+	location, locationProblem := locateIfGiven(actor.OrganizationType(form.Type), form.Location)
 	problems := collectProblems(
 		findTypeProblem(form.Type),
 		findLengthProblem("name", form.Name, lengthRange{min: MinNameLength, max: MaxNameLength}),
@@ -51,6 +55,7 @@ func NewOnboarding(form OnboardingForm) (Onboarding, error) {
 		findCityProblem(form.CityCode),
 		findLengthProblem("district", form.District, lengthRange{max: MaxDistrictLength}),
 		findLengthProblem("address", form.Address, lengthRange{max: MaxAddressLength}),
+		locationProblem,
 	)
 	if len(problems) > 0 {
 		return Onboarding{}, apperror.Validation(problems...)
@@ -63,7 +68,16 @@ func NewOnboarding(form OnboardingForm) (Onboarding, error) {
 		CityCode:    form.CityCode,
 		District:    form.District,
 		Address:     form.Address,
+		Location:    location,
+		HasLocation: form.Location.Given,
 	}, nil
+}
+
+func locateIfGiven(organizationType actor.OrganizationType, input LocationInput) (Location, problem) {
+	if !input.Given {
+		return Location{}, problem{}
+	}
+	return locate(organizationType, input)
 }
 
 type problem struct {

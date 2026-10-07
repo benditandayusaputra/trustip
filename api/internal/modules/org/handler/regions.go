@@ -15,9 +15,11 @@ type provinceResponse struct {
 }
 
 type cityResponse struct {
-	Code         string `json:"code"`
-	Name         string `json:"name"`
-	ProvinceName string `json:"province_name"`
+	Code         string  `json:"code"`
+	Name         string  `json:"name"`
+	ProvinceName string  `json:"province_name"`
+	Latitude     float64 `json:"latitude"`
+	Longitude    float64 `json:"longitude"`
 }
 
 func listProvinces(provinces ProvinceLister) fiber.Handler {
@@ -47,7 +49,10 @@ func listCities(cities CityLister) fiber.Handler {
 func toCityResponses(cities []domain.City) []cityResponse {
 	items := make([]cityResponse, 0, len(cities))
 	for _, city := range cities {
-		items = append(items, cityResponse{Code: city.Code, Name: city.Name, ProvinceName: city.ProvinceName})
+		items = append(items, cityResponse{
+			Code: city.Code, Name: city.Name, ProvinceName: city.ProvinceName,
+			Latitude: city.Centroid.Latitude, Longitude: city.Centroid.Longitude,
+		})
 	}
 	return items
 }

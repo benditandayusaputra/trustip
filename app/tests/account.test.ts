@@ -33,6 +33,10 @@ async function onboardStore(page: Page): Promise<void> {
 	await page.getByLabel('Provinsi').selectOption({ label: 'Jawa Tengah' });
 	await expect(page.getByRole('option', { name: 'Kota Semarang' })).toBeAttached();
 	await page.getByLabel('Kabupaten atau kota').selectOption({ label: 'Kota Semarang' });
+	await page.context().grantPermissions(['geolocation']);
+	await page.context().setGeolocation({ latitude: -7.0546, longitude: 110.4386 });
+	await page.getByRole('button', { name: 'Gunakan lokasi saya' }).click();
+	await expect(page.getByText('Lokasi ditandai.')).toBeVisible();
 	await page.getByRole('button', { name: 'Simpan dan mulai' }).click();
 }
 

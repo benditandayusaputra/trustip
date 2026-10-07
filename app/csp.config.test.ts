@@ -25,6 +25,11 @@ describe('contentSecurityPolicy', () => {
 		expect(policy['connect-src']).toEqual(['self', 'https://api.trustip.id']);
 	});
 
+	it('R-SEC-67 allows map tiles from OpenStreetMap as images only', () => {
+		expect(policy['img-src']).toContain('https://tile.openstreetmap.org');
+		expect(policy['connect-src']).not.toContain('https://tile.openstreetmap.org');
+	});
+
 	it('forbids framing and plugins', () => {
 		expect(policy['frame-ancestors']).toEqual(['none']);
 		expect(policy['object-src']).toEqual(['none']);

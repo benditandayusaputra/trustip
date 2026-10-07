@@ -17,6 +17,7 @@ import {
 	validateAll,
 	validateStep,
 	type OnboardingErrors,
+	type GeoPoint,
 	type OnboardingField,
 	type Step
 } from './schema';
@@ -40,6 +41,19 @@ export class OnboardingWizard {
 
 	constructor(client: () => ApiClient) {
 		this.#client = client;
+	}
+
+	get mapCenter(): GeoPoint | undefined {
+		const city = this.cities.find((candidate) => candidate.code === this.values.cityCode);
+		return this.values.location ?? (city && { latitude: city.latitude, longitude: city.longitude });
+	}
+
+	pinAt(point: GeoPoint): void {
+		this.values.location = point;
+	}
+
+	chooseCity(): void {
+		this.values.location = null;
 	}
 
 	get stepNumber(): number {
@@ -77,6 +91,7 @@ export class OnboardingWizard {
 
 	async chooseProvince(provinceCode: string): Promise<void> {
 		this.values.cityCode = '';
+		this.values.location = null;
 		this.cities = [];
 		if (provinceCode === '') {
 			return;

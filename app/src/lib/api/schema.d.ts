@@ -275,6 +275,10 @@ export interface components {
             /** @enum {string} */
             role: "OWNER" | "STAFF";
         };
+        GeoPoint: {
+            latitude: number;
+            longitude: number;
+        };
         OnboardingRequest: {
             type: string;
             name: string;
@@ -283,6 +287,7 @@ export interface components {
             city_code: string;
             district: string;
             address: string;
+            location: components["schemas"]["GeoPoint"] | null;
         };
         Organization: {
             /** Format: uuid */
@@ -296,6 +301,7 @@ export interface components {
             city_name: string;
             district: string;
             address: string;
+            location: components["schemas"]["GeoPoint"] | null;
         };
         OrganizationResponse: {
             code: components["schemas"]["SuccessCode"];
@@ -317,6 +323,8 @@ export interface components {
             code: string;
             name: string;
             province_name: string;
+            latitude: number;
+            longitude: number;
         };
         CityListResponse: {
             code: components["schemas"]["SuccessCode"];

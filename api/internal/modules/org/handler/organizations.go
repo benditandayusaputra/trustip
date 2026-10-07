@@ -18,6 +18,12 @@ type onboardingRequest struct {
 	CityCode    string `json:"city_code"`
 	District    string `json:"district"`
 	Address     string `json:"address"`
+	Location    *point `json:"location"`
+}
+
+type point struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
 type organizationResponse struct {
@@ -31,6 +37,7 @@ type organizationResponse struct {
 	CityName    string `json:"city_name"`
 	District    string `json:"district"`
 	Address     string `json:"address"`
+	Location    *point `json:"location"`
 }
 
 func createOrganization(creator Creator) fiber.Handler {
@@ -74,11 +81,19 @@ func (r onboardingRequest) toForm() (domain.OnboardingForm, error) {
 	return domain.OnboardingForm{
 		Type: inputs[0].Value, Name: inputs[1].Value, Description: inputs[2].Value, WhatsApp: inputs[3].Value,
 		CityCode: inputs[4].Value, District: inputs[5].Value, Address: inputs[6].Value,
+		Location: r.Location.toInput(),
 	}, nil
 }
 
+func (p *point) toInput() domain.LocationInput {
+	if p == nil {
+		return domain.LocationInput{}
+	}
+	return domain.LocationInput{Given: true, Latitude: p.Latitude, Longitude: p.Longitude}
+}
+
 func toOrganizationResponse(organization domain.Organization) organizationResponse {
-	return organizationResponse{
+	response := organizationResponse{
 		ID:          organization.ID,
 		Type:        string(organization.Type),
 		Name:        organization.Name,
@@ -90,4 +105,9 @@ func toOrganizationResponse(organization domain.Organization) organizationRespon
 		District:    organization.District,
 		Address:     organization.Address,
 	}
+	if organization.HasLocation {
+		exact := organization.Location.Exact
+		response.Location = &point{Latitude: exact.Latitude, Longitude: exact.Longitude}
+	}
+	return response
 }

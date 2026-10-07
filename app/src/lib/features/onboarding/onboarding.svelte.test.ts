@@ -26,7 +26,15 @@ function failure(status: number, body: Record<string, unknown>): Response {
 const regions: Record<string, Route> = {
 	'GET /api/v1/provinces': () => list([{ code: '33', name: 'Jawa Tengah' }]),
 	'GET /api/v1/cities?province_code=33': () =>
-		list([{ code: '33.74', name: 'Kota Semarang', province_name: 'Jawa Tengah' }])
+		list([
+			{
+				code: '33.74',
+				name: 'Kota Semarang',
+				province_name: 'Jawa Tengah',
+				latitude: -6.99,
+				longitude: 110.42
+			}
+		])
 };
 
 function serve(routes: Record<string, Route>) {
@@ -43,7 +51,20 @@ function serve(routes: Record<string, Route>) {
 
 afterEach(() => {
 	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
 });
+
+function deviceAt(latitude: number, longitude: number): void {
+	vi.spyOn(navigator.geolocation, 'getCurrentPosition').mockImplementation((success) => {
+		success({ coords: { latitude, longitude } } as GeolocationPosition);
+	});
+}
+
+function deviceRefuses(): void {
+	vi.spyOn(navigator.geolocation, 'getCurrentPosition').mockImplementation((_success, failure) => {
+		failure?.({ code: 1, message: 'User denied Geolocation' } as GeolocationPositionError);
+	});
+}
 
 async function chooseStoreAndFillProfile(): Promise<void> {
 	await userEvent.click(page.getByRole('radio', { name: /Toko/u }));
@@ -120,5 +141,54 @@ describe('OnboardingWizard', () => {
 		await chooseStoreAndFillProfile();
 
 		await expect.element(page.getByText('Daftar wilayah tidak bisa dimuat.')).toBeVisible();
+	});
+
+	it('FR-ORG-03 sends the device location after "Gunakan lokasi saya"', async () => {
+		const sent = serve({
+			'POST /api/v1/organizations': () => ok({ id: 'org-1' }),
+			'POST /api/v1/sessions/refresh': () => ok(null)
+		});
+		deviceAt(-7.0546, 110.4386);
+		const onfounded = vi.fn();
+		const { container } = await render(OnboardingHarness, { onfounded });
+
+		await chooseStoreAndFillProfile();
+		await chooseSemarang();
+		await userEvent.click(page.getByRole('button', { name: 'Gunakan lokasi saya' }));
+		await expect.element(page.getByText('Lokasi ditandai.')).toBeVisible();
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('button', { name: 'Simpan dan mulai' }));
+
+		await vi.waitFor(() => {
+			expect(onfounded).toHaveBeenCalledOnce();
+		});
+		expect(sent['POST /api/v1/organizations']).toMatchObject({
+			location: { latitude: -7.0546, longitude: 110.4386 }
+		});
+	});
+
+	it('FR-ORG-03 still lets the user mark the place by moving the map when location is refused', async () => {
+		const sent = serve({
+			'POST /api/v1/organizations': () => ok({ id: 'org-1' }),
+			'POST /api/v1/sessions/refresh': () => ok(null)
+		});
+		deviceRefuses();
+		const onfounded = vi.fn();
+		await render(OnboardingHarness, { onfounded });
+
+		await chooseStoreAndFillProfile();
+		await chooseSemarang();
+		await userEvent.click(page.getByRole('button', { name: 'Gunakan lokasi saya' }));
+		await expect.element(page.getByText(/Geser peta untuk menandai lokasi/u)).toBeVisible();
+		await userEvent.click(page.getByRole('application'));
+		await userEvent.keyboard('{ArrowRight}');
+		await expect.element(page.getByText('Lokasi ditandai.')).toBeVisible();
+		await userEvent.click(page.getByRole('button', { name: 'Simpan dan mulai' }));
+
+		await vi.waitFor(() => {
+			expect(onfounded).toHaveBeenCalledOnce();
+		});
+		const request = sent['POST /api/v1/organizations'] as { location: { longitude: number } };
+		expect(request.location.longitude).toBeGreaterThan(110.42);
 	});
 });
