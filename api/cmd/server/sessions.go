@@ -1,13 +1,20 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/revocation"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
+
+var errSessionFamilyRevoked = errors.New("session family was revoked")
 
 func newTokenIssuer(jwtKeys security.SecretRing) tokenIssuer {
 	return tokenIssuer{signer: security.NewTokenSigner(jwtKeys), refresh: security.NewRefreshTokens(jwtKeys)}
@@ -42,4 +49,29 @@ func byRefreshFamily(cookies authhandler.CookiePolicy) httpserver.RateLimitKey {
 		}
 		return httpserver.ByClientIP(c)
 	}
+}
+
+type accessVerifier struct {
+	signer  *security.TokenSigner
+	revoked *revocation.List
+	clock   service.Clock
+}
+
+func newAccessVerifier(components authComponents) accessVerifier {
+	return accessVerifier{
+		signer:  security.NewTokenSigner(components.accessKeys),
+		revoked: components.revoked,
+		clock:   components.clock,
+	}
+}
+
+func (v accessVerifier) VerifyAccess(token string) (actor.Actor, error) {
+	claims, err := v.signer.Verify(token, v.clock.Now())
+	if err != nil {
+		return actor.Actor{}, fmt.Errorf("verify access token: %w", err)
+	}
+	if v.revoked.IsRevoked(claims.SessionID) {
+		return actor.Actor{}, errSessionFamilyRevoked
+	}
+	return actor.Actor{UserID: claims.Subject, SessionFamily: claims.SessionID}, nil
 }

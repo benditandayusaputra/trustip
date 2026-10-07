@@ -54,3 +54,8 @@ UPDATE sessions
 SET revoked_at = @revoked_at
 WHERE user_id = @user_id AND revoked_at IS NULL
 RETURNING family_id;
+
+-- name: GetAccount :one
+SELECT id, email, full_name
+FROM users
+WHERE id = @id;

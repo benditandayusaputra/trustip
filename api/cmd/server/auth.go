@@ -12,6 +12,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/captcha"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/revocation"
@@ -33,11 +34,13 @@ type authComponents struct {
 	captcha      service.CaptchaVerifier
 	passwords    service.PasswordVerifier
 	users        service.UserCreator
+	accounts     service.AccountReader
 	credentials  service.CredentialStore
 	sessions     service.SessionRotator
 	userSessions service.UserSessionRevoker
 	tokens       service.TokenIssuer
-	revoked      service.AccessRevoker
+	revoked      *revocation.List
+	accessKeys   security.SecretRing
 	tx           service.Transactor
 	clock        service.Clock
 	ids          service.IDGenerator
@@ -55,10 +58,12 @@ func buildAuthComponents(cfg config.Config, pool *database.Pool, clock service.C
 		captcha:      captchaVerifier{turnstile: newTurnstile(cfg.Turnstile)},
 		passwords:    passwordHasher{hasher: hasher},
 		users:        users,
+		accounts:     users,
 		credentials:  users,
 		sessions:     sessions,
 		userSessions: sessions,
 		tokens:       newTokenIssuer(cfg.JWTKeys),
+		accessKeys:   cfg.JWTKeys,
 		revoked:      revocation.New(clock),
 		tx:           pool,
 		clock:        clock,
@@ -87,9 +92,11 @@ func authDeps(components authComponents, securityLog *slog.Logger, limiterClock 
 	perMinute := ratelimit.Rule{Limit: loginsPerMinute, Window: time.Minute}
 	perHour := ratelimit.Rule{Limit: loginsPerHour, Window: time.Hour}
 	return authhandler.Deps{
-		Register: newRegisterUser(components),
-		Login:    newLoginUser(components),
-		Refresh:  newRefreshSession(components),
+		Authenticate: httpserver.Authenticate(newAccessVerifier(components), components.cookies.AccessName()),
+		Account:      service.NewGetAccount(components.accounts),
+		Register:     newRegisterUser(components),
+		Login:        newLoginUser(components),
+		Refresh:      newRefreshSession(components),
 		LogOut: authhandler.SessionEnders{
 			ThisDevice: service.NewLogOut(logoutDeps(components)),
 			AllDevices: service.NewLogOutEverywhere(logoutDeps(components)),

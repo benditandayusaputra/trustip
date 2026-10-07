@@ -9,6 +9,12 @@ import (
 
 var ErrEmailTaken = errors.New("email is already registered")
 
+type Account struct {
+	ID       string
+	Email    string
+	FullName string
+}
+
 type StoredPassword struct {
 	Hash          string
 	PepperVersion string

@@ -19,6 +19,7 @@ import (
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver/edgetest"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/revocation"
@@ -57,6 +58,16 @@ func (m *memoryUsers) CreateUser(_ context.Context, user domain.User) error {
 		UserID: user.ID, Email: user.Email, FullName: user.FullName, Password: user.Password,
 	}
 	return nil
+}
+
+func (m *memoryUsers) GetAccount(_ context.Context, userID string) (domain.Account, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	credentials := m.byID(userID)
+	if credentials.UserID == "" {
+		return domain.Account{}, apperror.NotFound()
+	}
+	return domain.Account{ID: credentials.UserID, Email: credentials.Email, FullName: credentials.FullName}, nil
 }
 
 func (m *memoryUsers) FindCredentials(_ context.Context, email string) (domain.Credentials, bool, error) {
@@ -175,10 +186,12 @@ func testAuthComponents(now *clock.Manual) authComponents {
 		captcha:      acceptSolvedCaptcha{},
 		passwords:    passwordHasher{hasher: hasher},
 		users:        users,
+		accounts:     users,
 		credentials:  users,
 		sessions:     sessions,
 		userSessions: sessions,
 		tokens:       newTokenIssuer(testPepper{}),
+		accessKeys:   testPepper{},
 		revoked:      revocation.New(now),
 		tx:           inlineTx{},
 		clock:        now,
@@ -191,6 +204,7 @@ func postUsers(t *testing.T, body string) *http.Request {
 	t.Helper()
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v1/users", strings.NewReader(body))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	fromApp(req)
 	edgetest.Sign(t, req, testNow())
 	return req
 }
@@ -198,4 +212,11 @@ func postUsers(t *testing.T, body string) *http.Request {
 func registration(email string) string {
 	return `{"full_name":"Sari Wulandari","email":"` + email + `","password":"Kp7#mQz2vX",` +
 		`"whatsapp":"0812-3456-7890","privacy_accepted":true,"captcha_token":"` + solvedCaptcha + `"}`
+}
+
+const testAppOrigin = "http://localhost:5173"
+
+func fromApp(req *http.Request) {
+	req.Header.Set(fiber.HeaderOrigin, testAppOrigin)
+	req.Header.Set(httpserver.HeaderClient, "web")
 }

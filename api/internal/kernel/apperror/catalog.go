@@ -19,6 +19,7 @@ const (
 	CodeLoginFailed          Code = "LOGIN_FAILED"
 	CodeEdgeSignatureInvalid Code = "EDGE_SIGNATURE_INVALID"
 	CodeForbidden            Code = "FORBIDDEN"
+	CodeCrossSiteRejected    Code = "CROSS_SITE_REJECTED"
 	CodeNotFound             Code = "NOT_FOUND"
 	CodeCaptchaFailed        Code = "CAPTCHA_FAILED"
 	CodeRateLimited          Code = "RATE_LIMITED"
@@ -88,6 +89,10 @@ func accessEntries() map[Code]entry {
 			"Akun dikunci sementara karena terlalu banyak percobaan masuk. Coba lagi dalam {n} menit.",
 		},
 		CodeForbidden: {KindForbidden, http.StatusForbidden, "Peran Anda tidak diizinkan melakukan ini."},
+		CodeCrossSiteRejected: {
+			KindForbidden, http.StatusForbidden,
+			"Permintaan dari situs lain ditolak. Buka Trustip langsung lalu coba lagi.",
+		},
 		CodeNotFound: {
 			KindNotFound, http.StatusNotFound,
 			"Data tidak ditemukan atau Anda tidak punya akses.",

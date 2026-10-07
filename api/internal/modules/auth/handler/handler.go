@@ -17,7 +17,8 @@ const (
 	refreshPath   = sessionsPath + "/refresh"
 	logoutPath    = sessionsPath + "/logout"
 	logoutAllPath = sessionsPath + "/logout-all"
-	accountPath   = httpserver.APIPrefix + "/me"
+	mePath        = "/me"
+	accountPath   = httpserver.APIPrefix + mePath
 )
 
 type Registrar interface {
@@ -41,6 +42,8 @@ type SessionEnders struct {
 }
 
 type Deps struct {
+	Authenticate    fiber.Handler
+	Account         AccountGetter
 	Register        Registrar
 	Login           Authenticator
 	Refresh         Refresher
@@ -57,6 +60,7 @@ func Mount(api fiber.Router, deps Deps) {
 	limit := func(limiter httpserver.RateLimiter, keyOf httpserver.RateLimitKey) fiber.Handler {
 		return httpserver.RateLimit(limiter, keyOf, deps.SecurityLog)
 	}
+	api.Get(mePath, deps.Authenticate, currentAccount(deps.Account))
 	api.Post(usersPath, limit(deps.SignupLimiter, httpserver.ByClientIP), register(deps.Register))
 	api.Post(sessionsPath,
 		limit(deps.LoginLimiters.PerIPMinute, httpserver.ByClientIP),

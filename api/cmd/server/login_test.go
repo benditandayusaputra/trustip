@@ -29,6 +29,7 @@ func postSessions(t *testing.T, attempt loginAttempt) *http.Request {
 	body := strings.NewReader(attempt.body)
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v1/sessions", body)
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	fromApp(req)
 	edgetest.SignFrom(t, req, edgetest.Origin{At: attempt.at, ClientIP: attempt.clientIP})
 	return req
 }

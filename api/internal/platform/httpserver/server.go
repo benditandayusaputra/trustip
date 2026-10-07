@@ -32,6 +32,7 @@ type Options struct {
 	Ready       ReadinessCheck
 	Edge        EdgeVerifier
 	Limiter     RateLimiter
+	AppOrigin   string
 }
 
 type Server struct {
@@ -57,6 +58,7 @@ func New(opts Options) *Server {
 		EdgeSignature(opts.Edge, opts.SecurityLog),
 		RateLimit(opts.Limiter, ByClientIP, opts.SecurityLog),
 		Deadline(requestTimeout),
+		RequireSameOrigin(opts.AppOrigin),
 	)
 	app.Get(healthPath, health)
 	app.Get(readyPath, readiness(opts.Ready))

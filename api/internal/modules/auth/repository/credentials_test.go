@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/repository"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -96,5 +97,19 @@ func TestCreateSession_RSEC17_StoresOnlyTheTokenHash(t *testing.T) {
 
 	if first != nil || duplicateHash == nil {
 		t.Fatalf("first = %v, duplicate hash = %v", first, duplicateHash)
+	}
+}
+
+func TestGetAccount_KnownAndUnknownUser(t *testing.T) {
+	_, users := withSavedUser(t)
+
+	account, err := users.GetAccount(t.Context(), savedUserID)
+	_, missing := users.GetAccount(t.Context(), "0192f0c4-7b1e-7c3a-9d2e-0000000000ff")
+
+	if err != nil || account != (domain.Account{ID: savedUserID, Email: "sari@contoh.id", FullName: "Sari Wulandari"}) {
+		t.Fatalf("account = %+v, err = %v", account, err)
+	}
+	if apperror.From(missing).Code() != apperror.CodeNotFound {
+		t.Fatalf("missing = %v", missing)
 	}
 }

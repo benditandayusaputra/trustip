@@ -29,14 +29,8 @@ type LoginCommand struct {
 	ClientIP     string
 }
 
-type Account struct {
-	ID       string
-	Email    string
-	FullName string
-}
-
 type LoginResult struct {
-	Account Account
+	Account domain.Account
 	Tokens  domain.SessionTokens
 }
 

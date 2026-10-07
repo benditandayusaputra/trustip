@@ -132,12 +132,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCurrentAccount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "NOT_FOUND" | "CAPTCHA_FAILED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -246,6 +262,15 @@ export interface components {
             };
             content: {
                 "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Permintaan tulis tanpa asal app atau tanpa kepala X-Trustip-Client */
+        CrossSite: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Belum masuk, sesi habis, atau tanda tangan tepi tidak sah */
@@ -401,6 +426,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["CrossSite"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
@@ -437,6 +463,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["CrossSite"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
@@ -468,6 +495,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["CrossSite"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];
@@ -494,6 +522,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["CrossSite"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];
@@ -517,6 +546,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmptyResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["CrossSite"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getCurrentAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Akun pengguna yang sedang masuk */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

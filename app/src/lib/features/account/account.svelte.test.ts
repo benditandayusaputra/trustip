@@ -1,0 +1,112 @@
+import { page, userEvent } from 'vitest/browser';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { render } from 'vitest-browser-svelte';
+import AccountHarness from '#lib/testing/AccountHarness.svelte';
+import { expectAccessible } from '#lib/testing/accessibility.js';
+
+type Route = Record<string, () => Response>;
+
+const sari = {
+	id: '0192f0c4-7b1e-7c3a-9d2e-5f6a7b8c9d0e',
+	full_name: 'Sari Wulandari',
+	email: 'sari@contoh.id'
+};
+
+function ok(data: unknown): Response {
+	return Response.json({ code: 'OK', message: '', data, meta: { request_id: 'r1' } });
+}
+
+function failure(status: number, code: string): Response {
+	return Response.json({ code, message: 'Gagal.', meta: { request_id: 'r1' } }, { status });
+}
+
+function serve(routes: Route) {
+	const calls: string[] = [];
+	vi.stubGlobal('fetch', (path: string, init: RequestInit) => {
+		const key = `${init.method ?? 'GET'} ${path}`;
+		calls.push(key);
+		const respond = routes[key];
+		return Promise.resolve(respond ? respond() : failure(404, 'NOT_FOUND'));
+	});
+	return calls;
+}
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+});
+
+describe('AccountGate', () => {
+	it('FR-AUTH-06 greets the signed-in user by name', async () => {
+		serve({ 'GET /api/v1/me': () => ok(sari) });
+
+		const { container } = await render(AccountHarness, { onsignedout: vi.fn() });
+
+		await expect.element(page.getByRole('heading', { name: 'Halo, Sari Wulandari' })).toBeVisible();
+		await expectAccessible(container);
+	});
+
+	it('hands over to sign in when the session cannot be refreshed', async () => {
+		const calls = serve({
+			'GET /api/v1/me': () => failure(401, 'UNAUTHENTICATED'),
+			'POST /api/v1/sessions/refresh': () => failure(401, 'SESSION_EXPIRED')
+		});
+		const onsignedout = vi.fn();
+
+		await render(AccountHarness, { onsignedout });
+
+		await vi.waitFor(() => {
+			expect(onsignedout).toHaveBeenCalledOnce();
+		});
+		expect(calls).toEqual(['GET /api/v1/me', 'POST /api/v1/sessions/refresh']);
+	});
+
+	it('offers a retry when the account cannot be loaded', async () => {
+		let attempts = 0;
+		serve({
+			'GET /api/v1/me': () => (++attempts === 1 ? failure(503, 'SERVICE_UNAVAILABLE') : ok(sari))
+		});
+		await render(AccountHarness, { onsignedout: vi.fn() });
+
+		await userEvent.click(page.getByRole('button', { name: 'Coba lagi' }));
+
+		await expect.element(page.getByRole('heading', { name: 'Halo, Sari Wulandari' })).toBeVisible();
+	});
+});
+
+describe('AccountMenu', () => {
+	it('FR-AUTH-03 logs out this device', async () => {
+		const calls = serve({
+			'GET /api/v1/me': () => ok(sari),
+			'POST /api/v1/sessions/logout': () => ok(null)
+		});
+		const onsignedout = vi.fn();
+		await render(AccountHarness, { onsignedout });
+
+		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
+
+		await vi.waitFor(() => {
+			expect(onsignedout).toHaveBeenCalledOnce();
+		});
+		expect(calls).toContain('POST /api/v1/sessions/logout');
+	});
+
+	it('FR-AUTH-03 asks for confirmation before logging out every device', async () => {
+		const calls = serve({
+			'GET /api/v1/me': () => ok(sari),
+			'POST /api/v1/sessions/logout-all': () => ok(null)
+		});
+		const onsignedout = vi.fn();
+		await render(AccountHarness, { onsignedout });
+
+		await userEvent.click(page.getByRole('button', { name: 'Keluar dari semua perangkat' }));
+		const dialog = page.getByRole('dialog', { name: 'Keluar dari semua perangkat?' });
+		await expect.element(dialog).toBeVisible();
+		expect(calls).not.toContain('POST /api/v1/sessions/logout-all');
+		await userEvent.click(dialog.getByRole('button', { name: 'Keluar dari semua perangkat' }));
+
+		await vi.waitFor(() => {
+			expect(onsignedout).toHaveBeenCalledOnce();
+		});
+		expect(calls).toContain('POST /api/v1/sessions/logout-all');
+	});
+});

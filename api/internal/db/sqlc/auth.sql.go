@@ -107,6 +107,25 @@ func (q *Queries) FindUserByEmail(ctx context.Context, email string) (FindUserBy
 	return i, err
 }
 
+const getAccount = `-- name: GetAccount :one
+SELECT id, email, full_name
+FROM users
+WHERE id = $1
+`
+
+type GetAccountRow struct {
+	ID       string
+	Email    string
+	FullName string
+}
+
+func (q *Queries) GetAccount(ctx context.Context, id string) (GetAccountRow, error) {
+	row := q.db.QueryRow(ctx, getAccount, id)
+	var i GetAccountRow
+	err := row.Scan(&i.ID, &i.Email, &i.FullName)
+	return i, err
+}
+
 const lockLoginAttempts = `-- name: LockLoginAttempts :one
 SELECT failed_login_count, locked_until
 FROM users

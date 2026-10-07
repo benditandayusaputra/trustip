@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 )
@@ -51,6 +52,6 @@ func byLoginEmail(c fiber.Ctx) string {
 	return "email:" + strings.ToLower(strings.TrimSpace(probe.Email))
 }
 
-func toSignedInAccount(account service.Account) accountResponse {
+func toSignedInAccount(account domain.Account) accountResponse {
 	return accountResponse{ID: account.ID, FullName: account.FullName, Email: account.Email}
 }

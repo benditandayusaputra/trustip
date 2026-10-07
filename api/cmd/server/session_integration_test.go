@@ -25,8 +25,8 @@ func databaseBrowser(t *testing.T) *browser {
 	users, sessions := repository.NewUsers(pool), repository.NewSessions(pool)
 	components := authComponents{
 		captcha: acceptSolvedCaptcha{}, passwords: passwordHasher{hasher: hasher},
-		users: users, credentials: users, sessions: sessions, userSessions: sessions,
-		tokens: newTokenIssuer(testPepper{}), revoked: revocation.New(now), tx: pool,
+		users: users, accounts: users, credentials: users, sessions: sessions, userSessions: sessions,
+		tokens: newTokenIssuer(testPepper{}), accessKeys: testPepper{}, revoked: revocation.New(now), tx: pool,
 		clock: now, ids: idgen.UUIDv7{}, cookies: authhandler.LocalCookies(),
 	}
 	server := newTestServerWith(alwaysReady, now, components)

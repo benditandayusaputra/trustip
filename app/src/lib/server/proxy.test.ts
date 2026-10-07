@@ -69,6 +69,7 @@ describe('forwardToApi', () => {
 		const request = incoming({
 			method: 'POST',
 			url: new URL('https://trustip.id/api/v1/counts?draft=1'),
+			headers: new Headers({ origin: 'https://trustip.id', 'x-trustip-client': 'web' }),
 			body
 		});
 
@@ -138,5 +139,39 @@ describe('forwardToApi', () => {
 			message: 'Layanan sedang sibuk. Coba lagi sebentar lagi.',
 			meta: { request_id: '0192f0c4-8a11-7d55-b0aa-3c1f2e4d5a6b' }
 		});
+	});
+
+	it('R-SEC-21 refuses writes that do not come from this app before calling the API', async () => {
+		const attempts = [
+			new Headers({ origin: 'https://evil.example', 'x-trustip-client': 'web' }),
+			new Headers({ 'x-trustip-client': 'web' }),
+			new Headers({ origin: 'https://trustip.id' })
+		];
+		for (const headers of attempts) {
+			const captured: Captured[] = [];
+
+			const response = await forwardToApi(
+				incoming({ method: 'POST', url: new URL('https://trustip.id/api/v1/sessions'), headers }),
+				config,
+				fakeDeps(() => Response.json({}), captured)
+			);
+
+			expect(response.status).toBe(403);
+			expect(((await response.json()) as { code: string }).code).toBe('CROSS_SITE_REJECTED');
+			expect(captured).toHaveLength(0);
+		}
+	});
+
+	it('lets same-origin writes from the web client through', async () => {
+		const captured: Captured[] = [];
+		const headers = new Headers({ origin: 'https://trustip.id', 'x-trustip-client': 'web' });
+
+		await forwardToApi(
+			incoming({ method: 'POST', url: new URL('https://trustip.id/api/v1/sessions'), headers }),
+			config,
+			fakeDeps(() => Response.json({}), captured)
+		);
+
+		expect(captured).toHaveLength(1);
 	});
 });

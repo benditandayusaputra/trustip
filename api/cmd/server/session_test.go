@@ -19,6 +19,7 @@ type browser struct {
 	server  *httpserver.Server
 	now     *clock.Manual
 	refresh string
+	access  string
 	visits  int
 }
 
@@ -41,9 +42,8 @@ func (b *browser) signIn() {
 func (b *browser) post(path string) exchange {
 	b.t.Helper()
 	req := httptest.NewRequestWithContext(b.t.Context(), http.MethodPost, path, http.NoBody)
-	if b.refresh != "" {
-		req.Header.Set("Cookie", "trustip_rt="+b.refresh)
-	}
+	b.attachCookies(req)
+	fromApp(req)
 	b.visits++
 	edgetest.SignFrom(b.t, req, edgetest.Origin{At: b.now.Now(), ClientIP: fmt.Sprintf("198.51.100.%d", b.visits)})
 	return b.send(req)
@@ -55,7 +55,32 @@ func (b *browser) send(req *http.Request) exchange {
 	if cookie := cookieNamed(got.header, "trustip_rt"); cookie != nil {
 		b.refresh = cookie.Value
 	}
+	if cookie := cookieNamed(got.header, "trustip_at"); cookie != nil {
+		b.access = cookie.Value
+	}
 	return got
+}
+
+func (b *browser) getAccount() exchange {
+	b.t.Helper()
+	req := httptest.NewRequestWithContext(b.t.Context(), http.MethodGet, "/api/v1/me", http.NoBody)
+	b.attachCookies(req)
+	b.visits++
+	edgetest.SignFrom(b.t, req, edgetest.Origin{At: b.now.Now(), ClientIP: fmt.Sprintf("198.51.100.%d", b.visits)})
+	return b.send(req)
+}
+
+func (b *browser) attachCookies(req *http.Request) {
+	var pairs []string
+	if b.access != "" {
+		pairs = append(pairs, "trustip_at="+b.access)
+	}
+	if b.refresh != "" {
+		pairs = append(pairs, "trustip_rt="+b.refresh)
+	}
+	if len(pairs) > 0 {
+		req.Header.Set("Cookie", strings.Join(pairs, "; "))
+	}
 }
 
 func requireCode(t *testing.T, got exchange, code string) {

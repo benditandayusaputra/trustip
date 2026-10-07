@@ -54,11 +54,12 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		return err
 	}
 	server := newServer(base, serverDeps{
-		ready:   pool.Ping,
-		edge:    security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
-		limiter: ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
-		clock:   systemClock,
-		auth:    components,
+		ready:     pool.Ping,
+		edge:      security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
+		limiter:   ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
+		clock:     systemClock,
+		auth:      components,
+		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -70,11 +71,12 @@ func serve(cfg config.Config, base *slog.Logger) error {
 }
 
 type serverDeps struct {
-	ready   httpserver.ReadinessCheck
-	edge    httpserver.EdgeVerifier
-	limiter httpserver.RateLimiter
-	clock   serverClock
-	auth    authComponents
+	ready     httpserver.ReadinessCheck
+	edge      httpserver.EdgeVerifier
+	limiter   httpserver.RateLimiter
+	clock     serverClock
+	auth      authComponents
+	appOrigin string
 }
 
 type serverClock interface {
@@ -93,6 +95,7 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 		Ready:       deps.ready,
 		Edge:        deps.edge,
 		Limiter:     deps.limiter,
+		AppOrigin:   deps.appOrigin,
 	})
 	authhandler.Mount(server.API(), authDeps(deps.auth, securityLog, deps.clock))
 	return server

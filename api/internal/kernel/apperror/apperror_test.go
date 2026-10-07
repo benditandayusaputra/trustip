@@ -34,6 +34,7 @@ func TestCatalog_StatusesFollowContractTable(t *testing.T) {
 		apperror.CodeLoginFailed:          http.StatusUnauthorized,
 		apperror.CodeAccountLocked:        http.StatusTooManyRequests,
 		apperror.CodeSessionRevoked:       http.StatusUnauthorized,
+		apperror.CodeCrossSiteRejected:    http.StatusForbidden,
 		apperror.CodeRateLimited:          http.StatusTooManyRequests,
 		apperror.CodeServiceUnavailable:   http.StatusServiceUnavailable,
 		apperror.CodeInternal:             http.StatusInternalServerError,

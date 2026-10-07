@@ -25,6 +25,8 @@ const requestIdPattern = /^[A-Za-z0-9-]{8,64}$/u;
 const upstreamTimeoutMs = 15000;
 const unavailableRetrySeconds = '5';
 const serviceUnavailableStatus = 503;
+const forbiddenStatus = 403;
+const webClient = 'web';
 
 export interface ProxyConfig {
 	apiBase: string;
@@ -59,16 +61,15 @@ export async function forwardToApi(
 	deps: ProxyDeps
 ): Promise<Response> {
 	const requestId = requestIdOf(incoming.headers, deps);
+	if (hasBody(incoming.method) && !isFromThisApp(incoming)) {
+		return failureResponse(forbiddenStatus, 'CROSS_SITE_REJECTED', requestId);
+	}
 	const uri = incoming.url.pathname + incoming.url.search;
-	const signed = {
-		method: incoming.method,
-		uri,
-		body: incoming.body,
-		clientIp: incoming.clientIp,
-		timestamp: unixSeconds(deps.now()),
-		nonce: deps.nonce()
-	};
-	const headers = forwardedHeaders(incoming.headers, requestId, edgeHeaders(signed, config.key));
+	const headers = forwardedHeaders(
+		incoming.headers,
+		requestId,
+		signatureOf(incoming, config, deps)
+	);
 	try {
 		const upstream = await deps.fetch(config.apiBase + uri, {
 			method: incoming.method,
@@ -79,8 +80,31 @@ export async function forwardToApi(
 		});
 		return relayResponse(upstream);
 	} catch {
-		return unavailableResponse(requestId);
+		return failureResponse(serviceUnavailableStatus, 'SERVICE_UNAVAILABLE', requestId);
 	}
+}
+
+function signatureOf(
+	incoming: IncomingRequest,
+	config: ProxyConfig,
+	deps: ProxyDeps
+): Record<string, string> {
+	const signed = {
+		method: incoming.method,
+		uri: incoming.url.pathname + incoming.url.search,
+		body: incoming.body,
+		clientIp: incoming.clientIp,
+		timestamp: unixSeconds(deps.now()),
+		nonce: deps.nonce()
+	};
+	return edgeHeaders(signed, config.key);
+}
+
+function isFromThisApp(incoming: IncomingRequest): boolean {
+	return (
+		incoming.headers.get('origin') === incoming.url.origin &&
+		incoming.headers.get('x-trustip-client') === webClient
+	);
 }
 
 function requestIdOf(headers: Headers, deps: ProxyDeps): string {
@@ -125,14 +149,16 @@ function relayResponse(upstream: Response): Response {
 	return new Response(upstream.body, { status: upstream.status, headers });
 }
 
-function unavailableResponse(requestId: string): Response {
-	const body = {
-		code: 'SERVICE_UNAVAILABLE',
-		message: id.apiErrors.serviceUnavailable,
-		meta: { request_id: requestId }
-	};
-	return Response.json(body, {
-		status: serviceUnavailableStatus,
-		headers: { 'retry-after': unavailableRetrySeconds, 'cache-control': 'no-store' }
-	});
+const failureMessages: Record<string, string> = {
+	CROSS_SITE_REJECTED: id.apiErrors.crossSite,
+	SERVICE_UNAVAILABLE: id.apiErrors.serviceUnavailable
+};
+
+function failureResponse(status: number, code: string, requestId: string): Response {
+	const body = { code, message: failureMessages[code] ?? '', meta: { request_id: requestId } };
+	const headers = new Headers({ 'cache-control': 'no-store' });
+	if (status === serviceUnavailableStatus) {
+		headers.set('retry-after', unavailableRetrySeconds);
+	}
+	return Response.json(body, { status, headers });
 }

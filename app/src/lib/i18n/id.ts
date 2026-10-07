@@ -38,6 +38,7 @@ export const id = {
 	},
 	apiErrors: {
 		serviceUnavailable: 'Layanan sedang sibuk. Coba lagi sebentar lagi.',
+		crossSite: 'Permintaan dari situs lain ditolak. Buka Trustip langsung lalu coba lagi.',
 		network: 'Tidak ada koneksi. Periksa sinyal lalu coba lagi.',
 		unreadable: 'Jawaban server tidak bisa dibaca. Coba lagi.'
 	},
@@ -93,6 +94,18 @@ export const id = {
 		},
 		retry: 'Coba lagi',
 		opensInNewTab: '(tab baru)'
+	},
+	account: {
+		greeting: (name: string) => `Halo, ${name}`,
+		nextStep: 'Akun Anda siap. Langkah berikutnya adalah menentukan tipe usaha.',
+		menu: 'Akun',
+		logOut: 'Keluar',
+		logOutEverywhere: 'Keluar dari semua perangkat',
+		confirmEverywhereTitle: 'Keluar dari semua perangkat?',
+		confirmEverywhereBody:
+			'Semua sesi di HP dan komputer lain akan berakhir. Anda perlu masuk lagi di setiap perangkat.',
+		cancel: 'Batal',
+		loadFailed: 'Akun tidak bisa dimuat.'
 	},
 	captcha: {
 		label: 'Verifikasi keamanan',
