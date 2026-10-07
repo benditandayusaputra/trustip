@@ -6,9 +6,14 @@ GITLEAKS_VERSION := v8.30.1
 LEFTHOOK_VERSION := v2.1.17
 GOVULNCHECK_VERSION := v1.8.0
 DEADCODE_VERSION := v0.51.0
+SQLC_VERSION := v1.31.1
 
-.PHONY: setup tools app-deps hooks env dev dev-api dev-app check check-api check-app check-repo \
-	test test-api test-app build gen e2e
+LOCAL_DATABASE_URL := postgres://trustip@localhost:54329/trustip?sslmode=disable
+TEST_DATABASE_URL ?= $(LOCAL_DATABASE_URL)
+COMPOSE := docker compose -f api/deploy/compose.dev.yaml
+
+.PHONY: setup tools app-deps hooks env db migrate neon-check dev dev-api dev-app check check-api \
+	check-app check-repo test test-api test-app build gen e2e
 
 setup: tools app-deps env hooks
 
@@ -18,6 +23,7 @@ tools:
 	GOBIN=$(BIN) go install github.com/evilmartians/lefthook/v2@$(LEFTHOOK_VERSION)
 	GOBIN=$(BIN) go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
 	GOBIN=$(BIN) go install golang.org/x/tools/cmd/deadcode@$(DEADCODE_VERSION)
+	GOBIN=$(BIN) go install github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION)
 
 app-deps:
 	cd app && npm ci && npx playwright install chromium
@@ -28,7 +34,16 @@ env:
 hooks:
 	$(BIN)/lefthook install
 
-dev:
+db:
+	$(COMPOSE) up -d --wait
+
+migrate: db
+	cd api && DATABASE_MIGRATE_URL='$(LOCAL_DATABASE_URL)' go run ./cmd/migrate up
+
+neon-check:
+	cd api && go run ./cmd/dbcheck .env.production
+
+dev: migrate
 	$(MAKE) -j2 dev-api dev-app
 
 dev-api:
@@ -56,14 +71,14 @@ check-app:
 
 test: test-api test-app
 
-test-api:
-	cd api && go test -race ./...
+test-api: $(if $(CI),,db)
+	cd api && TEST_DATABASE_URL='$(TEST_DATABASE_URL)' go test -race ./...
 
 test-app:
 	cd app && npm test
 
 gen:
-	go -C api generate ./...
+	cd api && $(BIN)/sqlc generate
 
 build:
 	cd api && go build -trimpath -o $(BIN)/trustip-api ./cmd/server

@@ -7,6 +7,8 @@ Setiap pustaka atau layanan pihak ketiga dicatat di sini dalam commit yang sama 
 | Pustaka | Versi | Lisensi | Ukuran | Alasan dipakai |
 |---|---|---|---|---|
 | `github.com/gofiber/fiber/v3` | 3.5.0 | MIT | Biner server 8,3 MB setelah `-s -w` | Kerangka HTTP yang cepat dengan uji tanpa jaringan lewat `app.Test` |
+| `github.com/jackc/pgx/v5` | 5.11.0 | MIT | Bersama goose, biner migrasi 9,8 MB setelah `-s -w` | Driver PostgreSQL dengan kumpulan koneksi dan dukungan `channel_binding` untuk Neon |
+| `github.com/pressly/goose/v3` | 3.28.0 | MIT | Lihat baris pgx | Migrasi bernomor dengan arah naik dan turun, dibaca dari berkas yang ditanam ke biner |
 
 ## Alat pengembangan
 
@@ -19,6 +21,14 @@ Dipasang `make setup` ke `.bin/` dengan versi terkunci di `Makefile`. Tidak ikut
 | `lefthook` | 2.1.17 | MIT | Pengelola kait git |
 | `govulncheck` | 1.8.0 | BSD-3-Clause | Pemindai kerentanan dependensi Go |
 | `deadcode` | 0.51.0 | BSD-3-Clause | Pencari kode mati |
+| `sqlc` | 1.31.1 | MIT | Membangkitkan kode Go bertipe dari berkas SQL |
+
+## Layanan dan citra
+
+| Layanan atau citra | Versi | Lisensi | Alasan dipakai |
+|---|---|---|---|
+| PostgreSQL di Neon | 17 | PostgreSQL License | Basis data aplikasi yang live |
+| `postgis/postgis` | 17-3.5 | GPL-2.0 (PostGIS), PostgreSQL License | Basis data lokal dan CI dengan PostGIS dan pg_trgm, setara dengan Neon |
 
 ## App (SvelteKit)
 
