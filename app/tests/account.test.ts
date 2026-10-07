@@ -1,56 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
-
-const password = 'Kp7#mQz2vX';
-const captchaAnswer = 'input[name="cf-turnstile-response"]';
-const networkTimeoutMs = 15_000;
-
-async function waitForCaptcha(page: Page): Promise<void> {
-	await expect(page.locator(captchaAnswer)).not.toHaveValue('', { timeout: networkTimeoutMs });
-}
-
-async function register(page: Page, email: string): Promise<void> {
-	await page.getByLabel('Nama lengkap').fill('Sari Wulandari');
-	await page.getByLabel('Email').fill(email);
-	await page.getByLabel('Kata sandi').fill(password);
-	await page.getByLabel('Nomor WhatsApp').fill('0812 3456 7890');
-	await page.getByRole('checkbox').check();
-	await waitForCaptcha(page);
-	await page.getByRole('button', { name: 'Daftar' }).click();
-}
-
-async function signIn(page: Page, email: string): Promise<void> {
-	await page.getByLabel('Email').fill(email);
-	await page.getByLabel('Kata sandi').fill(password);
-	await waitForCaptcha(page);
-	await page.getByRole('button', { name: 'Masuk' }).click();
-}
-
-interface Business {
-	choice: RegExp;
-	name: string;
-	dashboard: string;
-}
+import { networkTimeoutMs, onboard, register, signIn, type Business } from './session';
 
 const businessByProject: Record<string, Business> = {
-	mobile: { choice: /Penitip/u, name: 'Kripik Uji', dashboard: '/app/penitip' },
-	desktop: { choice: /Toko/u, name: 'Warung Uji', dashboard: '/app/toko' }
+	mobile: { choice: /Penitip/u, name: 'Kripik Uji', dashboard: '/app/penitip' }
 };
-
-async function onboard(page: Page, business: Business): Promise<void> {
-	await page.getByRole('radio', { name: business.choice }).check();
-	await page.getByRole('button', { name: 'Lanjut' }).click();
-	await page.getByLabel('Nama usaha').fill(business.name);
-	await page.getByLabel('Nomor WhatsApp usaha').fill('0812 3456 7890');
-	await page.getByRole('button', { name: 'Lanjut' }).click();
-	await page.getByLabel('Provinsi').selectOption({ label: 'Jawa Tengah' });
-	await expect(page.getByRole('option', { name: 'Kota Semarang' })).toBeAttached();
-	await page.getByLabel('Kabupaten atau kota').selectOption({ label: 'Kota Semarang' });
-	await page.context().grantPermissions(['geolocation']);
-	await page.context().setGeolocation({ latitude: -7.0546, longitude: 110.4386 });
-	await page.getByRole('button', { name: 'Gunakan lokasi saya' }).click();
-	await expect(page.getByText('Lokasi ditandai.')).toBeVisible();
-	await page.getByRole('button', { name: 'Simpan dan mulai' }).click();
-}
 
 async function expectTokensHiddenFromScripts(page: Page): Promise<void> {
 	const cookies = await page.context().cookies();
@@ -72,7 +25,7 @@ async function expectTokensHiddenFromScripts(page: Page): Promise<void> {
 	});
 }
 
-test('FR-AUTH-04 FR-AUTH-06 a consignor on a phone and a store on a desktop each reach an empty dashboard', async ({
+test('FR-AUTH-04 FR-AUTH-06 a consignor on a phone reaches an empty dashboard', async ({
 	page
 }, testInfo) => {
 	const email = `e2e-${testInfo.project.name}-${String(Date.now())}@contoh.id`;
