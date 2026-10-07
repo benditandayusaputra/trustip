@@ -9,6 +9,7 @@ Setiap pustaka atau layanan pihak ketiga dicatat di sini dalam commit yang sama 
 | `github.com/gofiber/fiber/v3` | 3.5.0 | MIT | Biner server 8,3 MB setelah `-s -w` | Kerangka HTTP yang cepat dengan uji tanpa jaringan lewat `app.Test` |
 | `github.com/jackc/pgx/v5` | 5.11.0 | MIT | Bersama goose, biner migrasi 9,8 MB setelah `-s -w` | Driver PostgreSQL dengan kumpulan koneksi dan dukungan `channel_binding` untuk Neon |
 | `github.com/google/uuid` | 1.6.0 | BSD-3-Clause | Sudah ikut lewat Fiber | Pembangkit UUIDv7 yang terurut waktu untuk semua ID |
+| `github.com/getkin/kin-openapi` | 0.149.0 | MIT | Hanya di uji | Memvalidasi jawaban nyata terhadap `openapi.yaml` di uji kontrak (R-RES-07) |
 | `go.uber.org/goleak` | 1.3.0 | MIT | Hanya di uji | Memastikan tidak ada goroutine yang bocor setelah server berhenti (R-CC-72) |
 | `github.com/pressly/goose/v3` | 3.28.0 | MIT | Lihat baris pgx | Migrasi bernomor dengan arah naik dan turun, dibaca dari berkas yang ditanam ke biner |
 
@@ -49,4 +50,5 @@ Ukuran untuk pustaka yang ikut ke peramban diukur dari bundel terkompresi. Alat 
 | `vitest`, `@vitest/browser-playwright` | 4.1 | MIT | Alat pengembangan | Uji unit dan komponen |
 | `@playwright/test`, `playwright` | 1.63 | Apache-2.0 | Alat pengembangan | Uji ujung ke ujung di HP dan desktop |
 | `knip` | 6.40 | ISC | Alat pengembangan | Pencari ekspor dan dependensi tak terpakai |
+| `openapi-typescript` | 7.13 | MIT | Alat pengembangan | Membangkitkan `src/lib/api/schema.d.ts` dari `openapi.yaml`. Dipasang dengan `overrides` karena versi ini masih menulis TypeScript 5 sebagai rekan, padahal hanya memakai API pembangun sintaks yang sama di TypeScript 6 |
 | `@types/node` | 24 | MIT | Alat pengembangan | Tipe Node untuk berkas konfigurasi |

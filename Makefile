@@ -79,6 +79,7 @@ test-app:
 
 gen:
 	cd api && $(BIN)/sqlc generate
+	cd app && npm run gen:types
 
 build:
 	cd api && go build -trimpath -o $(BIN)/trustip-api ./cmd/server

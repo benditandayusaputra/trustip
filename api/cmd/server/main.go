@@ -47,7 +47,13 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		return fmt.Errorf("open database: %w", err)
 	}
 	defer pool.Close()
-	server := newServer(base, pool.Ping, security.NewEdgeVerifier(cfg.EdgeKeys, clock.System{}))
+	systemClock := clock.System{}
+	server := newServer(base, serverDeps{
+		ready:   pool.Ping,
+		edge:    security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
+		limiter: ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
+		clock:   systemClock,
+	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	logger.ForStream(base, logger.App).Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
@@ -57,17 +63,23 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	return nil
 }
 
-func newServer(base *slog.Logger, ready httpserver.ReadinessCheck, edge httpserver.EdgeVerifier) *httpserver.Server {
-	systemClock := clock.System{}
+type serverDeps struct {
+	ready   httpserver.ReadinessCheck
+	edge    httpserver.EdgeVerifier
+	limiter httpserver.RateLimiter
+	clock   httpserver.Clock
+}
+
+func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	return httpserver.New(httpserver.Options{
 		AppLog:      logger.ForStream(base, logger.App),
 		AccessLog:   logger.ForStream(base, logger.Access),
 		SecurityLog: logger.ForStream(base, logger.Security),
 		IDs:         idgen.UUIDv7{},
-		Clock:       systemClock,
+		Clock:       deps.clock,
 		Build:       httpserver.ReadBuildInfo(),
-		Ready:       ready,
-		Edge:        edge,
-		Limiter:     ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
+		Ready:       deps.ready,
+		Edge:        deps.edge,
+		Limiter:     deps.limiter,
 	})
 }

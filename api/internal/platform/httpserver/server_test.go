@@ -4,16 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
-	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -24,6 +18,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver/edgetest"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
@@ -40,18 +35,7 @@ type testServer struct {
 	securityLogs *bytes.Buffer
 }
 
-type edgeKeys map[string][]byte
-
-func (k edgeKeys) Lookup(id string) ([]byte, bool) {
-	key, ok := k[id]
-	return key, ok
-}
-
 const testRequestLimit = 10
-
-func testEdgeKey() []byte {
-	return bytes.Repeat([]byte{7}, 31)
-}
 
 func newTestServer() testServer {
 	accessLogs, securityLogs := &bytes.Buffer{}, &bytes.Buffer{}
@@ -64,7 +48,7 @@ func newTestServer() testServer {
 		Clock:       now,
 		Build:       httpserver.BuildInfo{Version: "abc123def456"},
 		Ready:       func(context.Context) error { return nil },
-		Edge:        security.NewEdgeVerifier(edgeKeys{"v1": testEdgeKey()}, now),
+		Edge:        security.NewEdgeVerifier(edgetest.TestKeys(), now),
 		Limiter:     ratelimit.New(ratelimit.Rule{Limit: testRequestLimit, Window: time.Minute}, now),
 	})
 	server.API().Get("/probe/deadline", func(c fiber.Ctx) error {
@@ -80,34 +64,8 @@ func newTestServer() testServer {
 
 func (fixture testServer) do(t *testing.T, req *http.Request) response {
 	t.Helper()
-	signRequest(t, req, fixedNow())
+	edgetest.Sign(t, req, fixedNow())
 	return send(t, fixture.server.App(), req)
-}
-
-func signRequest(t *testing.T, req *http.Request, signedAt time.Time) {
-	t.Helper()
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		t.Fatalf("read request body: %v", err)
-	}
-	req.Body = io.NopCloser(bytes.NewReader(body))
-	nonce := make([]byte, 16)
-	if _, err := rand.Read(nonce); err != nil {
-		t.Fatalf("nonce: %v", err)
-	}
-	signed := security.SignedRequest{
-		KeyID: "v1", Method: req.Method, URI: req.URL.RequestURI(), Timestamp: strconv.FormatInt(signedAt.Unix(), 10),
-		Nonce: hex.EncodeToString(nonce), ClientIP: "203.0.113.7", Body: body,
-	}
-	mac := hmac.New(sha256.New, testEdgeKey())
-	mac.Write([]byte(signed.CanonicalString()))
-	for name, value := range map[string]string{
-		httpserver.HeaderEdgeKeyID: signed.KeyID, httpserver.HeaderEdgeTimestamp: signed.Timestamp,
-		httpserver.HeaderEdgeNonce: signed.Nonce, httpserver.HeaderEdgeClientIP: signed.ClientIP,
-		httpserver.HeaderEdgeSignature: hex.EncodeToString(mac.Sum(nil)),
-	} {
-		req.Header.Set(name, value)
-	}
 }
 
 func TestMeta_ReturnsNameVersionAndServerTime(t *testing.T) {
@@ -309,11 +267,11 @@ func TestReadyz_DatabaseAsleep_Returns503WithRetryAfter(t *testing.T) {
 		IDs:         idgen.NewSequence(),
 		Clock:       now,
 		Ready:       func(context.Context) error { return apperror.Unavailable(5) },
-		Edge:        security.NewEdgeVerifier(edgeKeys{"v1": testEdgeKey()}, now),
+		Edge:        security.NewEdgeVerifier(edgetest.TestKeys(), now),
 		Limiter:     ratelimit.New(ratelimit.Rule{Limit: testRequestLimit, Window: time.Minute}, now),
 	})
 	req := newRequest(t, "/readyz")
-	signRequest(t, req, fixedNow())
+	edgetest.Sign(t, req, fixedNow())
 
 	got := send(t, server.App(), req)
 
@@ -338,7 +296,7 @@ func TestEdgeSignature_UnsignedRequest_Returns401AndLogsSecurityEvent(t *testing
 func TestEdgeSignature_ExpiredSignature_Returns401(t *testing.T) {
 	fixture := newTestServer()
 	req := newRequest(t, "/api/v1/meta")
-	signRequest(t, req, fixedNow().Add(-61*time.Second))
+	edgetest.Sign(t, req, fixedNow().Add(-61*time.Second))
 
 	got := send(t, fixture.server.App(), req)
 
@@ -350,7 +308,7 @@ func TestEdgeSignature_ExpiredSignature_Returns401(t *testing.T) {
 func TestEdgeSignature_ReplayedNonce_Returns401(t *testing.T) {
 	fixture := newTestServer()
 	first := newRequest(t, "/api/v1/meta")
-	signRequest(t, first, fixedNow())
+	edgetest.Sign(t, first, fixedNow())
 	replay := newRequest(t, "/api/v1/meta")
 	replay.Header = first.Header.Clone()
 
@@ -424,7 +382,7 @@ func TestEdgeSignature_ManySequentialRequests_NoneMistakenForReplay(t *testing.T
 
 	for i := range 200 {
 		req := newRequest(t, "/api/v1/meta")
-		signRequest(t, req, fixedNow())
+		edgetest.Sign(t, req, fixedNow())
 		got := send(t, fixture.server.App(), req)
 		if got.status == http.StatusUnauthorized {
 			t.Fatalf("request %d rejected: %s\nsecurity log: %s", i+1, got.raw, fixture.securityLogs.String())
@@ -435,7 +393,7 @@ func TestEdgeSignature_ManySequentialRequests_NoneMistakenForReplay(t *testing.T
 func TestEdgeSignature_NonceReusedAfterManyRequests_IsStillRejected(t *testing.T) {
 	fixture := newTestServer()
 	first := newRequest(t, "/api/v1/meta")
-	signRequest(t, first, fixedNow())
+	edgetest.Sign(t, first, fixedNow())
 	send(t, fixture.server.App(), first)
 	for range 50 {
 		resp, err := fixture.server.App().Test(newRequest(t, "/healthz"))

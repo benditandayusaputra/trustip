@@ -83,7 +83,7 @@ const safetyRules = {
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
-	{ ignores: ['.svelte-kit/**', '.vercel/**', 'node_modules/**'] },
+	{ ignores: ['.svelte-kit/**', '.vercel/**', 'node_modules/**', 'src/lib/api/schema.d.ts'] },
 	{ linterOptions: { noInlineConfig: true, reportUnusedDisableDirectives: 'error' } },
 	js.configs.recommended,
 	ts.configs.strictTypeChecked,
