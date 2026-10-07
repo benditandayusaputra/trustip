@@ -63,3 +63,9 @@ const percent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractio
 export function formatBasisPoints(basisPoints: number): string {
 	return percent.format(basisPoints / basisPointsPerWhole);
 }
+
+const instantDate = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone });
+
+export function formatDate(instant: string): string {
+	return instantDate.format(new Date(instant));
+}

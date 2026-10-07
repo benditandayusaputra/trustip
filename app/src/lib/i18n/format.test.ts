@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	formatBusinessDate,
 	formatDateTime,
+	formatDate,
 	formatDistance,
 	formatInteger,
 	formatRupiah,
@@ -74,5 +75,11 @@ describe('formatBasisPoints', () => {
 	it('BR-AGR-03 shows basis points as an Indonesian percentage', () => {
 		expect(formatBasisPoints(2000)).toBe('20%');
 		expect(formatBasisPoints(1750)).toBe('17,5%');
+	});
+});
+
+describe('formatDate', () => {
+	it('shows the calendar day in Asia/Jakarta', () => {
+		expect(formatDate('2026-10-31T17:30:00Z')).toBe('1 Nov 2026');
 	});
 });

@@ -10,6 +10,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	agreementdomain "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/domain"
+	partnershipdomain "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
@@ -149,4 +150,24 @@ func (missingAgreements) Check(context.Context, agreementdomain.SealCheck) (agre
 
 func testAgreementComponents() agreementComponents {
 	return agreementComponents{reader: missingAgreements{}, checker: missingAgreements{}}
+}
+
+type missingPartnerships struct{}
+
+func (missingPartnerships) ListPartnerships(
+	context.Context, partnershipdomain.ListQuery,
+) ([]partnershipdomain.Summary, error) {
+	return []partnershipdomain.Summary{}, nil
+}
+
+func (missingPartnerships) GetPartnership(
+	context.Context, partnershipdomain.Key,
+) (partnershipdomain.Partnership, error) {
+	return partnershipdomain.Partnership{}, apperror.NotFound()
+}
+
+func (missingPartnerships) ListCatalog(
+	context.Context, partnershipdomain.Key,
+) ([]partnershipdomain.CatalogItem, error) {
+	return []partnershipdomain.CatalogItem{}, nil
 }

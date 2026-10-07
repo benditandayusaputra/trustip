@@ -39,7 +39,8 @@ func newTestServerWith(ready httpserver.ReadinessCheck, now *clock.Manual, auth 
 		auth: auth, org: testOrgComponents(now), files: testFileComponents(now), inbox: testNotificationComponents(now),
 		trade: tradeComponents{
 			products: testProductComponents(now), proposals: testProposalComponents(now),
-			agreements: testAgreementComponents(),
+			agreements:   testAgreementComponents(),
+			partnerships: missingPartnerships{},
 		},
 	}
 	return newServerFrom(ready, now, modules)

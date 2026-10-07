@@ -1,6 +1,7 @@
 import { agreements } from './agreements';
 import { legal } from './legal';
 import { organization } from './organization';
+import { partnerships } from './partnerships';
 import { products } from './products';
 import { proposals } from './proposals';
 
@@ -9,6 +10,7 @@ export const id = {
 	legal,
 	...agreements,
 	...organization,
+	...partnerships,
 	...products,
 	...proposals,
 	layout: {

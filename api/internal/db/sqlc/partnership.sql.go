@@ -34,3 +34,225 @@ func (q *Queries) CreatePartnership(ctx context.Context, arg CreatePartnershipPa
 	)
 	return err
 }
+
+const getPartnership = `-- name: GetPartnership :one
+SELECT
+    p.id, p.status, p.started_at, COALESCE(p.ended_at, p.started_at)::timestamptz AS ended_at,
+    (p.ended_at IS NOT NULL)::boolean AS has_ended,
+    o.id AS counterpart_id, o.type AS counterpart_type, o.name AS counterpart_name, o.slug AS counterpart_slug,
+    o.description, o.whatsapp, o.city_name, o.district, o.address,
+    (o.location IS NOT NULL)::boolean AS has_location,
+    COALESCE(ST_Y(o.location::geometry), 0)::float8 AS latitude,
+    COALESCE(ST_X(o.location::geometry), 0)::float8 AS longitude,
+    COALESCE(ST_Y(o.location_public::geometry), 0)::float8 AS public_latitude,
+    COALESCE(ST_X(o.location_public::geometry), 0)::float8 AS public_longitude,
+    COALESCE(f.storage_key, '')::text AS logo_storage_key
+FROM partnerships AS p
+JOIN organizations AS o
+    ON o.id = CASE WHEN p.consignor_org_id = $1::uuid THEN p.store_org_id ELSE p.consignor_org_id END
+LEFT JOIN files AS f ON f.id = o.logo_file_id
+WHERE p.id = $2::uuid AND (p.consignor_org_id = $1::uuid OR p.store_org_id = $1::uuid)
+`
+
+type GetPartnershipParams struct {
+	OrganizationID string
+	ID             string
+}
+
+type GetPartnershipRow struct {
+	ID              string
+	Status          string
+	StartedAt       time.Time
+	EndedAt         time.Time
+	HasEnded        bool
+	CounterpartID   string
+	CounterpartType string
+	CounterpartName string
+	CounterpartSlug string
+	Description     string
+	Whatsapp        string
+	CityName        string
+	District        string
+	Address         string
+	HasLocation     bool
+	Latitude        float64
+	Longitude       float64
+	PublicLatitude  float64
+	PublicLongitude float64
+	LogoStorageKey  string
+}
+
+func (q *Queries) GetPartnership(ctx context.Context, arg GetPartnershipParams) (GetPartnershipRow, error) {
+	row := q.db.QueryRow(ctx, getPartnership, arg.OrganizationID, arg.ID)
+	var i GetPartnershipRow
+	err := row.Scan(
+		&i.ID,
+		&i.Status,
+		&i.StartedAt,
+		&i.EndedAt,
+		&i.HasEnded,
+		&i.CounterpartID,
+		&i.CounterpartType,
+		&i.CounterpartName,
+		&i.CounterpartSlug,
+		&i.Description,
+		&i.Whatsapp,
+		&i.CityName,
+		&i.District,
+		&i.Address,
+		&i.HasLocation,
+		&i.Latitude,
+		&i.Longitude,
+		&i.PublicLatitude,
+		&i.PublicLongitude,
+		&i.LogoStorageKey,
+	)
+	return i, err
+}
+
+const listPartnerCatalog = `-- name: ListPartnerCatalog :many
+SELECT
+    pr.id, pr.name, pr.sku, pr.unit, pr.description, pr.net_content, c.name AS category_name,
+    COALESCE(f.storage_key, '')::text AS photo_storage_key,
+    (ai.product_id IS NOT NULL)::boolean AS is_agreed, COALESCE(ai.is_active, false)::boolean AS is_active,
+    COALESCE(ai.pricing_model, '')::text AS pricing_model, COALESCE(ai.retail_price, 0)::bigint AS retail_price,
+    COALESCE(ai.commission_bps, 0)::bigint AS commission_bps, COALESCE(ai.deposit_price, 0)::bigint AS deposit_price
+FROM partnerships AS p
+JOIN products AS pr ON pr.consignor_org_id = p.consignor_org_id
+JOIN categories AS c ON c.id = pr.category_id
+LEFT JOIN files AS f ON f.id = pr.photo_file_id
+LEFT JOIN agreements AS a ON a.partnership_id = p.id AND a.status = 'ACTIVE'
+LEFT JOIN agreement_items AS ai ON ai.agreement_id = a.id AND ai.product_id = pr.id
+WHERE p.id = $1::uuid
+    AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+    AND (NOT pr.is_archived OR ai.product_id IS NOT NULL)
+ORDER BY (ai.product_id IS NULL), pr.name, pr.id
+`
+
+type ListPartnerCatalogParams struct {
+	PartnershipID  string
+	OrganizationID string
+}
+
+type ListPartnerCatalogRow struct {
+	ID              string
+	Name            string
+	Sku             string
+	Unit            string
+	Description     string
+	NetContent      string
+	CategoryName    string
+	PhotoStorageKey string
+	IsAgreed        bool
+	IsActive        bool
+	PricingModel    string
+	RetailPrice     int64
+	CommissionBps   int64
+	DepositPrice    int64
+}
+
+func (q *Queries) ListPartnerCatalog(ctx context.Context, arg ListPartnerCatalogParams) ([]ListPartnerCatalogRow, error) {
+	rows, err := q.db.Query(ctx, listPartnerCatalog, arg.PartnershipID, arg.OrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPartnerCatalogRow{}
+	for rows.Next() {
+		var i ListPartnerCatalogRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Sku,
+			&i.Unit,
+			&i.Description,
+			&i.NetContent,
+			&i.CategoryName,
+			&i.PhotoStorageKey,
+			&i.IsAgreed,
+			&i.IsActive,
+			&i.PricingModel,
+			&i.RetailPrice,
+			&i.CommissionBps,
+			&i.DepositPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPartnerships = `-- name: ListPartnerships :many
+SELECT
+    p.id, p.status, p.started_at, COALESCE(p.ended_at, p.started_at)::timestamptz AS ended_at,
+    (p.ended_at IS NOT NULL)::boolean AS has_ended,
+    o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type
+FROM partnerships AS p
+JOIN organizations AS o
+    ON o.id = CASE WHEN p.consignor_org_id = $1::uuid THEN p.store_org_id ELSE p.consignor_org_id END
+WHERE (p.consignor_org_id = $1::uuid OR p.store_org_id = $1::uuid)
+    AND ($2::text = '' OR p.status = $2::text)
+    AND ($3::boolean OR (p.started_at, p.id) < ($4::timestamptz, $5::uuid))
+ORDER BY p.started_at DESC, p.id DESC
+LIMIT $6::bigint
+`
+
+type ListPartnershipsParams struct {
+	OrganizationID string
+	Status         string
+	FromStart      bool
+	AfterAt        time.Time
+	AfterID        string
+	RowLimit       int64
+}
+
+type ListPartnershipsRow struct {
+	ID              string
+	Status          string
+	StartedAt       time.Time
+	EndedAt         time.Time
+	HasEnded        bool
+	CounterpartID   string
+	CounterpartName string
+	CounterpartType string
+}
+
+func (q *Queries) ListPartnerships(ctx context.Context, arg ListPartnershipsParams) ([]ListPartnershipsRow, error) {
+	rows, err := q.db.Query(ctx, listPartnerships,
+		arg.OrganizationID,
+		arg.Status,
+		arg.FromStart,
+		arg.AfterAt,
+		arg.AfterID,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPartnershipsRow{}
+	for rows.Next() {
+		var i ListPartnershipsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Status,
+			&i.StartedAt,
+			&i.EndedAt,
+			&i.HasEnded,
+			&i.CounterpartID,
+			&i.CounterpartName,
+			&i.CounterpartType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

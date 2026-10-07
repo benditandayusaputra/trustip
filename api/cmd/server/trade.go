@@ -6,6 +6,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	agreementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/handler"
+	partnershiphandler "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/handler"
+	partnershiprepository "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/repository"
+	partnershipservice "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/service"
 	producthandler "github.com/benditandayusaputra/trustip/api/internal/modules/product/handler"
 	proposalhandler "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -14,9 +17,10 @@ import (
 )
 
 type tradeComponents struct {
-	products   productComponents
-	proposals  proposalComponents
-	agreements agreementComponents
+	products     productComponents
+	proposals    proposalComponents
+	agreements   agreementComponents
+	partnerships partnershipservice.PartnershipReader
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
@@ -26,7 +30,8 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		proposals: buildProposalComponents(pool, clock, proposalCollaborators{
 			founder: newAgreementFounder(pool, seals), announcer: newOrganizationAnnouncer(pool, clock),
 		}),
-		agreements: buildAgreementComponents(pool, seals),
+		agreements:   buildAgreementComponents(pool, seals),
+		partnerships: partnershiprepository.NewPartnerships(pool),
 	}
 }
 
@@ -44,4 +49,11 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 	}
 	proposalhandler.Mount(api, proposalDeps(components.proposals, negotiation))
 	agreementhandler.Mount(api, agreementDeps(components.agreements, negotiation))
+	partnershiphandler.Mount(api, partnershiphandler.Deps{
+		Authenticate: routes.authenticate,
+		List:         partnershipservice.NewListPartnerships(components.partnerships),
+		Get:          partnershipservice.NewGetPartnership(components.partnerships),
+		Catalog:      partnershipservice.NewListCatalog(components.partnerships),
+		FilesBaseURL: routes.filesBaseURL,
+	})
 }

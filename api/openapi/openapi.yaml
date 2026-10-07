@@ -1508,6 +1508,112 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships:
+    get:
+      operationId: listPartnerships
+      tags: [partnership]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, ENDED]
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Mitra organisasi pengguna, termasuk yang sudah berakhir
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnershipSummaryListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPartnership
+      tags: [partnership]
+      responses:
+        "200":
+          description: Ringkasan kemitraan dan pihak lawan dengan tampilan mitra
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnershipResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/catalog:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listPartnerCatalog
+      tags: [partnership]
+      responses:
+        "200":
+          description: Katalog penitip pada kemitraan beserta syarat Kesepakatan aktif
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerCatalogResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -2879,3 +2985,168 @@ components:
           $ref: "#/components/schemas/Agreement"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    CounterpartRef:
+      type: object
+      additionalProperties: false
+      required: [id, name, type]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/OrganizationType"
+    PartnershipSummary:
+      type: object
+      additionalProperties: false
+      required: [id, status, started_at, ended_at, counterpart]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, ENDED]
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        counterpart:
+          $ref: "#/components/schemas/CounterpartRef"
+    PartnershipSummaryListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartnershipSummary"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    Partnership:
+      type: object
+      additionalProperties: false
+      required: [id, status, started_at, ended_at, counterpart]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, ENDED]
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        counterpart:
+          type: object
+          additionalProperties: false
+          required: [id, name, type, slug, description, whatsapp, city_name, district, address, location, logo_url]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            type:
+              $ref: "#/components/schemas/OrganizationType"
+            slug:
+              type: string
+            description:
+              type: string
+            whatsapp:
+              type: string
+            city_name:
+              type: string
+            district:
+              type: string
+            address:
+              type: string
+            location:
+              nullable: true
+              allOf:
+                - $ref: "#/components/schemas/GeoPoint"
+            logo_url:
+              type: string
+              nullable: true
+    PartnershipResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Partnership"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    PartnerCatalogItem:
+      type: object
+      additionalProperties: false
+      required: [product_id, name, sku, unit, description, net_content, category_name, photo_url, is_active, terms]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        description:
+          type: string
+        net_content:
+          type: string
+        category_name:
+          type: string
+        photo_url:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        terms:
+          type: object
+          nullable: true
+          additionalProperties: false
+          required: [pricing_model, retail_price, commission_bps, deposit_price, per_unit]
+          properties:
+            pricing_model:
+              $ref: "#/components/schemas/PricingModel"
+            retail_price:
+              type: integer
+            commission_bps:
+              type: integer
+            deposit_price:
+              type: integer
+            per_unit:
+              $ref: "#/components/schemas/Split"
+    PartnerCatalogResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartnerCatalogItem"
+        meta:
+          $ref: "#/components/schemas/ListMeta"

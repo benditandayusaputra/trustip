@@ -662,6 +662,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/partnerships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPartnerships"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partnerships/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getPartnership"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partnerships/{id}/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["listPartnerCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1183,6 +1235,84 @@ export interface components {
             message: string;
             data: components["schemas"]["Agreement"];
             meta: components["schemas"]["ResponseMeta"];
+        };
+        CounterpartRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["OrganizationType"];
+        };
+        PartnershipSummary: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "ENDED";
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            ended_at: string | null;
+            counterpart: components["schemas"]["CounterpartRef"];
+        };
+        PartnershipSummaryListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["PartnershipSummary"][];
+            meta: components["schemas"]["ListMeta"];
+        };
+        Partnership: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "ENDED";
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            ended_at: string | null;
+            counterpart: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                type: components["schemas"]["OrganizationType"];
+                slug: string;
+                description: string;
+                whatsapp: string;
+                city_name: string;
+                district: string;
+                address: string;
+                location: components["schemas"]["GeoPoint"] | null;
+                logo_url: string | null;
+            };
+        };
+        PartnershipResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Partnership"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        PartnerCatalogItem: {
+            /** Format: uuid */
+            product_id: string;
+            name: string;
+            sku: string;
+            unit: string;
+            description: string;
+            net_content: string;
+            category_name: string;
+            photo_url: string | null;
+            is_active: boolean;
+            terms: {
+                pricing_model: components["schemas"]["PricingModel"];
+                retail_price: number;
+                commission_bps: number;
+                deposit_price: number;
+                per_unit: components["schemas"]["Split"];
+            } | null;
+        };
+        PartnerCatalogResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["PartnerCatalogItem"][];
+            meta: components["schemas"]["ListMeta"];
         };
     };
     responses: {
@@ -2611,6 +2741,95 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgreementResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listPartnerships: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "ENDED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mitra organisasi pengguna, termasuk yang sudah berakhir */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnershipSummaryListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getPartnership: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ringkasan kemitraan dan pihak lawan dengan tampilan mitra */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnershipResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listPartnerCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Katalog penitip pada kemitraan beserta syarat Kesepakatan aktif */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerCatalogResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

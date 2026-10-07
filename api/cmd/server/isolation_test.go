@@ -94,6 +94,12 @@ func isolationCases() map[string]isolationCase {
 		"GET /api/v1/partnerships/:id/agreement": func(w isolationWorld) exchange {
 			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/agreement")
 		},
+		"GET /api/v1/partnerships/:id": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID)
+		},
+		"GET /api/v1/partnerships/:id/catalog": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/catalog")
+		},
 	}
 }
 
