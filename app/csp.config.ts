@@ -3,6 +3,8 @@ import type { Config } from '@sveltejs/kit/vite';
 type CspDirectives = NonNullable<NonNullable<Config['csp']>['directives']>;
 type Source = NonNullable<CspDirectives['img-src']>[number];
 
+const captchaOrigin = 'https://challenges.cloudflare.com';
+
 interface PublicOrigins {
 	files?: string | undefined;
 	stream?: string | undefined;
@@ -22,12 +24,13 @@ function originOf(url: string | undefined): Source[] {
 export function contentSecurityPolicy(origins: PublicOrigins): CspDirectives {
 	return {
 		'default-src': ['self'],
-		'script-src': ['self'],
+		'script-src': ['self', captchaOrigin],
 		'style-src': ['self'],
 		'style-src-attr': ['unsafe-inline'],
 		'img-src': ['self', 'data:', 'blob:', ...originOf(origins.files)],
 		'font-src': ['self'],
 		'connect-src': ['self', ...originOf(origins.stream)],
+		'frame-src': [captchaOrigin],
 		'worker-src': ['self'],
 		'manifest-src': ['self'],
 		'object-src': ['none'],

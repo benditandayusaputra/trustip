@@ -36,7 +36,8 @@ type response struct {
 }
 
 func newTestApp(logs *bytes.Buffer) *fiber.App {
-	app := fiber.New(fiber.Config{ErrorHandler: httpserver.NewErrorHandler(logger.New(logs, slog.LevelInfo))})
+	log := logger.New(logs, slog.LevelInfo)
+	app := fiber.New(fiber.Config{ErrorHandler: httpserver.NewErrorHandler(log, log)})
 	app.Use(httpserver.RequestID(idgen.NewSequence()), httpserver.Recover())
 	app.Get("/ok", func(c fiber.Ctx) error {
 		return httpserver.Respond(c, httpserver.Reply{Message: "Tersimpan.", Data: map[string]string{"id": "7"}})

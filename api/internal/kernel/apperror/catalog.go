@@ -15,6 +15,7 @@ const (
 	CodeEdgeSignatureInvalid Code = "EDGE_SIGNATURE_INVALID"
 	CodeForbidden            Code = "FORBIDDEN"
 	CodeNotFound             Code = "NOT_FOUND"
+	CodeCaptchaFailed        Code = "CAPTCHA_FAILED"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
 	CodeInternal             Code = "INTERNAL"
@@ -63,6 +64,7 @@ func catalog() map[Code]entry {
 			KindNotFound, http.StatusNotFound,
 			"Data tidak ditemukan atau Anda tidak punya akses.",
 		},
+		CodeCaptchaFailed: {KindValidation, http.StatusUnprocessableEntity, "Verifikasi keamanan gagal. Coba lagi."},
 		CodeRateLimited: {
 			KindRateLimited, http.StatusTooManyRequests,
 			"Terlalu banyak percobaan. Coba lagi dalam {n} menit.",

@@ -57,7 +57,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "NOT_FOUND" | "RATE_LIMITED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "NOT_FOUND" | "CAPTCHA_FAILED" | "RATE_LIMITED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };

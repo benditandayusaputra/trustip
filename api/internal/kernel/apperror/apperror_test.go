@@ -30,6 +30,7 @@ func TestCatalog_StatusesFollowContractTable(t *testing.T) {
 		apperror.CodeEdgeSignatureInvalid: http.StatusUnauthorized,
 		apperror.CodeForbidden:            http.StatusForbidden,
 		apperror.CodeNotFound:             http.StatusNotFound,
+		apperror.CodeCaptchaFailed:        http.StatusUnprocessableEntity,
 		apperror.CodeRateLimited:          http.StatusTooManyRequests,
 		apperror.CodeServiceUnavailable:   http.StatusServiceUnavailable,
 		apperror.CodeInternal:             http.StatusInternalServerError,
@@ -48,6 +49,7 @@ func TestMessage_SpecMessagesAreUsed(t *testing.T) {
 		apperror.CodeSessionExpired:     "Sesi Anda berakhir. Silakan masuk lagi.",
 		apperror.CodeForbidden:          "Peran Anda tidak diizinkan melakukan ini.",
 		apperror.CodeServiceUnavailable: "Layanan sedang sibuk. Coba lagi sebentar lagi.",
+		apperror.CodeCaptchaFailed:      "Verifikasi keamanan gagal. Coba lagi.",
 	}
 	for code, want := range cases {
 		if got := apperror.New(code).Message(); got != want {

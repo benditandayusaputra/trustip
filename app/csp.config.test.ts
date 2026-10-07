@@ -8,7 +8,11 @@ describe('contentSecurityPolicy', () => {
 	});
 
 	it('never allows inline or evaluated scripts', () => {
-		expect(policy['script-src']).toEqual(['self']);
+		expect(policy['script-src']).toEqual(['self', 'https://challenges.cloudflare.com']);
+	});
+
+	it('lets only the captcha widget run in a frame', () => {
+		expect(policy['frame-src']).toEqual(['https://challenges.cloudflare.com']);
 	});
 
 	it('opens only style attributes for the framework route announcer', () => {

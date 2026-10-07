@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -54,6 +55,9 @@ func newTestServer() testServer {
 	server.API().Get("/probe/deadline", func(c fiber.Ctx) error {
 		deadline, ok := c.Context().Deadline()
 		return httpserver.Respond(c, httpserver.Reply{Data: ok && time.Until(deadline) <= 10*time.Second})
+	})
+	server.API().Get("/probe/captcha", func(fiber.Ctx) error {
+		return apperror.New(apperror.CodeCaptchaFailed).WithCause(errors.New("token was rejected"))
 	})
 	server.API().Get("/probe/panic", func(c fiber.Ctx) error {
 		var missing *httpserver.Reply
@@ -407,5 +411,19 @@ func TestEdgeSignature_NonceReusedAfterManyRequests_IsStillRejected(t *testing.T
 
 	if got := send(t, fixture.server.App(), replay); got.status != http.StatusUnauthorized {
 		t.Fatalf("replay after other traffic = %d", got.status)
+	}
+}
+
+func TestErrorHandler_RLOG06_CaptchaFailureIsASecurityEvent(t *testing.T) {
+	fixture := newTestServer()
+
+	got := fixture.do(t, newRequest(t, "/api/v1/probe/captcha"))
+
+	if got.status != http.StatusUnprocessableEntity || got.payload.Code != "CAPTCHA_FAILED" {
+		t.Fatalf("response = %d %s", got.status, got.raw)
+	}
+	logged := fixture.securityLogs.String()
+	if !strings.Contains(logged, `"event":"captcha_failed"`) || !strings.Contains(logged, "token was rejected") {
+		t.Fatalf("security log = %s", logged)
 	}
 }

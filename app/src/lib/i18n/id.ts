@@ -57,6 +57,10 @@ export const id = {
 		dismissToast: 'Tutup pemberitahuan',
 		notifications: 'Pemberitahuan'
 	},
+	captcha: {
+		label: 'Verifikasi keamanan',
+		loadFailed: 'Verifikasi keamanan tidak bisa dimuat. Periksa koneksi lalu muat ulang halaman.'
+	},
 	form: {
 		saving: 'Menyimpan',
 		decrease: (label: string) => `Kurangi ${label}`,

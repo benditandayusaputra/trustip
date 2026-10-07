@@ -40,7 +40,7 @@ type Server struct {
 }
 
 func New(opts Options) *Server {
-	errorHandler := NewErrorHandler(opts.AppLog)
+	errorHandler := NewErrorHandler(opts.AppLog, opts.SecurityLog)
 	app := fiber.New(fiber.Config{
 		ErrorHandler: errorHandler,
 		Immutable:    true,

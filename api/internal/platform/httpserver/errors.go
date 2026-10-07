@@ -25,13 +25,22 @@ type errorEnvelope struct {
 	Meta    meta             `json:"meta"`
 }
 
-func NewErrorHandler(appLog *slog.Logger) fiber.ErrorHandler {
+func NewErrorHandler(appLog, securityLog *slog.Logger) fiber.ErrorHandler {
 	return func(c fiber.Ctx, err error) error {
 		appErr := toAppError(err).WithParam("request_id", RequestIDFrom(c))
 		if appErr.Kind() == apperror.KindInternal {
 			logUnexpected(appLog, c, appErr)
 		}
+		if event, ok := securityEvents()[appErr.Code()]; ok {
+			securityLog.Warn(event, "event", event, "request_id", RequestIDFrom(c), "ip", ClientIP(c), "reason", appErr)
+		}
 		return writeError(c, appErr)
+	}
+}
+
+func securityEvents() map[apperror.Code]string {
+	return map[apperror.Code]string{
+		apperror.CodeCaptchaFailed: "captcha_failed",
 	}
 }
 
