@@ -56,3 +56,10 @@ export function parseDigits(text: string): number | undefined {
 	const digits = text.replace(/\D/gu, '');
 	return digits === '' ? undefined : Number(digits);
 }
+
+const basisPointsPerWhole = 10_000;
+const percent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 });
+
+export function formatBasisPoints(basisPoints: number): string {
+	return percent.format(basisPoints / basisPointsPerWhole);
+}

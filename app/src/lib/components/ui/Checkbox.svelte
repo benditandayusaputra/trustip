@@ -5,10 +5,11 @@
 		checked?: boolean;
 		name?: string;
 		error?: string | undefined;
+		onchange?: (checked: boolean) => void;
 		children: Snippet;
 	}
 
-	let { checked = $bindable(false), name, error, children }: Props = $props();
+	let { checked = $bindable(false), name, error, onchange, children }: Props = $props();
 
 	const inputId = $props.id();
 </script>
@@ -20,6 +21,7 @@
 			type="checkbox"
 			{name}
 			bind:checked
+			onchange={() => onchange?.(checked)}
 			aria-invalid={error ? true : undefined}
 			aria-describedby={error ? `${inputId}-error` : undefined}
 			class="mt-1 size-6 shrink-0 accent-accent"

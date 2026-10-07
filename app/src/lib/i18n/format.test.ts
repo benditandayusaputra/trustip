@@ -5,6 +5,7 @@ import {
 	formatDistance,
 	formatInteger,
 	formatRupiah,
+	formatBasisPoints,
 	parseDigits
 } from './format';
 
@@ -66,5 +67,12 @@ describe('formatDistance', () => {
 
 	it('drops decimals from ten kilometers up', () => {
 		expect(formatDistance(12400)).toBe('12 km');
+	});
+});
+
+describe('formatBasisPoints', () => {
+	it('BR-AGR-03 shows basis points as an Indonesian percentage', () => {
+		expect(formatBasisPoints(2000)).toBe('20%');
+		expect(formatBasisPoints(1750)).toBe('17,5%');
 	});
 });

@@ -1,12 +1,14 @@
 import { legal } from './legal';
 import { organization } from './organization';
 import { products } from './products';
+import { proposals } from './proposals';
 
 export const id = {
 	brand: 'Trustip',
 	legal,
 	...organization,
 	...products,
+	...proposals,
 	layout: {
 		skipToContent: 'Lewati ke konten',
 		mainNavigation: 'Navigasi utama',

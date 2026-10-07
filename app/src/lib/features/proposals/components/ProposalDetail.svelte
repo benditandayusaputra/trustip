@@ -1,0 +1,108 @@
+<script lang="ts">
+	import Alert from '#lib/components/ui/Alert.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import { apiClient } from '#lib/api/client.js';
+	import type { Proposal } from '#lib/api/proposals.js';
+	import { formatBasisPoints, formatDateTime, formatRupiah } from '#lib/i18n/format.js';
+	import { id } from '#lib/i18n/id.js';
+	import { partyName } from '../links';
+	import { ProposalRecord } from '../record.svelte';
+	import InvitationShare from './InvitationShare.svelte';
+
+	interface Props {
+		proposalId: string;
+		viewerOrganizationId: string;
+	}
+
+	let { proposalId, viewerOrganizationId }: Props = $props();
+
+	const text = id.proposals;
+	const record = new ProposalRecord(apiClient);
+	interface Column {
+		key: keyof ReturnType<typeof rowsOf>[number];
+		label: string;
+		numeric?: boolean;
+	}
+	const columns: Column[] = [
+		{ key: 'product', label: id.products.name },
+		{ key: 'model', label: text.model },
+		{ key: 'retail', label: text.retailPrice, numeric: true },
+		{ key: 'consignor', label: text.perUnitConsignor, numeric: true },
+		{ key: 'store', label: text.perUnitStore, numeric: true }
+	];
+
+	$effect(() => {
+		void record.load(proposalId);
+	});
+
+	function rowsOf(proposal: Proposal) {
+		return proposal.revision.items.map((item) => ({
+			id: item.product_id,
+			product: `${item.product_name} (${item.sku})`,
+			model:
+				item.pricing_model === 'COMMISSION'
+					? `${text.models.COMMISSION} ${formatBasisPoints(item.commission_bps)}`
+					: text.models.FIXED_DEPOSIT,
+			retail: formatRupiah(item.retail_price),
+			consignor: formatRupiah(item.per_unit.consignor_share),
+			store: formatRupiah(item.per_unit.store_share)
+		}));
+	}
+
+	function awaitingText(proposal: Proposal): string {
+		if (proposal.awaiting_org_id === null) {
+			return text.awaitingInvitee;
+		}
+		return text.awaiting(partyName(proposal, proposal.awaiting_org_id));
+	}
+</script>
+
+{#if record.status === 'loading'}
+	<Skeleton />
+{:else if record.status === 'failed' || !record.proposal}
+	<Alert title={text.loadFailed}>{record.failure}</Alert>
+{:else}
+	{@const proposal = record.proposal}
+	{@const terms = proposal.revision.terms}
+	<div class="flex flex-wrap items-center gap-2">
+		<span class="font-mono text-sm text-text-muted">{proposal.number}</span>
+		<Badge
+			tone={proposal.status === 'OPEN' ? 'pending' : 'neutral'}
+			label={text.statuses[proposal.status]}
+		/>
+	</div>
+	{#if proposal.status === 'OPEN'}
+		<p role="status" class="text-base text-text">{awaitingText(proposal)}</p>
+	{/if}
+	<dl class="grid grid-cols-2 gap-2 text-sm">
+		<dt class="text-text-muted">{text.consignor}</dt>
+		<dd>{proposal.consignor?.name ?? text.notJoined}</dd>
+		<dt class="text-text-muted">{text.store}</dt>
+		<dd>{proposal.store?.name ?? text.notJoined}</dd>
+		<dt class="text-text-muted">{text.schedule}</dt>
+		<dd>{text.schedules[terms.settlement_schedule]}</dd>
+		<dt class="text-text-muted">{text.paymentTerms}</dt>
+		<dd class="font-mono tabular-nums">{terms.payment_terms_days}</dd>
+		<dt class="text-text-muted">{text.rhythm}</dt>
+		<dd>{text.rhythms[terms.count_rhythm]}</dd>
+		{#if terms.notes}
+			<dt class="text-text-muted">{text.notes}</dt>
+			<dd>{terms.notes}</dd>
+		{/if}
+		<dt class="text-text-muted">{id.proposals.status}</dt>
+		<dd>{text.expiresAt(formatDateTime(proposal.expires_at))}</dd>
+	</dl>
+	{#if proposal.revision.items.length > 0}
+		<ResponsiveTable caption={text.products} {columns} rows={rowsOf(proposal)} rowKey="id" />
+	{/if}
+	{#if proposal.revision.message}
+		<blockquote class="border-l-4 border-l-border-strong pl-4 text-base text-text">
+			{proposal.revision.message}
+		</blockquote>
+	{/if}
+	{#if proposal.invite_code && proposal.awaiting_org_id === null && proposal.from_org_id === viewerOrganizationId}
+		<InvitationShare {proposal} inviteCode={proposal.invite_code} />
+	{/if}
+{/if}
