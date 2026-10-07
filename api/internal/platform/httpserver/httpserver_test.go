@@ -46,6 +46,7 @@ func newTestApp(logs *bytes.Buffer) *fiber.App {
 		return httpserver.RespondList(c, httpserver.Page[string]{})
 	})
 	app.Get("/missing", func(fiber.Ctx) error { return fmt.Errorf("get drop: %w", apperror.NotFound()) })
+	app.Get("/elsewhere", func(fiber.Ctx) error { return fmt.Errorf("get drop: %w", apperror.OutsideScope()) })
 	app.Get("/invalid", func(fiber.Ctx) error {
 		return apperror.Validation(apperror.FieldError{Field: "qty", Code: "MIN", Message: "Jumlah minimal 1."})
 	})
@@ -115,6 +116,31 @@ func TestErrorHandler_WrappedNotFound_Returns404Envelope(t *testing.T) {
 	}
 	if got.payload.Errors != nil || got.payload.Data != nil {
 		t.Fatalf("error response carries data or errors: %s", got.raw)
+	}
+}
+
+func TestErrorHandler_RLOG06_CrossOrganizationAccessIsANotFoundAndASecurityEvent(t *testing.T) {
+	logs := &bytes.Buffer{}
+
+	got := call(t, newTestApp(logs), "/elsewhere")
+	plain := call(t, newTestApp(&bytes.Buffer{}), "/missing")
+
+	if got.status != http.StatusNotFound || got.payload.Code != plain.payload.Code ||
+		got.payload.Message != plain.payload.Message {
+		t.Fatalf("response = %d %s", got.status, got.raw)
+	}
+	if !strings.Contains(logs.String(), `"event":"cross_organization_access"`) {
+		t.Fatalf("logs = %s", logs.String())
+	}
+}
+
+func TestErrorHandler_PlainNotFoundIsNotASecurityEvent(t *testing.T) {
+	logs := &bytes.Buffer{}
+
+	call(t, newTestApp(logs), "/missing")
+
+	if strings.Contains(logs.String(), "cross_organization_access") {
+		t.Fatalf("logs = %s", logs.String())
 	}
 }
 

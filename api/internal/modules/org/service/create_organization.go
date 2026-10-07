@@ -7,6 +7,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/policy"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 )
@@ -15,6 +16,7 @@ const maxSlugAttempts = 3
 
 type CreateDeps struct {
 	Founder OrganizationFounder
+	Audit   AuditTrail
 	Tx      Transactor
 	Clock   Clock
 	IDs     IDGenerator
@@ -40,7 +42,7 @@ func (uc *CreateOrganization) Execute(
 	}
 	var lastErr error
 	for range maxSlugAttempts {
-		organization, err := uc.attempt(ctx, signedIn.UserID, onboarding)
+		organization, err := uc.attempt(ctx, signedIn, onboarding)
 		if !errors.Is(err, domain.ErrSlugTaken) {
 			return organization, explainFoundingFailure(err)
 		}
@@ -50,9 +52,9 @@ func (uc *CreateOrganization) Execute(
 }
 
 func (uc *CreateOrganization) attempt(
-	ctx context.Context, founderID string, onboarding domain.Onboarding,
+	ctx context.Context, founder actor.Actor, onboarding domain.Onboarding,
 ) (domain.Organization, error) {
-	ids, err := uc.newIDs(founderID)
+	ids, err := uc.newIDs(founder.UserID)
 	if err != nil {
 		return domain.Organization{}, err
 	}
@@ -70,7 +72,10 @@ func (uc *CreateOrganization) attempt(
 		}
 		organization = founding.Organization
 		organization.CityName = cityName
-		return nil
+		return recordOrganizationEvent(ctx, uc.deps.Audit, organizationEvent{
+			signedIn: founder, organizationID: ids.OrganizationID, action: audit.OrganizationCreated,
+			metadata: map[string]string{"type": string(onboarding.Type)}, at: founding.Organization.CreatedAt,
+		})
 	})
 	if err != nil {
 		return domain.Organization{}, fmt.Errorf("found organization %s: %w", ids.OrganizationID, err)

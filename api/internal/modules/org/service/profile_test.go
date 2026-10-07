@@ -2,11 +2,13 @@ package service_test
 
 import (
 	"context"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/service"
 )
@@ -45,7 +47,24 @@ func profileChange(organizationID string) service.UpdateProfileCommand {
 }
 
 func newUpdateProfile(profiles *fakeProfiles) *service.UpdateProfile {
-	return service.NewUpdateProfile(profiles, &countingTx{}, fixedClock{})
+	return service.NewUpdateProfile(service.ProfileDeps{
+		Profiles: profiles, Audit: &fakeAudit{}, Tx: &countingTx{}, Clock: fixedClock{},
+	})
+}
+
+func TestUpdateProfile_NFR14_ChangeIsAudited(t *testing.T) {
+	trail := &fakeAudit{}
+	useCase := service.NewUpdateProfile(service.ProfileDeps{
+		Profiles: &fakeProfiles{}, Audit: trail, Tx: &countingTx{}, Clock: fixedClock{},
+	})
+
+	if _, err := useCase.Execute(t.Context(), storeMember(actor.Owner), profileChange(ownOrganizationID)); err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+
+	if !slices.Equal(trail.actions(), []audit.Action{audit.ProfileUpdated}) {
+		t.Fatalf("actions = %v", trail.actions())
+	}
 }
 
 func TestUpdateProfile_StaffIsForbidden(t *testing.T) {

@@ -11,6 +11,7 @@ import (
 )
 
 type fakeListings struct {
+	audit   fakeAudit
 	facts   domain.ListingFacts
 	changes []domain.ListingChange
 }
@@ -26,7 +27,7 @@ func (f *fakeListings) SetListed(_ context.Context, change domain.ListingChange)
 
 func newSetListing(listings *fakeListings) *service.SetListing {
 	return service.NewSetListing(service.ListingDeps{
-		Profiles: &fakeProfiles{}, Listings: listings, Tx: &countingTx{}, Clock: fixedClock{},
+		Profiles: &fakeProfiles{}, Listings: listings, Audit: &listings.audit, Tx: &countingTx{}, Clock: fixedClock{},
 	})
 }
 
@@ -63,6 +64,9 @@ func TestSetListing_BRORG05_CompleteStoreIsListed(t *testing.T) {
 
 	if err != nil || len(listings.changes) != 1 || !listings.changes[0].IsListed {
 		t.Fatalf("err = %v, changes = %+v", err, listings.changes)
+	}
+	if entries := listings.audit.entries; len(entries) != 1 || entries[0].Metadata["is_listed"] != "true" {
+		t.Fatalf("audit = %+v", entries)
 	}
 }
 

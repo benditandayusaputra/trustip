@@ -7,6 +7,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/policy"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 )
@@ -29,6 +30,7 @@ type sectionPlan[F any] func(cmd SectionCommand[F], at time.Time) (sectionWrite,
 type UpdateSection[F any] struct {
 	deps         SectionDeps
 	organization actor.OrganizationType
+	action       audit.Action
 	plan         sectionPlan[F]
 }
 
@@ -38,9 +40,11 @@ func (uc *UpdateSection[F]) Execute(
 	if err := policy.Require(signedIn, policy.EditProfile); err != nil {
 		return domain.Settings{}, fmt.Errorf("check section editor: %w", err)
 	}
-	target := sectionTarget{signedIn: signedIn, organizationID: cmd.OrganizationID, organization: uc.organization}
+	target := sectionTarget{
+		signedIn: signedIn, organizationID: cmd.OrganizationID, organization: uc.organization, action: uc.action,
+	}
 	if !target.isReachable() {
-		return domain.Settings{}, apperror.NotFound()
+		return domain.Settings{}, apperror.OutsideScope()
 	}
 	write, err := uc.plan(cmd, uc.deps.Clock.Now())
 	if err != nil {
@@ -58,7 +62,9 @@ func NewUpdateStoreProfile(deps SectionDeps) *UpdateSection[domain.StoreProfileF
 		change := domain.StoreProfileChange{OrganizationID: cmd.OrganizationID, Profile: profile, At: at}
 		return func(ctx context.Context) error { return deps.Sections.UpdateStoreProfile(ctx, change) }, nil
 	}
-	return &UpdateSection[domain.StoreProfileForm]{deps: deps, organization: actor.Store, plan: plan}
+	return &UpdateSection[domain.StoreProfileForm]{
+		deps: deps, organization: actor.Store, action: audit.StoreProfileUpdated, plan: plan,
+	}
 }
 
 func NewUpdateConsignorProfile(deps SectionDeps) *UpdateSection[domain.ConsignorProfileForm] {
@@ -70,7 +76,9 @@ func NewUpdateConsignorProfile(deps SectionDeps) *UpdateSection[domain.Consignor
 		change := domain.ConsignorProfileChange{OrganizationID: cmd.OrganizationID, Profile: profile, At: at}
 		return func(ctx context.Context) error { return deps.Sections.UpdateConsignorProfile(ctx, change) }, nil
 	}
-	return &UpdateSection[domain.ConsignorProfileForm]{deps: deps, organization: actor.Consignor, plan: plan}
+	return &UpdateSection[domain.ConsignorProfileForm]{
+		deps: deps, organization: actor.Consignor, action: audit.ConsignorProfileUpdated, plan: plan,
+	}
 }
 
 func NewUpdatePaymentInfo(deps SectionDeps) *UpdateSection[domain.PaymentInfoForm] {
@@ -82,5 +90,7 @@ func NewUpdatePaymentInfo(deps SectionDeps) *UpdateSection[domain.PaymentInfoFor
 		change := domain.PaymentInfoChange{OrganizationID: cmd.OrganizationID, Payment: payment, At: at}
 		return func(ctx context.Context) error { return deps.Sections.UpdatePaymentInfo(ctx, change) }, nil
 	}
-	return &UpdateSection[domain.PaymentInfoForm]{deps: deps, organization: actor.Consignor, plan: plan}
+	return &UpdateSection[domain.PaymentInfoForm]{
+		deps: deps, organization: actor.Consignor, action: audit.PaymentInfoUpdated, plan: plan,
+	}
 }

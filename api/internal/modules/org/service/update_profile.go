@@ -7,6 +7,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/policy"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 )
@@ -16,14 +17,19 @@ type UpdateProfileCommand struct {
 	Form           domain.ProfileUpdateForm
 }
 
-type UpdateProfile struct {
-	profiles ProfileStore
-	tx       Transactor
-	clock    Clock
+type ProfileDeps struct {
+	Profiles ProfileStore
+	Audit    AuditTrail
+	Tx       Transactor
+	Clock    Clock
 }
 
-func NewUpdateProfile(profiles ProfileStore, tx Transactor, clock Clock) *UpdateProfile {
-	return &UpdateProfile{profiles: profiles, tx: tx, clock: clock}
+type UpdateProfile struct {
+	deps ProfileDeps
+}
+
+func NewUpdateProfile(deps ProfileDeps) *UpdateProfile {
+	return &UpdateProfile{deps: deps}
 }
 
 func (uc *UpdateProfile) Execute(
@@ -33,19 +39,24 @@ func (uc *UpdateProfile) Execute(
 		return domain.Settings{}, fmt.Errorf("check profile editor: %w", err)
 	}
 	if !isOwnOrganization(signedIn, cmd.OrganizationID) {
-		return domain.Settings{}, apperror.NotFound()
+		return domain.Settings{}, apperror.OutsideScope()
 	}
 	update, err := domain.NewProfileUpdate(cmd.Form, signedIn.Membership.OrganizationType)
 	if err != nil {
 		return domain.Settings{}, fmt.Errorf("validate profile: %w", err)
 	}
-	change := domain.ProfileChange{OrganizationID: cmd.OrganizationID, Update: update, At: uc.clock.Now()}
+	change := domain.ProfileChange{OrganizationID: cmd.OrganizationID, Update: update, At: uc.deps.Clock.Now()}
 	var settings domain.Settings
-	err = uc.tx.WithinTx(ctx, func(ctx context.Context) error {
-		if err := uc.profiles.UpdateProfile(ctx, change); err != nil {
+	err = uc.deps.Tx.WithinTx(ctx, func(ctx context.Context) error {
+		if err := uc.deps.Profiles.UpdateProfile(ctx, change); err != nil {
 			return explainProfileFailure(err)
 		}
-		settings, err = uc.profiles.GetSettings(ctx, cmd.OrganizationID)
+		if err := recordOrganizationEvent(ctx, uc.deps.Audit, organizationEvent{
+			signedIn: signedIn, organizationID: cmd.OrganizationID, action: audit.ProfileUpdated, at: change.At,
+		}); err != nil {
+			return err
+		}
+		settings, err = uc.deps.Profiles.GetSettings(ctx, cmd.OrganizationID)
 		if err != nil {
 			return fmt.Errorf("reload settings: %w", err)
 		}

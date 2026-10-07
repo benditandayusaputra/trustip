@@ -25,7 +25,7 @@ func (uc *GetSettings) Execute(
 		return domain.Settings{}, fmt.Errorf("check settings reader: %w", err)
 	}
 	if !isOwnOrganization(signedIn, organizationID) {
-		return domain.Settings{}, apperror.NotFound()
+		return domain.Settings{}, apperror.OutsideScope()
 	}
 	settings, err := uc.profiles.GetSettings(ctx, organizationID)
 	if err != nil {

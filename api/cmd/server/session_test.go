@@ -10,11 +10,13 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver/edgetest"
 )
 
 type browser struct {
+	pool    *database.Pool
 	t       *testing.T
 	server  *httpserver.Server
 	now     *clock.Manual

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 	"testing"
 
+	auditrepository "github.com/benditandayusaputra/trustip/api/internal/modules/audit/repository"
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/repository"
 	orgrepository "github.com/benditandayusaputra/trustip/api/internal/modules/org/repository"
@@ -28,6 +30,7 @@ func databaseBrowser(t *testing.T) *browser {
 		captcha: acceptSolvedCaptcha{}, passwords: passwordHasher{hasher: hasher},
 		users: users, accounts: users, credentials: users, sessions: sessions, userSessions: sessions,
 		tokens: newTokenIssuer(testPepper{}), memberships: orgrepository.NewMemberships(pool),
+		audit:      newAuditTrail(auditrepository.NewRecords(pool)),
 		accessKeys: testPepper{}, revoked: revocation.New(now), tx: pool,
 		clock: now, ids: idgen.UUIDv7{}, cookies: authhandler.LocalCookies(),
 	}
@@ -37,14 +40,16 @@ func databaseBrowser(t *testing.T) *browser {
 	if got := perform(t, server, postUsers(t, registration("sari@contoh.id"))); got.status != http.StatusCreated {
 		t.Fatalf("register = %d %s", got.status, got.body)
 	}
-	visitor := &browser{t: t, server: server, now: now}
+	visitor := &browser{t: t, server: server, now: now, pool: pool}
 	visitor.signIn()
 	return visitor
 }
 
 func (b *browser) anotherUserOnTheSameServer(email string) *browser {
 	b.t.Helper()
-	if got := perform(b.t, b.server, postUsers(b.t, registration(email))); got.status != http.StatusCreated {
+	b.visits++
+	signup := postUsersFrom(b.t, registration(email), fmt.Sprintf("198.51.100.%d", b.visits))
+	if got := perform(b.t, b.server, signup); got.status != http.StatusCreated {
 		b.t.Fatalf("register %s = %d %s", email, got.status, got.body)
 	}
 	other := &browser{t: b.t, server: b.server, now: b.now, visits: b.visits}

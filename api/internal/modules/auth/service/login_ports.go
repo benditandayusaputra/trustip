@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 )
 
@@ -49,6 +50,10 @@ type AccessRevoker interface {
 
 type MembershipFinder interface {
 	FindMembership(ctx context.Context, userID string) (actor.Membership, bool, error)
+}
+
+type AuditTrail interface {
+	Record(ctx context.Context, entry audit.Entry) error
 }
 
 type Transactor interface {

@@ -7,12 +7,14 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 )
 
 type SectionDeps struct {
 	Profiles ProfileStore
 	Sections ProfileSectionStore
+	Audit    AuditTrail
 	Tx       Transactor
 	Clock    Clock
 }
@@ -21,6 +23,7 @@ type sectionTarget struct {
 	signedIn       actor.Actor
 	organizationID string
 	organization   actor.OrganizationType
+	action         audit.Action
 }
 
 func (t sectionTarget) isReachable() bool {
@@ -34,6 +37,12 @@ func saveSection(
 	err := deps.Tx.WithinTx(ctx, func(ctx context.Context) error {
 		if err := write(ctx); err != nil {
 			return explainSectionFailure(err)
+		}
+		if err := recordOrganizationEvent(ctx, deps.Audit, organizationEvent{
+			signedIn: target.signedIn, organizationID: target.organizationID, action: target.action,
+			at: deps.Clock.Now(),
+		}); err != nil {
+			return err
 		}
 		reloaded, err := deps.Profiles.GetSettings(ctx, target.organizationID)
 		if err != nil {

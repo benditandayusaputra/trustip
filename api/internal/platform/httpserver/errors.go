@@ -31,7 +31,7 @@ func NewErrorHandler(appLog, securityLog *slog.Logger) fiber.ErrorHandler {
 		if appErr.Kind() == apperror.KindInternal {
 			logUnexpected(appLog, c, appErr)
 		}
-		if event, ok := securityEvents()[appErr.Code()]; ok {
+		if event, ok := securityEventOf(appErr); ok {
 			securityLog.Warn(event, "event", event, "request_id", RequestIDFrom(c), "ip", ClientIP(c), "reason", appErr)
 		}
 		return writeError(c, appErr)
@@ -46,6 +46,14 @@ func securityEvents() map[apperror.Code]string {
 		apperror.CodeSessionRevoked:    "refresh_token_reused",
 		apperror.CodeCrossSiteRejected: "cross_site_rejected",
 	}
+}
+
+func securityEventOf(appErr *apperror.Error) (string, bool) {
+	if errors.Is(appErr, apperror.ErrOutsideScope) {
+		return "cross_organization_access", true
+	}
+	event, ok := securityEvents()[appErr.Code()]
+	return event, ok
 }
 
 func toAppError(err error) *apperror.Error {

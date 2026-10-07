@@ -68,3 +68,17 @@ func Deadline(timeout time.Duration) fiber.Handler {
 		return c.Next()
 	}
 }
+
+type clientIPContextKey struct{}
+
+func CarryClientIP() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		c.SetContext(context.WithValue(c.Context(), clientIPContextKey{}, ClientIP(c)))
+		return c.Next()
+	}
+}
+
+func ClientIPFrom(ctx context.Context) string {
+	clientIP, _ := ctx.Value(clientIPContextKey{}).(string)
+	return clientIP
+}

@@ -2,15 +2,18 @@ package service_test
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/service"
 )
 
 type fakeStoreProfiles struct {
+	audit      *fakeAudit
 	failure    error
 	changes    []domain.StoreProfileChange
 	consignors []domain.ConsignorProfileChange
@@ -52,11 +55,13 @@ func newUpdateStoreProfile(stores *fakeStoreProfiles) *service.UpdateSection[dom
 }
 
 func sectionDeps(sections *fakeStoreProfiles) service.SectionDeps {
-	return service.SectionDeps{Profiles: &fakeProfiles{}, Sections: sections, Tx: &countingTx{}, Clock: fixedClock{}}
+	return service.SectionDeps{
+		Profiles: &fakeProfiles{}, Sections: sections, Audit: sections.audit, Tx: &countingTx{}, Clock: fixedClock{},
+	}
 }
 
 func TestUpdateStoreProfile_StaffIsForbidden(t *testing.T) {
-	stores := &fakeStoreProfiles{}
+	stores := &fakeStoreProfiles{audit: &fakeAudit{}}
 
 	_, err := newUpdateStoreProfile(stores).Execute(t.Context(), storeMember(actor.Staff),
 		storeProfileCommand(ownOrganizationID))
@@ -70,7 +75,7 @@ func TestUpdateStoreProfile_ConsignorHasNoStoreProfile(t *testing.T) {
 	consignor := storeMember(actor.Owner)
 	consignor.Membership.OrganizationType = actor.Consignor
 
-	_, err := newUpdateStoreProfile(&fakeStoreProfiles{}).Execute(t.Context(), consignor,
+	_, err := newUpdateStoreProfile(&fakeStoreProfiles{audit: &fakeAudit{}}).Execute(t.Context(), consignor,
 		storeProfileCommand(ownOrganizationID))
 
 	if apperror.From(err).Code() != apperror.CodeNotFound {
@@ -79,7 +84,9 @@ func TestUpdateStoreProfile_ConsignorHasNoStoreProfile(t *testing.T) {
 }
 
 func TestUpdateStoreProfile_BRAUTHZ02_AnotherOrganizationIsNotFound(t *testing.T) {
-	_, err := newUpdateStoreProfile(&fakeStoreProfiles{}).Execute(t.Context(), storeMember(actor.Owner),
+	useCase := newUpdateStoreProfile(&fakeStoreProfiles{audit: &fakeAudit{}})
+
+	_, err := useCase.Execute(t.Context(), storeMember(actor.Owner),
 		storeProfileCommand(founderID))
 
 	if apperror.From(err).Code() != apperror.CodeNotFound {
@@ -93,7 +100,7 @@ func TestUpdateStoreProfile_UnknownCategoryOrPhotoIsAFieldError(t *testing.T) {
 		domain.ErrUnknownPhoto:    "photo_file_ids",
 	}
 	for failure, field := range failures {
-		_, err := newUpdateStoreProfile(&fakeStoreProfiles{failure: failure}).Execute(t.Context(),
+		_, err := newUpdateStoreProfile(&fakeStoreProfiles{audit: &fakeAudit{}, failure: failure}).Execute(t.Context(),
 			storeMember(actor.Owner), storeProfileCommand(ownOrganizationID))
 
 		fields := apperror.From(err).Fields()
@@ -104,13 +111,14 @@ func TestUpdateStoreProfile_UnknownCategoryOrPhotoIsAFieldError(t *testing.T) {
 }
 
 func TestUpdateStoreProfile_FRORG04_OwnerSavesTheStoreProfile(t *testing.T) {
-	stores := &fakeStoreProfiles{}
+	stores := &fakeStoreProfiles{audit: &fakeAudit{}}
 
 	settings, err := newUpdateStoreProfile(stores).Execute(t.Context(), storeMember(actor.Owner),
 		storeProfileCommand(ownOrganizationID))
 
 	if err != nil || len(stores.changes) != 1 || stores.changes[0].Profile.StoreType != "CAFE" ||
-		settings.ID != ownOrganizationID {
+		settings.ID != ownOrganizationID ||
+		!slices.Equal(stores.audit.actions(), []audit.Action{audit.StoreProfileUpdated}) {
 		t.Fatalf("settings = %+v, err = %v", settings, err)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	auditrepository "github.com/benditandayusaputra/trustip/api/internal/modules/audit/repository"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/repository"
@@ -41,6 +42,7 @@ type authComponents struct {
 	userSessions service.UserSessionRevoker
 	tokens       service.TokenIssuer
 	memberships  service.MembershipFinder
+	audit        service.AuditTrail
 	revoked      *revocation.List
 	accessKeys   security.SecretRing
 	tx           service.Transactor
@@ -66,6 +68,7 @@ func buildAuthComponents(cfg config.Config, pool *database.Pool, clock service.C
 		userSessions: sessions,
 		tokens:       newTokenIssuer(cfg.JWTKeys),
 		memberships:  orgrepository.NewMemberships(pool),
+		audit:        newAuditTrail(auditrepository.NewRecords(pool)),
 		accessKeys:   cfg.JWTKeys,
 		revoked:      revocation.New(clock),
 		tx:           pool,
@@ -137,6 +140,7 @@ func newLoginUser(components authComponents) *service.LoginUser {
 		Sessions:    components.sessions,
 		Tokens:      components.tokens,
 		Memberships: components.memberships,
+		Audit:       components.audit,
 		Tx:          components.tx,
 		Clock:       components.clock,
 		IDs:         components.ids,

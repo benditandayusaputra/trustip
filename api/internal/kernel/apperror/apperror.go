@@ -31,8 +31,14 @@ func Validation(fields ...FieldError) *Error {
 	return &Error{code: CodeValidationFailed, fields: fields}
 }
 
+var ErrOutsideScope = errors.New("data belongs to another organization")
+
 func NotFound() *Error {
 	return New(CodeNotFound)
+}
+
+func OutsideScope() *Error {
+	return NotFound().WithCause(ErrOutsideScope)
 }
 
 func Internal(cause error) *Error {

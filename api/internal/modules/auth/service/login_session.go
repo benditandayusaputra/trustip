@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 )
 
@@ -13,6 +15,7 @@ type successfulLogin struct {
 	check       domain.PasswordCheck
 	password    string
 	now         time.Time
+	membership  actor.Membership
 }
 
 func (uc *LoginUser) startSession(ctx context.Context, login successfulLogin) (LoginResult, error) {
@@ -26,14 +29,15 @@ func (uc *LoginUser) startSession(ctx context.Context, login successfulLogin) (L
 		return LoginResult{}, fmt.Errorf("create refresh token: %w", err)
 	}
 	session := domain.NewSession(identity, refresh.Hash, login.now)
+	claims, err := uc.claimsFor(ctx, identity, login.now)
+	if err != nil {
+		return LoginResult{}, err
+	}
+	login.membership = claims.Membership
 	if err := uc.deps.Tx.WithinTx(ctx, func(ctx context.Context) error {
 		return uc.saveSuccessfulLogin(ctx, login, session)
 	}); err != nil {
 		return LoginResult{}, fmt.Errorf("start session for %s: %w", userID, err)
-	}
-	claims, err := uc.claimsFor(ctx, identity, login.now)
-	if err != nil {
-		return LoginResult{}, err
 	}
 	access, err := uc.deps.Tokens.SignAccessToken(claims)
 	if err != nil {
@@ -89,7 +93,18 @@ func (uc *LoginUser) saveSuccessfulLogin(ctx context.Context, login successfulLo
 	if err := uc.deps.Sessions.CreateSession(ctx, session); err != nil {
 		return fmt.Errorf("create session: %w", err)
 	}
+	if err := uc.deps.Audit.Record(ctx, signInEntry(login)); err != nil {
+		return fmt.Errorf("audit sign in: %w", err)
+	}
 	return nil
+}
+
+func signInEntry(login successfulLogin) audit.Entry {
+	userID := login.credentials.UserID
+	return audit.Entry{
+		OrganizationID: login.membership.OrganizationID, ActorID: userID, Action: audit.SignedIn,
+		EntityType: audit.UserEntity, EntityID: userID, At: login.now,
+	}
 }
 
 func (uc *LoginUser) rehash(ctx context.Context, userID, password string) error {

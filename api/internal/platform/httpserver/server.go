@@ -59,6 +59,7 @@ func New(opts Options) *Server {
 		EdgeSignature(opts.Edge, opts.SecurityLog),
 		RateLimit(opts.Limiter, ByClientIP, opts.SecurityLog),
 		Deadline(requestTimeout),
+		CarryClientIP(),
 		RequireSameOrigin(opts.AppOrigin),
 	)
 	app.Get(healthPath, health)

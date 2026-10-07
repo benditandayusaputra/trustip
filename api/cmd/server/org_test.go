@@ -143,6 +143,7 @@ func testOrgComponents(now *clock.Manual) orgComponents {
 	return orgComponents{
 		founder: &memoryFounder{}, regions: memoryRegions{}, categories: memoryRegions{}, tx: inlineTx{},
 		clock: now, ids: idgen.NewSequence(), profiles: profiles, sections: profiles, listings: profiles,
+		audit: &memoryAudit{},
 	}
 }
 

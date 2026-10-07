@@ -16,7 +16,7 @@ func consignorMember(role actor.Role) actor.Actor {
 }
 
 func TestUpdateConsignorProfile_FRORG05_OwnerSavesTheProfile(t *testing.T) {
-	sections := &fakeStoreProfiles{}
+	sections := &fakeStoreProfiles{audit: &fakeAudit{}}
 	form := domain.ConsignorProfileForm{
 		DeliveryRadius: domain.DeliveryRadius{Given: true, Kilometres: 15}, DeliveryDays: []string{"FRI"},
 	}
@@ -31,7 +31,9 @@ func TestUpdateConsignorProfile_FRORG05_OwnerSavesTheProfile(t *testing.T) {
 }
 
 func TestUpdateConsignorProfile_StoreHasNoConsignorProfile(t *testing.T) {
-	_, err := service.NewUpdateConsignorProfile(sectionDeps(&fakeStoreProfiles{})).Execute(t.Context(),
+	useCase := service.NewUpdateConsignorProfile(sectionDeps(&fakeStoreProfiles{audit: &fakeAudit{}}))
+
+	_, err := useCase.Execute(t.Context(),
 		storeMember(actor.Owner), service.UpdateConsignorProfileCommand{OrganizationID: ownOrganizationID})
 
 	if apperror.From(err).Code() != apperror.CodeNotFound {
@@ -40,7 +42,7 @@ func TestUpdateConsignorProfile_StoreHasNoConsignorProfile(t *testing.T) {
 }
 
 func TestUpdatePaymentInfo_FRORG07_StaffIsForbidden(t *testing.T) {
-	_, err := service.NewUpdatePaymentInfo(sectionDeps(&fakeStoreProfiles{})).Execute(t.Context(),
+	_, err := service.NewUpdatePaymentInfo(sectionDeps(&fakeStoreProfiles{audit: &fakeAudit{}})).Execute(t.Context(),
 		consignorMember(actor.Staff), service.UpdatePaymentInfoCommand{OrganizationID: ownOrganizationID})
 
 	if apperror.From(err).Code() != apperror.CodeForbidden {
@@ -49,7 +51,7 @@ func TestUpdatePaymentInfo_FRORG07_StaffIsForbidden(t *testing.T) {
 }
 
 func TestUpdatePaymentInfo_UnknownQRIsAFieldError(t *testing.T) {
-	sections := &fakeStoreProfiles{failure: domain.ErrUnknownQR}
+	sections := &fakeStoreProfiles{audit: &fakeAudit{}, failure: domain.ErrUnknownQR}
 
 	_, err := service.NewUpdatePaymentInfo(sectionDeps(sections)).Execute(t.Context(), consignorMember(actor.Owner),
 		service.UpdatePaymentInfoCommand{OrganizationID: ownOrganizationID, Form: domain.PaymentInfoForm{Info: "BCA"}})
@@ -61,7 +63,7 @@ func TestUpdatePaymentInfo_UnknownQRIsAFieldError(t *testing.T) {
 }
 
 func TestUpdatePaymentInfo_FRORG07_OwnerSavesTheInfo(t *testing.T) {
-	sections := &fakeStoreProfiles{}
+	sections := &fakeStoreProfiles{audit: &fakeAudit{}}
 
 	_, err := service.NewUpdatePaymentInfo(sectionDeps(sections)).Execute(t.Context(), consignorMember(actor.Owner),
 		service.UpdatePaymentInfoCommand{OrganizationID: ownOrganizationID, Form: domain.PaymentInfoForm{Info: "BCA"}})

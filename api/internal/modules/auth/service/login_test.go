@@ -8,6 +8,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
 )
@@ -115,6 +116,13 @@ func storeOwnerMembership() actor.Membership {
 	}
 }
 
+type fakeAudit struct{ entries []audit.Entry }
+
+func (f *fakeAudit) Record(_ context.Context, entry audit.Entry) error {
+	f.entries = append(f.entries, entry)
+	return nil
+}
+
 type inlineTx struct{ count int }
 
 func (tx *inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
@@ -136,6 +144,7 @@ type loginFixture struct {
 	sessions    *fakeSessions
 	tokens      *fakeTokens
 	memberships *fakeMemberships
+	audit       *fakeAudit
 	useCase     *service.LoginUser
 }
 
@@ -153,6 +162,7 @@ func newLoginFixture(attempts domain.LoginAttempts) loginFixture {
 		sessions:    &fakeSessions{},
 		tokens:      &fakeTokens{},
 		memberships: &fakeMemberships{byUser: map[string]actor.Membership{}},
+		audit:       &fakeAudit{},
 	}
 	fixture.useCase = service.NewLoginUser(service.LoginDeps{
 		Captcha:     fixture.captcha,
@@ -161,6 +171,7 @@ func newLoginFixture(attempts domain.LoginAttempts) loginFixture {
 		Sessions:    fixture.sessions,
 		Tokens:      fixture.tokens,
 		Memberships: fixture.memberships,
+		Audit:       fixture.audit,
 		Tx:          &inlineTx{},
 		Clock:       fixedClock{now: testNow()},
 		IDs:         &sequenceIDs{},
@@ -315,4 +326,36 @@ func TestLogin_RSEC05_OutdatedHashIsReplacedAfterSuccess(t *testing.T) {
 	if len(fixture.credentials.savedPass) != 1 || fixture.credentials.savedPass[0].PepperVersion != "v2" {
 		t.Fatalf("saved = %+v", fixture.credentials.savedPass)
 	}
+}
+
+func TestLogin_NFR14_SuccessfulSignInIsAudited(t *testing.T) {
+	fixture := newLoginFixture(domain.LoginAttempts{})
+	fixture.memberships.byUser[knownUserID] = storeOwnerMembership()
+
+	if _, err := fixture.useCase.Execute(t.Context(), loginCommand("sari@contoh.id", acceptableInput)); err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+
+	want := audit.Entry{
+		OrganizationID: storeOwnerMembership().OrganizationID, ActorID: knownUserID, Action: audit.SignedIn,
+		EntityType: audit.UserEntity, EntityID: knownUserID, At: testNow(),
+	}
+	if len(fixture.audit.entries) != 1 || !sameEntry(fixture.audit.entries[0], want) {
+		t.Fatalf("entries = %+v", fixture.audit.entries)
+	}
+}
+
+func TestLogin_NFR14_FailedSignInIsNotAudited(t *testing.T) {
+	fixture := newLoginFixture(domain.LoginAttempts{})
+
+	_, err := fixture.useCase.Execute(t.Context(), loginCommand("sari@contoh.id", "Salah#2026x"))
+
+	if errorCode(err) != apperror.CodeLoginFailed || len(fixture.audit.entries) != 0 {
+		t.Fatalf("entries = %+v", fixture.audit.entries)
+	}
+}
+
+func sameEntry(got, want audit.Entry) bool {
+	return got.OrganizationID == want.OrganizationID && got.ActorID == want.ActorID && got.Action == want.Action &&
+		got.EntityType == want.EntityType && got.EntityID == want.EntityID && got.At.Equal(want.At)
 }

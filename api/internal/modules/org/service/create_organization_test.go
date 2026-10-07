@@ -10,6 +10,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/service"
 )
@@ -38,6 +39,21 @@ func (f *fakeFounder) CreateOrganization(_ context.Context, founding domain.Foun
 	return "Kota Semarang", nil
 }
 
+type fakeAudit struct{ entries []audit.Entry }
+
+func (f *fakeAudit) Record(_ context.Context, entry audit.Entry) error {
+	f.entries = append(f.entries, entry)
+	return nil
+}
+
+func (f *fakeAudit) actions() []audit.Action {
+	actions := []audit.Action{}
+	for _, entry := range f.entries {
+		actions = append(actions, entry.Action)
+	}
+	return actions
+}
+
 type countingTx struct{ count int }
 
 func (tx *countingTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
@@ -61,15 +77,16 @@ func (s *sequenceIDs) NewID() (string, error) {
 }
 
 type createFixture struct {
+	audit   *fakeAudit
 	founder *fakeFounder
 	tx      *countingTx
 	useCase *service.CreateOrganization
 }
 
 func newCreateFixture() createFixture {
-	fixture := createFixture{founder: &fakeFounder{}, tx: &countingTx{}}
+	fixture := createFixture{founder: &fakeFounder{}, tx: &countingTx{}, audit: &fakeAudit{}}
 	fixture.useCase = service.NewCreateOrganization(service.CreateDeps{
-		Founder: fixture.founder, Tx: fixture.tx, Clock: fixedClock{}, IDs: &sequenceIDs{},
+		Founder: fixture.founder, Audit: fixture.audit, Tx: fixture.tx, Clock: fixedClock{}, IDs: &sequenceIDs{},
 	})
 	return fixture
 }
@@ -173,5 +190,19 @@ func TestCreateOrganization_BRAUTH02_FoundsTheOrganizationWithTheUserAsOwner(t *
 	if organization.Slug != "warung-bu-tini-2" || organization.CityName != "Kota Semarang" ||
 		!slices.Equal(fixture.founder.slugLookup, []domain.Slug{"warung-bu-tini"}) || fixture.tx.count != 1 {
 		t.Fatalf("organization = %+v", organization)
+	}
+}
+
+func TestCreateOrganization_NFR14_FoundingIsAuditedWithTheOrganizationType(t *testing.T) {
+	fixture := newCreateFixture()
+
+	if _, err := fixture.useCase.Execute(t.Context(), newcomer(), storeForm()); err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+
+	entries := fixture.audit.entries
+	if len(entries) != 1 || entries[0].Action != audit.OrganizationCreated || entries[0].OrganizationID != "org-1" ||
+		entries[0].ActorID != founderID || entries[0].Metadata["type"] != "STORE" {
+		t.Fatalf("entries = %+v", entries)
 	}
 }

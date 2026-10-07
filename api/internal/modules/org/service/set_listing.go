@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/policy"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 )
@@ -18,6 +20,7 @@ type SetListingCommand struct {
 type ListingDeps struct {
 	Profiles ProfileStore
 	Listings ListingStore
+	Audit    AuditTrail
 	Tx       Transactor
 	Clock    Clock
 }
@@ -37,7 +40,7 @@ func (uc *SetListing) Execute(
 		return domain.Settings{}, fmt.Errorf("check listing editor: %w", err)
 	}
 	if !isOwnOrganization(signedIn, cmd.OrganizationID) {
-		return domain.Settings{}, apperror.NotFound()
+		return domain.Settings{}, apperror.OutsideScope()
 	}
 	change := domain.ListingChange{OrganizationID: cmd.OrganizationID, IsListed: cmd.IsListed, At: uc.deps.Clock.Now()}
 	var settings domain.Settings
@@ -47,6 +50,12 @@ func (uc *SetListing) Execute(
 		}
 		if err := uc.deps.Listings.SetListed(ctx, change); err != nil {
 			return fmt.Errorf("set listed: %w", err)
+		}
+		if err := recordOrganizationEvent(ctx, uc.deps.Audit, organizationEvent{
+			signedIn: signedIn, organizationID: cmd.OrganizationID, action: audit.ListingChanged,
+			metadata: map[string]string{"is_listed": strconv.FormatBool(cmd.IsListed)}, at: change.At,
+		}); err != nil {
+			return err
 		}
 		reloaded, err := uc.deps.Profiles.GetSettings(ctx, cmd.OrganizationID)
 		if err != nil {

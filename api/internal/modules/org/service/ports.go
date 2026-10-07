@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 )
 
@@ -47,4 +48,8 @@ type CategoryReader interface {
 type ListingStore interface {
 	GetListingFacts(ctx context.Context, organizationID string) (domain.ListingFacts, error)
 	SetListed(ctx context.Context, change domain.ListingChange) error
+}
+
+type AuditTrail interface {
+	Record(ctx context.Context, entry audit.Entry) error
 }

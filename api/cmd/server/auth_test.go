@@ -16,6 +16,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/auth/service"
@@ -177,6 +178,18 @@ func (m memoryMemberships) FindMembership(_ context.Context, userID string) (act
 	return membership, ok, nil
 }
 
+type memoryAudit struct {
+	mu      sync.Mutex
+	entries []audit.Entry
+}
+
+func (m *memoryAudit) Record(_ context.Context, entry audit.Entry) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.entries = append(m.entries, entry)
+	return nil
+}
+
 type inlineTx struct{}
 
 func (inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
@@ -200,6 +213,7 @@ func testAuthComponents(now *clock.Manual) authComponents {
 		userSessions: sessions,
 		tokens:       newTokenIssuer(testPepper{}),
 		memberships:  memoryMemberships{},
+		audit:        &memoryAudit{},
 		accessKeys:   testPepper{},
 		revoked:      revocation.New(now),
 		tx:           inlineTx{},
@@ -211,10 +225,15 @@ func testAuthComponents(now *clock.Manual) authComponents {
 
 func postUsers(t *testing.T, body string) *http.Request {
 	t.Helper()
+	return postUsersFrom(t, body, edgetest.ClientIP)
+}
+
+func postUsersFrom(t *testing.T, body, clientIP string) *http.Request {
+	t.Helper()
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v1/users", strings.NewReader(body))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	fromApp(req)
-	edgetest.Sign(t, req, testNow())
+	edgetest.SignFrom(t, req, edgetest.Origin{At: testNow(), ClientIP: clientIP})
 	return req
 }
 
