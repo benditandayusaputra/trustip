@@ -3,10 +3,12 @@ package main
 import (
 	"bytes"
 	"errors"
+	"io/fs"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/benditandayusaputra/trustip/api/internal/db/migrations"
 	"github.com/benditandayusaputra/trustip/api/internal/db/sqlc"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database/dbtest"
 )
@@ -39,12 +41,14 @@ func TestRun_UnknownCommand_ReturnsUsage(t *testing.T) {
 	}
 }
 
-func TestRun_UpDownUp_InstallsAndRemovesExtensions(t *testing.T) {
+func TestRun_UpAllDownUp_InstallsAndRemovesExtensions(t *testing.T) {
 	databaseURL := dbtest.TemporaryDatabase(t)
 
 	migrate(t, databaseURL, "up")
 	afterUp := installedExtensions(t, databaseURL)
-	migrate(t, databaseURL, "down")
+	for range migrationCount(t) {
+		migrate(t, databaseURL, "down")
+	}
 	afterDown := installedExtensions(t, databaseURL)
 	migrate(t, databaseURL, "up")
 
@@ -74,6 +78,15 @@ func migrate(t *testing.T, databaseURL, command string) {
 	if err := run(t.Context(), &bytes.Buffer{}, []string{command}, databaseURL); err != nil {
 		t.Fatalf("migrate %s: %v", command, err)
 	}
+}
+
+func migrationCount(t *testing.T) int {
+	t.Helper()
+	files, err := fs.Glob(migrations.Files, "*.sql")
+	if err != nil {
+		t.Fatalf("list migrations: %v", err)
+	}
+	return len(files)
 }
 
 func installedExtensions(t *testing.T, databaseURL string) []string {

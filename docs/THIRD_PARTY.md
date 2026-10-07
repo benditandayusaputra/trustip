@@ -12,6 +12,7 @@ Setiap pustaka atau layanan pihak ketiga dicatat di sini dalam commit yang sama 
 | `github.com/getkin/kin-openapi` | 0.149.0 | MIT | Hanya di uji | Memvalidasi jawaban nyata terhadap `openapi.yaml` di uji kontrak (R-RES-07) |
 | `go.uber.org/goleak` | 1.3.0 | MIT | Hanya di uji | Memastikan tidak ada goroutine yang bocor setelah server berhenti (R-CC-72) |
 | `github.com/pressly/goose/v3` | 3.28.0 | MIT | Lihat baris pgx | Migrasi bernomor dengan arah naik dan turun, dibaca dari berkas yang ditanam ke biner |
+| `golang.org/x/crypto` | 0.55.0 | BSD-3-Clause | Hanya paket `argon2`, menambah 34 KB ke biner setelah `-s -w` | Hash kata sandi Argon2id (R-SEC-03). Pustaka standar Go belum menyediakan Argon2 |
 
 ## Alat pengembangan
 
@@ -25,6 +26,12 @@ Dipasang `make setup` ke `.bin/` dengan versi terkunci di `Makefile`. Tidak ikut
 | `govulncheck` | 1.8.0 | BSD-3-Clause | Pemindai kerentanan dependensi Go |
 | `deadcode` | 0.51.0 | BSD-3-Clause | Pencari kode mati |
 | `sqlc` | 1.31.1 | MIT | Membangkitkan kode Go bertipe dari berkas SQL |
+
+## Data yang dibundel
+
+| Data | Sumber | Lisensi | Ukuran | Alasan dipakai |
+|---|---|---|---|---|
+| Daftar kata sandi umum (`api/internal/modules/auth/domain/common_passwords.txt`) | `100k-most-used-passwords-NCSC.txt` dari SecLists, disaring ke 10 sampai 128 karakter ASCII, huruf kecil, tanpa duplikat: 9.113 baris | MIT | 104 KB, ditanam ke biner | Menolak kata sandi yang paling sering bocor saat mendaftar (R-SEC-01) |
 
 ## Huruf
 

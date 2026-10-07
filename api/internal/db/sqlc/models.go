@@ -3,3 +3,33 @@
 //   sqlc v1.31.1
 
 package sqlc
+
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type Session struct {
+	ID        pgtype.UUID
+	UserID    pgtype.UUID
+	FamilyID  pgtype.UUID
+	TokenHash []byte
+	ExpiresAt pgtype.Timestamptz
+	RotatedAt pgtype.Timestamptz
+	RevokedAt pgtype.Timestamptz
+	CreatedAt pgtype.Timestamptz
+}
+
+type User struct {
+	ID                pgtype.UUID
+	Email             string
+	PasswordHash      string
+	PepperVersion     string
+	FullName          string
+	Whatsapp          string
+	IsPlatformAdmin   bool
+	FailedLoginCount  int32
+	LockedUntil       pgtype.Timestamptz
+	PrivacyAcceptedAt pgtype.Timestamptz
+	CreatedAt         pgtype.Timestamptz
+	UpdatedAt         pgtype.Timestamptz
+}
