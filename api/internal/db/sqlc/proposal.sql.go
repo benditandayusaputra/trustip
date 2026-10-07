@@ -165,6 +165,43 @@ func (q *Queries) CreateProposalRevision(ctx context.Context, arg CreateProposal
 	return err
 }
 
+const decideProposal = `-- name: DecideProposal :execrows
+UPDATE proposals
+SET status = $1::text,
+    decided_by = $2::uuid,
+    decided_at = $3::timestamptz,
+    decision_reason = $4::text,
+    partnership_id = COALESCE(NULLIF($5::text, '')::uuid, partnership_id),
+    updated_at = $3::timestamptz
+WHERE id = $6::uuid AND status = 'OPEN' AND current_revision_no = $7::bigint
+`
+
+type DecideProposalParams struct {
+	Status         string
+	DecidedBy      string
+	DecidedAt      time.Time
+	DecisionReason string
+	PartnershipID  string
+	ID             string
+	RevisionNo     int64
+}
+
+func (q *Queries) DecideProposal(ctx context.Context, arg DecideProposalParams) (int64, error) {
+	result, err := q.db.Exec(ctx, decideProposal,
+		arg.Status,
+		arg.DecidedBy,
+		arg.DecidedAt,
+		arg.DecisionReason,
+		arg.PartnershipID,
+		arg.ID,
+		arg.RevisionNo,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getInvitation = `-- name: GetInvitation :one
 SELECT
     p.id, p.status, p.expires_at, p.from_org_id, o.name AS sender_name, o.type AS sender_type,
@@ -212,8 +249,9 @@ SELECT
     COALESCE(p.invite_code, '')::text AS invite_code, p.current_revision_no, p.expires_at, p.created_at,
     COALESCE(p.consignor_org_id::text, '')::text AS consignor_org_id, COALESCE(c.name, '')::text AS consignor_name,
     COALESCE(p.store_org_id::text, '')::text AS store_org_id, COALESCE(s.name, '')::text AS store_name,
-    r.id AS revision_id, r.author_org_id, r.settlement_schedule, r.payment_terms_days, r.count_rhythm, r.notes,
-    r.message, r.created_at AS revised_at
+    r.id AS revision_id, r.author_org_id, r.author_user_id, r.settlement_schedule, r.payment_terms_days,
+    r.count_rhythm, r.notes, r.message, r.created_at AS revised_at, p.decision_reason,
+    COALESCE(p.partnership_id::text, '')::text AS partnership_id
 FROM proposals AS p
 JOIN proposal_revisions AS r ON r.proposal_id = p.id AND r.revision_no = p.current_revision_no
 LEFT JOIN organizations AS c ON c.id = p.consignor_org_id
@@ -243,12 +281,15 @@ type GetProposalRow struct {
 	StoreName          string
 	RevisionID         string
 	AuthorOrgID        string
+	AuthorUserID       string
 	SettlementSchedule string
 	PaymentTermsDays   int32
 	CountRhythm        string
 	Notes              string
 	Message            string
 	RevisedAt          time.Time
+	DecisionReason     string
+	PartnershipID      string
 }
 
 func (q *Queries) GetProposal(ctx context.Context, arg GetProposalParams) (GetProposalRow, error) {
@@ -271,12 +312,15 @@ func (q *Queries) GetProposal(ctx context.Context, arg GetProposalParams) (GetPr
 		&i.StoreName,
 		&i.RevisionID,
 		&i.AuthorOrgID,
+		&i.AuthorUserID,
 		&i.SettlementSchedule,
 		&i.PaymentTermsDays,
 		&i.CountRhythm,
 		&i.Notes,
 		&i.Message,
 		&i.RevisedAt,
+		&i.DecisionReason,
+		&i.PartnershipID,
 	)
 	return i, err
 }
@@ -350,6 +394,163 @@ func (q *Queries) ListProposalItems(ctx context.Context, revisionID string) ([]L
 		return nil, err
 	}
 	return items, nil
+}
+
+const listProposals = `-- name: ListProposals :many
+SELECT
+    p.id, p.number, p.kind, p.status, p.from_org_id, COALESCE(p.awaiting_org_id::text, '')::text AS awaiting_org_id,
+    COALESCE(CASE WHEN p.consignor_org_id = $1::uuid THEN s.name ELSE c.name END, '')::text
+        AS counterpart_name,
+    p.expires_at, p.created_at
+FROM proposals AS p
+LEFT JOIN organizations AS c ON c.id = p.consignor_org_id
+LEFT JOIN organizations AS s ON s.id = p.store_org_id
+WHERE (p.consignor_org_id = $1::uuid OR p.store_org_id = $1::uuid)
+    AND ((p.from_org_id = $1::uuid) = $2::boolean)
+    AND ($3::boolean OR (p.created_at, p.id) < ($4::timestamptz, $5::uuid))
+ORDER BY p.created_at DESC, p.id DESC
+LIMIT $6::bigint
+`
+
+type ListProposalsParams struct {
+	OrganizationID string
+	Outgoing       bool
+	FromStart      bool
+	AfterAt        time.Time
+	AfterID        string
+	RowLimit       int64
+}
+
+type ListProposalsRow struct {
+	ID              string
+	Number          string
+	Kind            string
+	Status          string
+	FromOrgID       string
+	AwaitingOrgID   string
+	CounterpartName string
+	ExpiresAt       time.Time
+	CreatedAt       time.Time
+}
+
+func (q *Queries) ListProposals(ctx context.Context, arg ListProposalsParams) ([]ListProposalsRow, error) {
+	rows, err := q.db.Query(ctx, listProposals,
+		arg.OrganizationID,
+		arg.Outgoing,
+		arg.FromStart,
+		arg.AfterAt,
+		arg.AfterID,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListProposalsRow{}
+	for rows.Next() {
+		var i ListProposalsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.Kind,
+			&i.Status,
+			&i.FromOrgID,
+			&i.AwaitingOrgID,
+			&i.CounterpartName,
+			&i.ExpiresAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockProposal = `-- name: LockProposal :one
+SELECT
+    p.id, p.number, p.kind, p.status, p.from_org_id, COALESCE(p.awaiting_org_id::text, '')::text AS awaiting_org_id,
+    COALESCE(p.invite_code, '')::text AS invite_code, p.current_revision_no, p.expires_at, p.created_at,
+    COALESCE(p.consignor_org_id::text, '')::text AS consignor_org_id, COALESCE(c.name, '')::text AS consignor_name,
+    COALESCE(p.store_org_id::text, '')::text AS store_org_id, COALESCE(s.name, '')::text AS store_name,
+    r.id AS revision_id, r.author_org_id, r.author_user_id, r.settlement_schedule, r.payment_terms_days,
+    r.count_rhythm, r.notes, r.message, r.created_at AS revised_at, p.decision_reason,
+    COALESCE(p.partnership_id::text, '')::text AS partnership_id
+FROM proposals AS p
+JOIN proposal_revisions AS r ON r.proposal_id = p.id AND r.revision_no = p.current_revision_no
+LEFT JOIN organizations AS c ON c.id = p.consignor_org_id
+LEFT JOIN organizations AS s ON s.id = p.store_org_id
+WHERE p.id = $1::uuid AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+FOR UPDATE OF p
+`
+
+type LockProposalParams struct {
+	ID             string
+	OrganizationID string
+}
+
+type LockProposalRow struct {
+	ID                 string
+	Number             string
+	Kind               string
+	Status             string
+	FromOrgID          string
+	AwaitingOrgID      string
+	InviteCode         string
+	CurrentRevisionNo  int32
+	ExpiresAt          time.Time
+	CreatedAt          time.Time
+	ConsignorOrgID     string
+	ConsignorName      string
+	StoreOrgID         string
+	StoreName          string
+	RevisionID         string
+	AuthorOrgID        string
+	AuthorUserID       string
+	SettlementSchedule string
+	PaymentTermsDays   int32
+	CountRhythm        string
+	Notes              string
+	Message            string
+	RevisedAt          time.Time
+	DecisionReason     string
+	PartnershipID      string
+}
+
+func (q *Queries) LockProposal(ctx context.Context, arg LockProposalParams) (LockProposalRow, error) {
+	row := q.db.QueryRow(ctx, lockProposal, arg.ID, arg.OrganizationID)
+	var i LockProposalRow
+	err := row.Scan(
+		&i.ID,
+		&i.Number,
+		&i.Kind,
+		&i.Status,
+		&i.FromOrgID,
+		&i.AwaitingOrgID,
+		&i.InviteCode,
+		&i.CurrentRevisionNo,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.ConsignorOrgID,
+		&i.ConsignorName,
+		&i.StoreOrgID,
+		&i.StoreName,
+		&i.RevisionID,
+		&i.AuthorOrgID,
+		&i.AuthorUserID,
+		&i.SettlementSchedule,
+		&i.PaymentTermsDays,
+		&i.CountRhythm,
+		&i.Notes,
+		&i.Message,
+		&i.RevisedAt,
+		&i.DecisionReason,
+		&i.PartnershipID,
+	)
+	return i, err
 }
 
 const nextDocumentNumber = `-- name: NextDocumentNumber :one

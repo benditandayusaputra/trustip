@@ -28,3 +28,9 @@ WHERE id = @id::uuid AND user_id = @user_id::uuid;
 UPDATE notifications
 SET read_at = @read_at::timestamptz
 WHERE user_id = @user_id::uuid AND read_at IS NULL;
+
+-- name: ListOrganizationRecipients :many
+SELECT user_id, role
+FROM memberships
+WHERE organization_id = @organization_id::uuid AND is_active
+ORDER BY created_at, id;

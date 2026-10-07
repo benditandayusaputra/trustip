@@ -28,6 +28,8 @@ const (
 	CodeProposalExpired      Code = "PROPOSAL_EXPIRED"
 	CodeProposalAlreadyOpen  Code = "PROPOSAL_ALREADY_OPEN"
 	CodeAlreadyPartners      Code = "ALREADY_PARTNERS"
+	CodeNotYourTurn          Code = "NOT_YOUR_TURN"
+	CodeProposalDecided      Code = "PROPOSAL_ALREADY_DECIDED"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -117,6 +119,8 @@ func outcomeEntries() map[Code]entry {
 			"Akun Anda sudah terhubung ke sebuah usaha.",
 		},
 		CodeProposalExpired: {KindConflict, http.StatusConflict, "Ajuan ini sudah kedaluwarsa."},
+		CodeNotYourTurn:     {KindConflict, http.StatusConflict, "Menunggu tanggapan dari {organisasi}."},
+		CodeProposalDecided: {KindConflict, http.StatusConflict, "Ajuan ini sudah diputuskan."},
 		CodeProposalAlreadyOpen: {
 			KindConflict, http.StatusConflict, "Masih ada Ajuan yang terbuka dengan {organisasi}.",
 		},

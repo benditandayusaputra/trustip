@@ -204,6 +204,7 @@ type Proposal struct {
 	DecidedAt         pgtype.Timestamptz
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
+	DecisionReason    string
 }
 
 type ProposalItem struct {

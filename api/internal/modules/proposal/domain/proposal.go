@@ -8,9 +8,11 @@ import (
 )
 
 var (
-	ErrUnknownProduct = errors.New("product is not an active product of the consignor")
-	ErrClaimRaced     = errors.New("invitation was claimed or decided meanwhile")
-	ErrAlreadyOpen    = errors.New("an open proposal of this kind already exists for the pair")
+	ErrUnknownProduct  = errors.New("product is not an active product of the consignor")
+	ErrClaimRaced      = errors.New("invitation was claimed or decided meanwhile")
+	ErrAlreadyOpen     = errors.New("an open proposal of this kind already exists for the pair")
+	ErrAlreadyDecided  = errors.New("proposal was decided or revised meanwhile")
+	ErrAlreadyPartners = errors.New("the pair already has an active partnership")
 )
 
 type Party struct {
@@ -19,28 +21,31 @@ type Party struct {
 }
 
 type Revision struct {
-	ID          string
-	No          int
-	AuthorOrgID string
-	Terms       terms.General
-	Message     string
-	Items       []Item
-	At          time.Time
+	ID           string
+	No           int
+	AuthorOrgID  string
+	AuthorUserID string
+	Terms        terms.General
+	Message      string
+	Items        []Item
+	At           time.Time
 }
 
 type Proposal struct {
-	ID            string
-	Number        string
-	Kind          Kind
-	Status        Status
-	Consignor     Party
-	Store         Party
-	FromOrgID     string
-	AwaitingOrgID string
-	InviteCode    string
-	ExpiresAt     time.Time
-	CreatedAt     time.Time
-	Revision      Revision
+	ID             string
+	Number         string
+	Kind           Kind
+	Status         Status
+	Consignor      Party
+	Store          Party
+	FromOrgID      string
+	AwaitingOrgID  string
+	InviteCode     string
+	PartnershipID  string
+	DecisionReason string
+	ExpiresAt      time.Time
+	CreatedAt      time.Time
+	Revision       Revision
 }
 
 type ProposalKey struct {

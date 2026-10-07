@@ -46,13 +46,30 @@ SELECT
     COALESCE(p.invite_code, '')::text AS invite_code, p.current_revision_no, p.expires_at, p.created_at,
     COALESCE(p.consignor_org_id::text, '')::text AS consignor_org_id, COALESCE(c.name, '')::text AS consignor_name,
     COALESCE(p.store_org_id::text, '')::text AS store_org_id, COALESCE(s.name, '')::text AS store_name,
-    r.id AS revision_id, r.author_org_id, r.settlement_schedule, r.payment_terms_days, r.count_rhythm, r.notes,
-    r.message, r.created_at AS revised_at
+    r.id AS revision_id, r.author_org_id, r.author_user_id, r.settlement_schedule, r.payment_terms_days,
+    r.count_rhythm, r.notes, r.message, r.created_at AS revised_at, p.decision_reason,
+    COALESCE(p.partnership_id::text, '')::text AS partnership_id
 FROM proposals AS p
 JOIN proposal_revisions AS r ON r.proposal_id = p.id AND r.revision_no = p.current_revision_no
 LEFT JOIN organizations AS c ON c.id = p.consignor_org_id
 LEFT JOIN organizations AS s ON s.id = p.store_org_id
 WHERE p.id = @id::uuid AND (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organization_id::uuid);
+
+-- name: LockProposal :one
+SELECT
+    p.id, p.number, p.kind, p.status, p.from_org_id, COALESCE(p.awaiting_org_id::text, '')::text AS awaiting_org_id,
+    COALESCE(p.invite_code, '')::text AS invite_code, p.current_revision_no, p.expires_at, p.created_at,
+    COALESCE(p.consignor_org_id::text, '')::text AS consignor_org_id, COALESCE(c.name, '')::text AS consignor_name,
+    COALESCE(p.store_org_id::text, '')::text AS store_org_id, COALESCE(s.name, '')::text AS store_name,
+    r.id AS revision_id, r.author_org_id, r.author_user_id, r.settlement_schedule, r.payment_terms_days,
+    r.count_rhythm, r.notes, r.message, r.created_at AS revised_at, p.decision_reason,
+    COALESCE(p.partnership_id::text, '')::text AS partnership_id
+FROM proposals AS p
+JOIN proposal_revisions AS r ON r.proposal_id = p.id AND r.revision_no = p.current_revision_no
+LEFT JOIN organizations AS c ON c.id = p.consignor_org_id
+LEFT JOIN organizations AS s ON s.id = p.store_org_id
+WHERE p.id = @id::uuid AND (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organization_id::uuid)
+FOR UPDATE OF p;
 
 -- name: ListProposalItems :many
 SELECT
@@ -87,3 +104,28 @@ SELECT EXISTS (
     SELECT 1 FROM partnerships
     WHERE consignor_org_id = @consignor_org_id::uuid AND store_org_id = @store_org_id::uuid AND status = 'ACTIVE'
 )::boolean;
+
+-- name: DecideProposal :execrows
+UPDATE proposals
+SET status = @status::text,
+    decided_by = @decided_by::uuid,
+    decided_at = @decided_at::timestamptz,
+    decision_reason = @decision_reason::text,
+    partnership_id = COALESCE(NULLIF(@partnership_id::text, '')::uuid, partnership_id),
+    updated_at = @decided_at::timestamptz
+WHERE id = @id::uuid AND status = 'OPEN' AND current_revision_no = @revision_no::bigint;
+
+-- name: ListProposals :many
+SELECT
+    p.id, p.number, p.kind, p.status, p.from_org_id, COALESCE(p.awaiting_org_id::text, '')::text AS awaiting_org_id,
+    COALESCE(CASE WHEN p.consignor_org_id = @organization_id::uuid THEN s.name ELSE c.name END, '')::text
+        AS counterpart_name,
+    p.expires_at, p.created_at
+FROM proposals AS p
+LEFT JOIN organizations AS c ON c.id = p.consignor_org_id
+LEFT JOIN organizations AS s ON s.id = p.store_org_id
+WHERE (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organization_id::uuid)
+    AND ((p.from_org_id = @organization_id::uuid) = @outgoing::boolean)
+    AND (@from_start::boolean OR (p.created_at, p.id) < (@after_at::timestamptz, @after_id::uuid))
+ORDER BY p.created_at DESC, p.id DESC
+LIMIT @row_limit::bigint;

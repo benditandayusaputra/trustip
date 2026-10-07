@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"crypto/ed25519"
 	"strings"
 	"testing"
 
@@ -35,6 +37,37 @@ func (emptyProposals) GetInvitation(context.Context, string) (domain.InvitationV
 	return domain.InvitationView{}, apperror.NotFound()
 }
 
+func (emptyProposals) LockProposal(context.Context, domain.ProposalKey) (domain.Proposal, error) {
+	return domain.Proposal{}, apperror.NotFound()
+}
+
+func (emptyProposals) SaveDecision(context.Context, domain.Decision) error {
+	return domain.ErrAlreadyDecided
+}
+
+func (emptyProposals) ListProposals(context.Context, domain.ListQuery) ([]domain.Summary, error) {
+	return []domain.Summary{}, nil
+}
+
+type refusingCollaborators struct{}
+
+func (refusingCollaborators) Found(context.Context, domain.Founding) (string, error) {
+	return "", domain.ErrAlreadyPartners
+}
+
+func (refusingCollaborators) Announce(context.Context, domain.Notice) error { return nil }
+
+type testSealKeys struct{}
+
+func (testSealKeys) Active() (string, []byte) { return "v1", bytes.Repeat([]byte{9}, ed25519.SeedSize) }
+
+func (testSealKeys) Lookup(id string) ([]byte, bool) {
+	if id != "v1" {
+		return nil, false
+	}
+	return bytes.Repeat([]byte{9}, ed25519.SeedSize), true
+}
+
 func (emptyProposals) HasActivePartnership(context.Context, domain.Pair) (bool, error) {
 	return false, nil
 }
@@ -42,7 +75,8 @@ func (emptyProposals) HasActivePartnership(context.Context, domain.Pair) (bool, 
 func testProposalComponents(now *clock.Manual) proposalComponents {
 	return proposalComponents{deps: proposalservice.ProposalDeps{
 		Proposals: emptyProposals{}, Audit: &memoryAudit{}, Tx: inlineTx{}, Clock: now, IDs: idgen.NewSequence(),
-		Codes: inviteCodes(),
+		Codes:   inviteCodes(),
+		Founder: refusingCollaborators{}, Announcer: refusingCollaborators{},
 	}}
 }
 

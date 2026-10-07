@@ -17,6 +17,7 @@ import (
 const (
 	firstRevision      = 1
 	openPairConstraint = "proposals_open_pair_key"
+	nilID              = "00000000-0000-0000-0000-000000000000"
 )
 
 type Proposals struct {
@@ -147,4 +148,21 @@ func (r *Proposals) HasActivePartnership(ctx context.Context, pair domain.Pair) 
 		return false, fmt.Errorf("check partnership of %s and %s: %w", pair.ConsignorID, pair.StoreID, err)
 	}
 	return found, nil
+}
+
+func (r *Proposals) SaveDecision(ctx context.Context, decision domain.Decision) error {
+	writeCtx, cancel := database.WriteContext(ctx)
+	defer cancel()
+	saved, err := sqlc.New(r.pool.Querier(ctx)).DecideProposal(writeCtx, sqlc.DecideProposalParams{
+		ID: decision.ProposalID, Status: string(decision.Status), DecidedBy: decision.DecidedBy,
+		DecidedAt: decision.At, DecisionReason: decision.Reason, PartnershipID: decision.PartnershipID,
+		RevisionNo: int64(decision.RevisionNo),
+	})
+	if err != nil {
+		return fmt.Errorf("save decision on %s: %w", decision.ProposalID, err)
+	}
+	if saved == 0 {
+		return domain.ErrAlreadyDecided
+	}
+	return nil
 }

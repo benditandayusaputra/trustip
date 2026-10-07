@@ -23,8 +23,17 @@ func inviteCodes() idgen.Codes {
 	return idgen.NewCodes(proposaldomain.InviteAlphabet(), proposaldomain.InviteLength)
 }
 
-func buildProposalComponents(pool *database.Pool, clock proposalservice.Clock) proposalComponents {
+type proposalCollaborators struct {
+	founder   proposalservice.AgreementFounder
+	announcer proposalservice.Announcer
+}
+
+func buildProposalComponents(
+	pool *database.Pool, clock proposalservice.Clock, collaborators proposalCollaborators,
+) proposalComponents {
 	return proposalComponents{deps: proposalservice.ProposalDeps{
+		Founder:   collaborators.founder,
+		Announcer: collaborators.announcer,
 		Proposals: proposalrepository.NewProposals(pool),
 		Audit:     newAuditTrail(auditrepository.NewRecords(pool)),
 		Tx:        pool,
@@ -48,6 +57,10 @@ func proposalDeps(components proposalComponents, routes proposalRoutes) proposal
 		View:         proposalservice.NewViewInvitation(deps),
 		Claim:        proposalservice.NewClaimInvitation(deps),
 		Get:          proposalservice.NewGetProposal(deps.Proposals),
+		Accept:       proposalservice.NewAcceptProposal(deps),
+		Decline:      proposalservice.NewDeclineProposal(deps),
+		Withdraw:     proposalservice.NewWithdrawProposal(deps),
+		List:         proposalservice.NewListProposals(deps.Proposals),
 		WriteLimiter: routes.writeLimiter,
 		SecurityLog:  routes.securityLog,
 	}

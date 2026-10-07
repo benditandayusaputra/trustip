@@ -85,6 +85,16 @@ func (f *fakeProposals) GetProposal(_ context.Context, key domain.ProposalKey) (
 	return domain.Proposal{}, apperror.NotFound()
 }
 
+func (f *fakeProposals) LockProposal(ctx context.Context, key domain.ProposalKey) (domain.Proposal, error) {
+	return f.GetProposal(ctx, key)
+}
+
+func (f *fakeProposals) SaveDecision(context.Context, domain.Decision) error { return nil }
+
+func (f *fakeProposals) ListProposals(context.Context, domain.ListQuery) ([]domain.Summary, error) {
+	return []domain.Summary{}, nil
+}
+
 func (f *fakeProposals) HasActivePartnership(context.Context, domain.Pair) (bool, error) {
 	return f.partners, nil
 }

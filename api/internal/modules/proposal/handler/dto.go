@@ -94,18 +94,20 @@ type revisionResponse struct {
 }
 
 type proposalResponse struct {
-	ID            string           `json:"id"`
-	Number        string           `json:"number"`
-	Kind          string           `json:"kind"`
-	Status        string           `json:"status"`
-	Consignor     *partyResponse   `json:"consignor"`
-	Store         *partyResponse   `json:"store"`
-	FromOrgID     string           `json:"from_org_id"`
-	AwaitingOrgID *string          `json:"awaiting_org_id"`
-	InviteCode    *string          `json:"invite_code"`
-	ExpiresAt     string           `json:"expires_at"`
-	CreatedAt     string           `json:"created_at"`
-	Revision      revisionResponse `json:"revision"`
+	ID             string           `json:"id"`
+	Number         string           `json:"number"`
+	Kind           string           `json:"kind"`
+	Status         string           `json:"status"`
+	Consignor      *partyResponse   `json:"consignor"`
+	Store          *partyResponse   `json:"store"`
+	FromOrgID      string           `json:"from_org_id"`
+	AwaitingOrgID  *string          `json:"awaiting_org_id"`
+	InviteCode     *string          `json:"invite_code"`
+	PartnershipID  *string          `json:"partnership_id"`
+	DecisionReason string           `json:"decision_reason"`
+	ExpiresAt      string           `json:"expires_at"`
+	CreatedAt      string           `json:"created_at"`
+	Revision       revisionResponse `json:"revision"`
 }
 
 func toProposalResponse(proposal domain.Proposal) proposalResponse {
@@ -113,6 +115,7 @@ func toProposalResponse(proposal domain.Proposal) proposalResponse {
 		ID: proposal.ID, Number: proposal.Number, Kind: string(proposal.Kind), Status: string(proposal.Status),
 		Consignor: partyOf(proposal.Consignor), Store: partyOf(proposal.Store), FromOrgID: proposal.FromOrgID,
 		AwaitingOrgID: optional(proposal.AwaitingOrgID), InviteCode: optional(proposal.InviteCode),
+		PartnershipID: optional(proposal.PartnershipID), DecisionReason: proposal.DecisionReason,
 		ExpiresAt: proposal.ExpiresAt.UTC().Format(time.RFC3339),
 		CreatedAt: proposal.CreatedAt.UTC().Format(time.RFC3339),
 		Revision:  toRevisionResponse(proposal.Revision),

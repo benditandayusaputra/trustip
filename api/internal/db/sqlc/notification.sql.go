@@ -118,6 +118,38 @@ func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsPa
 	return items, nil
 }
 
+const listOrganizationRecipients = `-- name: ListOrganizationRecipients :many
+SELECT user_id, role
+FROM memberships
+WHERE organization_id = $1::uuid AND is_active
+ORDER BY created_at, id
+`
+
+type ListOrganizationRecipientsRow struct {
+	UserID string
+	Role   string
+}
+
+func (q *Queries) ListOrganizationRecipients(ctx context.Context, organizationID string) ([]ListOrganizationRecipientsRow, error) {
+	rows, err := q.db.Query(ctx, listOrganizationRecipients, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOrganizationRecipientsRow{}
+	for rows.Next() {
+		var i ListOrganizationRecipientsRow
+		if err := rows.Scan(&i.UserID, &i.Role); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markAllNotificationsRead = `-- name: MarkAllNotificationsRead :exec
 UPDATE notifications
 SET read_at = $1::timestamptz

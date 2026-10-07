@@ -17,6 +17,8 @@ type ProposalDeps struct {
 	Clock     Clock
 	IDs       IDGenerator
 	Codes     CodeGenerator
+	Founder   AgreementFounder
+	Announcer Announcer
 }
 
 type proposalEvent struct {

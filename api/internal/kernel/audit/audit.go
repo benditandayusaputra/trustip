@@ -19,6 +19,9 @@ const (
 	ProductSeekingChanged   Action = "PRODUCT_SEEKING_CHANGED"
 	ProposalSent            Action = "PROPOSAL_SENT"
 	InvitationClaimed       Action = "INVITATION_CLAIMED"
+	ProposalAccepted        Action = "PROPOSAL_ACCEPTED"
+	ProposalDeclined        Action = "PROPOSAL_DECLINED"
+	ProposalWithdrawn       Action = "PROPOSAL_WITHDRAWN"
 )
 
 type EntityType string

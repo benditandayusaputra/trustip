@@ -59,16 +59,19 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		return err
 	}
 	server := newServer(base, serverDeps{
-		ready:     pool.Ping,
-		edge:      security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
-		limiter:   ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
-		clock:     systemClock,
-		auth:      components,
-		org:       buildOrgComponents(pool, systemClock),
-		files:     buildFileComponents(pool, cfg, systemClock),
-		inbox:     buildNotificationComponents(pool, systemClock),
-		products:  buildProductComponents(pool, systemClock),
-		proposals: buildProposalComponents(pool, systemClock),
+		ready:    pool.Ping,
+		edge:     security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
+		limiter:  ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
+		clock:    systemClock,
+		auth:     components,
+		org:      buildOrgComponents(pool, systemClock),
+		files:    buildFileComponents(pool, cfg, systemClock),
+		inbox:    buildNotificationComponents(pool, systemClock),
+		products: buildProductComponents(pool, systemClock),
+		proposals: buildProposalComponents(pool, systemClock, proposalCollaborators{
+			founder:   newAgreementFounder(pool, newSealRecorder(pool, cfg.SealKeys)),
+			announcer: newOrganizationAnnouncer(pool, systemClock),
+		}),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

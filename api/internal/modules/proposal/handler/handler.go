@@ -11,6 +11,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
+	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 )
 
@@ -20,6 +21,9 @@ const (
 	claimPath       = invitationPath + "/claim"
 	proposalsPath   = "/proposals"
 	proposalPath    = proposalsPath + "/:id"
+	acceptPath      = proposalPath + "/accept"
+	declinePath     = proposalPath + "/decline"
+	withdrawPath    = proposalPath + "/withdraw"
 )
 
 type InvitationSender interface {
@@ -34,12 +38,24 @@ type ProposalByKey interface {
 	Execute(ctx context.Context, signedIn actor.Actor, key string) (domain.Proposal, error)
 }
 
+type Decliner interface {
+	Execute(ctx context.Context, signedIn actor.Actor, cmd service.DeclineCommand) (domain.Proposal, error)
+}
+
+type Lister interface {
+	Execute(ctx context.Context, signedIn actor.Actor, request service.ListRequest) (service.Page, error)
+}
+
 type Deps struct {
 	Authenticate fiber.Handler
 	Send         InvitationSender
 	View         InvitationViewer
 	Claim        ProposalByKey
 	Get          ProposalByKey
+	Accept       ProposalByKey
+	Decline      Decliner
+	Withdraw     ProposalByKey
+	List         Lister
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
 }
@@ -50,6 +66,10 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Get(invitationPath, deps.Authenticate, view(deps.View))
 	api.Post(claimPath, deps.Authenticate, writeLimit, byKey(deps.Claim, "code"))
 	api.Get(proposalPath, deps.Authenticate, byID(deps.Get))
+	api.Get(proposalsPath, deps.Authenticate, list(deps.List))
+	api.Post(acceptPath, deps.Authenticate, writeLimit, byID(deps.Accept))
+	api.Post(declinePath, deps.Authenticate, writeLimit, decline(deps.Decline))
+	api.Post(withdrawPath, deps.Authenticate, writeLimit, byID(deps.Withdraw))
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {

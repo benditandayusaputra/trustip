@@ -3,7 +3,14 @@ package main
 import (
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
+
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
+	sealdomain "github.com/benditandayusaputra/trustip/api/internal/modules/seal/domain"
+	sealrepository "github.com/benditandayusaputra/trustip/api/internal/modules/seal/repository"
 )
 
 type invitationScene struct {
@@ -62,4 +69,111 @@ func TestInvitation_BRPRP07_ConsignorOpeningAConsignorInvitationIsToldItIsForSto
 		t.Fatalf("got = %s", got.body)
 	}
 	loadContract(t).requireConforms(t, got)
+}
+
+func (s invitationScene) claimAsStore(t *testing.T) {
+	t.Helper()
+	if got := s.store.post(invitationsPath + "/" + s.inviteCode + "/claim"); got.status != http.StatusOK {
+		t.Fatalf("claim = %d %s", got.status, got.body)
+	}
+}
+
+func TestProposal_BRPRP03_AcceptingFormsASealedPartnershipAndTellsTheSender(t *testing.T) {
+	scene := newInvitationScene(t)
+	scene.claimAsStore(t)
+
+	accepted := scene.store.post("/api/v1/proposals/" + scene.proposalID + "/accept")
+
+	requireCode(t, accepted, "OK")
+	loadContract(t).requireConforms(t, accepted)
+	partnershipID := quotedAfter(string(accepted.body), `"partnership_id":"`)
+	chain, err := sealrepository.NewSeals(scene.store.pool).ListChain(t.Context(), partnershipID)
+	if err != nil || len(chain) != 1 || chain[0].Entry.Event != sealdomain.AgreementAccepted ||
+		sealdomain.VerifyChain(chain) != nil {
+		t.Fatalf("chain = %+v, err = %v", chain, err)
+	}
+	inbox := scene.consignor.get("/api/v1/notifications")
+	if !strings.Contains(string(inbox.body), "menerima ajuan AJ-") {
+		t.Fatalf("inbox = %s", inbox.body)
+	}
+}
+
+func TestProposal_BRPRP02_SenderCannotAcceptAndBothSeeTheListsWithTurns(t *testing.T) {
+	scene := newInvitationScene(t)
+	scene.claimAsStore(t)
+	contract := loadContract(t)
+
+	ownAccept := scene.consignor.post("/api/v1/proposals/" + scene.proposalID + "/accept")
+	outgoing := scene.consignor.get("/api/v1/proposals?box=OUTGOING")
+	incoming := scene.store.get("/api/v1/proposals?box=INCOMING")
+
+	requireCode(t, ownAccept, "NOT_YOUR_TURN")
+	for _, got := range []exchange{ownAccept, outgoing, incoming} {
+		contract.requireConforms(t, got)
+	}
+	if !strings.Contains(string(outgoing.body), scene.proposalID) || !strings.Contains(string(incoming.body),
+		scene.proposalID) {
+		t.Fatalf("outgoing = %s\nincoming = %s", outgoing.body, incoming.body)
+	}
+}
+
+func TestProposal_FRPRP03_DeclineWithAReasonEndsTheProposal(t *testing.T) {
+	scene := newInvitationScene(t)
+	scene.claimAsStore(t)
+
+	declined := scene.store.postJSON("/api/v1/proposals/"+scene.proposalID+"/decline", `{"reason":"Rak penuh."}`)
+	again := scene.store.post("/api/v1/proposals/" + scene.proposalID + "/accept")
+
+	requireCode(t, declined, "OK")
+	requireCode(t, again, "PROPOSAL_ALREADY_DECIDED")
+	if !strings.Contains(string(declined.body), `"decision_reason":"Rak penuh."`) {
+		t.Fatalf("declined = %s", declined.body)
+	}
+	loadContract(t).requireConforms(t, declined)
+}
+
+func TestProposal_RCC74_TwoDecisionsAtOnceOnlyOnePasses(t *testing.T) {
+	scene := newInvitationScene(t)
+	scene.claimAsStore(t)
+	deps := buildProposalComponents(scene.store.pool, scene.store.now, proposalCollaborators{
+		founder:   newAgreementFounder(scene.store.pool, newSealRecorder(scene.store.pool, testSealKeys{})),
+		announcer: newOrganizationAnnouncer(scene.store.pool, scene.store.now),
+	}).deps
+	storeOwner := scene.store.actor(t)
+	var group sync.WaitGroup
+	outcomes := make(chan error, 2)
+	group.Go(func() {
+		_, err := proposalservice.NewAcceptProposal(deps).Execute(t.Context(), storeOwner, scene.proposalID)
+		outcomes <- err
+	})
+	group.Go(func() {
+		_, err := proposalservice.NewDeclineProposal(deps).Execute(t.Context(), storeOwner,
+			proposalservice.DeclineCommand{ProposalID: scene.proposalID, Reason: "Batal."})
+		outcomes <- err
+	})
+	group.Wait()
+	close(outcomes)
+
+	passed, refused := 0, 0
+	for err := range outcomes {
+		switch {
+		case err == nil:
+			passed++
+		case apperror.From(err).Code() == apperror.CodeProposalDecided:
+			refused++
+		}
+	}
+	if passed != 1 || refused != 1 {
+		t.Fatalf("passed = %d, refused = %d", passed, refused)
+	}
+}
+
+func (b *browser) actor(t *testing.T) actor.Actor {
+	t.Helper()
+	account := string(b.getAccount().body)
+	return actor.Actor{UserID: quotedAfter(account, `"id":"`), Membership: actor.Membership{
+		OrganizationID:   quotedAfter(account, `"organization_id":"`),
+		OrganizationType: actor.OrganizationType(quotedAfter(account, `"organization_type":"`)),
+		Role:             actor.Role(quotedAfter(account, `"role":"`)),
+	}}
 }

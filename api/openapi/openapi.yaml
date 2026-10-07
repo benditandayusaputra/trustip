@@ -1316,6 +1316,166 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/proposals/{id}/accept:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: acceptProposal
+      tags: [proposal]
+      responses:
+        "200":
+          description: Ajuan diterima, Kemitraan dan Kesepakatan versi 1 terbentuk dan tersegel
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/proposals/{id}/decline:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: declineProposal
+      tags: [proposal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeclineRequest"
+      responses:
+        "200":
+          description: Ajuan ditolak dengan alasan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/proposals/{id}/withdraw:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: withdrawProposal
+      tags: [proposal]
+      responses:
+        "200":
+          description: Ajuan ditarik pengirim revisi terakhir
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/proposals:
+    get:
+      operationId: listProposals
+      tags: [proposal]
+      parameters:
+        - name: box
+          in: query
+          schema:
+            type: string
+            enum: [INCOMING, OUTGOING]
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Ajuan masuk atau keluar, terbaru lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalSummaryListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -1446,6 +1606,8 @@ components:
         - PROPOSAL_EXPIRED
         - PROPOSAL_ALREADY_OPEN
         - ALREADY_PARTNERS
+        - NOT_YOUR_TURN
+        - PROPOSAL_ALREADY_DECIDED
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -2410,6 +2572,8 @@ components:
         - from_org_id
         - awaiting_org_id
         - invite_code
+        - partnership_id
+        - decision_reason
         - expires_at
         - created_at
         - revision
@@ -2442,6 +2606,11 @@ components:
         invite_code:
           type: string
           nullable: true
+        partnership_id:
+          type: string
+          nullable: true
+        decision_reason:
+          type: string
         expires_at:
           type: string
           format: date-time
@@ -2491,3 +2660,56 @@ components:
           $ref: "#/components/schemas/Invitation"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    DeclineRequest:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+    ProposalSummary:
+      type: object
+      additionalProperties: false
+      required: [id, number, kind, status, from_org_id, awaiting_org_id, counterpart_name, expires_at, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        kind:
+          type: string
+          enum: [NEW, AMENDMENT]
+        status:
+          type: string
+          enum: [OPEN, ACCEPTED, DECLINED, WITHDRAWN, EXPIRED]
+        from_org_id:
+          type: string
+          format: uuid
+        awaiting_org_id:
+          type: string
+          nullable: true
+        counterpart_name:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+    ProposalSummaryListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalSummary"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
