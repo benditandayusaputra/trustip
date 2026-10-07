@@ -2,10 +2,13 @@ package httpserver
 
 import (
 	"fmt"
+	"regexp"
 	"runtime/debug"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 )
 
 const (
@@ -81,4 +84,14 @@ func metaHandler(build BuildInfo, clock Clock) fiber.Handler {
 			ServerTime: clock.Now().UTC().Format(time.RFC3339),
 		}})
 	}
+}
+
+var uuidFormat = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+
+func IDParam(c fiber.Ctx, name string) (string, error) {
+	id := c.Params(name)
+	if !uuidFormat.MatchString(id) {
+		return "", apperror.NotFound()
+	}
+	return id, nil
 }

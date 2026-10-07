@@ -108,6 +108,22 @@ describe('forwardToApi', () => {
 		expect(sentHeaders(captured).get('x-request-id')).toBe('0192f0c4-8a11-7d55-b0aa-3c1f2e4d5a6b');
 	});
 
+	it('R-SEC-71 relays the inline disposition of a private file', async () => {
+		const upstream = () =>
+			new Response('png', {
+				headers: {
+					'content-type': 'image/png',
+					'content-disposition': 'inline',
+					'cache-control': 'no-store'
+				}
+			});
+
+		const response = await forwardToApi(incoming(), config, fakeDeps(upstream, []));
+
+		expect(response.headers.get('content-disposition')).toBe('inline');
+		expect(response.headers.get('cache-control')).toBe('no-store');
+	});
+
 	it('passes every Set-Cookie through unchanged', async () => {
 		const upstream = () => {
 			const headers = new Headers({ 'content-type': 'application/json', 'x-internal': 'secret' });

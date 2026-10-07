@@ -91,3 +91,12 @@ func TestRequireNewcomer_MemberCannotFoundASecondOrganization(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestRequireMember_BRAUTHZ01_AnyRoleOfAnOrganizationPasses(t *testing.T) {
+	if err := policy.RequireMember(member(actor.Consignor, actor.Staff)); err != nil {
+		t.Fatalf("err = %v", err)
+	}
+	if err := policy.RequireMember(actor.Actor{UserID: "u"}); apperror.From(err).Code() != apperror.CodeForbidden {
+		t.Fatalf("newcomer err = %v", err)
+	}
+}

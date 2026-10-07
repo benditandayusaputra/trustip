@@ -17,6 +17,9 @@ const (
 	FieldRequired          FieldCode = "REQUIRED"
 	FieldUnknownChoice     FieldCode = "UNKNOWN_CHOICE"
 	FieldOutOfRange        FieldCode = "OUT_OF_RANGE"
+	FieldFileTooLarge      FieldCode = "FILE_TOO_LARGE"
+	FieldInvalidImage      FieldCode = "INVALID_IMAGE"
+	FieldImageTooLarge     FieldCode = "IMAGE_TOO_LARGE"
 )
 
 type Param struct {
@@ -38,6 +41,9 @@ func fieldMessages() map[FieldCode]string {
 		FieldRequired:          "Wajib diisi.",
 		FieldUnknownChoice:     "Pilih salah satu dari daftar.",
 		FieldOutOfRange:        "Nilai di luar rentang yang diizinkan.",
+		FieldFileTooLarge:      "Ukuran berkas maksimal {max} MB.",
+		FieldInvalidImage:      "Berkas harus gambar JPG, PNG, atau WebP.",
+		FieldImageTooLarge:     "Gambar maksimal 4096 piksel di tiap sisi.",
 	}
 }
 

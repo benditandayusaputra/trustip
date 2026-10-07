@@ -15,3 +15,9 @@ sql:
             go_type: string
           - db_type: timestamptz
             go_type: time.Time
+          - column: files.size_bytes
+            go_type: int64
+          - column: files.width
+            go_type: int64
+          - column: files.height
+            go_type: int64

@@ -191,3 +191,17 @@ describe('ApiClient session refresh', () => {
 		expect(sent).toHaveLength(1);
 	});
 });
+
+describe('ApiClient uploading', () => {
+	it('R-SEC-22 sends multipart form data and lets the browser set the boundary', async () => {
+		const sent: Sent[] = [];
+		const form = new FormData();
+		form.set('purpose', 'LOGO');
+
+		await clientWith([() => ok({ id: 'file-1' })], sent).upload('/api/v1/files', form);
+
+		expect(sent[0]?.init.body).toBe(form);
+		expect(headerOf(sent[0], 'content-type')).toBeNull();
+		expect(headerOf(sent[0], 'x-trustip-client')).toBe('web');
+	});
+});

@@ -170,10 +170,11 @@ func (m *memorySessions) update(change func(*domain.StoredSession)) {
 	}
 }
 
-type memoryMemberships struct{}
+type memoryMemberships map[string]actor.Membership
 
-func (memoryMemberships) FindMembership(context.Context, string) (actor.Membership, bool, error) {
-	return actor.Membership{}, false, nil
+func (m memoryMemberships) FindMembership(_ context.Context, userID string) (actor.Membership, bool, error) {
+	membership, ok := m[userID]
+	return membership, ok, nil
 }
 
 type inlineTx struct{}

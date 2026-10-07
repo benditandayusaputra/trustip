@@ -76,3 +76,23 @@ func writeJSON(c fiber.Ctx, status int, body any) error {
 	}
 	return nil
 }
+
+type FileReply struct {
+	ContentType string
+	Data        []byte
+	IsPublic    bool
+}
+
+func RespondFile(c fiber.Ctx, reply FileReply) error {
+	c.Set(fiber.HeaderContentType, reply.ContentType)
+	c.Set(fiber.HeaderContentDisposition, "inline")
+	c.Set(fiber.HeaderCacheControl, "no-store")
+	if reply.IsPublic {
+		c.Set(fiber.HeaderCacheControl, "public, max-age=31536000, immutable")
+		c.Set(fiber.HeaderCrossOriginResourcePolicy, "cross-origin")
+	}
+	if err := c.Status(fiber.StatusOK).Send(reply.Data); err != nil {
+		return fmt.Errorf("write file response: %w", err)
+	}
+	return nil
+}

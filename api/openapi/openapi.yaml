@@ -349,6 +349,145 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/files:
+    post:
+      operationId: uploadImage
+      tags: [file]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file, purpose]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  type: string
+                  enum: [LOGO, STORE_PHOTO, PAYMENT_QR]
+      responses:
+        "201":
+          description: Gambar dikode ulang dan disimpan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/CrossSite"
+        "413":
+          $ref: "#/components/responses/BadRequest"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/files/{id}:
+    get:
+      operationId: readFile
+      tags: [file]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Berkas milik organisasi pengguna, tidak di-cache
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum: [no-store]
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+                enum: [inline]
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/CrossSite"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /files/{key}:
+    get:
+      operationId: readPublicFile
+      tags: [file]
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Berkas publik dengan kunci acak, disajikan dari asal API
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum: ["public, max-age=31536000, immutable"]
+            Cross-Origin-Resource-Policy:
+              required: true
+              schema:
+                type: string
+                enum: [cross-origin]
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   headers:
     RequestId:
@@ -403,6 +542,12 @@ components:
               - $ref: "#/components/schemas/ErrorResponse"
     CrossSite:
       description: Permintaan tulis tanpa asal app atau tanpa kepala X-Trustip-Client
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Tidak ada, atau milik organisasi lain
       content:
         application/json:
           schema:
@@ -790,5 +935,45 @@ components:
         data:
           nullable: true
           enum: [null]
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    StoredFile:
+      type: object
+      additionalProperties: false
+      required: [id, purpose, visibility, content_type, size_bytes, width, height, url]
+      properties:
+        id:
+          type: string
+          format: uuid
+        purpose:
+          type: string
+          enum: [LOGO, STORE_PHOTO, PAYMENT_QR]
+        visibility:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+        content_type:
+          type: string
+          enum: [image/jpeg, image/png]
+        size_bytes:
+          type: integer
+          minimum: 1
+          maximum: 1048576
+        width:
+          type: integer
+        height:
+          type: integer
+        url:
+          type: string
+    FileResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/StoredFile"
         meta:
           $ref: "#/components/schemas/ResponseMeta"

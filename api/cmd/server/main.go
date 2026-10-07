@@ -10,6 +10,7 @@ import (
 	"time"
 
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
+	filehandler "github.com/benditandayusaputra/trustip/api/internal/modules/file/handler"
 	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
@@ -61,6 +62,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		clock:     systemClock,
 		auth:      components,
 		org:       buildOrgComponents(pool, systemClock),
+		files:     buildFileComponents(pool, cfg, systemClock),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -79,6 +81,7 @@ type serverDeps struct {
 	clock     serverClock
 	auth      authComponents
 	org       orgComponents
+	files     fileComponents
 	appOrigin string
 }
 
@@ -101,15 +104,22 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 		AppOrigin:   deps.appOrigin,
 	})
 	authhandler.Mount(server.API(), authDeps(deps.auth, securityLog, deps.clock))
+	authenticate := httpserver.Authenticate(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName())
 	orghandler.Mount(server.API(), orgDeps(deps.org, orgRoutes{
-		authenticate: httpserver.Authenticate(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName()),
+		authenticate: authenticate,
 		writeLimiter: newWriteLimiter(deps.clock),
 		securityLog:  securityLog,
 	}))
+	files := fileDeps(deps.files, fileRoutes{
+		authenticate: authenticate, limiterClock: deps.clock, securityLog: securityLog,
+	})
+	filehandler.Mount(server.API(), files)
+	filehandler.MountPublic(server.App(), files)
 	return server
 }
 
 func publicRoutes() []httpserver.PublicRoute {
 	routes := append(httpserver.PublicRoutes(), authhandler.PublicRoutes()...)
-	return append(routes, orghandler.PublicRoutes()...)
+	routes = append(routes, orghandler.PublicRoutes()...)
+	return append(routes, filehandler.PublicRoutes()...)
 }

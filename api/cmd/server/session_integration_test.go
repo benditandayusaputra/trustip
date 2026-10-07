@@ -31,7 +31,9 @@ func databaseBrowser(t *testing.T) *browser {
 		accessKeys: testPepper{}, revoked: revocation.New(now), tx: pool,
 		clock: now, ids: idgen.UUIDv7{}, cookies: authhandler.LocalCookies(),
 	}
-	server := newServerFrom(alwaysReady, now, testModules{auth: components, org: buildOrgComponents(pool, now)})
+	server := newServerFrom(alwaysReady, now, testModules{
+		auth: components, org: buildOrgComponents(pool, now), files: databaseFileComponents(t, pool, now),
+	})
 	if got := perform(t, server, postUsers(t, registration("sari@contoh.id"))); got.status != http.StatusCreated {
 		t.Fatalf("register = %d %s", got.status, got.body)
 	}

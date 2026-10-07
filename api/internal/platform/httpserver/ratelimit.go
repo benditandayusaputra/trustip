@@ -47,3 +47,10 @@ func BySignedInUser(c fiber.Ctx) string {
 	}
 	return ByClientIP(c)
 }
+
+func ByOrganization(c fiber.Ctx) string {
+	if signedIn, ok := ActorFrom(c); ok && signedIn.IsMember() {
+		return "organization:" + signedIn.Membership.OrganizationID
+	}
+	return BySignedInUser(c)
+}

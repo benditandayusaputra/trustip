@@ -49,6 +49,10 @@ export class ApiClient {
 		return (await this.#call<T>({ method: 'PATCH', path, body })).data;
 	}
 
+	async upload<T>(path: string, form: FormData): Promise<T> {
+		return (await this.#call<T>({ method: 'POST', path, body: form })).data;
+	}
+
 	async #call<T>(call: Call) {
 		try {
 			return await readEnvelope<T>(await this.#request(call));
@@ -80,7 +84,7 @@ export class ApiClient {
 			return await this.#deps.fetch(call.path, {
 				method: call.method,
 				headers: requestHeaders(call),
-				body: call.body === undefined ? null : JSON.stringify(call.body),
+				body: bodyOf(call),
 				credentials: 'same-origin'
 			});
 		} catch (cause) {
@@ -89,9 +93,16 @@ export class ApiClient {
 	}
 }
 
+function bodyOf(call: Call): BodyInit | null {
+	if (call.body instanceof FormData) {
+		return call.body;
+	}
+	return call.body === undefined ? null : JSON.stringify(call.body);
+}
+
 function requestHeaders(call: Call): Headers {
 	const headers = new Headers({ accept: 'application/json', 'x-trustip-client': 'web' });
-	if (call.body !== undefined) {
+	if (call.body !== undefined && !(call.body instanceof FormData)) {
 		headers.set('content-type', 'application/json');
 	}
 	if (call.idempotencyKey !== undefined) {

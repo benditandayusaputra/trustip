@@ -38,6 +38,21 @@ type ConsignorProfile struct {
 	UpdatedAt            time.Time
 }
 
+type File struct {
+	ID             string
+	OrganizationID string
+	Purpose        string
+	Visibility     string
+	ContentType    string
+	SizeBytes      int64
+	StorageKey     string
+	Sha256         []byte
+	Width          int64
+	Height         int64
+	CreatedBy      string
+	CreatedAt      time.Time
+}
+
 type Membership struct {
 	ID                string
 	OrganizationID    string

@@ -19,7 +19,8 @@ const forwardedResponseHeaders = [
 	'ratelimit-reset',
 	'x-request-id',
 	'location',
-	'idempotent-replay'
+	'idempotent-replay',
+	'content-disposition'
 ];
 const requestIdPattern = /^[A-Za-z0-9-]{8,64}$/u;
 const upstreamTimeoutMs = 15000;

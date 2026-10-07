@@ -2,7 +2,7 @@ package httpserver
 
 import (
 	"log/slog"
-	"slices"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -26,7 +26,7 @@ type clientIPKey struct{}
 
 func EdgeSignature(verifier EdgeVerifier, securityLog *slog.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		if slices.Contains(unsignedPaths(), c.Path()) {
+		if isUnsigned(c) {
 			return c.Next()
 		}
 		request := signedRequestFrom(c)
@@ -40,8 +40,11 @@ func EdgeSignature(verifier EdgeVerifier, securityLog *slog.Logger) fiber.Handle
 	}
 }
 
-func unsignedPaths() []string {
-	return []string{healthPath}
+const PublicFilesPrefix = "/files/"
+
+func isUnsigned(c fiber.Ctx) bool {
+	isPublicFile := c.Method() == fiber.MethodGet && strings.HasPrefix(c.Path(), PublicFilesPrefix)
+	return c.Path() == healthPath || isPublicFile
 }
 
 func signedRequestFrom(c fiber.Ctx) security.SignedRequest {

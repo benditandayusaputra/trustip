@@ -98,3 +98,10 @@ func RequireNewcomer(signedIn actor.Actor) error {
 	}
 	return nil
 }
+
+func RequireMember(signedIn actor.Actor) error {
+	if !signedIn.IsMember() {
+		return apperror.New(apperror.CodeForbidden)
+	}
+	return nil
+}
