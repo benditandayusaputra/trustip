@@ -36,6 +36,9 @@ export const id = {
 		failedBody: 'Muat ulang halaman. Bila tetap gagal, coba lagi beberapa saat lagi.',
 		backHome: 'Kembali ke beranda'
 	},
+	apiErrors: {
+		serviceUnavailable: 'Layanan sedang sibuk. Coba lagi sebentar lagi.'
+	},
 	feedback: {
 		loading: 'Memuat',
 		close: 'Tutup',
