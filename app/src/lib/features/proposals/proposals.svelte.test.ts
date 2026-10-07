@@ -257,3 +257,104 @@ describe('Invitation landing', () => {
 		});
 	});
 });
+
+describe('Proposal decisions', () => {
+	const claimed = {
+		...proposal,
+		store: { id: storeId, name: 'Warung Bu Sri' },
+		awaiting_org_id: storeId
+	};
+
+	it('BR-PRP-03 the awaiting party accepts after confirming the consequence', async () => {
+		serve({
+			[`GET /api/v1/proposals/${proposalId}`]: () => envelope(claimed),
+			[`POST /api/v1/proposals/${proposalId}/accept`]: () =>
+				envelope({
+					...claimed,
+					status: 'ACCEPTED',
+					awaiting_org_id: null,
+					partnership_id: '0192f0c4-0000-7000-8000-000000000501'
+				})
+		});
+		const { container } = await render(ProposalsHarness, {
+			view: 'detail',
+			proposalId,
+			viewerOrganizationId: storeId
+		});
+
+		await userEvent.click(page.getByRole('button', { name: 'Terima' }));
+		await expect.element(page.getByText(/langsung berlaku/u)).toBeVisible();
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('dialog').getByRole('button', { name: 'Terima' }));
+
+		await expect.element(page.getByText('Ajuan diterima. Kesepakatan berlaku.')).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: 'Lihat kemitraan' }))
+			.toHaveAttribute('href', '/app/mitra/0192f0c4-0000-7000-8000-000000000501');
+	});
+
+	it('FR-PRP-03 declining shows the server reason problem under the field', async () => {
+		serve({
+			[`GET /api/v1/proposals/${proposalId}`]: () => envelope(claimed),
+			[`POST /api/v1/proposals/${proposalId}/decline`]: () =>
+				invalid([{ field: 'reason', code: 'REQUIRED', message: 'Wajib diisi.' }])
+		});
+		await render(ProposalsHarness, { view: 'detail', proposalId, viewerOrganizationId: storeId });
+
+		await userEvent.click(page.getByRole('button', { name: 'Tolak' }));
+		await userEvent.click(page.getByRole('dialog').getByRole('button', { name: 'Tolak' }));
+
+		await expect.element(page.getByText('Wajib diisi.', { exact: true })).toBeVisible();
+	});
+
+	it('FR-PRP-05 only the author sees the withdraw button', async () => {
+		serve({ [`GET /api/v1/proposals/${proposalId}`]: () => envelope(claimed) });
+		await render(ProposalsHarness, {
+			view: 'detail',
+			proposalId,
+			viewerOrganizationId: consignorId
+		});
+
+		await expect.element(page.getByRole('button', { name: 'Tarik Ajuan' })).toBeVisible();
+		await expect.element(page.getByRole('button', { name: 'Terima' })).not.toBeInTheDocument();
+	});
+});
+
+describe('Proposal list', () => {
+	it('FR-PRP-06 shows incoming proposals with whose turn it is and switches boxes', async () => {
+		const summary = {
+			id: proposalId,
+			number: 'AJ-202610-0001',
+			kind: 'NEW',
+			status: 'OPEN',
+			from_org_id: consignorId,
+			awaiting_org_id: storeId,
+			counterpart_name: 'Roti Pak Anton',
+			expires_at: '2026-11-02T08:00:00Z',
+			created_at: '2026-10-19T08:00:00Z'
+		};
+		const list = (data: unknown[]) => () =>
+			Response.json({
+				code: 'OK',
+				message: '',
+				data,
+				meta: { request_id: 'r', next_cursor: null, has_more: false }
+			});
+		const calls: string[] = [];
+		vi.stubGlobal('fetch', (path: string) => {
+			calls.push(path);
+			return Promise.resolve(path.includes('OUTGOING') ? list([])() : list([summary])());
+		});
+		const { container } = await render(ProposalsHarness, {
+			view: 'list',
+			viewerOrganizationId: storeId
+		});
+
+		await expect.element(page.getByText(/Giliran Anda/u)).toBeVisible();
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('tab', { name: 'Keluar' }));
+
+		await expect.element(page.getByText(/Belum ada Ajuan keluar/u)).toBeVisible();
+		expect(calls).toContain('/api/v1/proposals?box=OUTGOING');
+	});
+});

@@ -5,9 +5,10 @@
 	import InvitationForm from '#lib/features/proposals/components/InvitationForm.svelte';
 	import InvitationLandingView from '#lib/features/proposals/components/InvitationLandingView.svelte';
 	import ProposalDetail from '#lib/features/proposals/components/ProposalDetail.svelte';
+	import ProposalList from '#lib/features/proposals/components/ProposalList.svelte';
 
 	interface Props {
-		view: 'form' | 'detail' | 'landing';
+		view: 'form' | 'detail' | 'landing' | 'list';
 		isConsignor?: boolean;
 		proposalId?: string;
 		viewerOrganizationId?: string;
@@ -31,6 +32,8 @@
 	<InvitationForm {isConsignor} onsent={ondone} />
 {:else if view === 'detail'}
 	<ProposalDetail {proposalId} {viewerOrganizationId} />
+{:else if view === 'list'}
+	<ProposalList organizationId={viewerOrganizationId} />
 {:else}
 	<InvitationLandingView
 		{code}

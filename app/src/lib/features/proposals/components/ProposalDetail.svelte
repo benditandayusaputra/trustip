@@ -10,6 +10,7 @@
 	import { partyName } from '../links';
 	import { ProposalRecord } from '../record.svelte';
 	import InvitationShare from './InvitationShare.svelte';
+	import ProposalActions from './ProposalActions.svelte';
 
 	interface Props {
 		proposalId: string;
@@ -75,6 +76,17 @@
 	</div>
 	{#if proposal.status === 'OPEN'}
 		<p role="status" class="text-base text-text">{awaitingText(proposal)}</p>
+		<ProposalActions
+			{record}
+			canDecide={proposal.awaiting_org_id === viewerOrganizationId}
+			canWithdraw={proposal.revision.author_org_id === viewerOrganizationId}
+		/>
+	{:else if proposal.status === 'DECLINED' && proposal.decision_reason}
+		<p class="text-base text-text">{text.declineReason(proposal.decision_reason)}</p>
+	{:else if proposal.partnership_id}
+		<a href="/app/mitra/{proposal.partnership_id}" class="font-semibold text-accent">
+			{text.openPartnership}
+		</a>
 	{/if}
 	<dl class="grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{text.consignor}</dt>

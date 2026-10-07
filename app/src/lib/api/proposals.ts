@@ -1,4 +1,5 @@
 import type { ApiClient } from './client';
+import type { Page } from './envelope';
 import type { components } from './schema';
 
 export type Proposal = components['schemas']['Proposal'];
@@ -26,5 +27,40 @@ export function claimInvitation(client: ApiClient, code: string): Promise<Propos
 }
 
 export function getProposal(client: ApiClient, proposalId: string): Promise<Proposal> {
-	return client.get<Proposal>(`/api/v1/proposals/${encodeURIComponent(proposalId)}`);
+	return client.get<Proposal>(proposalPath(proposalId));
+}
+
+export type ProposalSummary = components['schemas']['ProposalSummary'];
+export type ProposalBox = 'INCOMING' | 'OUTGOING';
+
+function proposalPath(proposalId: string): string {
+	return `/api/v1/proposals/${encodeURIComponent(proposalId)}`;
+}
+
+export function acceptProposal(client: ApiClient, proposalId: string): Promise<Proposal> {
+	return client.send<Proposal>(`${proposalPath(proposalId)}/accept`);
+}
+
+export function declineProposal(
+	client: ApiClient,
+	proposalId: string,
+	reason: string
+): Promise<Proposal> {
+	return client.send<Proposal>(`${proposalPath(proposalId)}/decline`, { reason });
+}
+
+export function withdrawProposal(client: ApiClient, proposalId: string): Promise<Proposal> {
+	return client.send<Proposal>(`${proposalPath(proposalId)}/withdraw`);
+}
+
+export function listProposals(
+	client: ApiClient,
+	box: ProposalBox,
+	cursor: string | null
+): Promise<Page<ProposalSummary>> {
+	const query = new URLSearchParams({ box });
+	if (cursor) {
+		query.set('cursor', cursor);
+	}
+	return client.list<ProposalSummary>(`/api/v1/proposals?${query.toString()}`);
 }

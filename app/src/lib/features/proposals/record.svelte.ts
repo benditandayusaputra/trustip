@@ -1,9 +1,12 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import {
+	acceptProposal,
 	claimInvitation,
+	declineProposal,
 	getProposal,
 	viewInvitation,
+	withdrawProposal,
 	type Invitation,
 	type Proposal
 } from '#lib/api/proposals.js';
@@ -14,6 +17,8 @@ export class ProposalRecord {
 	proposal = $state<Proposal>();
 	status = $state<LoadStatus>('loading');
 	failure = $state('');
+	busy = $state(false);
+	reasonError = $state('');
 	readonly #client: () => ApiClient;
 
 	constructor(client: () => ApiClient) {
@@ -29,6 +34,46 @@ export class ProposalRecord {
 			this.failure = error instanceof Error ? error.message : '';
 			this.status = 'failed';
 		}
+	}
+
+	accept(): Promise<string | undefined> {
+		return this.#act((client, proposalId) => acceptProposal(client, proposalId));
+	}
+
+	decline(reason: string): Promise<string | undefined> {
+		return this.#act((client, proposalId) => declineProposal(client, proposalId, reason));
+	}
+
+	withdraw(): Promise<string | undefined> {
+		return this.#act((client, proposalId) => withdrawProposal(client, proposalId));
+	}
+
+	async #act(
+		decide: (client: ApiClient, proposalId: string) => Promise<Proposal>
+	): Promise<string | undefined> {
+		const current = this.proposal;
+		if (!current) {
+			return undefined;
+		}
+		this.busy = true;
+		this.reasonError = '';
+		try {
+			this.proposal = await decide(this.#client(), current.id);
+			return undefined;
+		} catch (error) {
+			return this.#explain(error);
+		} finally {
+			this.busy = false;
+		}
+	}
+
+	#explain(error: unknown): string {
+		const reasonProblem =
+			error instanceof ApiError
+				? error.fields.find((problem) => problem.field === 'reason')
+				: undefined;
+		this.reasonError = reasonProblem?.message ?? '';
+		return error instanceof Error ? error.message : '';
 	}
 }
 
