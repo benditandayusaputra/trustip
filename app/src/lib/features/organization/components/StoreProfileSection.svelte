@@ -9,8 +9,9 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { Organization } from '#lib/api/organizations.js';
 	import { id } from '#lib/i18n/id.js';
+	import { reportSection } from '../section';
 	import { StoreProfileEditor } from '../store-profile.svelte';
-	import CategoryChoice from './CategoryChoice.svelte';
+	import ChoiceList from './ChoiceList.svelte';
 	import StorePhotos from './StorePhotos.svelte';
 
 	interface Props {
@@ -39,13 +40,11 @@
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
-		const outcome = await editor.save(organization.id);
-		if (outcome.kind === 'saved') {
-			toaster.show({ tone: 'success', message: text.saved });
-			onsaved(outcome.organization);
-		} else if (outcome.kind === 'failed') {
-			toaster.show({ tone: 'danger', message: outcome.message });
-		}
+		reportSection(await editor.save(organization.id), {
+			toaster,
+			savedMessage: text.saved,
+			onsaved
+		});
 	}
 </script>
 
@@ -59,9 +58,9 @@
 			bind:value={editor.values.storeType}
 			error={editor.errors.storeType}
 		/>
-		<CategoryChoice
+		<ChoiceList
 			legend={text.categories}
-			categories={editor.categories}
+			options={editor.categories.map((category) => ({ value: category.id, label: category.name }))}
 			bind:selected={editor.values.categoryIds}
 			error={editor.errors.categoryIds}
 		/>

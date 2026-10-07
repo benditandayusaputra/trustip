@@ -5,12 +5,12 @@ import {
 	listCategories,
 	updateStoreProfile,
 	type Category,
-	type Organization,
 	type StoreProfile,
 	type StoreProfileRequest,
 	type StoreType
 } from '#lib/api/organizations.js';
 import { id } from '#lib/i18n/id.js';
+import { explainSectionFailure, type SectionOutcome } from './section';
 
 export const maxStorePhotos = 5;
 const basisPointsPerPercent = 100;
@@ -35,10 +35,6 @@ export interface StoreProfileValues {
 
 type StoreProfileField = 'storeType' | 'categoryIds' | 'commissionMax' | 'photos' | 'text';
 export type StoreProfileErrors = Partial<Record<StoreProfileField, string>>;
-export type StoreSaveOutcome =
-	| { kind: 'saved'; organization: Organization }
-	| { kind: 'invalid' }
-	| { kind: 'failed'; message: string };
 
 const fieldsFromServer: Record<string, StoreProfileField | undefined> = {
 	store_type: 'storeType',
@@ -149,7 +145,7 @@ export class StoreProfileEditor {
 		this.values.photos = this.values.photos.filter((photo) => photo.id !== photoId);
 	}
 
-	async save(organizationId: string): Promise<StoreSaveOutcome> {
+	async save(organizationId: string): Promise<SectionOutcome> {
 		this.errors = validateStoreProfile(this.values);
 		if (Object.keys(this.errors).length > 0) {
 			return { kind: 'invalid' };
@@ -162,22 +158,11 @@ export class StoreProfileEditor {
 				organization: await updateStoreProfile(this.#client(), organizationId, request)
 			};
 		} catch (error) {
-			return this.#explain(error);
+			const failure = explainSectionFailure(error, fieldsFromServer);
+			this.errors = failure.errors;
+			return failure.outcome;
 		} finally {
 			this.busy = false;
 		}
-	}
-
-	#explain(error: unknown): StoreSaveOutcome {
-		if (error instanceof ApiError && error.fields.length > 0) {
-			error.fields.forEach((problem) => {
-				const field = fieldsFromServer[problem.field];
-				if (field) {
-					this.errors[field] = problem.message;
-				}
-			});
-			return { kind: 'invalid' };
-		}
-		return { kind: 'failed', message: error instanceof Error ? error.message : '' };
 	}
 }

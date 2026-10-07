@@ -107,3 +107,45 @@ func TestUpdateStoreProfile_FRORG04_UploadedPhotosAppearInOrder(t *testing.T) {
 	}
 	loadContract(t).requireConforms(t, saved)
 }
+
+func consignorOnboarding() string {
+	return strings.Replace(onboarding(semarangCityCode), `"type":"STORE"`, `"type":"CONSIGNOR"`, 1)
+}
+
+func TestUpdatePaymentInfo_FRORG07_PrivateQRIsLinkedAndReadableByTheOwner(t *testing.T) {
+	visitor := databaseBrowser(t)
+	founded := visitor.postOrganization(consignorOnboarding())
+	organizationID := quotedAfter(string(founded.body), `"id":"`)
+	visitor.post("/api/v1/sessions/refresh")
+	uploaded := visitor.upload(part{name: "purpose", data: []byte("PAYMENT_QR")},
+		part{name: "file", filename: "qris.jpg", data: photoWithLocation(t)})
+	qrID := quotedAfter(string(uploaded.body), `"id":"`)
+
+	saved := visitor.patch(organizationsPath+"/"+organizationID+"/payment-info",
+		`{"payment_info":"BCA 1234567 a.n. Darmi","payment_qr_file_id":"`+qrID+`"}`)
+	qr := visitor.get("/api/v1/files/" + qrID)
+
+	requireCode(t, saved, "OK")
+	if !strings.Contains(string(saved.body), `"qr":{"id":"`+qrID+`","url":"/api/v1/files/`+qrID+`"}`) ||
+		qr.status != http.StatusOK {
+		t.Fatalf("saved = %s, qr = %d", saved.body, qr.status)
+	}
+	loadContract(t).requireConforms(t, saved)
+}
+
+func TestUpdatePaymentInfo_LogoCannotStandInForTheQR(t *testing.T) {
+	visitor := databaseBrowser(t)
+	founded := visitor.postOrganization(consignorOnboarding())
+	organizationID := quotedAfter(string(founded.body), `"id":"`)
+	visitor.post("/api/v1/sessions/refresh")
+	uploaded := visitor.upload(part{name: "purpose", data: []byte("LOGO")},
+		part{name: "file", filename: "logo.jpg", data: photoWithLocation(t)})
+
+	got := visitor.patch(organizationsPath+"/"+organizationID+"/payment-info",
+		`{"payment_info":"","payment_qr_file_id":"`+quotedAfter(string(uploaded.body), `"id":"`)+`"}`)
+
+	requireCode(t, got, "VALIDATION_FAILED")
+	if !strings.Contains(string(got.body), `"field":"payment_qr_file_id"`) {
+		t.Fatalf("body = %s", got.body)
+	}
+}

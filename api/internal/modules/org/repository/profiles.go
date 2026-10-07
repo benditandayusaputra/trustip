@@ -40,7 +40,11 @@ func (r *Profiles) GetSettings(ctx context.Context, organizationID string) (doma
 	if err != nil {
 		return domain.Settings{}, err
 	}
-	settings.Store, err = storeSettings(readCtx, queries, organizationID)
+	if settings.Type == actor.Store {
+		settings.Store, err = storeSettings(readCtx, queries, organizationID)
+		return settings, err
+	}
+	settings.Consignor, settings.Payment, err = consignorSettings(readCtx, queries, organizationID)
 	return settings, err
 }
 
@@ -70,8 +74,10 @@ func (r *Profiles) UpdateProfile(ctx context.Context, change domain.ProfileChang
 	writeCtx, cancel := database.WriteContext(ctx)
 	defer cancel()
 	queries := sqlc.New(r.pool.Querier(ctx))
-	if err := checkLogo(writeCtx, queries, change); err != nil {
-		return err
+	if err := checkOwnFile(writeCtx, queries, ownFile{
+		organizationID: change.OrganizationID, fileID: change.Update.LogoFileID, purpose: logoPurpose,
+	}); err != nil {
+		return explainMissingFile(err, domain.ErrUnknownLogo)
 	}
 	update := change.Update
 	updated, err := queries.UpdateOrganizationProfile(writeCtx, sqlc.UpdateOrganizationProfileParams{
@@ -91,18 +97,33 @@ func (r *Profiles) UpdateProfile(ctx context.Context, change domain.ProfileChang
 	return nil
 }
 
-func checkLogo(ctx context.Context, queries *sqlc.Queries, change domain.ProfileChange) error {
-	if change.Update.LogoFileID == "" {
+type ownFile struct {
+	organizationID string
+	fileID         string
+	purpose        string
+}
+
+var errFileNotOwned = errors.New("file is not owned for this purpose")
+
+func checkOwnFile(ctx context.Context, queries *sqlc.Queries, file ownFile) error {
+	if file.fileID == "" {
 		return nil
 	}
 	found, err := queries.CountOrganizationFiles(ctx, sqlc.CountOrganizationFilesParams{
-		ID: change.Update.LogoFileID, OrganizationID: change.OrganizationID, Purpose: logoPurpose,
+		ID: file.fileID, OrganizationID: file.organizationID, Purpose: file.purpose,
 	})
 	if err != nil {
-		return fmt.Errorf("check logo of %s: %w", change.OrganizationID, err)
+		return fmt.Errorf("check file %s: %w", file.fileID, err)
 	}
 	if found == 0 {
-		return domain.ErrUnknownLogo
+		return errFileNotOwned
 	}
 	return nil
+}
+
+func explainMissingFile(err, missing error) error {
+	if errors.Is(err, errFileNotOwned) {
+		return missing
+	}
+	return err
 }

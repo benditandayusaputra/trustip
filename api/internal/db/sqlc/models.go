@@ -71,26 +71,27 @@ type OrgPhoto struct {
 }
 
 type Organization struct {
-	ID             string
-	Type           string
-	Name           string
-	Slug           string
-	Description    string
-	Whatsapp       string
-	Address        string
-	District       string
-	CityCode       pgtype.Text
-	CityName       string
-	Location       interface{}
-	LocationPublic interface{}
-	IsListed       bool
-	Status         string
-	IsDemo         bool
-	LastActiveAt   pgtype.Timestamptz
-	PaymentInfo    string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	LogoFileID     pgtype.UUID
+	ID              string
+	Type            string
+	Name            string
+	Slug            string
+	Description     string
+	Whatsapp        string
+	Address         string
+	District        string
+	CityCode        pgtype.Text
+	CityName        string
+	Location        interface{}
+	LocationPublic  interface{}
+	IsListed        bool
+	Status          string
+	IsDemo          bool
+	LastActiveAt    pgtype.Timestamptz
+	PaymentInfo     string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	LogoFileID      pgtype.UUID
+	PaymentQrFileID pgtype.UUID
 }
 
 type Session struct {

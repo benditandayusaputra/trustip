@@ -225,6 +225,43 @@ func (q *Queries) FindActiveMembership(ctx context.Context, userID string) (Find
 	return i, err
 }
 
+const getConsignorProfile = `-- name: GetConsignorProfile :one
+SELECT
+    (delivery_radius_km IS NOT NULL)::boolean AS has_delivery_radius,
+    COALESCE(delivery_radius_km, 0)::bigint AS delivery_radius_km,
+    delivery_days, preferred_store_types, business_id_no, distribution_permit_no, halal_cert_no,
+    can_provide_sample
+FROM consignor_profiles
+WHERE organization_id = $1
+`
+
+type GetConsignorProfileRow struct {
+	HasDeliveryRadius    bool
+	DeliveryRadiusKm     int64
+	DeliveryDays         []string
+	PreferredStoreTypes  []string
+	BusinessIDNo         string
+	DistributionPermitNo string
+	HalalCertNo          string
+	CanProvideSample     bool
+}
+
+func (q *Queries) GetConsignorProfile(ctx context.Context, organizationID string) (GetConsignorProfileRow, error) {
+	row := q.db.QueryRow(ctx, getConsignorProfile, organizationID)
+	var i GetConsignorProfileRow
+	err := row.Scan(
+		&i.HasDeliveryRadius,
+		&i.DeliveryRadiusKm,
+		&i.DeliveryDays,
+		&i.PreferredStoreTypes,
+		&i.BusinessIDNo,
+		&i.DistributionPermitNo,
+		&i.HalalCertNo,
+		&i.CanProvideSample,
+	)
+	return i, err
+}
+
 const getOrganizationSettings = `-- name: GetOrganizationSettings :one
 SELECT
     o.id, o.type, o.name, o.slug, o.description, o.whatsapp,
@@ -283,6 +320,29 @@ func (q *Queries) GetOrganizationSettings(ctx context.Context, id string) (GetOr
 		&i.LogoFileID,
 		&i.LogoStorageKey,
 	)
+	return i, err
+}
+
+const getPaymentInfo = `-- name: GetPaymentInfo :one
+SELECT
+    o.payment_info,
+    COALESCE(f.id::text, '')::text AS qr_file_id,
+    COALESCE(f.storage_key, '')::text AS qr_storage_key
+FROM organizations AS o
+LEFT JOIN files AS f ON f.id = o.payment_qr_file_id
+WHERE o.id = $1
+`
+
+type GetPaymentInfoRow struct {
+	PaymentInfo  string
+	QrFileID     string
+	QrStorageKey string
+}
+
+func (q *Queries) GetPaymentInfo(ctx context.Context, id string) (GetPaymentInfoRow, error) {
+	row := q.db.QueryRow(ctx, getPaymentInfo, id)
+	var i GetPaymentInfoRow
+	err := row.Scan(&i.PaymentInfo, &i.QrFileID, &i.QrStorageKey)
 	return i, err
 }
 
@@ -505,6 +565,52 @@ func (q *Queries) ListTakenSlugs(ctx context.Context, base string) ([]string, er
 	return items, nil
 }
 
+const updateConsignorProfile = `-- name: UpdateConsignorProfile :execrows
+UPDATE consignor_profiles
+SET
+    delivery_radius_km = CASE WHEN $1::boolean THEN $2::bigint END,
+    delivery_days = $3::text[],
+    preferred_store_types = $4::text[],
+    business_id_no = $5::text,
+    distribution_permit_no = $6::text,
+    halal_cert_no = $7::text,
+    can_provide_sample = $8::boolean,
+    updated_at = $9::timestamptz
+WHERE organization_id = $10::uuid
+`
+
+type UpdateConsignorProfileParams struct {
+	HasDeliveryRadius    bool
+	DeliveryRadiusKm     int64
+	DeliveryDays         []string
+	PreferredStoreTypes  []string
+	BusinessIDNo         string
+	DistributionPermitNo string
+	HalalCertNo          string
+	CanProvideSample     bool
+	UpdatedAt            time.Time
+	OrganizationID       string
+}
+
+func (q *Queries) UpdateConsignorProfile(ctx context.Context, arg UpdateConsignorProfileParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateConsignorProfile,
+		arg.HasDeliveryRadius,
+		arg.DeliveryRadiusKm,
+		arg.DeliveryDays,
+		arg.PreferredStoreTypes,
+		arg.BusinessIDNo,
+		arg.DistributionPermitNo,
+		arg.HalalCertNo,
+		arg.CanProvideSample,
+		arg.UpdatedAt,
+		arg.OrganizationID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateOrganizationProfile = `-- name: UpdateOrganizationProfile :execrows
 UPDATE organizations AS o
 SET
@@ -565,6 +671,32 @@ func (q *Queries) UpdateOrganizationProfile(ctx context.Context, arg UpdateOrgan
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const updatePaymentInfo = `-- name: UpdatePaymentInfo :exec
+UPDATE organizations
+SET
+    payment_info = $1::text,
+    payment_qr_file_id = NULLIF($2::text, '')::uuid,
+    updated_at = $3::timestamptz
+WHERE id = $4::uuid
+`
+
+type UpdatePaymentInfoParams struct {
+	PaymentInfo     string
+	PaymentQrFileID string
+	UpdatedAt       time.Time
+	ID              string
+}
+
+func (q *Queries) UpdatePaymentInfo(ctx context.Context, arg UpdatePaymentInfoParams) error {
+	_, err := q.db.Exec(ctx, updatePaymentInfo,
+		arg.PaymentInfo,
+		arg.PaymentQrFileID,
+		arg.UpdatedAt,
+		arg.ID,
+	)
+	return err
 }
 
 const updateStoreProfile = `-- name: UpdateStoreProfile :execrows

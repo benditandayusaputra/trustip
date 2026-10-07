@@ -34,8 +34,10 @@ type ProfileStore interface {
 	UpdateProfile(ctx context.Context, change domain.ProfileChange) error
 }
 
-type StoreProfileStore interface {
+type ProfileSectionStore interface {
 	UpdateStoreProfile(ctx context.Context, change domain.StoreProfileChange) error
+	UpdateConsignorProfile(ctx context.Context, change domain.ConsignorProfileChange) error
+	UpdatePaymentInfo(ctx context.Context, change domain.PaymentInfoChange) error
 }
 
 type CategoryReader interface {

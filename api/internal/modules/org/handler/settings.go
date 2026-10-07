@@ -100,6 +100,9 @@ func toSettingsResponse(settings domain.Settings, filesBaseURL string) organizat
 	}
 	if settings.Type == actor.Store {
 		response.StoreProfile = toStoreProfileResponse(settings.Store, filesBaseURL)
+		return response
 	}
+	response.ConsignorProfile = toConsignorProfileResponse(settings.Consignor)
+	response.Payment = toPaymentResponse(settings.Payment)
 	return response
 }

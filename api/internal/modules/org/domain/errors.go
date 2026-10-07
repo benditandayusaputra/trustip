@@ -9,4 +9,5 @@ var (
 	ErrUnknownLogo     = errors.New("logo is not a logo file of this organization")
 	ErrUnknownCategory = errors.New("category is not in the category list")
 	ErrUnknownPhoto    = errors.New("photo is not a store photo of this organization")
+	ErrUnknownQR       = errors.New("qr is not a payment qr of this organization")
 )

@@ -200,6 +200,42 @@ export interface paths {
         patch: operations["updateStoreProfile"];
         trace?: never;
     };
+    "/api/v1/organizations/{id}/consignor-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateConsignorProfile"];
+        trace?: never;
+    };
+    "/api/v1/organizations/{id}/payment-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updatePaymentInfo"];
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -404,6 +440,26 @@ export interface components {
             location: components["schemas"]["GeoPoint"] | null;
             logo: components["schemas"]["ImageRef"] | null;
             store_profile: components["schemas"]["StoreProfile"] | null;
+            consignor_profile: components["schemas"]["ConsignorProfile"] | null;
+            payment: components["schemas"]["PaymentInfo"] | null;
+        };
+        ConsignorProfile: {
+            delivery_radius_km: number | null;
+            delivery_days: ("MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN")[];
+            preferred_store_types: components["schemas"]["StoreType"][];
+            business_id_no: string;
+            distribution_permit_no: string;
+            halal_cert_no: string;
+            can_provide_sample: boolean;
+        };
+        ConsignorProfileRequest: components["schemas"]["ConsignorProfile"];
+        PaymentInfo: {
+            info: string;
+            qr: components["schemas"]["ImageRef"] | null;
+        };
+        PaymentInfoRequest: {
+            payment_info: string;
+            payment_qr_file_id: string | null;
         };
         /** @enum {string} */
         StoreType: "GROCERY_STALL" | "LOCAL_MINIMARKET" | "SOUVENIR_SHOP" | "CANTEEN" | "CAFE" | "BAKERY" | "COOPERATIVE" | "MARKET_KIOSK" | "OTHER";
@@ -1014,6 +1070,84 @@ export interface operations {
         };
         responses: {
             /** @description Profil toko tersimpan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    updateConsignorProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsignorProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Profil penitip tersimpan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    updatePaymentInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentInfoRequest"];
+            };
+        };
+        responses: {
+            /** @description Info pembayaran penitip tersimpan */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["RequestId"];

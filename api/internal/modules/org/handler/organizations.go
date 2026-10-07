@@ -31,19 +31,21 @@ type point struct {
 }
 
 type organizationResponse struct {
-	ID           string                `json:"id"`
-	Type         string                `json:"type"`
-	Name         string                `json:"name"`
-	Slug         string                `json:"slug"`
-	Description  string                `json:"description"`
-	WhatsApp     string                `json:"whatsapp"`
-	CityCode     string                `json:"city_code"`
-	CityName     string                `json:"city_name"`
-	District     string                `json:"district"`
-	Address      string                `json:"address"`
-	Location     *point                `json:"location"`
-	Logo         *imageRef             `json:"logo"`
-	StoreProfile *storeProfileResponse `json:"store_profile"`
+	ID               string                `json:"id"`
+	Type             string                `json:"type"`
+	Name             string                `json:"name"`
+	Slug             string                `json:"slug"`
+	Description      string                `json:"description"`
+	WhatsApp         string                `json:"whatsapp"`
+	CityCode         string                `json:"city_code"`
+	CityName         string                `json:"city_name"`
+	District         string                `json:"district"`
+	Address          string                `json:"address"`
+	Location         *point                `json:"location"`
+	Logo             *imageRef             `json:"logo"`
+	StoreProfile     *storeProfileResponse `json:"store_profile"`
+	ConsignorProfile *consignorProfileBody `json:"consignor_profile"`
+	Payment          *paymentResponse      `json:"payment"`
 }
 
 func createOrganization(creator Creator) fiber.Handler {

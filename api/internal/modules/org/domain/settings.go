@@ -43,13 +43,20 @@ type FileRef struct {
 }
 
 type Settings struct {
-	ID       string
-	Type     actor.OrganizationType
-	Slug     Slug
-	Profile  Profile
-	CityName string
-	Logo     FileRef
-	Store    StoreSettings
+	ID        string
+	Type      actor.OrganizationType
+	Slug      Slug
+	Profile   Profile
+	CityName  string
+	Logo      FileRef
+	Store     StoreSettings
+	Consignor ConsignorProfile
+	Payment   PaymentSettings
+}
+
+type PaymentSettings struct {
+	Info string
+	QR   FileRef
 }
 
 type StoreSettings struct {

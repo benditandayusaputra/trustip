@@ -11,8 +11,10 @@ import (
 )
 
 type fakeStoreProfiles struct {
-	failure error
-	changes []domain.StoreProfileChange
+	failure    error
+	changes    []domain.StoreProfileChange
+	consignors []domain.ConsignorProfileChange
+	payments   []domain.PaymentInfoChange
 }
 
 func (f *fakeStoreProfiles) UpdateStoreProfile(_ context.Context, change domain.StoreProfileChange) error {
@@ -23,16 +25,34 @@ func (f *fakeStoreProfiles) UpdateStoreProfile(_ context.Context, change domain.
 	return nil
 }
 
+func (f *fakeStoreProfiles) UpdateConsignorProfile(_ context.Context, change domain.ConsignorProfileChange) error {
+	if f.failure != nil {
+		return f.failure
+	}
+	f.consignors = append(f.consignors, change)
+	return nil
+}
+
+func (f *fakeStoreProfiles) UpdatePaymentInfo(_ context.Context, change domain.PaymentInfoChange) error {
+	if f.failure != nil {
+		return f.failure
+	}
+	f.payments = append(f.payments, change)
+	return nil
+}
+
 func storeProfileCommand(organizationID string) service.UpdateStoreProfileCommand {
 	return service.UpdateStoreProfileCommand{OrganizationID: organizationID, Form: domain.StoreProfileForm{
 		StoreType: "CAFE", Acceptance: domain.Acceptance{AcceptsFixedDeposit: true},
 	}}
 }
 
-func newUpdateStoreProfile(stores *fakeStoreProfiles) *service.UpdateStoreProfile {
-	return service.NewUpdateStoreProfile(service.StoreProfileDeps{
-		Profiles: &fakeProfiles{}, Stores: stores, Tx: &countingTx{}, Clock: fixedClock{},
-	})
+func newUpdateStoreProfile(stores *fakeStoreProfiles) *service.UpdateSection[domain.StoreProfileForm] {
+	return service.NewUpdateStoreProfile(sectionDeps(stores))
+}
+
+func sectionDeps(sections *fakeStoreProfiles) service.SectionDeps {
+	return service.SectionDeps{Profiles: &fakeProfiles{}, Sections: sections, Tx: &countingTx{}, Clock: fixedClock{}}
 }
 
 func TestUpdateStoreProfile_StaffIsForbidden(t *testing.T) {

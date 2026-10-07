@@ -91,6 +91,25 @@ func (m *memoryProfiles) UpdateStoreProfile(_ context.Context, change domain.Sto
 	return nil
 }
 
+func (m *memoryProfiles) UpdateConsignorProfile(_ context.Context, change domain.ConsignorProfileChange) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	settings := m.settings[change.OrganizationID]
+	settings.Type = actor.Consignor
+	settings.Consignor = change.Profile
+	m.settings[change.OrganizationID] = settings
+	return nil
+}
+
+func (m *memoryProfiles) UpdatePaymentInfo(_ context.Context, change domain.PaymentInfoChange) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	settings := m.settings[change.OrganizationID]
+	settings.Payment.Info = change.Payment.Info
+	m.settings[change.OrganizationID] = settings
+	return nil
+}
+
 func (memoryRegions) ListCategories(context.Context) ([]domain.Category, error) {
 	return []domain.Category{{ID: breadCategoryID, Name: "Roti dan kue basah", Slug: "roti-dan-kue-basah"}}, nil
 }
@@ -104,7 +123,7 @@ func testOrgComponents(now *clock.Manual) orgComponents {
 	profiles := &memoryProfiles{settings: map[string]domain.Settings{memberOrganizationID: store}}
 	return orgComponents{
 		founder: &memoryFounder{}, regions: memoryRegions{}, categories: memoryRegions{}, tx: inlineTx{},
-		clock: now, ids: idgen.NewSequence(), profiles: profiles, stores: profiles,
+		clock: now, ids: idgen.NewSequence(), profiles: profiles, sections: profiles,
 	}
 }
 
@@ -330,4 +349,33 @@ func TestListCategories_IsPublicAndFollowsTheContract(t *testing.T) {
 
 	requireCode(t, got, "OK")
 	loadContract(t).requireConforms(t, got)
+}
+
+func consignorOwner() actor.Membership {
+	return actor.Membership{OrganizationID: memberOrganizationID, OrganizationType: actor.Consignor, Role: actor.Owner}
+}
+
+const consignorProfileBody = `{"delivery_radius_km":15,"delivery_days":["MON","THU"],` +
+	`"preferred_store_types":["CAFE"],"business_id_no":"1234567890123","distribution_permit_no":"",` +
+	`"halal_cert_no":"","can_provide_sample":true}`
+
+func TestUpdateConsignorProfile_FRORG05_ConsignorSavesItsProfile(t *testing.T) {
+	visitor := memberBrowser(t, consignorOwner())
+
+	got := visitor.patch(organizationsPath+"/"+memberOrganizationID+"/consignor-profile", consignorProfileBody)
+
+	requireCode(t, got, "OK")
+	if !strings.Contains(string(got.body), `"delivery_radius_km":15`) {
+		t.Fatalf("body = %s", got.body)
+	}
+	loadContract(t).requireConforms(t, got)
+}
+
+func TestUpdatePaymentInfo_FRORG07_StoreGetsNotFound(t *testing.T) {
+	visitor := memberBrowser(t, storeOwner())
+
+	got := visitor.patch(organizationsPath+"/"+memberOrganizationID+"/payment-info",
+		`{"payment_info":"BCA 123","payment_qr_file_id":null}`)
+
+	requireCode(t, got, "NOT_FOUND")
 }

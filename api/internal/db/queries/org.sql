@@ -160,3 +160,42 @@ SELECT @organization_id::uuid, f.id, p.position::integer
 FROM unnest(@file_ids::uuid[]) WITH ORDINALITY AS p (file_id, position)
 JOIN files AS f ON f.id = p.file_id
 WHERE f.organization_id = @organization_id::uuid AND f.purpose = 'STORE_PHOTO';
+
+-- name: GetConsignorProfile :one
+SELECT
+    (delivery_radius_km IS NOT NULL)::boolean AS has_delivery_radius,
+    COALESCE(delivery_radius_km, 0)::bigint AS delivery_radius_km,
+    delivery_days, preferred_store_types, business_id_no, distribution_permit_no, halal_cert_no,
+    can_provide_sample
+FROM consignor_profiles
+WHERE organization_id = @organization_id;
+
+-- name: UpdateConsignorProfile :execrows
+UPDATE consignor_profiles
+SET
+    delivery_radius_km = CASE WHEN @has_delivery_radius::boolean THEN @delivery_radius_km::bigint END,
+    delivery_days = @delivery_days::text[],
+    preferred_store_types = @preferred_store_types::text[],
+    business_id_no = @business_id_no::text,
+    distribution_permit_no = @distribution_permit_no::text,
+    halal_cert_no = @halal_cert_no::text,
+    can_provide_sample = @can_provide_sample::boolean,
+    updated_at = @updated_at::timestamptz
+WHERE organization_id = @organization_id::uuid;
+
+-- name: GetPaymentInfo :one
+SELECT
+    o.payment_info,
+    COALESCE(f.id::text, '')::text AS qr_file_id,
+    COALESCE(f.storage_key, '')::text AS qr_storage_key
+FROM organizations AS o
+LEFT JOIN files AS f ON f.id = o.payment_qr_file_id
+WHERE o.id = @id;
+
+-- name: UpdatePaymentInfo :exec
+UPDATE organizations
+SET
+    payment_info = @payment_info::text,
+    payment_qr_file_id = NULLIF(@payment_qr_file_id::text, '')::uuid,
+    updated_at = @updated_at::timestamptz
+WHERE id = @id::uuid;

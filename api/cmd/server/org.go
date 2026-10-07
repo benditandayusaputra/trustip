@@ -19,7 +19,7 @@ const writesPerMinutePerUser = 60
 type orgComponents struct {
 	founder    orgservice.OrganizationFounder
 	profiles   orgservice.ProfileStore
-	stores     orgservice.StoreProfileStore
+	sections   orgservice.ProfileSectionStore
 	categories orgservice.CategoryReader
 	regions    orgservice.RegionReader
 	tx         orgservice.Transactor
@@ -34,8 +34,8 @@ func buildOrgComponents(pool *database.Pool, clock orgservice.Clock) orgComponen
 		categories: regions,
 		founder:    orgrepository.NewFounders(pool),
 		profiles:   profiles,
-		stores:     profiles,
-		regions:    orgrepository.NewRegions(pool),
+		sections:   profiles,
+		regions:    regions,
 		tx:         pool,
 		clock:      clock,
 		ids:        idgen.UUIDv7{},
@@ -59,16 +59,22 @@ func orgDeps(components orgComponents, routes orgRoutes) orghandler.Deps {
 		Create: orgservice.NewCreateOrganization(orgservice.CreateDeps{
 			Founder: components.founder, Tx: components.tx, Clock: components.clock, IDs: components.ids,
 		}),
-		Settings:     orgservice.NewGetSettings(components.profiles),
-		EditProfile:  orgservice.NewUpdateProfile(components.profiles, components.tx, components.clock),
-		FilesBaseURL: routes.filesBaseURL,
-		EditStore: orgservice.NewUpdateStoreProfile(orgservice.StoreProfileDeps{
-			Profiles: components.profiles, Stores: components.stores, Tx: components.tx, Clock: components.clock,
-		}),
-		Categories:   orgservice.NewListCategories(components.categories),
-		Provinces:    orgservice.NewListProvinces(components.regions),
-		Cities:       orgservice.NewListCities(components.regions),
-		WriteLimiter: routes.writeLimiter,
-		SecurityLog:  routes.securityLog,
+		Settings:      orgservice.NewGetSettings(components.profiles),
+		EditProfile:   orgservice.NewUpdateProfile(components.profiles, components.tx, components.clock),
+		FilesBaseURL:  routes.filesBaseURL,
+		EditStore:     orgservice.NewUpdateStoreProfile(sectionDeps(components)),
+		EditConsignor: orgservice.NewUpdateConsignorProfile(sectionDeps(components)),
+		EditPayment:   orgservice.NewUpdatePaymentInfo(sectionDeps(components)),
+		Categories:    orgservice.NewListCategories(components.categories),
+		Provinces:     orgservice.NewListProvinces(components.regions),
+		Cities:        orgservice.NewListCities(components.regions),
+		WriteLimiter:  routes.writeLimiter,
+		SecurityLog:   routes.securityLog,
+	}
+}
+
+func sectionDeps(components orgComponents) orgservice.SectionDeps {
+	return orgservice.SectionDeps{
+		Profiles: components.profiles, Sections: components.sections, Tx: components.tx, Clock: components.clock,
 	}
 }

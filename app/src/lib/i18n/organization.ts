@@ -89,5 +89,40 @@ export const organization = {
 		removePhoto: (number: number) => `Hapus foto ${String(number)}`,
 		save: 'Simpan profil toko',
 		saved: 'Profil toko tersimpan.'
+	},
+	consignorProfile: {
+		title: 'Profil penitip',
+		deliveryRadius: 'Jangkauan antar (km)',
+		deliveryRadiusHint: 'Isi 0 bila belum ditentukan.',
+		deliveryDays: 'Hari antar',
+		days: {
+			MON: 'Senin',
+			TUE: 'Selasa',
+			WED: 'Rabu',
+			THU: 'Kamis',
+			FRI: 'Jumat',
+			SAT: 'Sabtu',
+			SUN: 'Minggu'
+		},
+		preferredStoreTypes: 'Jenis toko yang diincar',
+		legalTitle: 'Legalitas',
+		declaredHint: 'Dinyatakan oleh pemilik usaha. Trustip tidak memverifikasinya.',
+		businessIdNo: 'NIB',
+		distributionPermitNo: 'Nomor izin edar (PIRT atau MD)',
+		halalCertNo: 'Nomor sertifikat halal',
+		canProvideSample: 'Bisa mengirim sampel',
+		save: 'Simpan profil penitip',
+		saved: 'Profil penitip tersimpan.'
+	},
+	payment: {
+		title: 'Info pembayaran',
+		intro: 'Hanya terlihat oleh toko yang bermitra aktif dengan Anda.',
+		info: 'Rekening tujuan',
+		infoHint: 'Contoh: BCA 1234567890 a.n. Darmi',
+		qr: 'Gambar QRIS',
+		chooseQr: 'Pilih gambar QRIS',
+		qrAlt: 'QRIS pembayaran',
+		save: 'Simpan info pembayaran',
+		saved: 'Info pembayaran tersimpan.'
 	}
 };

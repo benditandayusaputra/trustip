@@ -59,3 +59,28 @@ export function updateStoreProfile(
 		request
 	);
 }
+
+export type ConsignorProfile = components['schemas']['ConsignorProfile'];
+export type PaymentInfoRequest = components['schemas']['PaymentInfoRequest'];
+
+export function updateConsignorProfile(
+	client: ApiClient,
+	organizationId: string,
+	request: ConsignorProfile
+): Promise<Organization> {
+	return client.update<Organization>(
+		`/api/v1/organizations/${encodeURIComponent(organizationId)}/consignor-profile`,
+		request
+	);
+}
+
+export function updatePaymentInfo(
+	client: ApiClient,
+	organizationId: string,
+	request: PaymentInfoRequest
+): Promise<Organization> {
+	return client.update<Organization>(
+		`/api/v1/organizations/${encodeURIComponent(organizationId)}/payment-info`,
+		request
+	);
+}

@@ -15,6 +15,8 @@ const (
 	organizationsPath = "/organizations"
 	organizationPath  = organizationsPath + "/:id"
 	storeProfilePath  = organizationPath + "/store-profile"
+	consignorPath     = organizationPath + "/consignor-profile"
+	paymentInfoPath   = organizationPath + "/payment-info"
 	categoriesPath    = "/categories"
 	provincesPath     = "/provinces"
 	citiesPath        = "/cities"
@@ -33,17 +35,19 @@ type CityLister interface {
 }
 
 type Deps struct {
-	Authenticate fiber.Handler
-	Create       Creator
-	Settings     SettingsReader
-	EditProfile  ProfileEditor
-	EditStore    StoreProfileEditor
-	Categories   CategoryLister
-	FilesBaseURL string
-	Provinces    ProvinceLister
-	Cities       CityLister
-	WriteLimiter httpserver.RateLimiter
-	SecurityLog  *slog.Logger
+	Authenticate  fiber.Handler
+	Create        Creator
+	Settings      SettingsReader
+	EditProfile   ProfileEditor
+	EditStore     StoreProfileEditor
+	EditConsignor ConsignorProfileEditor
+	EditPayment   PaymentInfoEditor
+	Categories    CategoryLister
+	FilesBaseURL  string
+	Provinces     ProvinceLister
+	Cities        CityLister
+	WriteLimiter  httpserver.RateLimiter
+	SecurityLog   *slog.Logger
 }
 
 func Mount(api fiber.Router, deps Deps) {
@@ -52,6 +56,9 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Get(organizationPath, deps.Authenticate, readSettings(deps.Settings, deps.FilesBaseURL))
 	api.Patch(organizationPath, deps.Authenticate, writeLimit, updateProfile(deps.EditProfile, deps.FilesBaseURL))
 	api.Patch(storeProfilePath, deps.Authenticate, writeLimit, updateStoreProfile(deps.EditStore, deps.FilesBaseURL))
+	api.Patch(consignorPath, deps.Authenticate, writeLimit,
+		updateConsignorProfile(deps.EditConsignor, deps.FilesBaseURL))
+	api.Patch(paymentInfoPath, deps.Authenticate, writeLimit, updatePaymentInfo(deps.EditPayment, deps.FilesBaseURL))
 	api.Get(categoriesPath, listCategories(deps.Categories))
 	api.Get(provincesPath, listProvinces(deps.Provinces))
 	api.Get(citiesPath, listCities(deps.Cities))

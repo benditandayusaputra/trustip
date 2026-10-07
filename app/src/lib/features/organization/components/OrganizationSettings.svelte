@@ -11,6 +11,8 @@
 	import { id } from '#lib/i18n/id.js';
 	import { ProfileSettings, type SaveOutcome } from '../settings.svelte';
 	import LocationFields from './LocationFields.svelte';
+	import ConsignorProfileSection from './ConsignorProfileSection.svelte';
+	import PaymentSection from './PaymentSection.svelte';
 	import StoreProfileSection from './StoreProfileSection.svelte';
 
 	interface Props {
@@ -29,6 +31,10 @@
 	$effect(() => {
 		void settings.load(organizationId);
 	});
+
+	function keep(saved: Organization) {
+		settings.organization = saved;
+	}
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
@@ -111,12 +117,9 @@
 		</fieldset>
 	</form>
 	{#if organization.type === 'STORE'}
-		<StoreProfileSection
-			{organization}
-			{canEdit}
-			onsaved={(saved: Organization) => {
-				settings.organization = saved;
-			}}
-		/>
+		<StoreProfileSection {organization} {canEdit} onsaved={keep} />
+	{:else}
+		<ConsignorProfileSection {organization} {canEdit} onsaved={keep} />
+		<PaymentSection {organization} {canEdit} onsaved={keep} />
 	{/if}
 {/if}
