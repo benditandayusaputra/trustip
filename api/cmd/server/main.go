@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/gofiber/fiber/v3"
-
+	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
 )
 
@@ -16,17 +20,25 @@ func main() {
 		logger.New(os.Stderr, slog.LevelInfo).Error("refusing to start", "error", err)
 		os.Exit(1)
 	}
-	appLog := logger.ForStream(logger.New(os.Stdout, cfg.LogLevel), logger.App)
-	if err := newApp().Listen(cfg.HTTPAddr); err != nil {
+	base := logger.New(os.Stdout, cfg.LogLevel)
+	appLog := logger.ForStream(base, logger.App)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	appLog.Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
+	if err := newServer(base).Run(ctx, cfg.HTTPAddr); err != nil {
 		appLog.Error("server stopped", "error", err)
+		stop()
 		os.Exit(1)
 	}
+	appLog.Info("server stopped")
 }
 
-func newApp() *fiber.App {
-	app := fiber.New()
-	app.Get("/healthz", func(c fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusOK)
+func newServer(base *slog.Logger) *httpserver.Server {
+	return httpserver.New(httpserver.Options{
+		AppLog:    logger.ForStream(base, logger.App),
+		AccessLog: logger.ForStream(base, logger.Access),
+		IDs:       idgen.UUIDv7{},
+		Clock:     clock.System{},
+		Build:     httpserver.ReadBuildInfo(),
 	})
-	return app
 }
