@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
@@ -53,9 +54,11 @@ type exchange struct {
 	body    []byte
 }
 
+const requestTimeout = 15 * time.Second
+
 func perform(t *testing.T, server *httpserver.Server, req *http.Request) exchange {
 	t.Helper()
-	resp, err := server.App().Test(req)
+	resp, err := server.App().Test(req, fiber.TestConfig{Timeout: requestTimeout})
 	if err != nil {
 		t.Fatalf("request %s: %v", req.URL.Path, err)
 	}
