@@ -8,7 +8,7 @@ GOVULNCHECK_VERSION := v1.8.0
 DEADCODE_VERSION := v0.51.0
 
 .PHONY: setup tools app-deps hooks env dev dev-api dev-app check check-api check-app check-repo \
-	test test-api test-app build e2e
+	test test-api test-app build gen e2e
 
 setup: tools app-deps env hooks
 
@@ -61,6 +61,9 @@ test-api:
 
 test-app:
 	cd app && npm test
+
+gen:
+	go -C api generate ./...
 
 build:
 	cd api && go build -trimpath -o $(BIN)/trustip-api ./cmd/server
