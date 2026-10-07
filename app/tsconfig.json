@@ -11,5 +11,12 @@
 		"noUnusedParameters": true,
 		"types": ["$app/types", "node"]
 	},
-	"include": ["src", "tests", "vite.config.ts", "playwright.config.ts"]
+	"include": [
+		"src",
+		"tests",
+		"vite.config.ts",
+		"csp.config.ts",
+		"csp.config.test.ts",
+		"playwright.config.ts"
+	]
 }
