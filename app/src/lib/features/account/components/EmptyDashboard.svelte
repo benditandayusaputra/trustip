@@ -14,4 +14,5 @@
 		{id.account.greeting(session.account?.full_name ?? '')}
 	</h1>
 	<p class="text-base text-text-muted">{id.account.emptyDashboard}</p>
+	<a href="/app/pengaturan" class="font-semibold text-accent">{id.settings.completeProfile}</a>
 </section>

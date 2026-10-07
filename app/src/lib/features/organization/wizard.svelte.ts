@@ -1,14 +1,9 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError, NetworkError } from '#lib/api/errors.js';
-import {
-	createOrganization,
-	listCities,
-	listProvinces,
-	type City,
-	type Province
-} from '#lib/api/organizations.js';
+import { createOrganization } from '#lib/api/organizations.js';
 import { refreshSession } from '#lib/api/sessions.js';
 import { toOnboardingErrors, toOnboardingRequest } from './mapper';
+import { RegionChoice } from './regions.svelte';
 import {
 	emptyValues,
 	hasErrors,
@@ -17,7 +12,6 @@ import {
 	validateAll,
 	validateStep,
 	type OnboardingErrors,
-	type GeoPoint,
 	type OnboardingField,
 	type Step
 } from './schema';
@@ -33,27 +27,13 @@ export class OnboardingWizard {
 	step = $state<Step>('type');
 	values = $state(emptyValues());
 	errors = $state<OnboardingErrors>({});
-	provinces = $state<Province[]>([]);
-	cities = $state<City[]>([]);
-	regionsFailed = $state(false);
 	busy = $state(false);
+	readonly regions: RegionChoice;
 	readonly #client: () => ApiClient;
 
 	constructor(client: () => ApiClient) {
 		this.#client = client;
-	}
-
-	get mapCenter(): GeoPoint | undefined {
-		const city = this.cities.find((candidate) => candidate.code === this.values.cityCode);
-		return this.values.location ?? (city && { latitude: city.latitude, longitude: city.longitude });
-	}
-
-	pinAt(point: GeoPoint): void {
-		this.values.location = point;
-	}
-
-	chooseCity(): void {
-		this.values.location = null;
+		this.regions = new RegionChoice(client);
 	}
 
 	get stepNumber(): number {
@@ -73,34 +53,6 @@ export class OnboardingWizard {
 	back(): void {
 		this.errors = {};
 		this.step = steps[steps.indexOf(this.step) - 1] ?? 'type';
-	}
-
-	async loadProvinces(): Promise<void> {
-		this.regionsFailed = false;
-		try {
-			this.provinces = await listProvinces(this.#client());
-		} catch {
-			this.regionsFailed = true;
-		}
-	}
-
-	async retryRegions(): Promise<void> {
-		await this.loadProvinces();
-		await this.chooseProvince(this.values.provinceCode);
-	}
-
-	async chooseProvince(provinceCode: string): Promise<void> {
-		this.values.cityCode = '';
-		this.values.location = null;
-		this.cities = [];
-		if (provinceCode === '') {
-			return;
-		}
-		try {
-			this.cities = await listCities(this.#client(), provinceCode);
-		} catch {
-			this.regionsFailed = true;
-		}
 	}
 
 	async submit(): Promise<SubmitOutcome> {

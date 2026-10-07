@@ -8,16 +8,22 @@ export interface GeoPoint {
 	longitude: number;
 }
 
-export interface OnboardingValues {
-	type: '' | 'CONSIGNOR' | 'STORE';
-	name: string;
-	description: string;
-	whatsapp: string;
+export interface PlaceValues {
 	provinceCode: string;
 	cityCode: string;
 	district: string;
 	address: string;
 	location: GeoPoint | null;
+}
+
+export interface ProfileValues extends PlaceValues {
+	name: string;
+	description: string;
+	whatsapp: string;
+}
+
+export interface OnboardingValues extends ProfileValues {
+	type: '' | 'CONSIGNOR' | 'STORE';
 }
 
 export type OnboardingField = keyof OnboardingValues;
@@ -95,6 +101,10 @@ function textProblem(value: string, rule: TextRule): string | undefined {
 		return id.auth.validation.minLength(rule.min);
 	}
 	return length > rule.max ? id.onboarding.validation.maxLength(rule.max) : undefined;
+}
+
+export function validateProfile(values: OnboardingValues): OnboardingErrors {
+	return { ...validateStep('profile', values), ...validateStep('location', values) };
 }
 
 export function validateAll(values: OnboardingValues): OnboardingErrors {

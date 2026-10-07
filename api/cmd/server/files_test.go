@@ -115,8 +115,10 @@ func memberBrowser(t *testing.T, membership actor.Membership) *browser {
 	return visitor
 }
 
+const memberOrganizationID = "0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c"
+
 func storeOwner() actor.Membership {
-	return actor.Membership{OrganizationID: "org-1", OrganizationType: actor.Store, Role: actor.Owner}
+	return actor.Membership{OrganizationID: memberOrganizationID, OrganizationType: actor.Store, Role: actor.Owner}
 }
 
 func photoWithLocation(t *testing.T) []byte {
@@ -191,7 +193,7 @@ func TestUpload_RSEC70_PhotoIsRecodedAndServedPubliclyWithoutLocationData(t *tes
 		t.Fatalf("upload = %d %s", got.status, got.body)
 	}
 	loadContract(t).requireConforms(t, got)
-	key := between(string(got.body), testFilesBaseURL+"/", `"`)
+	key := quotedAfter(string(got.body), testFilesBaseURL+"/")
 	served := visitor.fetchPublic("/files/" + key)
 	if served.status != http.StatusOK || bytes.Contains(served.body, []byte("GPSLatitude")) {
 		t.Fatalf("served = %d, %d bytes", served.status, len(served.body))
@@ -206,19 +208,19 @@ func TestUpload_RSEC70_PhotoIsRecodedAndServedPubliclyWithoutLocationData(t *tes
 	}
 }
 
-func between(text, start, end string) string {
+func quotedAfter(text, start string) string {
 	_, after, _ := strings.Cut(text, start)
-	value, _, _ := strings.Cut(after, end)
+	value, _, _ := strings.Cut(after, `"`)
 	return value
 }
 
 func TestUpload_RSEC72_PaymentQRIsPrivateAndOnlyReadableThroughTheAPI(t *testing.T) {
 	visitor := memberBrowser(t, actor.Membership{
-		OrganizationID: "org-1", OrganizationType: actor.Consignor, Role: actor.Owner,
+		OrganizationID: memberOrganizationID, OrganizationType: actor.Consignor, Role: actor.Owner,
 	})
 	uploaded := visitor.upload(part{name: "purpose", data: []byte("PAYMENT_QR")},
 		part{name: "file", filename: "qris.jpg", data: photoWithLocation(t)})
-	fileURL := between(string(uploaded.body), `"url":"`, `"`)
+	fileURL := quotedAfter(string(uploaded.body), `"url":"`)
 
 	own := visitor.get(fileURL)
 
@@ -254,7 +256,7 @@ func TestUpload_RRES05_UnknownFormPartIsRejected(t *testing.T) {
 
 func TestUpload_StaffCannotUploadProfileImages(t *testing.T) {
 	visitor := memberBrowser(t, actor.Membership{
-		OrganizationID: "org-1", OrganizationType: actor.Store, Role: actor.Staff,
+		OrganizationID: memberOrganizationID, OrganizationType: actor.Store, Role: actor.Staff,
 	})
 
 	got := visitor.upload(part{name: "purpose", data: []byte("LOGO")},

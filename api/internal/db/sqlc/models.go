@@ -84,6 +84,7 @@ type Organization struct {
 	PaymentInfo    string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	LogoFileID     pgtype.UUID
 }
 
 type Session struct {

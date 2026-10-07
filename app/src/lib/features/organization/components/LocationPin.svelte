@@ -5,25 +5,26 @@
 	import { id } from '#lib/i18n/id.js';
 	import { locateDevice } from '../geolocation';
 	import type { GeoPoint } from '../schema';
-	import type { OnboardingWizard } from '../wizard.svelte';
 
 	interface Props {
-		wizard: OnboardingWizard;
 		center: GeoPoint;
+		isPinned: boolean;
+		isConsignor: boolean;
+		onpin: (point: GeoPoint) => void;
 	}
 
-	let { wizard, center }: Props = $props();
+	let { center, isPinned, isConsignor, onpin }: Props = $props();
 
 	const text = id.onboarding;
 	let isLocating = $state(false);
 	let isDenied = $state(false);
-	const isWarning = $derived(isDenied && !wizard.values.location);
+	const isWarning = $derived(isDenied && !isPinned);
 
 	async function useDeviceLocation() {
 		isLocating = true;
 		isDenied = false;
 		try {
-			wizard.pinAt(await locateDevice());
+			onpin(await locateDevice());
 		} catch {
 			isDenied = true;
 		} finally {
@@ -42,11 +43,11 @@
 		{center}
 		label={text.mapLabel}
 		onmove={(point: GeoPoint) => {
-			wizard.pinAt(point);
+			onpin(point);
 		}}
 	/>
 	<p role="status" class="text-sm {isWarning ? 'text-warning' : 'text-text-muted'}">
-		{#if wizard.values.location}
+		{#if isPinned}
 			{text.pinned}
 		{:else if isDenied}
 			{text.locationDenied}
@@ -54,7 +55,7 @@
 			{text.mapHint}
 		{/if}
 	</p>
-	{#if wizard.values.type === 'CONSIGNOR'}
+	{#if isConsignor}
 		<p class="text-xs text-text-muted">{text.consignorPrivacy}</p>
 	{/if}
 </div>

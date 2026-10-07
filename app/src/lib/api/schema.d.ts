@@ -164,6 +164,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/organizations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getOrganizationSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateOrganizationProfile"];
+        trace?: never;
+    };
     "/api/v1/provinces": {
         parameters: {
             query?: never;
@@ -350,6 +368,22 @@ export interface components {
             district: string;
             address: string;
             location: components["schemas"]["GeoPoint"] | null;
+            logo: components["schemas"]["ImageRef"] | null;
+        };
+        ImageRef: {
+            /** Format: uuid */
+            id: string;
+            url: string;
+        };
+        ProfileUpdateRequest: {
+            name: string;
+            description: string;
+            whatsapp: string;
+            city_code: string;
+            district: string;
+            address: string;
+            location: components["schemas"]["GeoPoint"] | null;
+            logo_file_id: string | null;
         };
         OrganizationResponse: {
             code: components["schemas"]["SuccessCode"];
@@ -449,6 +483,15 @@ export interface components {
         };
         /** @description Permintaan tulis tanpa asal app atau tanpa kepala X-Trustip-Client */
         CrossSite: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Peran tidak cukup, atau permintaan tulis dari situs lain */
+        Forbidden: {
             headers: {
                 [name: string]: unknown;
             };
@@ -812,6 +855,74 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["CrossSite"];
             409: components["responses"]["Conflict"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getOrganizationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Profil lengkap organisasi milik pengguna */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    updateOrganizationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Profil dasar tersimpan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];

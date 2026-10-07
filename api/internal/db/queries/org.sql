@@ -54,11 +54,43 @@ FROM cities
 WHERE left(code, 2) = @province_code::text
 ORDER BY name;
 
--- name: FindOrganizationLocation :one
+-- name: GetOrganizationSettings :one
 SELECT
-    ST_Y(location::geometry)::float8 AS latitude,
-    ST_X(location::geometry)::float8 AS longitude,
-    ST_Y(location_public::geometry)::float8 AS public_latitude,
-    ST_X(location_public::geometry)::float8 AS public_longitude
-FROM organizations
-WHERE id = @id AND location IS NOT NULL;
+    o.id, o.type, o.name, o.slug, o.description, o.whatsapp,
+    COALESCE(o.city_code, '')::text AS city_code, o.city_name, o.district, o.address,
+    (o.location IS NOT NULL)::boolean AS has_location,
+    COALESCE(ST_Y(o.location::geometry), 0)::float8 AS latitude,
+    COALESCE(ST_X(o.location::geometry), 0)::float8 AS longitude,
+    COALESCE(ST_Y(o.location_public::geometry), 0)::float8 AS public_latitude,
+    COALESCE(ST_X(o.location_public::geometry), 0)::float8 AS public_longitude,
+    COALESCE(f.id::text, '')::text AS logo_file_id,
+    COALESCE(f.storage_key, '')::text AS logo_storage_key
+FROM organizations AS o
+LEFT JOIN files AS f ON f.id = o.logo_file_id
+WHERE o.id = @id;
+
+-- name: CountOrganizationFiles :one
+SELECT count(*)::integer
+FROM files
+WHERE id = @id::uuid AND organization_id = @organization_id AND purpose = @purpose;
+
+-- name: UpdateOrganizationProfile :execrows
+UPDATE organizations AS o
+SET
+    name = @name::text,
+    description = @description::text,
+    whatsapp = @whatsapp::text,
+    city_code = c.code,
+    city_name = c.name,
+    district = @district::text,
+    address = @address::text,
+    location = CASE WHEN @has_location::boolean
+        THEN ST_SetSRID(ST_MakePoint(@longitude::float8, @latitude::float8), 4326)::geography
+    END,
+    location_public = CASE WHEN @has_location::boolean
+        THEN ST_SetSRID(ST_MakePoint(@public_longitude::float8, @public_latitude::float8), 4326)::geography
+    END,
+    logo_file_id = NULLIF(@logo_file_id::text, '')::uuid,
+    updated_at = @updated_at::timestamptz
+FROM cities AS c
+WHERE o.id = @id::uuid AND c.code = @city_code::text;

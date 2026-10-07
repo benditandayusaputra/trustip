@@ -17,25 +17,28 @@ import (
 const writesPerMinutePerUser = 60
 
 type orgComponents struct {
-	founder orgservice.OrganizationFounder
-	regions orgservice.RegionReader
-	tx      orgservice.Transactor
-	clock   orgservice.Clock
-	ids     orgservice.IDGenerator
+	founder  orgservice.OrganizationFounder
+	profiles orgservice.ProfileStore
+	regions  orgservice.RegionReader
+	tx       orgservice.Transactor
+	clock    orgservice.Clock
+	ids      orgservice.IDGenerator
 }
 
 func buildOrgComponents(pool *database.Pool, clock orgservice.Clock) orgComponents {
 	return orgComponents{
-		founder: orgrepository.NewFounders(pool),
-		regions: orgrepository.NewRegions(pool),
-		tx:      pool,
-		clock:   clock,
-		ids:     idgen.UUIDv7{},
+		founder:  orgrepository.NewFounders(pool),
+		profiles: orgrepository.NewProfiles(pool),
+		regions:  orgrepository.NewRegions(pool),
+		tx:       pool,
+		clock:    clock,
+		ids:      idgen.UUIDv7{},
 	}
 }
 
 type orgRoutes struct {
 	authenticate fiber.Handler
+	filesBaseURL string
 	writeLimiter *ratelimit.Limiter
 	securityLog  *slog.Logger
 }
@@ -50,6 +53,9 @@ func orgDeps(components orgComponents, routes orgRoutes) orghandler.Deps {
 		Create: orgservice.NewCreateOrganization(orgservice.CreateDeps{
 			Founder: components.founder, Tx: components.tx, Clock: components.clock, IDs: components.ids,
 		}),
+		Settings:     orgservice.NewGetSettings(components.profiles),
+		EditProfile:  orgservice.NewUpdateProfile(components.profiles, components.tx, components.clock),
+		FilesBaseURL: routes.filesBaseURL,
 		Provinces:    orgservice.NewListProvinces(components.regions),
 		Cities:       orgservice.NewListCities(components.regions),
 		WriteLimiter: routes.writeLimiter,

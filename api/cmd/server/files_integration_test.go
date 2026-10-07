@@ -14,7 +14,7 @@ func TestReadFile_RSEC41_FileOfAnotherOrganizationIsNotFound(t *testing.T) {
 	if uploaded.status != http.StatusCreated {
 		t.Fatalf("upload = %d %s", uploaded.status, uploaded.body)
 	}
-	fileID := between(string(uploaded.body), `"id":"`, `"`)
+	fileID := quotedAfter(string(uploaded.body), `"id":"`)
 	stranger := owner.anotherUserOnTheSameServer("tini@contoh.id")
 	stranger.postOrganization(onboarding(semarangCityCode))
 	stranger.post("/api/v1/sessions/refresh")

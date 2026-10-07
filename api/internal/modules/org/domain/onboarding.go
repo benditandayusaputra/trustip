@@ -21,8 +21,7 @@ const (
 
 var cityCodeFormat = regexp.MustCompile(`^[0-9]{2}\.[0-9]{2}$`)
 
-type OnboardingForm struct {
-	Type        string
+type ProfileForm struct {
 	Name        string
 	Description string
 	WhatsApp    string
@@ -32,8 +31,12 @@ type OnboardingForm struct {
 	Location    LocationInput
 }
 
-type Onboarding struct {
-	Type        actor.OrganizationType
+type OnboardingForm struct {
+	Type string
+	ProfileForm
+}
+
+type Profile struct {
 	Name        string
 	Description string
 	WhatsApp    contact.WhatsAppNumber
@@ -44,11 +47,25 @@ type Onboarding struct {
 	HasLocation bool
 }
 
+type Onboarding struct {
+	Type actor.OrganizationType
+	Profile
+}
+
 func NewOnboarding(form OnboardingForm) (Onboarding, error) {
+	organizationType := actor.OrganizationType(form.Type)
+	profile, problems := checkProfile(form.ProfileForm, organizationType)
+	problems = append(collectProblems(findTypeProblem(form.Type)), problems...)
+	if len(problems) > 0 {
+		return Onboarding{}, apperror.Validation(problems...)
+	}
+	return Onboarding{Type: organizationType, Profile: profile}, nil
+}
+
+func checkProfile(form ProfileForm, organizationType actor.OrganizationType) (Profile, []apperror.FieldError) {
 	whatsApp, whatsAppErr := contact.ParseWhatsAppNumber(form.WhatsApp)
-	location, locationProblem := locateIfGiven(actor.OrganizationType(form.Type), form.Location)
+	location, locationProblem := locateIfGiven(organizationType, form.Location)
 	problems := collectProblems(
-		findTypeProblem(form.Type),
 		findLengthProblem("name", form.Name, lengthRange{min: MinNameLength, max: MaxNameLength}),
 		findLengthProblem("description", form.Description, lengthRange{max: MaxDescriptionLength}),
 		findWhatsAppProblem(whatsAppErr),
@@ -57,11 +74,7 @@ func NewOnboarding(form OnboardingForm) (Onboarding, error) {
 		findLengthProblem("address", form.Address, lengthRange{max: MaxAddressLength}),
 		locationProblem,
 	)
-	if len(problems) > 0 {
-		return Onboarding{}, apperror.Validation(problems...)
-	}
-	return Onboarding{
-		Type:        actor.OrganizationType(form.Type),
+	return Profile{
 		Name:        form.Name,
 		Description: form.Description,
 		WhatsApp:    whatsApp,
@@ -70,7 +83,7 @@ func NewOnboarding(form OnboardingForm) (Onboarding, error) {
 		Address:     form.Address,
 		Location:    location,
 		HasLocation: form.Location.Given,
-	}, nil
+	}, problems
 }
 
 func locateIfGiven(organizationType actor.OrganizationType, input LocationInput) (Location, problem) {

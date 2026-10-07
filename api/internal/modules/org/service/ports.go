@@ -28,3 +28,8 @@ type RegionReader interface {
 	ListProvinces(ctx context.Context) ([]domain.Province, error)
 	ListCities(ctx context.Context, provinceCode string) ([]domain.City, error)
 }
+
+type ProfileStore interface {
+	GetSettings(ctx context.Context, organizationID string) (domain.Settings, error)
+	UpdateProfile(ctx context.Context, change domain.ProfileChange) error
+}

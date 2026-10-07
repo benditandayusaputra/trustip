@@ -107,6 +107,7 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	authenticate := httpserver.Authenticate(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName())
 	orghandler.Mount(server.API(), orgDeps(deps.org, orgRoutes{
 		authenticate: authenticate,
+		filesBaseURL: deps.files.publicBaseURL,
 		writeLimiter: newWriteLimiter(deps.clock),
 		securityLog:  securityLog,
 	}))

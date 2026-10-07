@@ -76,9 +76,8 @@ func founding(t *testing.T, ids domain.FoundingIDs, slug domain.Slug) domain.Fou
 	if err != nil {
 		t.Fatalf("whatsapp: %v", err)
 	}
-	onboarding := domain.Onboarding{
-		Type: actor.Consignor, Name: "Kripik Mbok Darmi", WhatsApp: whatsApp, CityCode: semarangCode,
-		District: "Tembalang",
-	}
+	onboarding := domain.Onboarding{Type: actor.Consignor, Profile: domain.Profile{
+		Name: "Kripik Mbok Darmi", WhatsApp: whatsApp, CityCode: semarangCode, District: "Tembalang",
+	}}
 	return onboarding.Found(ids, slug, createdAt())
 }

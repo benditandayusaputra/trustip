@@ -79,9 +79,9 @@ func newcomer() actor.Actor {
 }
 
 func storeForm() domain.OnboardingForm {
-	return domain.OnboardingForm{
-		Type: "STORE", Name: "Warung Bu Tini", WhatsApp: "081234567890", CityCode: "33.74",
-	}
+	return domain.OnboardingForm{Type: "STORE", ProfileForm: domain.ProfileForm{
+		Name: "Warung Bu Tini", WhatsApp: "081234567890", CityCode: "33.74",
+	}}
 }
 
 func TestCreateOrganization_MemberIsRefusedBeforeAnythingIsWritten(t *testing.T) {

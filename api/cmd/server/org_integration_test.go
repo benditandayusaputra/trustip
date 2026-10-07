@@ -48,3 +48,39 @@ func TestOnboarding_BRORG02_SameNameGetsTheNextSlug(t *testing.T) {
 		t.Fatalf("response = %d %s", got.status, got.body)
 	}
 }
+
+func TestUpdateProfile_FRORG01_LogoUploadedThenLinkedShowsInTheSettings(t *testing.T) {
+	visitor := databaseBrowser(t)
+	founded := visitor.postOrganization(onboarding(semarangCityCode))
+	organizationID := quotedAfter(string(founded.body), `"id":"`)
+	visitor.post("/api/v1/sessions/refresh")
+	uploaded := visitor.upload(part{name: "purpose", data: []byte("LOGO")},
+		part{name: "file", filename: "logo.jpg", data: photoWithLocation(t)})
+	logoID := quotedAfter(string(uploaded.body), `"id":"`)
+
+	saved := visitor.patch(organizationsPath+"/"+organizationID,
+		strings.Replace(profileUpdate(""), `"logo_file_id":null`, `"logo_file_id":"`+logoID+`"`, 1))
+	read := visitor.get(organizationsPath + "/" + organizationID)
+
+	requireCode(t, saved, "OK")
+	if !strings.Contains(string(read.body), `"logo":{"id":"`+logoID+`","url":"`+testFilesBaseURL+"/") ||
+		!strings.Contains(string(read.body), `"name":"Warung Bu Tini Jaya"`) {
+		t.Fatalf("read = %s", read.body)
+	}
+	loadContract(t).requireConforms(t, read)
+}
+
+func TestReadSettings_RSEC41_AnotherOrganizationIsNotFoundInTheDatabase(t *testing.T) {
+	owner := databaseBrowser(t)
+	founded := owner.postOrganization(onboarding(semarangCityCode))
+	organizationID := quotedAfter(string(founded.body), `"id":"`)
+	stranger := owner.anotherUserOnTheSameServer("tini@contoh.id")
+	stranger.postOrganization(onboarding(semarangCityCode))
+	stranger.post("/api/v1/sessions/refresh")
+
+	read := stranger.get(organizationsPath + "/" + organizationID)
+	changed := stranger.patch(organizationsPath+"/"+organizationID, profileUpdate(""))
+
+	requireCode(t, read, "NOT_FOUND")
+	requireCode(t, changed, "NOT_FOUND")
+}

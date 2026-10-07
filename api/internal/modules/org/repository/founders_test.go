@@ -6,8 +6,6 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
-
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/org/repository"
@@ -121,9 +119,9 @@ func TestCreateOrganization_BRORG03_StoresExactAndPublicLocation(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	row, err := given.queries.FindOrganizationLocation(t.Context(), organizationID)
-	if err != nil {
-		t.Fatalf("find location: %v", err)
+	row, err := given.queries.GetOrganizationSettings(t.Context(), organizationID)
+	if err != nil || !row.HasLocation {
+		t.Fatalf("settings = %+v, err = %v", row, err)
 	}
 	if !near(row.Latitude, -7.0546) || !near(row.Longitude, 110.4386) ||
 		!near(row.PublicLatitude, -7.056) || !near(row.PublicLongitude, 110.439) {
@@ -140,8 +138,9 @@ func TestCreateOrganization_WithoutLocationLeavesBothPointsEmpty(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	if _, err := given.queries.FindOrganizationLocation(t.Context(), organizationID); !errors.Is(err, pgx.ErrNoRows) {
-		t.Fatalf("err = %v", err)
+	row, err := given.queries.GetOrganizationSettings(t.Context(), organizationID)
+	if err != nil || row.HasLocation {
+		t.Fatalf("settings = %+v, err = %v", row, err)
 	}
 }
 

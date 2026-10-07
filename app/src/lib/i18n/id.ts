@@ -151,6 +151,21 @@ export const id = {
 			maxLength: (count: number) => `Maksimal ${String(count)} karakter.`
 		}
 	},
+	settings: {
+		title: 'Pengaturan',
+		profileTitle: 'Profil usaha',
+		typeLabel: 'Tipe usaha',
+		logo: 'Logo',
+		chooseLogo: 'Pilih gambar logo',
+		logoHint: 'JPG, PNG, atau WebP. Dikecilkan otomatis sebelum diunggah.',
+		logoAlt: (name: string) => `Logo ${name}`,
+		imageInvalid: 'Berkas harus gambar JPG, PNG, atau WebP.',
+		save: 'Simpan profil',
+		saved: 'Profil usaha tersimpan.',
+		loadFailed: 'Profil usaha tidak bisa dimuat.',
+		ownersOnly: 'Hanya pemilik usaha yang bisa mengubah profil.',
+		completeProfile: 'Lengkapi profil usaha'
+	},
 	captcha: {
 		label: 'Verifikasi keamanan',
 		loadFailed: 'Verifikasi keamanan tidak bisa dimuat. Periksa koneksi lalu muat ulang halaman.'

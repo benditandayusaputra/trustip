@@ -7,7 +7,7 @@
 	import { id } from '#lib/i18n/id.js';
 	import { steps } from '../schema';
 	import { OnboardingWizard, type SubmitOutcome } from '../wizard.svelte';
-	import LocationStep from './LocationStep.svelte';
+	import LocationFields from './LocationFields.svelte';
 	import ProfileStep from './ProfileStep.svelte';
 	import TypeStep from './TypeStep.svelte';
 
@@ -26,7 +26,7 @@
 	const isLastStep = $derived(wizard.step === 'location');
 
 	onMount(() => {
-		void wizard.loadProvinces();
+		void wizard.regions.loadProvinces();
 		return watchOnline((online) => (isOnline = online));
 	});
 
@@ -90,7 +90,12 @@
 	{:else if wizard.step === 'profile'}
 		<ProfileStep {wizard} />
 	{:else}
-		<LocationStep {wizard} />
+		<LocationFields
+			regions={wizard.regions}
+			values={wizard.values}
+			errors={wizard.errors}
+			isConsignor={wizard.values.type === 'CONSIGNOR'}
+		/>
 	{/if}
 	{#if isLastStep && !isOnline}
 		<p role="status" class="text-sm text-warning">{text.offline}</p>

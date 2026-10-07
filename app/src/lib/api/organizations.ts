@@ -22,3 +22,20 @@ export async function listCities(client: ApiClient, provinceCode: string): Promi
 	const query = new URLSearchParams({ province_code: provinceCode }).toString();
 	return (await client.list<City>(`/api/v1/cities?${query}`)).items;
 }
+
+export type ProfileUpdateRequest = components['schemas']['ProfileUpdateRequest'];
+
+export function getOrganization(client: ApiClient, organizationId: string): Promise<Organization> {
+	return client.get<Organization>(`/api/v1/organizations/${encodeURIComponent(organizationId)}`);
+}
+
+export function updateProfile(
+	client: ApiClient,
+	organizationId: string,
+	request: ProfileUpdateRequest
+): Promise<Organization> {
+	return client.update<Organization>(
+		`/api/v1/organizations/${encodeURIComponent(organizationId)}`,
+		request
+	);
+}

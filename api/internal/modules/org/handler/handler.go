@@ -13,6 +13,7 @@ import (
 
 const (
 	organizationsPath = "/organizations"
+	organizationPath  = organizationsPath + "/:id"
 	provincesPath     = "/provinces"
 	citiesPath        = "/cities"
 )
@@ -32,6 +33,9 @@ type CityLister interface {
 type Deps struct {
 	Authenticate fiber.Handler
 	Create       Creator
+	Settings     SettingsReader
+	EditProfile  ProfileEditor
+	FilesBaseURL string
 	Provinces    ProvinceLister
 	Cities       CityLister
 	WriteLimiter httpserver.RateLimiter
@@ -41,6 +45,8 @@ type Deps struct {
 func Mount(api fiber.Router, deps Deps) {
 	writeLimit := httpserver.RateLimit(deps.WriteLimiter, httpserver.BySignedInUser, deps.SecurityLog)
 	api.Post(organizationsPath, deps.Authenticate, writeLimit, createOrganization(deps.Create))
+	api.Get(organizationPath, deps.Authenticate, readSettings(deps.Settings, deps.FilesBaseURL))
+	api.Patch(organizationPath, deps.Authenticate, writeLimit, updateProfile(deps.EditProfile, deps.FilesBaseURL))
 	api.Get(provincesPath, listProvinces(deps.Provinces))
 	api.Get(citiesPath, listCities(deps.Cities))
 }

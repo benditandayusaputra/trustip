@@ -10,6 +10,25 @@ import (
 	"time"
 )
 
+const countOrganizationFiles = `-- name: CountOrganizationFiles :one
+SELECT count(*)::integer
+FROM files
+WHERE id = $1::uuid AND organization_id = $2 AND purpose = $3
+`
+
+type CountOrganizationFilesParams struct {
+	ID             string
+	OrganizationID string
+	Purpose        string
+}
+
+func (q *Queries) CountOrganizationFiles(ctx context.Context, arg CountOrganizationFilesParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countOrganizationFiles, arg.ID, arg.OrganizationID, arg.Purpose)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createConsignorProfile = `-- name: CreateConsignorProfile :exec
 INSERT INTO consignor_profiles (organization_id, created_at, updated_at)
 VALUES ($1, $2, $2)
@@ -145,31 +164,63 @@ func (q *Queries) FindActiveMembership(ctx context.Context, userID string) (Find
 	return i, err
 }
 
-const findOrganizationLocation = `-- name: FindOrganizationLocation :one
+const getOrganizationSettings = `-- name: GetOrganizationSettings :one
 SELECT
-    ST_Y(location::geometry)::float8 AS latitude,
-    ST_X(location::geometry)::float8 AS longitude,
-    ST_Y(location_public::geometry)::float8 AS public_latitude,
-    ST_X(location_public::geometry)::float8 AS public_longitude
-FROM organizations
-WHERE id = $1 AND location IS NOT NULL
+    o.id, o.type, o.name, o.slug, o.description, o.whatsapp,
+    COALESCE(o.city_code, '')::text AS city_code, o.city_name, o.district, o.address,
+    (o.location IS NOT NULL)::boolean AS has_location,
+    COALESCE(ST_Y(o.location::geometry), 0)::float8 AS latitude,
+    COALESCE(ST_X(o.location::geometry), 0)::float8 AS longitude,
+    COALESCE(ST_Y(o.location_public::geometry), 0)::float8 AS public_latitude,
+    COALESCE(ST_X(o.location_public::geometry), 0)::float8 AS public_longitude,
+    COALESCE(f.id::text, '')::text AS logo_file_id,
+    COALESCE(f.storage_key, '')::text AS logo_storage_key
+FROM organizations AS o
+LEFT JOIN files AS f ON f.id = o.logo_file_id
+WHERE o.id = $1
 `
 
-type FindOrganizationLocationRow struct {
+type GetOrganizationSettingsRow struct {
+	ID              string
+	Type            string
+	Name            string
+	Slug            string
+	Description     string
+	Whatsapp        string
+	CityCode        string
+	CityName        string
+	District        string
+	Address         string
+	HasLocation     bool
 	Latitude        float64
 	Longitude       float64
 	PublicLatitude  float64
 	PublicLongitude float64
+	LogoFileID      string
+	LogoStorageKey  string
 }
 
-func (q *Queries) FindOrganizationLocation(ctx context.Context, id string) (FindOrganizationLocationRow, error) {
-	row := q.db.QueryRow(ctx, findOrganizationLocation, id)
-	var i FindOrganizationLocationRow
+func (q *Queries) GetOrganizationSettings(ctx context.Context, id string) (GetOrganizationSettingsRow, error) {
+	row := q.db.QueryRow(ctx, getOrganizationSettings, id)
+	var i GetOrganizationSettingsRow
 	err := row.Scan(
+		&i.ID,
+		&i.Type,
+		&i.Name,
+		&i.Slug,
+		&i.Description,
+		&i.Whatsapp,
+		&i.CityCode,
+		&i.CityName,
+		&i.District,
+		&i.Address,
+		&i.HasLocation,
 		&i.Latitude,
 		&i.Longitude,
 		&i.PublicLatitude,
 		&i.PublicLongitude,
+		&i.LogoFileID,
+		&i.LogoStorageKey,
 	)
 	return i, err
 }
@@ -273,4 +324,66 @@ func (q *Queries) ListTakenSlugs(ctx context.Context, base string) ([]string, er
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateOrganizationProfile = `-- name: UpdateOrganizationProfile :execrows
+UPDATE organizations AS o
+SET
+    name = $1::text,
+    description = $2::text,
+    whatsapp = $3::text,
+    city_code = c.code,
+    city_name = c.name,
+    district = $4::text,
+    address = $5::text,
+    location = CASE WHEN $6::boolean
+        THEN ST_SetSRID(ST_MakePoint($7::float8, $8::float8), 4326)::geography
+    END,
+    location_public = CASE WHEN $6::boolean
+        THEN ST_SetSRID(ST_MakePoint($9::float8, $10::float8), 4326)::geography
+    END,
+    logo_file_id = NULLIF($11::text, '')::uuid,
+    updated_at = $12::timestamptz
+FROM cities AS c
+WHERE o.id = $13::uuid AND c.code = $14::text
+`
+
+type UpdateOrganizationProfileParams struct {
+	Name            string
+	Description     string
+	Whatsapp        string
+	District        string
+	Address         string
+	HasLocation     bool
+	Longitude       float64
+	Latitude        float64
+	PublicLongitude float64
+	PublicLatitude  float64
+	LogoFileID      string
+	UpdatedAt       time.Time
+	ID              string
+	CityCode        string
+}
+
+func (q *Queries) UpdateOrganizationProfile(ctx context.Context, arg UpdateOrganizationProfileParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateOrganizationProfile,
+		arg.Name,
+		arg.Description,
+		arg.Whatsapp,
+		arg.District,
+		arg.Address,
+		arg.HasLocation,
+		arg.Longitude,
+		arg.Latitude,
+		arg.PublicLongitude,
+		arg.PublicLatitude,
+		arg.LogoFileID,
+		arg.UpdatedAt,
+		arg.ID,
+		arg.CityCode,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

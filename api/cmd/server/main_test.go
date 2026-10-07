@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -79,7 +80,7 @@ func TestRoutes_RAPI07_EveryRouteIsPublicOrAuthenticated(t *testing.T) {
 	public := publicRoutes()
 	server := newTestServer(alwaysReady)
 
-	for _, route := range server.App().GetRoutes(true) {
+	for index, route := range server.App().GetRoutes(true) {
 		method := route.Method
 		if method == http.MethodHead {
 			method = http.MethodGet
@@ -89,7 +90,7 @@ func TestRoutes_RAPI07_EveryRouteIsPublicOrAuthenticated(t *testing.T) {
 		}
 		req := httptest.NewRequestWithContext(t.Context(), method, withSampleParams(route.Path), http.NoBody)
 		fromApp(req)
-		edgetest.Sign(t, req, testNow())
+		edgetest.SignFrom(t, req, edgetest.Origin{At: testNow(), ClientIP: fmt.Sprintf("198.51.100.%d", index)})
 		if got := perform(t, server, req); got.status != http.StatusUnauthorized {
 			t.Errorf("%s %s answered %d without a session and is not in the public route list",
 				method, route.Path, got.status)

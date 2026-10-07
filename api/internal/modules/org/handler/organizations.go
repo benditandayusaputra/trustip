@@ -11,7 +11,11 @@ import (
 )
 
 type onboardingRequest struct {
-	Type        string `json:"type"`
+	Type string `json:"type"`
+	profileRequest
+}
+
+type profileRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	WhatsApp    string `json:"whatsapp"`
@@ -27,17 +31,18 @@ type point struct {
 }
 
 type organizationResponse struct {
-	ID          string `json:"id"`
-	Type        string `json:"type"`
-	Name        string `json:"name"`
-	Slug        string `json:"slug"`
-	Description string `json:"description"`
-	WhatsApp    string `json:"whatsapp"`
-	CityCode    string `json:"city_code"`
-	CityName    string `json:"city_name"`
-	District    string `json:"district"`
-	Address     string `json:"address"`
-	Location    *point `json:"location"`
+	ID          string    `json:"id"`
+	Type        string    `json:"type"`
+	Name        string    `json:"name"`
+	Slug        string    `json:"slug"`
+	Description string    `json:"description"`
+	WhatsApp    string    `json:"whatsapp"`
+	CityCode    string    `json:"city_code"`
+	CityName    string    `json:"city_name"`
+	District    string    `json:"district"`
+	Address     string    `json:"address"`
+	Location    *point    `json:"location"`
+	Logo        *imageRef `json:"logo"`
 }
 
 func createOrganization(creator Creator) fiber.Handler {
@@ -66,8 +71,19 @@ func createOrganization(creator Creator) fiber.Handler {
 }
 
 func (r onboardingRequest) toForm() (domain.OnboardingForm, error) {
+	organizationType := httpserver.LineInput("type", r.Type)
+	if err := httpserver.RejectUncleanInputs(organizationType); err != nil {
+		return domain.OnboardingForm{}, fmt.Errorf("check organization type: %w", err)
+	}
+	profile, err := r.profileRequest.toForm()
+	if err != nil {
+		return domain.OnboardingForm{}, err
+	}
+	return domain.OnboardingForm{Type: organizationType.Value, ProfileForm: profile}, nil
+}
+
+func (r profileRequest) toForm() (domain.ProfileForm, error) {
 	inputs := []httpserver.TextInput{
-		httpserver.LineInput("type", r.Type),
 		httpserver.LineInput("name", r.Name),
 		httpserver.MultilineInput("description", r.Description),
 		httpserver.LineInput("whatsapp", r.WhatsApp),
@@ -76,11 +92,11 @@ func (r onboardingRequest) toForm() (domain.OnboardingForm, error) {
 		httpserver.LineInput("address", r.Address),
 	}
 	if err := httpserver.RejectUncleanInputs(inputs...); err != nil {
-		return domain.OnboardingForm{}, fmt.Errorf("check onboarding text: %w", err)
+		return domain.ProfileForm{}, fmt.Errorf("check profile text: %w", err)
 	}
-	return domain.OnboardingForm{
-		Type: inputs[0].Value, Name: inputs[1].Value, Description: inputs[2].Value, WhatsApp: inputs[3].Value,
-		CityCode: inputs[4].Value, District: inputs[5].Value, Address: inputs[6].Value,
+	return domain.ProfileForm{
+		Name: inputs[0].Value, Description: inputs[1].Value, WhatsApp: inputs[2].Value,
+		CityCode: inputs[3].Value, District: inputs[4].Value, Address: inputs[5].Value,
 		Location: r.Location.toInput(),
 	}, nil
 }

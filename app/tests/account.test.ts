@@ -79,6 +79,13 @@ test('FR-AUTH-04 FR-AUTH-06 a visitor registers, signs in, onboards, and lands o
 	await expect(greeting).toBeVisible();
 	await expectTokensHiddenFromScripts(page);
 
+	await page.getByRole('link', { name: 'Lengkapi profil usaha' }).click();
+	await expect(page.getByLabel('Nama usaha')).toHaveValue('Warung Uji');
+	await page.getByLabel('Nama usaha').fill('Warung Uji Jaya');
+	await page.getByRole('button', { name: 'Simpan profil' }).click();
+	await expect(page.getByText('Profil usaha tersimpan.')).toBeVisible();
+	await page.goto('/app/toko');
+
 	await page.context().clearCookies({ name: 'trustip_at' });
 	await page.reload();
 	await expect(greeting).toBeVisible();

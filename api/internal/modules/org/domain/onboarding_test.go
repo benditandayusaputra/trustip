@@ -10,15 +10,14 @@ import (
 )
 
 func validForm() OnboardingForm {
-	return OnboardingForm{
-		Type:        "STORE",
+	return OnboardingForm{Type: "STORE", ProfileForm: ProfileForm{
 		Name:        "Warung Bu Tini",
 		Description: "Warung kelontong dekat SD.",
 		WhatsApp:    "0812-3456-7890",
 		CityCode:    "33.74",
 		District:    "Tembalang",
 		Address:     "Jl. Sirojudin 12",
-	}
+	}}
 }
 
 func fieldCodes(t *testing.T, err error) map[string]string {
@@ -47,7 +46,7 @@ func TestNewOnboarding_FRAUTH04_ValidFormNormalizesWhatsApp(t *testing.T) {
 }
 
 func TestNewOnboarding_RSEC47_ReportsEveryInvalidFieldAtOnce(t *testing.T) {
-	form := OnboardingForm{Type: "ADMIN", Name: "W", WhatsApp: "12", CityCode: "semarang"}
+	form := OnboardingForm{Type: "ADMIN", ProfileForm: ProfileForm{Name: "W", WhatsApp: "12", CityCode: "semarang"}}
 
 	_, err := NewOnboarding(form)
 
@@ -152,5 +151,26 @@ func TestFound_BRAUTH02_FounderBecomesTheOwner(t *testing.T) {
 	want := Membership{ID: "membership-1", UserID: "user-1", Role: actor.Owner}
 	if founding.Owner != want {
 		t.Fatalf("owner = %+v", founding.Owner)
+	}
+}
+
+func TestNewProfileUpdate_LogoMustBeAFileIDWhenGiven(t *testing.T) {
+	form := ProfileUpdateForm{ProfileForm: validForm().ProfileForm, LogoFileID: "logo.jpg"}
+
+	_, err := NewProfileUpdate(form, actor.Store)
+
+	if got := fieldCodes(t, err)["logo_file_id"]; got != string(apperror.FieldUnknownChoice) {
+		t.Fatalf("logo_file_id = %q", got)
+	}
+}
+
+func TestNewProfileUpdate_ConsignorLocationIsRoundedLikeAtOnboarding(t *testing.T) {
+	form := ProfileUpdateForm{ProfileForm: validForm().ProfileForm}
+	form.Location = LocationInput{Given: true, Latitude: tembalang().Latitude, Longitude: tembalang().Longitude}
+
+	update, err := NewProfileUpdate(form, actor.Consignor)
+
+	if err != nil || update.Location.Public != PublicLocation(actor.Consignor, tembalang()) || update.LogoFileID != "" {
+		t.Fatalf("update = %+v, err = %v", update, err)
 	}
 }
