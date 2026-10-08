@@ -1,6 +1,6 @@
 import { page, userEvent } from 'vitest/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { emptyOutbox, storeCashier } from '#lib/testing/outbox.js';
+import { aQueuedDrop, emptyOutbox, storeCashier } from '#lib/testing/outbox.js';
 import { outboxStore } from '#lib/offline/store.js';
 import { render } from 'vitest-browser-svelte';
 import CountsHarness from '#lib/testing/CountsHarness.svelte';
@@ -165,38 +165,26 @@ describe('Count form', () => {
 
 	it('R-OFF-04 counts a drop still waiting in the queue as recorded stock', async () => {
 		serve();
-		await outboxStore.put({
-			id: 'entry-1',
-			revision: 0,
-			idempotencyKey: 'entry-1',
-			kind: 'DROP',
-			partnershipId,
-			partnerName: 'Roti Pak Anton',
-			request: {
-				partnership_id: partnershipId,
-				agreement_version: 1,
-				occurred_at: null,
-				items: []
-			},
-			lines: [
-				{
-					productId: breadId,
-					name: 'Roti Manis',
-					unit: 'pcs',
-					qty: 5,
-					expiryDate: '',
-					terms: { model: 'FIXED_DEPOSIT', retailPrice: 2000, commissionBps: 0, depositPrice: 1750 }
-				}
-			],
-			recordedAt: new Date().toISOString(),
-			savedOffline: true,
-			userId: storeCashier.id,
-			organizationId: storeCashier.membership.organization_id,
-			status: 'PENDING',
-			attempts: 0,
-			problem: null,
-			document: null
-		});
+		await outboxStore.put(
+			aQueuedDrop({
+				partnershipId,
+				lines: [
+					{
+						productId: breadId,
+						name: 'Roti Manis',
+						unit: 'pcs',
+						qty: 5,
+						expiryDate: '',
+						terms: {
+							model: 'FIXED_DEPOSIT',
+							retailPrice: 2000,
+							commissionBps: 0,
+							depositPrice: 1750
+						}
+					}
+				]
+			})
+		);
 
 		await render(CountsHarness, { view: 'form', targetId: partnershipId });
 

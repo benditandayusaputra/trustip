@@ -22,7 +22,7 @@
 			<DropForm
 				{partnershipId}
 				onsaved={(dropId: string) => void goto(`/app/titipan/${dropId}`)}
-				onqueued={() => void goto('/app/titipan')}
+				onqueued={() => void goto('/app/antrean')}
 			/>
 		{/key}
 	{/if}

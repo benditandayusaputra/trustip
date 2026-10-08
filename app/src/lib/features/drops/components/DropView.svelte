@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import OfflineMark from '#lib/components/ui/OfflineMark.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import SealPanel from '#lib/components/ui/SealPanel.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
@@ -43,6 +44,9 @@
 		<p class="font-mono text-sm text-text-muted">{drop.number}</p>
 		<Badge tone={statusToneOf(drop.status)} label={text.statuses[drop.status]} />
 	</div>
+	{#if drop.recorded_offline}
+		<OfflineMark recordedAt={drop.client_recorded_at} receivedAt={drop.received_at} />
+	{/if}
 	<dl class="grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{text.store}</dt>
 		<dd>{drop.store.name}</dd>

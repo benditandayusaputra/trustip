@@ -40,6 +40,11 @@ export class OutboxScheduler {
 		return result;
 	}
 
+	async discard(id: string): Promise<FlushResult> {
+		await this.#deps.sync.discard(id);
+		return this.run();
+	}
+
 	stop(): void {
 		if (this.#retry !== undefined) {
 			this.#deps.timers.clear(this.#retry);

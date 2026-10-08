@@ -42,7 +42,18 @@ export function outboxScheduler(): OutboxScheduler {
 	return scheduler;
 }
 
-export async function waitingEntries(): Promise<OutboxEntry[]> {
+export async function ownEntries(): Promise<OutboxEntry[]> {
 	const account = await getAccount(apiClient());
-	return (await outboxStore.listFor(account.id)).filter(isWaiting);
+	return outboxStore.listFor(account.id);
+}
+
+export async function waitingEntries(): Promise<OutboxEntry[]> {
+	return (await ownEntries()).filter(isWaiting);
+}
+
+export async function discardOwnEntries(): Promise<void> {
+	for (const entry of await ownEntries()) {
+		await outboxStore.remove(entry.id);
+	}
+	announceOutboxChange();
 }

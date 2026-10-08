@@ -120,6 +120,25 @@ afterEach(async () => {
 	vi.unstubAllGlobals();
 });
 
+describe('Drop recorded offline (FR-PWA-10)', () => {
+	it('shows both parties when it was recorded and when it reached the server', async () => {
+		serve({
+			[`GET /api/v1/drops/${dropId}`]: () =>
+				envelope({
+					...drop,
+					recorded_offline: true,
+					client_recorded_at: '2026-11-10T01:00:00Z',
+					received_at: '2026-11-10T03:30:00Z'
+				})
+		});
+
+		await render(DropsHarness, { view: 'detail', targetId: dropId });
+
+		await expect.element(page.getByText('Dicatat luring')).toBeVisible();
+		await expect.element(page.getByText(/Dicatat .*08\.00 · Terkirim .*10\.30/u)).toBeVisible();
+	});
+});
+
 describe('Drop form', () => {
 	it('FR-DRP-02 FR-DRP-04 fills the expiry and previews the value before saving', async () => {
 		const sent = serve(formRoutes(() => envelope(drop, 201)));

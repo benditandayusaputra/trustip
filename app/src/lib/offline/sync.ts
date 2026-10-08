@@ -5,6 +5,7 @@ import { recordDrop } from '#lib/api/drops.js';
 import type { ApiError } from '#lib/api/errors.js';
 import {
 	errorOf,
+	isDeliveredLongAgo,
 	problemOf,
 	sendingQueues,
 	verdictOf,
@@ -107,8 +108,10 @@ export class OutboxSync {
 		} catch (error) {
 			return stopped(verdictOf(error), 0);
 		}
+		const entries = await this.#deps.store.listFor(userId);
+		await this.#forget(entries.filter((entry) => isDeliveredLongAgo(entry, this.#deps.now())));
 		let sent = 0;
-		for (const queue of sendingQueues(await this.#deps.store.listFor(userId))) {
+		for (const queue of sendingQueues(entries)) {
 			const outcome = await this.#flushQueue(queue);
 			if (outcome.kind !== 'done') {
 				return outcome;
@@ -164,6 +167,12 @@ export class OutboxSync {
 				? await recordDrop(client, { ...entry.request, ...delivery }, entry.idempotencyKey)
 				: await recordCount(client, { ...entry.request, ...delivery }, entry.idempotencyKey);
 		return { id: document.id, number: document.number };
+	}
+
+	async #forget(entries: OutboxEntry[]): Promise<void> {
+		for (const entry of entries) {
+			await this.#deps.store.remove(entry.id);
+		}
 	}
 
 	async #hold(entries: OutboxEntry[]): Promise<void> {

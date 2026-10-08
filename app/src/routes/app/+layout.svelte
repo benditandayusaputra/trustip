@@ -5,6 +5,7 @@
 	import { onboardingHref, signInHref } from '#lib/features/auth/links.js';
 	import NotificationBell from '#lib/features/notifications/components/NotificationBell.svelte';
 	import OfflineKeeper from '#lib/features/outbox/components/OfflineKeeper.svelte';
+	import OutboxBadge from '#lib/features/outbox/components/OutboxBadge.svelte';
 	import OfflineRibbon from '#lib/features/system/OfflineRibbon.svelte';
 	import type { LayoutProps } from './$types';
 
@@ -23,6 +24,7 @@
 >
 	{#snippet actions()}
 		<OfflineKeeper />
+		<OutboxBadge />
 		<NotificationBell />
 	{/snippet}
 	{@render children()}

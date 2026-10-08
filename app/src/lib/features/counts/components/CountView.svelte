@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import OfflineMark from '#lib/components/ui/OfflineMark.svelte';
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import SealPanel from '#lib/components/ui/SealPanel.svelte';
@@ -48,6 +49,9 @@
 			label={text.statuses[count.status]}
 		/>
 	</div>
+	{#if count.recorded_offline}
+		<OfflineMark recordedAt={count.client_recorded_at} receivedAt={count.received_at} />
+	{/if}
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 		<KpiCard label={text.gross} value={formatRupiah(count.split.gross)} />
 		<KpiCard label={text.storeShare} value={formatRupiah(count.split.store_share)} />

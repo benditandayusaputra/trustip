@@ -256,3 +256,27 @@ async function queued(draft: EntryDraft): Promise<OutboxEntry> {
 	}
 	return entry;
 }
+
+describe('OutboxSync housekeeping', () => {
+	it('forgets a sent entry once it is more than a day old', async () => {
+		const { sync, store } = engine(server(me, []));
+		const entry = await queued(dropDraft('p1'));
+		store.entries.set('old', {
+			...entry,
+			id: 'old',
+			status: 'SENT',
+			recordedAt: '2026-11-08T00:00:00.000Z',
+			document: { id: 'd0', number: 'TM-0' }
+		});
+		store.entries.set('fresh', {
+			...entry,
+			id: 'fresh',
+			status: 'SENT',
+			document: { id: 'd1', number: 'TM-1' }
+		});
+
+		await sync.flush();
+
+		expect([...store.entries.keys()]).toEqual(['fresh']);
+	});
+});

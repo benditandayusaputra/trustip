@@ -23,7 +23,7 @@
 				{partnershipId}
 				dropHref="/app/titipan/baru?mitra={partnershipId}"
 				onsaved={(countId: string) => void goto(`/app/hitung/${countId}`)}
-				onqueued={() => void goto('/app/hitung')}
+				onqueued={() => void goto('/app/antrean')}
 			/>
 		{/key}
 	{/if}

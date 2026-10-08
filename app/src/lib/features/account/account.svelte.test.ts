@@ -3,7 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import AccountHarness from '#lib/testing/AccountHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
-import { cacheStore } from '#lib/offline/store.js';
+import { cacheStore, outboxStore } from '#lib/offline/store.js';
+import { aQueuedDrop, emptyOutbox } from '#lib/testing/outbox.js';
 
 type Route = Record<string, () => Response>;
 
@@ -39,7 +40,8 @@ function serve(routes: Route) {
 	return calls;
 }
 
-afterEach(() => {
+afterEach(async () => {
+	await emptyOutbox(sari.id);
 	vi.unstubAllGlobals();
 });
 
@@ -141,6 +143,45 @@ describe('AccountMenu', () => {
 			expect(onsignedout).toHaveBeenCalledOnce();
 		});
 		await expect(cacheStore.get('/api/v1/me')).resolves.toBeUndefined();
+	});
+
+	it('BR-PWA-08 asks what to do with unsent entries and discards them on request', async () => {
+		serve({
+			'GET /api/v1/me': () => ok(sari),
+			'POST /api/v1/sessions/logout': () => ok(null)
+		});
+		await outboxStore.put(aQueuedDrop({ userId: sari.id }));
+		const onsignedout = vi.fn();
+		await render(AccountHarness, { onsignedout });
+
+		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
+		const dialog = page.getByRole('dialog', { name: 'Masih ada 1 catatan belum terkirim' });
+		await expect.element(dialog).toBeVisible();
+		expect(onsignedout).not.toHaveBeenCalled();
+		await userEvent.click(dialog.getByRole('button', { name: 'Buang catatan' }));
+
+		await vi.waitFor(() => {
+			expect(onsignedout).toHaveBeenCalledOnce();
+		});
+		await expect(outboxStore.listFor(sari.id)).resolves.toEqual([]);
+	});
+
+	it('R-OFF-16 keeps unsent entries on the device when asked', async () => {
+		serve({
+			'GET /api/v1/me': () => ok(sari),
+			'POST /api/v1/sessions/logout': () => ok(null)
+		});
+		await outboxStore.put(aQueuedDrop({ userId: sari.id }));
+		const onsignedout = vi.fn();
+		await render(AccountHarness, { onsignedout });
+
+		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
+		await userEvent.click(page.getByRole('button', { name: 'Simpan di perangkat' }));
+
+		await vi.waitFor(() => {
+			expect(onsignedout).toHaveBeenCalledOnce();
+		});
+		await expect(outboxStore.listFor(sari.id)).resolves.toHaveLength(1);
 	});
 
 	it('FR-AUTH-03 asks for confirmation before logging out every device', async () => {

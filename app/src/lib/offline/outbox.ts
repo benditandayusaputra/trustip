@@ -73,8 +73,16 @@ export function isWaiting(entry: OutboxEntry): boolean {
 	return entry.status !== 'SENT';
 }
 
+function ageMs(entry: OutboxEntry, now: Date): number {
+	return now.getTime() - Date.parse(entry.recordedAt);
+}
+
 export function isOld(entry: OutboxEntry, now: Date): boolean {
-	return isWaiting(entry) && now.getTime() - Date.parse(entry.recordedAt) > oldEntryMs;
+	return isWaiting(entry) && ageMs(entry, now) > oldEntryMs;
+}
+
+export function isDeliveredLongAgo(entry: OutboxEntry, now: Date): boolean {
+	return !isWaiting(entry) && ageMs(entry, now) > oldEntryMs;
 }
 
 export function verdictOf(error: unknown): SendVerdict {
