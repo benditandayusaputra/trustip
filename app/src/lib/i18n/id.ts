@@ -1,4 +1,5 @@
 import { agreements } from './agreements';
+import { counts } from './counts';
 import { drops } from './drops';
 import { legal } from './legal';
 import { organization } from './organization';
@@ -11,6 +12,7 @@ export const id = {
 	brand: 'Trustip',
 	legal,
 	...agreements,
+	...counts,
 	...drops,
 	...organization,
 	...partnerships,

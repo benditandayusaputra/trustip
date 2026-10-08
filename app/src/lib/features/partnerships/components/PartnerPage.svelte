@@ -48,9 +48,14 @@
 	{@const partnership = record.partnership}
 	<h1 class="text-xl font-semibold text-text">{partnership.counterpart.name}</h1>
 	{#if !isConsignor && partnership.status === 'ACTIVE'}
-		<a href="/app/titipan/baru?mitra={partnershipId}" class="font-semibold text-accent">
-			{id.drops.recordDrop}
-		</a>
+		<div class="flex flex-wrap gap-4">
+			<a href="/app/titipan/baru?mitra={partnershipId}" class="font-semibold text-accent">
+				{id.drops.recordDrop}
+			</a>
+			<a href="/app/hitung/baru?mitra={partnershipId}" class="font-semibold text-accent">
+				{id.counts.count}
+			</a>
+		</div>
 	{/if}
 	<Tabs label={text.tabsLabel} {tabs} bind:selected>
 		{#snippet panel(key: string)}
