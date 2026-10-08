@@ -432,6 +432,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/directory/consignors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listDirectoryConsignors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/directory/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listDirectoryProducts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/products": {
         parameters: {
             query?: never;
@@ -2471,6 +2503,70 @@ export interface components {
             data: components["schemas"]["DirectoryStoreCard"][];
             meta: components["schemas"]["DirectoryListMeta"];
         };
+        DirectoryLegality: {
+            has_distribution_permit: boolean;
+            has_halal_certificate: boolean;
+            can_provide_sample: boolean;
+        };
+        DirectoryConsignorTraits: {
+            legality: components["schemas"]["DirectoryLegality"];
+            delivery_radius_km: number | null;
+            reputation: {
+                is_established: boolean;
+                active_partners: number;
+            };
+        };
+        DirectoryConsignorCard: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            city_name: string;
+            district: string;
+            logo_url: string | null;
+            distance_m: number | null;
+            categories: components["schemas"]["DirectoryCategory"][];
+            product_count: number;
+            traits: components["schemas"]["DirectoryConsignorTraits"];
+            is_self: boolean;
+            is_partner: boolean;
+            match: components["schemas"]["MatchScore"] | null;
+        };
+        DirectoryProductCard: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            sku: string;
+            unit: string;
+            category: components["schemas"]["DirectoryCategory"];
+            suggested_retail_price: number;
+            shelf_life_days: number | null;
+            photo_url: string | null;
+            consignor: {
+                /** Format: uuid */
+                id: string;
+                slug: string;
+                name: string;
+                city_name: string;
+            };
+            distance_m: number | null;
+            traits: components["schemas"]["DirectoryConsignorTraits"];
+            is_self: boolean;
+            is_partner: boolean;
+            match: components["schemas"]["MatchScore"] | null;
+        };
+        DirectoryConsignorListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["DirectoryConsignorCard"][];
+            meta: components["schemas"]["DirectoryListMeta"];
+        };
+        DirectoryProductListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["DirectoryProductCard"][];
+            meta: components["schemas"]["DirectoryListMeta"];
+        };
     };
     responses: {
         /** @description Permintaan tidak terbaca atau memuat isian tak dikenal */
@@ -3428,6 +3524,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DirectoryStoreListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listDirectoryConsignors: {
+        parameters: {
+            query?: {
+                origin?: "ORGANIZATION" | "HERE" | "CITY";
+                lat?: number;
+                lng?: number;
+                city_code?: string;
+                radius_km?: "2" | "5" | "10" | "25" | "all";
+                sort?: components["schemas"]["DirectorySort"];
+                category_id?: string[];
+                min_price?: number;
+                max_price?: number;
+                min_shelf_life_days?: number;
+                has_permit?: boolean;
+                has_halal?: boolean;
+                can_sample?: boolean;
+                delivers_to_me?: boolean;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direktori penitip yang tampil di Cari Mitra */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryConsignorListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listDirectoryProducts: {
+        parameters: {
+            query?: {
+                origin?: "ORGANIZATION" | "HERE" | "CITY";
+                lat?: number;
+                lng?: number;
+                city_code?: string;
+                radius_km?: "2" | "5" | "10" | "25" | "all";
+                sort?: components["schemas"]["DirectorySort"];
+                category_id?: string[];
+                min_price?: number;
+                max_price?: number;
+                min_shelf_life_days?: number;
+                has_permit?: boolean;
+                has_halal?: boolean;
+                can_sample?: boolean;
+                delivers_to_me?: boolean;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Produk yang sedang mencari toko */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryProductListResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

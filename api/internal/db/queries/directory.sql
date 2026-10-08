@@ -22,11 +22,16 @@ SELECT
         )
         ORDER BY c.sort_order
     )::text[] AS category_names,
+    COALESCE(sp.store_type, '')::text AS store_type,
+    ARRAY(
+        SELECT sac.category_id::text FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id
+    )::text[] AS accepted_category_ids,
     (city.code IS NOT NULL)::boolean AS has_city,
     COALESCE(ST_Y(city.centroid::geometry), 0)::float8 AS city_latitude,
     COALESCE(ST_X(city.centroid::geometry), 0)::float8 AS city_longitude
 FROM organizations AS o
 LEFT JOIN consignor_profiles AS cp ON cp.organization_id = o.id
+LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
 LEFT JOIN cities AS city ON city.code = @city_code::text
 WHERE o.id = @organization_id::uuid;
 

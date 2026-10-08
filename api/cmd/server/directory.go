@@ -16,11 +16,14 @@ import (
 const searchesPerMinutePerIP = 60
 
 type directoryComponents struct {
-	stores directoryservice.StoreDirectory
+	viewers    directoryservice.ViewerReader
+	stores     directoryservice.StoreDirectory
+	consignors directoryservice.ConsignorDirectory
 }
 
 func buildDirectoryComponents(pool *database.Pool) directoryComponents {
-	return directoryComponents{stores: directoryrepository.NewDirectory(pool)}
+	directory := directoryrepository.NewDirectory(pool)
+	return directoryComponents{viewers: directory, stores: directory, consignors: directory}
 }
 
 type directoryRoutes struct {
@@ -33,7 +36,10 @@ type directoryRoutes struct {
 func mountDirectory(api fiber.Router, components directoryComponents, routes directoryRoutes) {
 	directoryhandler.Mount(api, directoryhandler.Deps{
 		Authenticate: routes.authenticate,
-		ListStores:   directoryservice.NewListStores(components.stores, routes.clock),
+		ListStores:   directoryservice.NewListStores(components.viewers, components.stores, routes.clock),
+		ListConsignors: directoryservice.NewListConsignors(components.viewers, components.consignors,
+			routes.clock),
+		ListProducts: directoryservice.NewListProducts(components.viewers, components.consignors, routes.clock),
 		FilesBaseURL: routes.filesBaseURL,
 		SearchLimiter: ratelimit.New(ratelimit.Rule{Limit: searchesPerMinutePerIP, Window: time.Minute},
 			routes.clock),

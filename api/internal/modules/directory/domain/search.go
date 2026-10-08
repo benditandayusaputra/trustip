@@ -7,7 +7,6 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
-	"github.com/benditandayusaputra/trustip/api/internal/kernel/storetype"
 )
 
 const (
@@ -17,7 +16,6 @@ const (
 	MaxSearchLength           = 80
 	MaxCategoryFilters        = 12
 	MatchCandidateLimit       = 200
-	maxCommissionBPS          = 5000
 	everyRadiusChoice         = "all"
 	anyCategoryChoice         = "any"
 )
@@ -42,66 +40,43 @@ func sortChoices() []string {
 	return []string{string(Nearest), string(BestMatch), string(ByReputation), string(Newest)}
 }
 
-func pricingModelChoices() []string {
-	return []string{"FIXED_DEPOSIT", "COMMISSION"}
+type SearchForm struct {
+	Origin      OriginForm
+	Radius      string
+	Sort        string
+	CategoryIDs []string
+	Text        string
 }
 
-type StoreSearchForm struct {
-	Origin                   OriginForm
-	Radius                   string
-	Sort                     string
-	StoreType                string
-	CategoryIDs              []string
-	PricingModel             string
-	MaxCommissionBPS         string
-	WithoutPermitRequirement bool
-	WithoutHalalRequirement  bool
-	Text                     string
-}
-
-type StoreFilters struct {
-	StoreType        string
-	CategoryIDs      []string
-	PricingModel     string
-	HasMaxCommission bool
-	MaxCommissionBPS int
-	WithoutPermit    bool
-	WithoutHalal     bool
-	Text             string
-}
-
-type StoreSearch struct {
+type Search struct {
 	Origin            OriginRequest
 	RadiusKm          int
 	Sort              SortOrder
-	Filters           StoreFilters
+	CategoryIDs       []string
 	UsesOwnCategories bool
+	Text              string
 }
 
-func NewStoreSearch(form StoreSearchForm) (StoreSearch, error) {
-	origin, originProblems := readOrigin(form.Origin)
+func readSearch(form SearchForm) (Search, []apperror.FieldError) {
+	origin, problems := readOrigin(form.Origin)
 	radius, radiusProblem := readRadius(form.Radius)
-	commission, commissionProblem := readMaxCommission(form.MaxCommissionBPS)
 	categories, categoryProblems := readCategories(form.CategoryIDs)
-	problems := append(originProblems, field.Collect(
-		radiusProblem, commissionProblem,
+	problems = append(problems, field.Collect(
+		radiusProblem,
 		field.CheckChoice("sort", form.Sort, sortChoices()),
-		field.CheckChoice("store_type", form.StoreType, storetype.All()),
-		field.CheckChoice("pricing_model", form.PricingModel, pricingModelChoices()),
 		field.CheckLength("q", form.Text, field.Length{Max: MaxSearchLength}),
 	)...)
-	problems = append(problems, categoryProblems...)
-	if len(problems) > 0 {
-		return StoreSearch{}, apperror.Validation(problems...)
+	return Search{
+		Origin: origin, RadiusKm: radius, Sort: sortOf(form.Sort), CategoryIDs: categories,
+		UsesOwnCategories: form.CategoryIDs == nil, Text: form.Text,
+	}, append(problems, categoryProblems...)
+}
+
+func (s Search) SortFor(origin Origin) SortOrder {
+	if !origin.IsKnown && s.Sort == Nearest {
+		return ByCity
 	}
-	return StoreSearch{
-		Origin: origin, RadiusKm: radius, Sort: sortOf(form.Sort), UsesOwnCategories: form.CategoryIDs == nil,
-		Filters: StoreFilters{
-			StoreType: form.StoreType, CategoryIDs: categories, PricingModel: form.PricingModel,
-			HasMaxCommission: commission.isGiven, MaxCommissionBPS: commission.basisPoints,
-			WithoutPermit: form.WithoutPermitRequirement, WithoutHalal: form.WithoutHalalRequirement, Text: form.Text,
-		},
-	}, nil
+	return s.Sort
 }
 
 func sortOf(raw string) SortOrder {
@@ -125,22 +100,6 @@ func readRadius(raw string) (int, field.Problem) {
 	return radius, field.Problem{}
 }
 
-type commissionLimit struct {
-	basisPoints int
-	isGiven     bool
-}
-
-func readMaxCommission(raw string) (commissionLimit, field.Problem) {
-	if raw == "" {
-		return commissionLimit{}, field.Problem{}
-	}
-	commission, err := strconv.Atoi(raw)
-	if err != nil || commission < 0 || commission > maxCommissionBPS {
-		return commissionLimit{}, field.Invalid("max_commission_bps", apperror.FieldOutOfRange)
-	}
-	return commissionLimit{basisPoints: commission, isGiven: true}, field.Problem{}
-}
-
 func readCategories(raw []string) ([]string, []apperror.FieldError) {
 	if len(raw) == 1 && raw[0] == anyCategoryChoice {
 		return []string{}, nil
@@ -154,15 +113,31 @@ func readCategories(raw []string) ([]string, []apperror.FieldError) {
 			return nil, field.Collect(field.Invalid("category_id", apperror.FieldUnknownChoice))
 		}
 	}
-	return slices.Clone(raw), nil
+	return append([]string{}, raw...), nil
 }
 
-func EffectiveRadius(selectedKm int, storesWithinKm map[int]int) int {
+type Bound struct {
+	Value   int
+	IsGiven bool
+}
+
+func readBound(name, raw string, allowed field.Length) (Bound, field.Problem) {
+	if raw == "" {
+		return Bound{}, field.Problem{}
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil || value < allowed.Min || value > allowed.Max {
+		return Bound{}, field.Invalid(name, apperror.FieldOutOfRange)
+	}
+	return Bound{Value: value, IsGiven: true}, field.Problem{}
+}
+
+func EffectiveRadius(selectedKm int, resultsWithinKm map[int]int) int {
 	if selectedKm == EveryDistance {
 		return EveryDistance
 	}
 	for _, step := range RadiusSteps() {
-		if step >= selectedKm && storesWithinKm[step] >= MinResultsBeforeExpanding {
+		if step >= selectedKm && resultsWithinKm[step] >= MinResultsBeforeExpanding {
 			return step
 		}
 	}
@@ -174,12 +149,23 @@ type ViewerKey struct {
 	CityCode       string
 }
 
-type StoreQuery struct {
+type Listing struct {
 	ViewerID string
 	Origin   Origin
 	RadiusKm int
-	Filters  StoreFilters
 	Sort     SortOrder
 	After    Position
 	Limit    int
+}
+
+type SearchContext struct {
+	Origin            Origin
+	Sort              SortOrder
+	SelectedRadiusKm  int
+	EffectiveRadiusKm int
+	CategoryIDs       []string
+}
+
+func (c SearchContext) IsExpanded() bool {
+	return c.Origin.IsKnown && c.EffectiveRadiusKm != c.SelectedRadiusKm
 }

@@ -999,6 +999,222 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/directory/consignors:
+    get:
+      operationId: listDirectoryConsignors
+      tags: [directory]
+      parameters:
+        - name: origin
+          in: query
+          schema:
+            type: string
+            enum: [ORGANIZATION, HERE, CITY]
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+        - name: city_code
+          in: query
+          schema:
+            type: string
+        - name: radius_km
+          in: query
+          schema:
+            type: string
+            enum: ["2", "5", "10", "25", all]
+        - name: sort
+          in: query
+          schema:
+            $ref: "#/components/schemas/DirectorySort"
+        - name: category_id
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: min_price
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: max_price
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: min_shelf_life_days
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 730
+        - name: has_permit
+          in: query
+          schema:
+            type: boolean
+        - name: has_halal
+          in: query
+          schema:
+            type: boolean
+        - name: can_sample
+          in: query
+          schema:
+            type: boolean
+        - name: delivers_to_me
+          in: query
+          schema:
+            type: boolean
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 80
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Direktori penitip yang tampil di Cari Mitra
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectoryConsignorListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/directory/products:
+    get:
+      operationId: listDirectoryProducts
+      tags: [directory]
+      parameters:
+        - name: origin
+          in: query
+          schema:
+            type: string
+            enum: [ORGANIZATION, HERE, CITY]
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+        - name: city_code
+          in: query
+          schema:
+            type: string
+        - name: radius_km
+          in: query
+          schema:
+            type: string
+            enum: ["2", "5", "10", "25", all]
+        - name: sort
+          in: query
+          schema:
+            $ref: "#/components/schemas/DirectorySort"
+        - name: category_id
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: min_price
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: max_price
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: min_shelf_life_days
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 730
+        - name: has_permit
+          in: query
+          schema:
+            type: boolean
+        - name: has_halal
+          in: query
+          schema:
+            type: boolean
+        - name: can_sample
+          in: query
+          schema:
+            type: boolean
+        - name: delivers_to_me
+          in: query
+          schema:
+            type: boolean
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 80
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Produk yang sedang mencari toko
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectoryProductListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/products:
     get:
       operationId: listProducts
@@ -6081,5 +6297,156 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DirectoryStoreCard"
+        meta:
+          $ref: "#/components/schemas/DirectoryListMeta"
+    DirectoryLegality:
+      type: object
+      additionalProperties: false
+      required: [has_distribution_permit, has_halal_certificate, can_provide_sample]
+      properties:
+        has_distribution_permit:
+          type: boolean
+        has_halal_certificate:
+          type: boolean
+        can_provide_sample:
+          type: boolean
+    DirectoryConsignorTraits:
+      type: object
+      additionalProperties: false
+      required: [legality, delivery_radius_km, reputation]
+      properties:
+        legality:
+          $ref: "#/components/schemas/DirectoryLegality"
+        delivery_radius_km:
+          type: integer
+          nullable: true
+        reputation:
+          type: object
+          additionalProperties: false
+          required: [is_established, active_partners]
+          properties:
+            is_established:
+              type: boolean
+            active_partners:
+              type: integer
+    DirectoryConsignorCard:
+      type: object
+      additionalProperties: false
+      required: [id, slug, name, city_name, district, logo_url, distance_m, categories, product_count, traits,
+        is_self, is_partner, match]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        city_name:
+          type: string
+        district:
+          type: string
+        logo_url:
+          type: string
+          nullable: true
+        distance_m:
+          type: integer
+          nullable: true
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/DirectoryCategory"
+        product_count:
+          type: integer
+        traits:
+          $ref: "#/components/schemas/DirectoryConsignorTraits"
+        is_self:
+          type: boolean
+        is_partner:
+          type: boolean
+        match:
+          allOf:
+            - $ref: "#/components/schemas/MatchScore"
+          nullable: true
+    DirectoryProductCard:
+      type: object
+      additionalProperties: false
+      required: [id, name, sku, unit, category, suggested_retail_price, shelf_life_days, photo_url, consignor,
+        distance_m, traits, is_self, is_partner, match]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        category:
+          $ref: "#/components/schemas/DirectoryCategory"
+        suggested_retail_price:
+          type: integer
+        shelf_life_days:
+          type: integer
+          nullable: true
+        photo_url:
+          type: string
+          nullable: true
+        consignor:
+          type: object
+          additionalProperties: false
+          required: [id, slug, name, city_name]
+          properties:
+            id:
+              type: string
+              format: uuid
+            slug:
+              type: string
+            name:
+              type: string
+            city_name:
+              type: string
+        distance_m:
+          type: integer
+          nullable: true
+        traits:
+          $ref: "#/components/schemas/DirectoryConsignorTraits"
+        is_self:
+          type: boolean
+        is_partner:
+          type: boolean
+        match:
+          allOf:
+            - $ref: "#/components/schemas/MatchScore"
+          nullable: true
+    DirectoryConsignorListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DirectoryConsignorCard"
+        meta:
+          $ref: "#/components/schemas/DirectoryListMeta"
+    DirectoryProductListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DirectoryProductCard"
         meta:
           $ref: "#/components/schemas/DirectoryListMeta"

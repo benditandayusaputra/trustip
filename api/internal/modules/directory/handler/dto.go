@@ -77,17 +77,37 @@ func (p presenter) storeCard(card domain.StoreCard) storeCardResponse {
 		Terms: termsOf(card.Terms), Reputation: reputationOf(card.Reputation), IsSelf: card.IsSelf,
 		IsPartner: card.IsPartner,
 	}
-	if card.LogoStorageKey != "" {
-		url := p.filesBaseURL + "/" + card.LogoStorageKey
-		response.LogoURL = &url
-	}
-	if card.Distance.IsKnown {
-		response.DistanceM = &card.Distance.Meters
-	}
-	if card.HasMatch {
-		response.Match = matchOf(card.Match)
-	}
+	response.LogoURL = p.fileURL(card.LogoStorageKey)
+	response.DistanceM = distanceOf(card.Distance)
+	response.Match = optionalMatch(card)
 	return response
+}
+
+func (p presenter) fileURL(storageKey string) *string {
+	if storageKey == "" {
+		return nil
+	}
+	url := p.filesBaseURL + "/" + storageKey
+	return &url
+}
+
+func distanceOf(distance domain.Distance) *int {
+	if !distance.IsKnown {
+		return nil
+	}
+	return &distance.Meters
+}
+
+type scored interface {
+	ScoredMatch() (domain.Match, bool)
+}
+
+func optionalMatch(card scored) *matchResponse {
+	match, hasMatch := card.ScoredMatch()
+	if !hasMatch {
+		return nil
+	}
+	return matchOf(match)
 }
 
 func categoriesOf(categories []domain.Category) []categoryResponse {

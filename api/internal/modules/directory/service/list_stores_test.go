@@ -77,8 +77,9 @@ func cardsNumbered(count int) []domain.StoreCard {
 }
 
 func TestListStores_BRAUTHZ01_NeedsAMembership(t *testing.T) {
-	_, err := NewListStores(&fakeDirectory{}, fixedClock{}).Execute(context.Background(), actor.Actor{UserID: "u"},
-		StoreListRequest{})
+	empty := &fakeDirectory{}
+	_, err := NewListStores(empty, empty, fixedClock{}).Execute(context.Background(), actor.Actor{UserID: "u"},
+		ListRequest[domain.StoreSearchForm]{})
 
 	if apperror.From(err).Code() != apperror.CodeForbidden {
 		t.Fatalf("err = %v", err)
@@ -88,8 +89,8 @@ func TestListStores_BRAUTHZ01_NeedsAMembership(t *testing.T) {
 func TestListStores_InvalidSearchIsRejectedBeforeReading(t *testing.T) {
 	directory := &fakeDirectory{}
 
-	_, err := NewListStores(directory, fixedClock{}).Execute(context.Background(), consignorOwner(),
-		StoreListRequest{Search: domain.StoreSearchForm{Radius: "3"}})
+	_, err := NewListStores(directory, directory, fixedClock{}).Execute(context.Background(), consignorOwner(),
+		ListRequest[domain.StoreSearchForm]{Search: domain.StoreSearchForm{Search: domain.SearchForm{Radius: "3"}}})
 
 	if apperror.From(err).Code() != apperror.CodeValidationFailed || len(directory.queries) != 0 {
 		t.Fatalf("err = %v, queries = %d", err, len(directory.queries))
@@ -129,10 +130,11 @@ func TestListStores_BRDIR06_DefaultCategoriesComeFromTheConsignorsProducts(t *te
 
 func TestListStores_BRDIR05_TwentyPerPageWithACursorThatKeepsTheRadius(t *testing.T) {
 	directory := &fakeDirectory{viewer: locatedConsignor(), counts: map[int]int{10: 30}, cards: cardsNumbered(30)}
-	lister := NewListStores(directory, fixedClock{})
+	lister := NewListStores(directory, directory, fixedClock{})
 
-	first, _ := lister.Execute(context.Background(), consignorOwner(), StoreListRequest{})
-	_, err := lister.Execute(context.Background(), consignorOwner(), StoreListRequest{Cursor: first.NextCursor})
+	first, _ := lister.Execute(context.Background(), consignorOwner(), ListRequest[domain.StoreSearchForm]{})
+	next := ListRequest[domain.StoreSearchForm]{Cursor: first.NextCursor}
+	_, err := lister.Execute(context.Background(), consignorOwner(), next)
 
 	if err != nil || len(first.Items) != 20 || !first.HasMore || directory.counted != 1 ||
 		directory.queries[1].After.ID != first.Items[19].ID || directory.queries[1].RadiusKm != 10 {
@@ -153,8 +155,11 @@ func TestListStores_BRDIR04_WithoutALocationStoresAreSortedByCity(t *testing.T) 
 }
 
 func TestListStores_FRDIR04_CityOriginMustBeAKnownCity(t *testing.T) {
-	_, err := NewListStores(&fakeDirectory{}, fixedClock{}).Execute(context.Background(), consignorOwner(),
-		StoreListRequest{Search: domain.StoreSearchForm{Origin: domain.OriginForm{Kind: "CITY", CityCode: "99.99"}}})
+	empty := &fakeDirectory{}
+	_, err := NewListStores(empty, empty, fixedClock{}).Execute(context.Background(), consignorOwner(),
+		ListRequest[domain.StoreSearchForm]{Search: domain.StoreSearchForm{Search: domain.SearchForm{
+			Origin: domain.OriginForm{Kind: "CITY", CityCode: "99.99"},
+		}}})
 
 	if apperror.From(err).Code() != apperror.CodeValidationFailed {
 		t.Fatalf("err = %v", err)
@@ -166,8 +171,8 @@ func TestListStores_FRDIR08_BestMatchRanksTheNearestCandidatesByScore(t *testing
 	cards[2].AcceptedCategories = []domain.Category{{ID: snacksID}}
 	directory := &fakeDirectory{viewer: locatedConsignor(), counts: map[int]int{10: 5}, cards: cards}
 
-	page, err := NewListStores(directory, fixedClock{}).Execute(context.Background(), consignorOwner(),
-		StoreListRequest{Search: domain.StoreSearchForm{Sort: "BEST_MATCH"}})
+	page, err := NewListStores(directory, directory, fixedClock{}).Execute(context.Background(), consignorOwner(),
+		bestMatchRequest())
 
 	if err != nil || page.Items[0].ID != cards[2].ID || !page.Items[0].HasMatch ||
 		directory.queries[0].Limit != domain.MatchCandidateLimit || directory.queries[0].Sort != domain.Nearest {
@@ -177,8 +182,8 @@ func TestListStores_FRDIR08_BestMatchRanksTheNearestCandidatesByScore(t *testing
 
 func TestListStores_FRDIR08_BestMatchPagesThroughTheRanking(t *testing.T) {
 	directory := &fakeDirectory{viewer: locatedConsignor(), counts: map[int]int{10: 25}, cards: cardsNumbered(25)}
-	lister := NewListStores(directory, fixedClock{})
-	request := StoreListRequest{Search: domain.StoreSearchForm{Sort: "BEST_MATCH"}}
+	lister := NewListStores(directory, directory, fixedClock{})
+	request := bestMatchRequest()
 
 	first, _ := lister.Execute(context.Background(), consignorOwner(), request)
 	request.Cursor = first.NextCursor
@@ -190,6 +195,13 @@ func TestListStores_FRDIR08_BestMatchPagesThroughTheRanking(t *testing.T) {
 	}
 }
 
-func listAsConsignor(directory *fakeDirectory) (StorePage, error) {
-	return NewListStores(directory, fixedClock{}).Execute(context.Background(), consignorOwner(), StoreListRequest{})
+func listAsConsignor(directory *fakeDirectory) (Page[domain.StoreCard], error) {
+	lister := NewListStores(directory, directory, fixedClock{})
+	return lister.Execute(context.Background(), consignorOwner(), ListRequest[domain.StoreSearchForm]{})
+}
+
+func bestMatchRequest() ListRequest[domain.StoreSearchForm] {
+	return ListRequest[domain.StoreSearchForm]{
+		Search: domain.StoreSearchForm{Search: domain.SearchForm{Sort: "BEST_MATCH"}},
+	}
 }

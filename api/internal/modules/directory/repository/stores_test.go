@@ -114,6 +114,28 @@ func nearOrigin() domain.Origin {
 	return domain.Origin{Point: domain.Point{Latitude: originLatitude, Longitude: originLongitude}, IsKnown: true}
 }
 
+func nearest() domain.Listing {
+	return domain.Listing{Origin: nearOrigin(), Sort: domain.Nearest}
+}
+
+func withinKm(radiusKm int) domain.Listing {
+	listing := nearest()
+	listing.RadiusKm = radiusKm
+	return listing
+}
+
+func firstOf(limit int) domain.Listing {
+	listing := nearest()
+	listing.Limit = limit
+	return listing
+}
+
+func after(position domain.Position) domain.Listing {
+	listing := nearest()
+	listing.After = position
+	return listing
+}
+
 func (w world) list(query domain.StoreQuery) []domain.StoreCard {
 	w.t.Helper()
 	if query.Limit == 0 {
@@ -149,7 +171,7 @@ func requireIDs(t *testing.T, cards []domain.StoreCard, want ...string) {
 func TestListStores_RCC51_FRDIR03_NearestFirstWithStraightLineDistance(t *testing.T) {
 	scene := newWorld(t)
 
-	cards := scene.list(domain.StoreQuery{Origin: nearOrigin(), Sort: domain.Nearest})
+	cards := scene.list(domain.StoreQuery{Listing: nearest()})
 
 	requireIDs(t, cards, nearCanteen, threeKmCafe, sevenKmCanteen, twentyKmGrocery)
 	if math.Abs(float64(cards[1].Distance.Meters-3000)) > toleranceMeters || !cards[1].Distance.IsKnown {
@@ -163,7 +185,7 @@ func TestListStores_RCC51_FRDIR03_NearestFirstWithStraightLineDistance(t *testin
 func TestListStores_FRDIR05_RadiusLimitsTheResults(t *testing.T) {
 	scene := newWorld(t)
 
-	cards := scene.list(domain.StoreQuery{Origin: nearOrigin(), Sort: domain.Nearest, RadiusKm: 5})
+	cards := scene.list(domain.StoreQuery{Listing: withinKm(5)})
 
 	requireIDs(t, cards, nearCanteen, threeKmCafe)
 }
@@ -171,7 +193,7 @@ func TestListStores_FRDIR05_RadiusLimitsTheResults(t *testing.T) {
 func TestCountStoresWithin_BRDIR03_CountsEveryRadiusStep(t *testing.T) {
 	scene := newWorld(t)
 
-	counts, err := scene.directory.CountStoresWithin(t.Context(), domain.StoreQuery{Origin: nearOrigin()})
+	counts, err := scene.directory.CountStoresWithin(t.Context(), domain.StoreQuery{Listing: nearest()})
 
 	if err != nil || counts[2] != 1 || counts[5] != 2 || counts[10] != 3 || counts[25] != 4 {
 		t.Fatalf("counts = %v, err = %v", counts, err)
@@ -204,7 +226,7 @@ func TestListStores_FRDIR06_FiltersNarrowTheResults(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			cards := scene.list(domain.StoreQuery{Origin: nearOrigin(), Sort: domain.Nearest, Filters: tc.filters})
+			cards := scene.list(domain.StoreQuery{Listing: nearest(), Filters: tc.filters})
 
 			requireIDs(t, cards, tc.want...)
 		})
@@ -213,9 +235,9 @@ func TestListStores_FRDIR06_FiltersNarrowTheResults(t *testing.T) {
 
 func TestListStores_BRDIR05_KeysetContinuesAfterTheLastCard(t *testing.T) {
 	scene := newWorld(t)
-	first := scene.list(domain.StoreQuery{Origin: nearOrigin(), Sort: domain.Nearest, Limit: 2})
+	first := scene.list(domain.StoreQuery{Listing: firstOf(2)})
 
-	rest := scene.list(domain.StoreQuery{Origin: nearOrigin(), Sort: domain.Nearest, After: first[1].Position})
+	rest := scene.list(domain.StoreQuery{Listing: after(first[1].Position)})
 
 	requireIDs(t, first, nearCanteen, threeKmCafe)
 	requireIDs(t, rest, sevenKmCanteen, twentyKmGrocery)
@@ -224,7 +246,7 @@ func TestListStores_BRDIR05_KeysetContinuesAfterTheLastCard(t *testing.T) {
 func TestListStores_BRDIR04_WithoutOriginDistanceIsUnknown(t *testing.T) {
 	scene := newWorld(t)
 
-	cards := scene.list(domain.StoreQuery{Sort: domain.ByCity})
+	cards := scene.list(domain.StoreQuery{Listing: domain.Listing{Sort: domain.ByCity}})
 
 	if len(cards) != 4 || cards[0].Distance.IsKnown || cards[0].Position.Text != "Kota Semarang" {
 		t.Fatalf("cards = %+v", cards)
@@ -268,7 +290,7 @@ func TestSessions_FRDIR10_SigningInMarksTheOrganizationActive(t *testing.T) {
 		CreatedAt: signedInAt,
 	}))
 
-	cards := scene.list(domain.StoreQuery{Origin: nearOrigin(), Sort: domain.Nearest, Limit: 1})
+	cards := scene.list(domain.StoreQuery{Listing: firstOf(1)})
 	if !cards[0].LastActiveAt.Equal(signedInAt) {
 		t.Fatalf("last active = %v", cards[0].LastActiveAt)
 	}

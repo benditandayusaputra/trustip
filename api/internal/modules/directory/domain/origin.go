@@ -57,6 +57,12 @@ type ConsignorFacts struct {
 	Categories          []Category
 }
 
+type StoreFacts struct {
+	StoreType           string
+	AcceptedCategoryIDs []string
+	NeedCategoryIDs     []string
+}
+
 type Viewer struct {
 	OrganizationID string
 	Type           actor.OrganizationType
@@ -65,6 +71,7 @@ type Viewer struct {
 	City           Point
 	HasCity        bool
 	Consignor      ConsignorFacts
+	Store          StoreFacts
 }
 
 func readOrigin(form OriginForm) (OriginRequest, []apperror.FieldError) {
@@ -122,4 +129,8 @@ func (v Viewer) DefaultCategoryIDs() []string {
 
 func (v Viewer) IsConsignor() bool {
 	return v.Type == actor.Consignor
+}
+
+func (v Viewer) IsStore() bool {
+	return v.Type == actor.Store
 }

@@ -49,6 +49,9 @@ func (r *Directory) GetViewer(ctx context.Context, key domain.ViewerKey) (domain
 			DeliveryRadiusKm: int(row.DeliveryRadiusKm), PreferredStoreTypes: row.PreferredStoreTypes,
 			Categories: categoriesOf(row.CategoryIds, row.CategoryNames),
 		},
+		Store: domain.StoreFacts{
+			StoreType: row.StoreType, AcceptedCategoryIDs: row.AcceptedCategoryIds, NeedCategoryIDs: []string{},
+		},
 	}, nil
 }
 
@@ -56,13 +59,9 @@ func (r *Directory) CountStoresWithin(ctx context.Context, query domain.StoreQue
 	readCtx, cancel := database.ReadContext(ctx)
 	defer cancel()
 	filters := query.Filters
-	radii := make([]float64, 0, len(domain.RadiusSteps()))
-	for _, step := range domain.RadiusSteps() {
-		radii = append(radii, float64(step*metersPerKm))
-	}
 	rows, err := sqlc.New(r.pool.Querier(ctx)).CountDirectoryStoresByRadius(readCtx,
 		sqlc.CountDirectoryStoresByRadiusParams{
-			RadiiMeters: radii, OriginLongitude: query.Origin.Point.Longitude,
+			RadiiMeters: radiusStepsInMeters(), OriginLongitude: query.Origin.Point.Longitude,
 			OriginLatitude: query.Origin.Point.Latitude, StoreType: filters.StoreType,
 			CategoryIds:  nonNull(filters.CategoryIDs),
 			PricingModel: filters.PricingModel, HasMaxCommission: filters.HasMaxCommission,
@@ -77,6 +76,14 @@ func (r *Directory) CountStoresWithin(ctx context.Context, query domain.StoreQue
 		counts[int(row.RadiusMeters)/metersPerKm] = int(row.StoreCount)
 	}
 	return counts, nil
+}
+
+func radiusStepsInMeters() []float64 {
+	radii := make([]float64, 0, len(domain.RadiusSteps()))
+	for _, step := range domain.RadiusSteps() {
+		radii = append(radii, float64(step*metersPerKm))
+	}
+	return radii
 }
 
 func (r *Directory) ListStores(ctx context.Context, query domain.StoreQuery) ([]domain.StoreCard, error) {
@@ -132,9 +139,7 @@ func toStoreCard(row sqlc.ListDirectoryStoresRow) domain.StoreCard {
 		LastActiveAt: row.LastActiveAt, CreatedAt: row.CreatedAt, IsSelf: row.IsSelf, IsPartner: row.IsPartner,
 		Position: domain.Position{Text: row.SortText, Number: row.SortNumber, ID: row.ID},
 	}
-	if row.DistanceMeters >= 0 {
-		card.Distance = domain.KnownDistance(int(row.DistanceMeters + roundingHalf))
-	}
+	card.Distance = distanceOf(row.DistanceMeters)
 	return card
 }
 

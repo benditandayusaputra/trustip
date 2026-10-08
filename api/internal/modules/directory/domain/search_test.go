@@ -41,13 +41,13 @@ func TestNewStoreSearch_FRDIR03_FRDIR05_DefaultsToNearestWithinTenKilometres(t *
 func TestNewStoreSearch_FRDIR05_RadiusChoices(t *testing.T) {
 	cases := map[string]int{"2": 2, "5": 5, "10": 10, "25": 25, "all": EveryDistance}
 	for raw, want := range cases {
-		search, err := NewStoreSearch(StoreSearchForm{Radius: raw})
+		search, err := NewStoreSearch(StoreSearchForm{Search: SearchForm{Radius: raw}})
 		if err != nil || search.RadiusKm != want {
 			t.Errorf("radius %q = %d, err = %v", raw, search.RadiusKm, err)
 		}
 	}
 	for _, raw := range []string{"3", "0", "-5", "jauh"} {
-		_, err := NewStoreSearch(StoreSearchForm{Radius: raw})
+		_, err := NewStoreSearch(StoreSearchForm{Search: SearchForm{Radius: raw}})
 		if fieldCodes(t, err)["radius_km"] != "UNKNOWN_CHOICE" {
 			t.Errorf("radius %q accepted", raw)
 		}
@@ -56,8 +56,8 @@ func TestNewStoreSearch_FRDIR05_RadiusChoices(t *testing.T) {
 
 func TestNewStoreSearch_FRDIR06_FiltersAreValidatedTogether(t *testing.T) {
 	_, err := NewStoreSearch(StoreSearchForm{
-		Sort: "CHEAPEST", StoreType: "BAR", PricingModel: "RENT", MaxCommissionBPS: "5001",
-		CategoryIDs: []string{"camilan"},
+		Search:    SearchForm{Sort: "CHEAPEST", CategoryIDs: []string{"camilan"}},
+		StoreType: "BAR", PricingModel: "RENT", MaxCommissionBPS: "5001",
 	})
 
 	codes := fieldCodes(t, err)
@@ -78,7 +78,7 @@ func TestNewStoreSearch_FRDIR06_MaxCommissionBoundaries(t *testing.T) {
 }
 
 func TestNewStoreSearch_BRDIR06_AnyCategoryClearsTheDefault(t *testing.T) {
-	search, err := NewStoreSearch(StoreSearchForm{CategoryIDs: []string{"any"}})
+	search, err := NewStoreSearch(StoreSearchForm{Search: SearchForm{CategoryIDs: []string{"any"}}})
 
 	if err != nil || search.UsesOwnCategories || len(search.Filters.CategoryIDs) != 0 {
 		t.Fatalf("search = %+v, err = %v", search, err)
@@ -86,12 +86,12 @@ func TestNewStoreSearch_BRDIR06_AnyCategoryClearsTheDefault(t *testing.T) {
 }
 
 func TestNewStoreSearch_FRDIR04_OriginChoices(t *testing.T) {
-	here, hereErr := NewStoreSearch(StoreSearchForm{Origin: OriginForm{
+	here, hereErr := NewStoreSearch(StoreSearchForm{Search: SearchForm{Origin: OriginForm{
 		Kind: "HERE", Latitude: "-7.0", Longitude: "110.4",
-	}})
-	city, cityErr := NewStoreSearch(StoreSearchForm{Origin: OriginForm{Kind: "CITY", CityCode: "33.74"}})
-	_, badPoint := NewStoreSearch(StoreSearchForm{Origin: OriginForm{Kind: "HERE", Latitude: "91", Longitude: "0"}})
-	_, badCity := NewStoreSearch(StoreSearchForm{Origin: OriginForm{Kind: "CITY", CityCode: "semarang"}})
+	}}})
+	city, cityErr := NewStoreSearch(fromOrigin(OriginForm{Kind: "CITY", CityCode: "33.74"}))
+	_, badPoint := NewStoreSearch(fromOrigin(OriginForm{Kind: "HERE", Latitude: "91", Longitude: "0"}))
+	_, badCity := NewStoreSearch(fromOrigin(OriginForm{Kind: "CITY", CityCode: "semarang"}))
 
 	if hereErr != nil || here.Origin.Point.Longitude != 110.4 || cityErr != nil || city.Origin.CityCode != "33.74" {
 		t.Fatalf("here = %+v %v, city = %+v %v", here.Origin, hereErr, city.Origin, cityErr)
@@ -122,8 +122,8 @@ func TestResolveFor_UnknownCityIsAFieldError(t *testing.T) {
 }
 
 func TestSortFor_BRDIR04_WithoutOriginNearestFallsBackToCity(t *testing.T) {
-	search := StoreSearch{Sort: Nearest}
-	newest := StoreSearch{Sort: Newest}
+	search := Search{Sort: Nearest}
+	newest := Search{Sort: Newest}
 
 	if search.SortFor(Origin{}) != ByCity || search.SortFor(Origin{IsKnown: true}) != Nearest ||
 		newest.SortFor(Origin{}) != Newest {
@@ -236,4 +236,8 @@ func mustFail[T any](_ T, err error) error {
 
 func sentAt() time.Time {
 	return time.Date(2026, 10, 20, 3, 0, 0, 0, time.UTC)
+}
+
+func fromOrigin(origin OriginForm) StoreSearchForm {
+	return StoreSearchForm{Search: SearchForm{Origin: origin}}
 }

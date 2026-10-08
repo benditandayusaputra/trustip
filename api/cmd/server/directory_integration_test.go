@@ -59,3 +59,57 @@ func TestDirectoryStores_FRDIR05_UnknownRadiusIsAValidationError(t *testing.T) {
 	}
 	loadContract(t).requireConforms(t, got)
 }
+
+const locatedBody = `"location":{"latitude":-7.0546,"longitude":110.4386}`
+
+type consignorDirectoryScene struct {
+	store       *browser
+	consignorID string
+	productID   string
+}
+
+func listedConsignorScene(t *testing.T) consignorDirectoryScene {
+	t.Helper()
+	consignor := databaseBrowser(t)
+	founded := consignor.postOrganization(strings.Replace(consignorOnboarding(), `"location":null`, locatedBody, 1))
+	consignor.post("/api/v1/sessions/refresh")
+	scene := consignorDirectoryScene{consignorID: quotedAfter(string(founded.body), `"id":"`)}
+	product := consignor.postJSON(productsPath, productBody(""))
+	scene.productID = quotedAfter(string(product.body), `"id":"`)
+	consignor.patch(productsPath+"/"+scene.productID+"/seeking", `{"is_seeking_stores":true}`)
+	listed := consignor.patch(organizationsPath+"/"+scene.consignorID+"/listing", `{"is_listed":true}`)
+	if listed.status != http.StatusOK {
+		t.Fatalf("listing = %d %s", listed.status, listed.body)
+	}
+	scene.store = consignor.anotherUserOnTheSameServer("tini@contoh.id")
+	store := scene.store.found(strings.Replace(onboarding(semarangCityCode), `"location":null`, locatedBody, 1), "LOGO")
+	scene.store.patch(organizationsPath+"/"+store.id+"/store-profile", storeProfileBody(""))
+	return scene
+}
+
+func TestDirectoryProducts_FRDIR02_StoreFindsTheProductSeekingStores(t *testing.T) {
+	scene := listedConsignorScene(t)
+
+	got := scene.store.get("/api/v1/directory/products?origin=CITY&city_code=33.74&radius_km=all")
+
+	requireCode(t, got, "OK")
+	loadContract(t).requireConforms(t, got)
+	body := string(got.body)
+	if !strings.Contains(body, `"id":"`+scene.productID+`"`) || !strings.Contains(body, `"score":`) ||
+		strings.Contains(body, "deposit") {
+		t.Fatalf("got = %s", got.body)
+	}
+}
+
+func TestDirectoryConsignors_FRDIR07_HalalFilterLeavesTheConsignorOut(t *testing.T) {
+	scene := listedConsignorScene(t)
+
+	all := scene.store.get("/api/v1/directory/consignors?radius_km=2")
+	halal := scene.store.get("/api/v1/directory/consignors?has_halal=true")
+
+	requireCode(t, all, "OK")
+	loadContract(t).requireConforms(t, all)
+	if !strings.Contains(string(all.body), scene.consignorID) || !strings.Contains(string(halal.body), `"data":[]`) {
+		t.Fatalf("all = %s\nhalal = %s", all.body, halal.body)
+	}
+}

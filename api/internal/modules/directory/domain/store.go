@@ -1,10 +1,67 @@
 package domain
 
 import (
-	"cmp"
-	"slices"
 	"time"
+
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/storetype"
 )
+
+const maxCommissionBPS = 5000
+
+func pricingModelChoices() []string {
+	return []string{"FIXED_DEPOSIT", "COMMISSION"}
+}
+
+type StoreSearchForm struct {
+	Search                   SearchForm
+	StoreType                string
+	PricingModel             string
+	MaxCommissionBPS         string
+	WithoutPermitRequirement bool
+	WithoutHalalRequirement  bool
+}
+
+type StoreFilters struct {
+	StoreType        string
+	CategoryIDs      []string
+	PricingModel     string
+	HasMaxCommission bool
+	MaxCommissionBPS int
+	WithoutPermit    bool
+	WithoutHalal     bool
+	Text             string
+}
+
+type StoreSearch struct {
+	Search
+	Filters StoreFilters
+}
+
+func NewStoreSearch(form StoreSearchForm) (StoreSearch, error) {
+	search, problems := readSearch(form.Search)
+	commission, commissionProblem := readBound("max_commission_bps", form.MaxCommissionBPS,
+		field.Length{Max: maxCommissionBPS})
+	problems = append(problems, field.Collect(
+		commissionProblem,
+		field.CheckChoice("store_type", form.StoreType, storetype.All()),
+		field.CheckChoice("pricing_model", form.PricingModel, pricingModelChoices()),
+	)...)
+	if len(problems) > 0 {
+		return StoreSearch{}, apperror.Validation(problems...)
+	}
+	return StoreSearch{Search: search, Filters: StoreFilters{
+		StoreType: form.StoreType, CategoryIDs: search.CategoryIDs, PricingModel: form.PricingModel,
+		HasMaxCommission: commission.IsGiven, MaxCommissionBPS: commission.Value,
+		WithoutPermit: form.WithoutPermitRequirement, WithoutHalal: form.WithoutHalalRequirement, Text: search.Text,
+	}}, nil
+}
+
+type StoreQuery struct {
+	Listing
+	Filters StoreFilters
+}
 
 type CommissionRange struct {
 	MinBPS  int
@@ -42,6 +99,14 @@ type StoreCard struct {
 	Position           Position
 }
 
+func (c StoreCard) rankKey() rankKey {
+	return rankKey{score: c.Match.Score, meters: c.Distance.Meters, id: c.ID}
+}
+
+func (c StoreCard) SortPosition() Position {
+	return c.Position
+}
+
 func (c StoreCard) acceptedCategoryIDs() []string {
 	ids := make([]string, 0, len(c.AcceptedCategories))
 	for _, category := range c.AcceptedCategories {
@@ -62,47 +127,4 @@ func (v Viewer) MatchStore(card StoreCard, now time.Time) StoreCard {
 	})
 	card.HasMatch = true
 	return card
-}
-
-func RankByMatch(cards []StoreCard) []StoreCard {
-	ranked := slices.Clone(cards)
-	slices.SortStableFunc(ranked, func(left, right StoreCard) int {
-		return cmp.Or(
-			cmp.Compare(right.Match.Score, left.Match.Score),
-			cmp.Compare(left.Distance.Meters, right.Distance.Meters),
-			cmp.Compare(left.ID, right.ID),
-		)
-	})
-	return ranked
-}
-
-func PageAfter(ranked []StoreCard, afterID string, limit int) ([]StoreCard, bool) {
-	start := 0
-	if afterID != "" {
-		start = slices.IndexFunc(ranked, func(card StoreCard) bool { return card.ID == afterID }) + 1
-	}
-	rest := ranked[start:]
-	if len(rest) <= limit {
-		return rest, false
-	}
-	return rest[:limit], true
-}
-
-type SearchContext struct {
-	Origin            Origin
-	Sort              SortOrder
-	SelectedRadiusKm  int
-	EffectiveRadiusKm int
-	CategoryIDs       []string
-}
-
-func (c SearchContext) IsExpanded() bool {
-	return c.Origin.IsKnown && c.EffectiveRadiusKm != c.SelectedRadiusKm
-}
-
-func (s StoreSearch) SortFor(origin Origin) SortOrder {
-	if !origin.IsKnown && s.Sort == Nearest {
-		return ByCity
-	}
-	return s.Sort
 }
