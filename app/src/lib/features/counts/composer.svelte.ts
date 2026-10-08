@@ -11,7 +11,9 @@ import {
 	earliestCountDate,
 	errorKeyOf,
 	linesOf,
+	refilledCountLines,
 	returnAllRemaining,
+	revisionDateOf,
 	toCountRequest,
 	validateCount,
 	withChanges,
@@ -30,6 +32,8 @@ export type SaveOutcome =
 
 interface OutboxPort {
 	submit: (draft: EntryDraft) => Promise<SubmitResult>;
+	resubmit: (entryId: string, draft: EntryDraft) => Promise<SubmitResult>;
+	find: (entryId: string) => Promise<OutboxEntry | undefined>;
 	waiting: () => Promise<OutboxEntry[]>;
 }
 
@@ -53,6 +57,7 @@ export class CountComposer {
 	failure = $state('');
 	busy = $state(false);
 	#partnershipId = '';
+	#revising = $state('');
 	readonly #deps: ComposerDeps;
 
 	constructor(deps: ComposerDeps) {
@@ -85,6 +90,23 @@ export class CountComposer {
 		}
 	}
 
+	get isRevising(): boolean {
+		return this.#revising !== '';
+	}
+
+	async loadRevision(partnershipId: string, entryId: string): Promise<void> {
+		await this.load(partnershipId);
+		const entry = await this.#deps.outbox.find(entryId);
+		if (entry?.kind !== 'COUNT' || this.status !== 'ready') {
+			return;
+		}
+		this.#revising = entry.id;
+		this.occasion = entry.request.occasion;
+		this.note = entry.request.note ?? '';
+		this.countedOn = revisionDateOf(entry.request.counted_at ?? null, entry.recordedAt);
+		this.lines = refilledCountLines(this.lines, entry.request.lines);
+	}
+
 	updateLine(productId: string, changes: LineChanges): void {
 		this.lines = this.lines.map((line) =>
 			line.productId === productId ? withChanges(line, changes) : line
@@ -112,12 +134,17 @@ export class CountComposer {
 		};
 		this.busy = true;
 		try {
-			return this.#outcomeOf(await this.#deps.outbox.submit(draft));
+			return this.#outcomeOf(await this.#send(draft));
 		} catch (error) {
 			return { kind: 'failed', message: error instanceof Error ? error.message : '' };
 		} finally {
 			this.busy = false;
 		}
+	}
+
+	#send(draft: EntryDraft): Promise<SubmitResult> {
+		const outbox = this.#deps.outbox;
+		return this.isRevising ? outbox.resubmit(this.#revising, draft) : outbox.submit(draft);
 	}
 
 	#outcomeOf(result: SubmitResult): SaveOutcome {

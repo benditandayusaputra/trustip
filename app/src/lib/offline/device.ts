@@ -47,6 +47,10 @@ export async function ownEntries(): Promise<OutboxEntry[]> {
 	return outboxStore.listFor(account.id);
 }
 
+export async function findOwnEntry(entryId: string): Promise<OutboxEntry | undefined> {
+	return (await ownEntries()).find((entry) => entry.id === entryId);
+}
+
 export async function waitingEntries(): Promise<OutboxEntry[]> {
 	return (await ownEntries()).filter(isWaiting);
 }

@@ -3,6 +3,7 @@ import type { Drop, DropRequest } from '#lib/api/drops.js';
 import type { PartnerCatalogItem } from '#lib/api/partnerships.js';
 import { addDays, daysBetween } from '#lib/domain/dates.js';
 import { splitOf, summarize, type Split, type Terms } from '#lib/domain/pricing.js';
+import { businessDateOf } from '#lib/i18n/format.js';
 import { id } from '#lib/i18n/id.js';
 
 export const maxQty = 10_000;
@@ -134,4 +135,17 @@ export function repeatQuantities(lines: DropLine[], previous: Drop): DropLine[] 
 		quantities.set(item.product_id, (quantities.get(item.product_id) ?? 0) + item.qty);
 	}
 	return lines.map((line) => ({ ...line, qty: quantities.get(line.productId) ?? 0 }));
+}
+
+export function revisionDateOf(occurredAt: string | null, recordedAt: string): string {
+	return businessDateOf(new Date(occurredAt ?? recordedAt));
+}
+
+export function refilledLines(lines: DropLine[], items: DropRequest['items']): DropLine[] {
+	return lines.map((line) => {
+		const item = items.find((sent) => sent.product_id === line.productId);
+		return item
+			? { ...line, qty: item.qty, expiryDate: item.expiry_date ?? line.expiryDate }
+			: line;
+	});
 }

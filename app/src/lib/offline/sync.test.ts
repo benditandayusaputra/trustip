@@ -219,17 +219,18 @@ describe('OutboxSync (FR-PWA-06)', () => {
 	it('R-OFF-10 gives a corrected entry a new idempotency key', async () => {
 		const { sync, store } = engine(server(me, []));
 		const id = await sync.enqueue(countDraft('p1'));
-		const entry = store.entries.get(id);
-		if (!entry) {
-			throw new Error('entry missing');
+		const corrected = countDraft('p1');
+		if (corrected.kind === 'COUNT') {
+			corrected.request.note = 'Dihitung ulang';
 		}
 
-		await sync.revise({ ...entry, status: 'NEEDS_REVIEW' });
+		await sync.revise(id, corrected);
 
 		expect(store.entries.get(id)).toMatchObject({
 			revision: 1,
 			idempotencyKey: 'key-2',
-			status: 'PENDING'
+			status: 'PENDING',
+			request: { note: 'Dihitung ulang' }
 		});
 	});
 

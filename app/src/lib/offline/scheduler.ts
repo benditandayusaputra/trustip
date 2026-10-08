@@ -27,6 +27,12 @@ export class OutboxScheduler {
 		return this.#deps.sync.resultOf(id);
 	}
 
+	async resubmit(entryId: string, draft: EntryDraft): Promise<SubmitResult> {
+		await this.#deps.sync.revise(entryId, draft);
+		await this.run();
+		return this.#deps.sync.resultOf(entryId);
+	}
+
 	async run(): Promise<FlushResult> {
 		this.stop();
 		const result = await this.#deps.sync.flush();

@@ -9,7 +9,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import { id } from '#lib/i18n/id.js';
-	import { outboxScheduler } from '#lib/offline/device.js';
+	import { findOwnEntry, outboxScheduler } from '#lib/offline/device.js';
 	import { DropComposer } from '../composer.svelte';
 	import { previewOf, type DropLine } from '../schema';
 	import DropLineRow from './DropLineRow.svelte';
@@ -19,22 +19,29 @@
 		partnershipId: string;
 		onsaved: (dropId: string) => void;
 		onqueued: () => void;
+		revisionOf?: string;
 	}
 
-	let { partnershipId, onsaved, onqueued }: Props = $props();
+	let { partnershipId, onsaved, onqueued, revisionOf = '' }: Props = $props();
 
 	const text = id.drops;
 	const toaster = getToaster();
 	const composer = new DropComposer({
 		client: apiClient,
-		outbox: outboxScheduler(),
+		outbox: {
+			submit: (draft) => outboxScheduler().submit(draft),
+			resubmit: (entryId, draft) => outboxScheduler().resubmit(entryId, draft),
+			find: findOwnEntry
+		},
 		now: () => new Date()
 	});
 	const preview = $derived(previewOf(composer.lines));
 	let formElement: HTMLFormElement | undefined = $state();
 
 	$effect(() => {
-		void composer.load(partnershipId);
+		void (revisionOf === ''
+			? composer.load(partnershipId)
+			: composer.loadRevision(partnershipId, revisionOf));
 	});
 
 	async function repeatLast() {
@@ -79,6 +86,9 @@
 	</EmptyState>
 {:else}
 	<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-6">
+		{#if composer.isRevising}
+			<p role="status" class="text-sm text-warning">{id.outbox.revising}</p>
+		{/if}
 		<p class="text-base text-text">{text.consignor}: {composer.consignorName}</p>
 		<DateField
 			label={text.dropDate}

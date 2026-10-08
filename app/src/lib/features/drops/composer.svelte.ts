@@ -5,7 +5,7 @@ import { getDrop, listDrops } from '#lib/api/drops.js';
 import { listPartnerCatalog } from '#lib/api/partnerships.js';
 import { addDays } from '#lib/domain/dates.js';
 import { businessDateOf } from '#lib/i18n/format.js';
-import type { EntryDraft, QueuedDropLine, SentDocument } from '#lib/offline/outbox.js';
+import type { EntryDraft, OutboxEntry, QueuedDropLine, SentDocument } from '#lib/offline/outbox.js';
 import type { SubmitResult } from '#lib/offline/sync.js';
 import { emptyFilter } from './history.svelte';
 import {
@@ -14,7 +14,9 @@ import {
 	filledLines,
 	linesOf,
 	maxDaysBack,
+	refilledLines,
 	repeatQuantities,
+	revisionDateOf,
 	toDropRequest,
 	validateDrop,
 	type DropErrors,
@@ -27,13 +29,15 @@ export type SaveOutcome =
 	| { kind: 'invalid' }
 	| { kind: 'failed'; message: string };
 
-interface OutboxSubmitter {
+interface OutboxPort {
 	submit: (draft: EntryDraft) => Promise<SubmitResult>;
+	resubmit: (entryId: string, draft: EntryDraft) => Promise<SubmitResult>;
+	find: (entryId: string) => Promise<OutboxEntry | undefined>;
 }
 
 interface ComposerDeps {
 	client: () => ApiClient;
-	outbox: OutboxSubmitter;
+	outbox: OutboxPort;
 	now: () => Date;
 }
 
@@ -47,6 +51,7 @@ export class DropComposer {
 	busy = $state(false);
 	#partnershipId = '';
 	#agreementVersion = 0;
+	#revising = $state('');
 	readonly #deps: ComposerDeps;
 
 	constructor(deps: ComposerDeps) {
@@ -78,6 +83,21 @@ export class DropComposer {
 			this.failure = error instanceof Error ? error.message : '';
 			this.status = 'failed';
 		}
+	}
+
+	get isRevising(): boolean {
+		return this.#revising !== '';
+	}
+
+	async loadRevision(partnershipId: string, entryId: string): Promise<void> {
+		await this.load(partnershipId);
+		const entry = await this.#deps.outbox.find(entryId);
+		if (entry?.kind !== 'DROP' || this.status !== 'ready') {
+			return;
+		}
+		this.#revising = entry.id;
+		this.changeDate(revisionDateOf(entry.request.occurred_at ?? null, entry.recordedAt));
+		this.lines = refilledLines(this.lines, entry.request.items);
 	}
 
 	changeDate(next: string): void {
@@ -116,12 +136,17 @@ export class DropComposer {
 		const sent = filledLines(this.lines);
 		this.busy = true;
 		try {
-			return this.#outcomeOf(await this.#deps.outbox.submit(this.#draft(sent)), sent);
+			return this.#outcomeOf(await this.#send(this.#draft(sent)), sent);
 		} catch (error) {
 			return { kind: 'failed', message: error instanceof Error ? error.message : '' };
 		} finally {
 			this.busy = false;
 		}
+	}
+
+	#send(draft: EntryDraft): Promise<SubmitResult> {
+		const outbox = this.#deps.outbox;
+		return this.isRevising ? outbox.resubmit(this.#revising, draft) : outbox.submit(draft);
 	}
 
 	#outcomeOf(result: SubmitResult, sent: DropLine[]): SaveOutcome {

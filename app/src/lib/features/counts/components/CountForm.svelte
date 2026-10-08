@@ -12,7 +12,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { CountOccasion } from '#lib/api/counts.js';
 	import { id } from '#lib/i18n/id.js';
-	import { outboxScheduler, waitingEntries } from '#lib/offline/device.js';
+	import { findOwnEntry, outboxScheduler, waitingEntries } from '#lib/offline/device.js';
 	import { CountComposer } from '../composer.svelte';
 	import { maxNoteLength, previewOf, type InputMode, type withChanges } from '../schema';
 	import CountLineRow from './CountLineRow.svelte';
@@ -23,15 +23,21 @@
 		dropHref: string;
 		onsaved: (countId: string) => void;
 		onqueued: () => void;
+		revisionOf?: string;
 	}
 
-	let { partnershipId, dropHref, onsaved, onqueued }: Props = $props();
+	let { partnershipId, dropHref, onsaved, onqueued, revisionOf = '' }: Props = $props();
 
 	const text = id.counts;
 	const toaster = getToaster();
 	const composer = new CountComposer({
 		client: apiClient,
-		outbox: { submit: (draft) => outboxScheduler().submit(draft), waiting: waitingEntries },
+		outbox: {
+			submit: (draft) => outboxScheduler().submit(draft),
+			resubmit: (entryId, draft) => outboxScheduler().resubmit(entryId, draft),
+			find: findOwnEntry,
+			waiting: waitingEntries
+		},
 		now: () => new Date()
 	});
 	const preview = $derived(previewOf(composer.lines));
@@ -43,7 +49,9 @@
 	let formElement: HTMLFormElement | undefined = $state();
 
 	$effect(() => {
-		void composer.load(partnershipId);
+		void (revisionOf === ''
+			? composer.load(partnershipId)
+			: composer.loadRevision(partnershipId, revisionOf));
 	});
 
 	async function handleSubmit(event: SubmitEvent) {
@@ -78,6 +86,9 @@
 	</EmptyState>
 {:else}
 	<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-6">
+		{#if composer.isRevising}
+			<p role="status" class="text-sm text-warning">{id.outbox.revising}</p>
+		{/if}
 		<p class="text-base text-text">{text.consignor}: {composer.sheet.consignor.name}</p>
 		<Select
 			label={text.occasion}

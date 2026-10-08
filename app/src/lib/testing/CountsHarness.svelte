@@ -11,6 +11,7 @@
 		viewerOrganizationId?: string;
 		ondone?: (documentId: string) => void;
 		onqueued?: () => void;
+		revisionOf?: string;
 	}
 
 	let {
@@ -18,14 +19,21 @@
 		targetId = '',
 		viewerOrganizationId = '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7d',
 		ondone = () => undefined,
-		onqueued = () => undefined
+		onqueued = () => undefined,
+		revisionOf = ''
 	}: Props = $props();
 
 	setToaster(new ToastQueue());
 </script>
 
 {#if view === 'form'}
-	<CountForm partnershipId={targetId} dropHref="/app/titipan/baru" onsaved={ondone} {onqueued} />
+	<CountForm
+		partnershipId={targetId}
+		dropHref="/app/titipan/baru"
+		onsaved={ondone}
+		{onqueued}
+		{revisionOf}
+	/>
 {:else if view === 'history'}
 	<CountHistoryList partnershipId={targetId} countHref="/app/hitung/baru" />
 {:else}

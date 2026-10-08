@@ -6,6 +6,7 @@
 	import { id } from '#lib/i18n/id.js';
 
 	const partnershipId = $derived(page.url.searchParams.get('mitra') ?? '');
+	const revisionOf = $derived(page.url.searchParams.get('antrean') ?? '');
 </script>
 
 <svelte:head>
@@ -21,6 +22,7 @@
 		{#key partnershipId}
 			<CountForm
 				{partnershipId}
+				{revisionOf}
 				dropHref="/app/titipan/baru?mitra={partnershipId}"
 				onsaved={(countId: string) => void goto(`/app/hitung/${countId}`)}
 				onqueued={() => void goto('/app/antrean')}

@@ -1,6 +1,7 @@
 import { page, userEvent } from 'vitest/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { aQueuedDrop, emptyOutbox, storeCashier } from '#lib/testing/outbox.js';
+import type { OutboxEntry } from '#lib/offline/outbox.js';
 import { outboxStore } from '#lib/offline/store.js';
 import { render } from 'vitest-browser-svelte';
 import CountsHarness from '#lib/testing/CountsHarness.svelte';
@@ -189,6 +190,56 @@ describe('Count form', () => {
 		await render(CountsHarness, { view: 'form', targetId: partnershipId });
 
 		await expect.element(page.getByText('Stok tercatat 25 pcs')).toBeVisible();
+	});
+
+	it('R-OFF-10 fixes a refused count from the queue and resends it under a new key', async () => {
+		const { sent } = serve();
+		const refused = {
+			...aQueuedDrop({ status: 'NEEDS_REVIEW' }),
+			id: 'entry-count',
+			idempotencyKey: 'entry-count',
+			kind: 'COUNT',
+			partnershipId,
+			request: {
+				partnership_id: partnershipId,
+				agreement_version: 1,
+				counted_at: null,
+				occasion: 'PICKUP',
+				note: 'Hitung pagi',
+				lines: [
+					{
+						product_id: breadId,
+						recorded_qty: 18,
+						counted_qty: 2,
+						returned_qty: 2,
+						return_reason: 'UNSOLD'
+					}
+				]
+			}
+		} as OutboxEntry;
+		await outboxStore.put(refused);
+		const ondone = vi.fn();
+		await render(CountsHarness, {
+			view: 'form',
+			targetId: partnershipId,
+			revisionOf: refused.id,
+			ondone
+		});
+
+		await expect.element(page.getByText(/Anda memperbaiki catatan dari antrean/u)).toBeVisible();
+		await expect.element(page.getByRole('textbox', { name: 'Catatan' })).toHaveValue('Hitung pagi');
+		await userEvent.click(page.getByRole('button', { name: 'Simpan Hitung Sisa' }));
+
+		await vi.waitFor(() => {
+			expect(ondone).toHaveBeenCalledWith(countId);
+		});
+		expect(sent[0]).toMatchObject({
+			occasion: 'PICKUP',
+			lines: [{ recorded_qty: 20, counted_qty: 2, returned_qty: 2 }]
+		});
+		const stored = await outboxStore.get(refused.id);
+		expect(stored).toMatchObject({ status: 'SENT', revision: 1 });
+		expect(stored?.idempotencyKey).not.toBe(refused.idempotencyKey);
 	});
 
 	it('FR-CNT-07 fills sold units and works out what is left', async () => {

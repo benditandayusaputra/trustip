@@ -90,12 +90,16 @@ export class OutboxSync {
 		this.#deps.announce();
 	}
 
-	async revise(entry: OutboxEntry): Promise<void> {
-		const key = this.#deps.newKey();
+	async revise(entryId: string, draft: EntryDraft): Promise<void> {
+		const entry = await this.#deps.store.get(entryId);
+		if (!entry) {
+			throw new Error(`outbox entry ${entryId} is gone`);
+		}
 		await this.#save({
 			...entry,
+			...draft,
 			revision: entry.revision + 1,
-			idempotencyKey: key,
+			idempotencyKey: this.#deps.newKey(),
 			status: 'PENDING',
 			problem: null
 		});

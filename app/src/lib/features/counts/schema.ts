@@ -166,3 +166,24 @@ export function errorKeyOf(field: string, lines: CountLineValues[]): string {
 	}
 	return field === 'counted_at' ? 'countedOn' : field;
 }
+
+export function revisionDateOf(countedAt: string | null, recordedAt: string): string {
+	return businessDateOf(new Date(countedAt ?? recordedAt));
+}
+
+export function refilledCountLines(
+	lines: CountLineValues[],
+	sent: CountRequest['lines']
+): CountLineValues[] {
+	return lines.map((line) => {
+		const previous = sent.find((value) => value.product_id === line.productId);
+		if (!previous) {
+			return line;
+		}
+		return withChanges(line, {
+			countedQty: previous.counted_qty,
+			returnedQty: previous.returned_qty,
+			returnReason: previous.return_reason ?? ''
+		});
+	});
+}
