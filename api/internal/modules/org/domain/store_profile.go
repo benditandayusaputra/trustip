@@ -6,6 +6,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/storetype"
 )
 
 const (
@@ -15,13 +16,6 @@ const (
 	MaxOtherRequirementsSize = 500
 	maxAcceptedCategories    = 12
 )
-
-func StoreTypes() []string {
-	return []string{
-		"GROCERY_STALL", "LOCAL_MINIMARKET", "SOUVENIR_SHOP", "CANTEEN", "CAFE",
-		"BAKERY", "COOPERATIVE", "MARKET_KIOSK", "OTHER",
-	}
-}
 
 type Acceptance struct {
 	AcceptsFixedDeposit bool
@@ -61,7 +55,7 @@ type StoreProfileChange struct {
 
 func NewStoreProfile(form StoreProfileForm) (StoreProfile, error) {
 	problems := field.Collect(
-		field.CheckChoice("store_type", form.StoreType, StoreTypes()),
+		field.CheckChoice("store_type", form.StoreType, storetype.All()),
 		findIDListProblem("accepted_category_ids", form.CategoryIDs, maxAcceptedCategories),
 		findCommissionProblem(form.Commission),
 		field.CheckLength("opening_hours", form.OpeningHours, field.Length{Max: MaxOpeningHoursLength}),

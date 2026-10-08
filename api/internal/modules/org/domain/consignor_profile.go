@@ -6,6 +6,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/storetype"
 )
 
 const (
@@ -49,7 +50,7 @@ func NewConsignorProfile(form ConsignorProfileForm) (ConsignorProfile, error) {
 	problems := field.Collect(
 		findRadiusProblem(form.DeliveryRadius),
 		findChoicesProblem("delivery_days", form.DeliveryDays, DeliveryDays()),
-		findChoicesProblem("preferred_store_types", form.PreferredStoreTypes, StoreTypes()),
+		findChoicesProblem("preferred_store_types", form.PreferredStoreTypes, storetype.All()),
 		field.CheckLength("business_id_no", form.Legal.BusinessIDNo, field.Length{Max: MaxLegalNumberLength}),
 		field.CheckLength("distribution_permit_no", form.Legal.DistributionPermitNo,
 			field.Length{Max: MaxLegalNumberLength}),
