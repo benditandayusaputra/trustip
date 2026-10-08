@@ -74,7 +74,9 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	appLog := logger.ForStream(base, logger.App)
-	jobs := newScheduler(buildJobRunners(pool, trade), systemClock, scheduler.SystemWaits{}, appLog)
+	jobs := newScheduler(schedulerParts{
+		runners: buildJobRunners(pool, trade), clock: systemClock, waits: scheduler.SystemWaits{}, log: appLog,
+	})
 	defer startJobs(ctx, jobs, stop)()
 	appLog.Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
 	if err := server.Run(ctx, cfg.HTTPAddr); err != nil {

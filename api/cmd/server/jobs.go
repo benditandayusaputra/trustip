@@ -71,8 +71,16 @@ func (r jobRunners) issue(schedule terms.Schedule) scheduler.Work {
 	}
 }
 
-func newScheduler(runners jobRunners, clock serverClock, waits scheduler.Waits, log *slog.Logger) *scheduler.Scheduler {
+type schedulerParts struct {
+	runners jobRunners
+	clock   serverClock
+	waits   scheduler.Waits
+	log     *slog.Logger
+}
+
+func newScheduler(parts schedulerParts) *scheduler.Scheduler {
 	return scheduler.New(scheduler.Options{
-		Jobs: scheduledJobs(runners), Clock: clock, Waits: waits, Location: period.Jakarta(), Log: log,
+		Jobs: scheduledJobs(parts.runners), Clock: parts.clock, Waits: parts.waits, Location: period.Jakarta(),
+		Log: parts.log,
 	})
 }

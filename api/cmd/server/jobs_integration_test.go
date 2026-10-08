@@ -32,14 +32,16 @@ func (w *jumpingWaits) After(wait time.Duration) <-chan time.Time {
 	return fired
 }
 
-func runJobsUntil(t *testing.T, scene dropScene, until time.Time, wakes int) {
+func (scene dropScene) runJobsUntil(t *testing.T, until time.Time, wakes int) {
 	t.Helper()
 	now := scene.store.now
 	now.Advance(until.Sub(now.Now()))
 	waits := &jumpingWaits{clock: now, wakes: wakes, parked: make(chan struct{})}
 	trade := buildTradeComponents(scene.store.pool, now, testSealKeys{})
-	jobs := newScheduler(buildJobRunners(scene.store.pool, trade), now, waits,
-		slog.New(slog.NewTextHandler(io.Discard, nil)))
+	jobs := newScheduler(schedulerParts{
+		runners: buildJobRunners(scene.store.pool, trade), clock: now, waits: waits,
+		log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
 	ctx, cancel := context.WithCancel(t.Context())
 	finished := make(chan struct{})
 	go func() {
@@ -62,7 +64,7 @@ func TestScheduler_FRSTL02_WeeklySettlementIsIssuedOnMondayAfterTheWeek(t *testi
 	scene.store.recordCount(countBody(scene.partnershipID, scene.productID,
 		countLine{recorded: 20, counted: 2, returned: 2, reason: "UNSOLD"}))
 
-	runJobsUntil(t, scene, jakartaMidnight(10, 26), 2)
+	scene.runJobsUntil(t, jakartaMidnight(10, 26), 2)
 
 	listed := scene.consignor.get(settlementsPath + "?partnership_id=" + scene.partnershipID)
 	requireCode(t, listed, "OK")
@@ -83,9 +85,9 @@ func TestScheduler_FRSTL02_MonthlySettlementWaitsForTheFirstOfTheMonth(t *testin
 	scene := recordedDropWith(t, "MONTHLY")
 	scene.store.recordCount(countBody(scene.partnershipID, scene.productID, countLine{recorded: 20, counted: 12}))
 
-	runJobsUntil(t, scene, jakartaMidnight(10, 26), 2)
+	scene.runJobsUntil(t, jakartaMidnight(10, 26), 2)
 	beforeMonthEnd := scene.consignor.get(settlementsPath + "?partnership_id=" + scene.partnershipID)
-	runJobsUntil(t, scene, jakartaMidnight(11, 1), 2)
+	scene.runJobsUntil(t, jakartaMidnight(11, 1), 2)
 	afterMonthEnd := scene.consignor.get(settlementsPath + "?partnership_id=" + scene.partnershipID)
 
 	if !strings.Contains(string(beforeMonthEnd.body), `"data":[]`) {
@@ -102,7 +104,7 @@ func TestScheduler_SpecTwentyOneFive_UnansweredDropIsStoredAsConfirmedAfterForty
 	scene := recordedDrop(t)
 	dropID := strings.TrimPrefix(scene.path, dropsPath+"/")
 
-	runJobsUntil(t, scene, jakartaMidnight(10, 22), 1)
+	scene.runJobsUntil(t, jakartaMidnight(10, 22), 1)
 
 	view, err := droprepository.NewDrops(scene.store.pool).GetDrop(t.Context(), dropdomain.DropKey{
 		OrganizationID: scene.store.actor(t).Membership.OrganizationID, DropID: dropID,

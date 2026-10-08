@@ -81,16 +81,22 @@ func (fixedClock) Now() time.Time {
 	return time.Date(2026, 11, 20, 3, 0, 0, 0, time.UTC)
 }
 
-func endingScenario() (*fakeEnder, *endingEvents, service.EndDeps) {
+type endingRun struct {
+	ender  *fakeEnder
+	events *endingEvents
+	deps   service.EndDeps
+}
+
+func endingScenario() endingRun {
 	ender := &fakeEnder{state: domain.EndState{
 		PartnershipID: partnershipID, Status: domain.Active, StoreID: storeID, ConsignorID: consignorID,
 		StoreName: "Warung Bu Sri", ConsignorName: "Roti Pak Anton",
 	}}
 	recorded := &endingEvents{}
-	return ender, recorded, service.EndDeps{
+	return endingRun{ender: ender, events: recorded, deps: service.EndDeps{
 		Partnerships: ender, Reader: &fakeReader{}, Settler: recorded, Sealer: recorded, Announcer: recorded,
 		Audit: recorded, Tx: inlineTx{}, Clock: fixedClock{},
-	}
+	}}
 }
 
 func owner(organizationID string, organizationType actor.OrganizationType) actor.Actor {
@@ -100,7 +106,8 @@ func owner(organizationID string, organizationType actor.OrganizationType) actor
 }
 
 func TestEndPartnership_BRPRT03_SettlesFirstThenEndsSealsAndTellsThePartner(t *testing.T) {
-	ender, recorded, deps := endingScenario()
+	run := endingScenario()
+	ender, recorded, deps := run.ender, run.events, run.deps
 
 	ended, err := service.NewEndPartnership(deps).Execute(t.Context(), owner(storeID, actor.Store),
 		service.EndCommand{PartnershipID: partnershipID, Reason: "Toko tutup"})
@@ -116,7 +123,8 @@ func TestEndPartnership_BRPRT03_SettlesFirstThenEndsSealsAndTellsThePartner(t *t
 }
 
 func TestEndPartnership_BRPRT02_BlockersStopTheEnding(t *testing.T) {
-	ender, _, deps := endingScenario()
+	run := endingScenario()
+	ender, deps := run.ender, run.deps
 	ender.state.Blockers = []domain.Blocker{{Kind: domain.UnpaidSettlement, DocumentNumber: "ST-202611-0001"}}
 
 	_, err := service.NewEndPartnership(deps).Execute(t.Context(), owner(consignorID, actor.Consignor),
@@ -129,7 +137,8 @@ func TestEndPartnership_BRPRT02_BlockersStopTheEnding(t *testing.T) {
 }
 
 func TestEndPartnership_RSEC36_StaffCannotEndAPartnership(t *testing.T) {
-	_, recorded, deps := endingScenario()
+	run := endingScenario()
+	recorded, deps := run.events, run.deps
 
 	_, err := service.NewEndPartnership(deps).Execute(t.Context(), staff(storeID),
 		service.EndCommand{PartnershipID: partnershipID})
@@ -141,7 +150,8 @@ func TestEndPartnership_RSEC36_StaffCannotEndAPartnership(t *testing.T) {
 }
 
 func TestGetBlockers_BRPRT02_ListsWhatStandsInTheWay(t *testing.T) {
-	ender, _, deps := endingScenario()
+	run := endingScenario()
+	ender, deps := run.ender, run.deps
 	ender.state.Blockers = []domain.Blocker{{Kind: domain.StockAtStore, Qty: 4}}
 
 	blockers, err := service.NewGetBlockers(deps).Execute(t.Context(), owner(storeID, actor.Store), partnershipID)
@@ -152,7 +162,8 @@ func TestGetBlockers_BRPRT02_ListsWhatStandsInTheWay(t *testing.T) {
 }
 
 func TestSetShownOnPublic_FRPRT03_OnlyTheStoreChoosesToBeListed(t *testing.T) {
-	ender, _, deps := endingScenario()
+	run := endingScenario()
+	ender, deps := run.ender, run.deps
 	setter := service.NewSetShownOnPublic(deps)
 
 	_, storeErr := setter.Execute(t.Context(), owner(storeID, actor.Store),
