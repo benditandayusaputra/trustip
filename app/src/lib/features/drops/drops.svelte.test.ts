@@ -37,6 +37,7 @@ const drop = {
 	agreement_version: 2,
 	status: 'RECORDED',
 	occurred_at: '2026-11-10T02:00:00Z',
+	client_recorded_at: '2026-11-10T02:00:00Z',
 	received_at: '2026-11-10T02:00:00Z',
 	recorded_offline: false,
 	store: { id: '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7d', name: 'Warung Bu Sri' },

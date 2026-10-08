@@ -48,6 +48,7 @@ const recap = {
 	occasion: 'STORE_CLOSING',
 	note: '',
 	counted_at: '2026-11-10T12:00:00Z',
+	client_recorded_at: '2026-11-10T12:00:00Z',
 	received_at: '2026-11-10T12:00:00Z',
 	recorded_offline: false,
 	store: sheet.store,

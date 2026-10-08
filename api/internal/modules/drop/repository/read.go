@@ -47,13 +47,14 @@ func viewOf(row sqlc.GetDropRow) domain.View {
 		Drop: domain.Drop{
 			ID: row.ID, Number: row.Number, PartnershipID: row.PartnershipID, AgreementID: row.AgreementID,
 			AgreementVersion: int(row.AgreementVersion), StoreID: row.StoreOrgID, ConsignorID: row.ConsignorOrgID,
-			Status: domain.Status(row.Status), OccurredAt: row.OccurredAt, ReceivedAt: row.ReceivedAt,
-			RecordedBy: row.RecordedBy, Items: []domain.Item{},
+			Status: domain.Status(row.Status), OccurredAt: row.OccurredAt, ClientRecordedAt: row.ClientRecordedAt,
+			ReceivedAt: row.ReceivedAt, RecordedOffline: row.RecordedOffline, RecordedBy: row.RecordedBy,
+			Items: []domain.Item{},
 		},
 		StoreName: row.StoreName, ConsignorName: row.ConsignorName, RecordedByName: row.RecordedByName,
 		ConfirmedByName: row.ConfirmedByName, ConfirmedAt: row.ConfirmedAt, IsConfirmed: row.IsConfirmed,
 		AutoConfirmed: row.AutoConfirmed, CancelledByName: row.CancelledByName, CancelledAt: row.CancelledAt,
-		RecordedOffline: row.RecordedOffline, ItemViews: []domain.ItemView{},
+		ItemViews: []domain.ItemView{},
 	}
 }
 

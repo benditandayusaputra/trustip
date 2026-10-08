@@ -62,7 +62,6 @@ type View struct {
 	ConfirmedAt     time.Time
 	IsConfirmed     bool
 	AutoConfirmed   bool
-	RecordedOffline bool
 	Settlement      SettlementRef
 	Products        map[string]LineProduct
 }

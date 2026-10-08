@@ -47,7 +47,9 @@ type Drop struct {
 	ConsignorID      string
 	Status           Status
 	OccurredAt       time.Time
+	ClientRecordedAt time.Time
 	ReceivedAt       time.Time
+	RecordedOffline  bool
 	RecordedBy       string
 	IdempotencyKey   string
 	Fingerprint      []byte

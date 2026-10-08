@@ -60,7 +60,6 @@ type View struct {
 	AutoConfirmed   bool
 	CancelledByName string
 	CancelledAt     time.Time
-	RecordedOffline bool
 	ItemViews       []ItemView
 }
 

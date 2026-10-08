@@ -70,7 +70,7 @@ func countParams(count domain.Count) sqlc.CreateCountParams {
 		SoldQty: int64(count.SoldQty), ReturnedQty: int64(count.ReturnedQty), GrossAmount: count.Split.Gross.Int64(),
 		StoreShareAmount: count.Split.StoreShare.Int64(), ConsignorShareAmount: count.Split.ConsignorShare.Int64(),
 		RecordedBy: count.RecordedBy, IdempotencyKey: count.IdempotencyKey, RequestFingerprint: count.Fingerprint,
-		ReceivedAt: count.ReceivedAt,
+		ClientRecordedAt: count.ClientRecordedAt, ReceivedAt: count.ReceivedAt, RecordedOffline: count.RecordedOffline,
 	}
 }
 

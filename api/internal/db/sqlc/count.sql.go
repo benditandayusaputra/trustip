@@ -202,13 +202,13 @@ const createCount = `-- name: CreateCount :execrows
 INSERT INTO counts (
     id, number, partnership_id, store_org_id, occasion, counted_at, status, note, sold_qty, returned_qty,
     gross_amount, store_share_amount, consignor_share_amount, recorded_by, idempotency_key, request_fingerprint,
-    client_recorded_at, received_at, created_at, updated_at
+    client_recorded_at, received_at, recorded_offline, created_at, updated_at
 ) VALUES (
     $1::uuid, $2::text, $3::uuid, $4::uuid, $5::text,
     $6::timestamptz, 'RECORDED', $7::text, $8::bigint, $9::bigint,
     $10::bigint, $11::bigint, $12::bigint, $13::uuid,
-    $14::uuid, $15::bytea, $16::timestamptz, $16::timestamptz,
-    $16::timestamptz, $16::timestamptz
+    $14::uuid, $15::bytea, $16::timestamptz,
+    $17::timestamptz, $18::boolean, $17::timestamptz, $17::timestamptz
 )
 ON CONFLICT (store_org_id, idempotency_key) DO NOTHING
 `
@@ -229,7 +229,9 @@ type CreateCountParams struct {
 	RecordedBy           string
 	IdempotencyKey       string
 	RequestFingerprint   []byte
+	ClientRecordedAt     time.Time
 	ReceivedAt           time.Time
+	RecordedOffline      bool
 }
 
 func (q *Queries) CreateCount(ctx context.Context, arg CreateCountParams) (int64, error) {
@@ -249,7 +251,9 @@ func (q *Queries) CreateCount(ctx context.Context, arg CreateCountParams) (int64
 		arg.RecordedBy,
 		arg.IdempotencyKey,
 		arg.RequestFingerprint,
+		arg.ClientRecordedAt,
 		arg.ReceivedAt,
+		arg.RecordedOffline,
 	)
 	if err != nil {
 		return 0, err
@@ -283,7 +287,7 @@ func (q *Queries) FindCountByIdempotencyKey(ctx context.Context, arg FindCountBy
 const getCount = `-- name: GetCount :one
 SELECT
     c.id, c.number, c.partnership_id, c.store_org_id, s.name AS store_name, p.consignor_org_id,
-    o.name AS consignor_name, c.occasion, c.counted_at, c.received_at, c.status, c.note, c.sold_qty,
+    o.name AS consignor_name, c.occasion, c.counted_at, c.client_recorded_at, c.received_at, c.status, c.note, c.sold_qty,
     c.returned_qty, c.gross_amount, c.store_share_amount, c.consignor_share_amount, c.recorded_by,
     ru.full_name AS recorded_by_name, COALESCE(cu.full_name, '')::text AS confirmed_by_name,
     COALESCE(c.confirmed_at, c.received_at)::timestamptz AS confirmed_at,
@@ -312,6 +316,7 @@ type GetCountRow struct {
 	ConsignorName        string
 	Occasion             string
 	CountedAt            time.Time
+	ClientRecordedAt     time.Time
 	ReceivedAt           time.Time
 	Status               string
 	Note                 string
@@ -342,6 +347,7 @@ func (q *Queries) GetCount(ctx context.Context, arg GetCountParams) (GetCountRow
 		&i.ConsignorName,
 		&i.Occasion,
 		&i.CountedAt,
+		&i.ClientRecordedAt,
 		&i.ReceivedAt,
 		&i.Status,
 		&i.Note,

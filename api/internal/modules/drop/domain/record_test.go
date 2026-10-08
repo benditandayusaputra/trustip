@@ -350,3 +350,79 @@ func TestCheck_BRDRP06_DropMayNotPrecedeTheLastCount(t *testing.T) {
 		t.Fatalf("codes = %v", fieldCodes(t, err))
 	}
 }
+
+func TestCheck_BRPWA07_OmittedDropTimeIsTheDeviceTime(t *testing.T) {
+	input := anInput()
+	input.OccurredAt = claimed.Absent()
+	input.ClientRecordedAt = claimed.At(nineInTheMorning().Add(-2 * time.Hour))
+
+	draft, err := aSetting().Check(input, nineInTheMorning())
+	if err != nil {
+		t.Fatalf("check: %v", err)
+	}
+
+	recordedAt := nineInTheMorning().Add(-2 * time.Hour)
+	if !draft.OccurredAt.Equal(recordedAt) || !draft.ClientRecordedAt.Equal(recordedAt) {
+		t.Fatalf("occurred = %s, client = %s", draft.OccurredAt, draft.ClientRecordedAt)
+	}
+}
+
+func TestCheck_BRPWA07_DeviceTimeTooFarAheadBecomesTheReceipt(t *testing.T) {
+	input := anInput()
+	input.OccurredAt = claimed.Absent()
+	input.ClientRecordedAt = claimed.At(nineInTheMorning().Add(10 * time.Minute))
+
+	draft, err := aSetting().Check(input, nineInTheMorning())
+	if err != nil {
+		t.Fatalf("check: %v", err)
+	}
+
+	if !draft.OccurredAt.Equal(nineInTheMorning()) || !draft.ClientRecordedAt.Equal(nineInTheMorning()) {
+		t.Fatalf("occurred = %s, client = %s", draft.OccurredAt, draft.ClientRecordedAt)
+	}
+}
+
+func TestRecord_FRPWA10_KeepsTheOfflineMarkWithBothTimes(t *testing.T) {
+	input := anInput()
+	input.ClientRecordedAt = claimed.At(nineInTheMorning().Add(-time.Hour))
+	input.RecordedOffline = true
+	draft, err := aSetting().Check(input, nineInTheMorning())
+	if err != nil {
+		t.Fatalf("check: %v", err)
+	}
+
+	drop := draft.Record(Recording{
+		IDs: RecordIDs{DropID: "drop-1", ItemIDs: []string{"i1", "i2"}, MovementIDs: []string{"m1", "m2"}},
+		At:  nineInTheMorning(),
+	})
+
+	if !drop.RecordedOffline || !drop.ClientRecordedAt.Equal(nineInTheMorning().Add(-time.Hour)) ||
+		!drop.ReceivedAt.Equal(nineInTheMorning()) {
+		t.Fatalf("drop = %+v", drop)
+	}
+}
+
+func TestFingerprint_BRPWA03_OfflineMarkLeavesTheFingerprintAlone(t *testing.T) {
+	online := anInput()
+	offline := anInput()
+	offline.RecordedOffline = true
+
+	first, firstErr := online.Fingerprint()
+	second, secondErr := offline.Fingerprint()
+
+	if errors.Join(firstErr, secondErr) != nil || !bytes.Equal(first, second) {
+		t.Fatalf("fingerprints differ: %x %x", first, second)
+	}
+}
+
+func TestFingerprint_RRES06_DeviceTimeIsPartOfTheBody(t *testing.T) {
+	later := anInput()
+	later.ClientRecordedAt = claimed.At(nineInTheMorning())
+
+	first, firstErr := anInput().Fingerprint()
+	second, secondErr := later.Fingerprint()
+
+	if errors.Join(firstErr, secondErr) != nil || bytes.Equal(first, second) {
+		t.Fatal("device time must change the fingerprint")
+	}
+}

@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"time"
-
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/count/domain"
@@ -20,6 +18,8 @@ type countRequest struct {
 	PartnershipID    string        `json:"partnership_id"`
 	AgreementVersion int           `json:"agreement_version"`
 	CountedAt        *string       `json:"counted_at"`
+	ClientRecordedAt *string       `json:"client_recorded_at"`
+	RecordedOffline  bool          `json:"recorded_offline"`
 	Occasion         string        `json:"occasion"`
 	Note             string        `json:"note"`
 	Lines            []lineRequest `json:"lines"`
@@ -30,17 +30,25 @@ func (r countRequest) toInput() (domain.RecordInput, error) {
 	if !uuidFormat.MatchString(r.PartnershipID) {
 		problems = append(problems, apperror.InvalidField("partnership_id", apperror.FieldUnknownChoice))
 	}
-	countedAt := claimed.Absent()
-	if r.CountedAt != nil {
-		parsed, err := time.Parse(time.RFC3339, *r.CountedAt)
-		countedAt = claimed.At(parsed)
-		if err != nil {
-			problems = append(problems, apperror.InvalidField("counted_at", apperror.FieldInvalidDate))
-		}
+	countedAt, isCountedValid := claimed.Parse(r.CountedAt)
+	if !isCountedValid {
+		problems = append(problems, apperror.InvalidField("counted_at", apperror.FieldInvalidDate))
+	}
+	clientRecordedAt, isClientValid := claimed.Parse(r.ClientRecordedAt)
+	if !isClientValid {
+		problems = append(problems, apperror.InvalidField("client_recorded_at", apperror.FieldInvalidDate))
 	}
 	if len(problems) > 0 {
 		return domain.RecordInput{}, apperror.Validation(problems...)
 	}
+	return domain.RecordInput{
+		PartnershipID: r.PartnershipID, AgreementVersion: r.AgreementVersion, CountedAt: countedAt,
+		ClientRecordedAt: clientRecordedAt, RecordedOffline: r.RecordedOffline, Occasion: r.Occasion, Note: r.Note,
+		Lines: r.lineInputs(),
+	}, nil
+}
+
+func (r countRequest) lineInputs() []domain.RequestLine {
 	lines := make([]domain.RequestLine, 0, len(r.Lines))
 	for _, line := range r.Lines {
 		reason := ""
@@ -52,8 +60,5 @@ func (r countRequest) toInput() (domain.RecordInput, error) {
 			ReturnedQty: line.ReturnedQty, ReturnReason: reason,
 		})
 	}
-	return domain.RecordInput{
-		PartnershipID: r.PartnershipID, AgreementVersion: r.AgreementVersion, CountedAt: countedAt,
-		Occasion: r.Occasion, Note: r.Note, Lines: lines,
-	}, nil
+	return lines
 }

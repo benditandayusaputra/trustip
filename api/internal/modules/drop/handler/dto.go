@@ -19,6 +19,8 @@ type dropRequest struct {
 	PartnershipID    string        `json:"partnership_id"`
 	AgreementVersion int           `json:"agreement_version"`
 	OccurredAt       *string       `json:"occurred_at"`
+	ClientRecordedAt *string       `json:"client_recorded_at"`
+	RecordedOffline  bool          `json:"recorded_offline"`
 	Items            []itemRequest `json:"items"`
 }
 
@@ -27,17 +29,24 @@ func (r dropRequest) toInput() (domain.RecordInput, error) {
 	if !isUUID(r.PartnershipID) {
 		problems = append(problems, apperror.InvalidField("partnership_id", apperror.FieldUnknownChoice))
 	}
-	occurredAt := claimed.Absent()
-	if r.OccurredAt != nil {
-		parsed, err := time.Parse(time.RFC3339, *r.OccurredAt)
-		occurredAt = claimed.At(parsed)
-		if err != nil {
-			problems = append(problems, apperror.InvalidField("occurred_at", apperror.FieldInvalidDate))
-		}
+	occurredAt, isOccurredValid := claimed.Parse(r.OccurredAt)
+	if !isOccurredValid {
+		problems = append(problems, apperror.InvalidField("occurred_at", apperror.FieldInvalidDate))
+	}
+	clientRecordedAt, isClientValid := claimed.Parse(r.ClientRecordedAt)
+	if !isClientValid {
+		problems = append(problems, apperror.InvalidField("client_recorded_at", apperror.FieldInvalidDate))
 	}
 	if len(problems) > 0 {
 		return domain.RecordInput{}, apperror.Validation(problems...)
 	}
+	return domain.RecordInput{
+		PartnershipID: r.PartnershipID, AgreementVersion: r.AgreementVersion, OccurredAt: occurredAt,
+		ClientRecordedAt: clientRecordedAt, RecordedOffline: r.RecordedOffline, Items: r.itemInputs(),
+	}, nil
+}
+
+func (r dropRequest) itemInputs() []domain.ItemInput {
 	items := make([]domain.ItemInput, 0, len(r.Items))
 	for _, item := range r.Items {
 		expiry := ""
@@ -46,9 +55,7 @@ func (r dropRequest) toInput() (domain.RecordInput, error) {
 		}
 		items = append(items, domain.ItemInput{ProductID: item.ProductID, Qty: item.Qty, ExpiryDate: expiry})
 	}
-	return domain.RecordInput{
-		PartnershipID: r.PartnershipID, AgreementVersion: r.AgreementVersion, OccurredAt: occurredAt, Items: items,
-	}, nil
+	return items
 }
 
 type partyResponse struct {
@@ -112,6 +119,7 @@ type dropResponse struct {
 	AgreementVersion int                   `json:"agreement_version"`
 	Status           string                `json:"status"`
 	OccurredAt       string                `json:"occurred_at"`
+	ClientRecordedAt string                `json:"client_recorded_at"`
 	ReceivedAt       string                `json:"received_at"`
 	RecordedOffline  bool                  `json:"recorded_offline"`
 	Store            partyResponse         `json:"store"`
@@ -130,7 +138,8 @@ func toDropResponse(sealed domain.SealedView) dropResponse {
 	view := sealed.View
 	return dropResponse{
 		ID: view.ID, Number: view.Number, PartnershipID: view.PartnershipID, AgreementVersion: view.AgreementVersion,
-		Status: string(view.Status), OccurredAt: timestamp(view.OccurredAt), ReceivedAt: timestamp(view.ReceivedAt),
+		Status: string(view.Status), OccurredAt: timestamp(view.OccurredAt),
+		ClientRecordedAt: timestamp(view.ClientRecordedAt), ReceivedAt: timestamp(view.ReceivedAt),
 		RecordedOffline: view.RecordedOffline,
 		Store:           partyResponse{ID: view.StoreID, Name: view.StoreName},
 		Consignor:       partyResponse{ID: view.ConsignorID, Name: view.ConsignorName},

@@ -53,23 +53,25 @@ type CountLine struct {
 }
 
 type Count struct {
-	ID             string
-	Number         string
-	PartnershipID  string
-	StoreID        string
-	ConsignorID    string
-	Status         Status
-	Occasion       Occasion
-	Note           string
-	CountedAt      time.Time
-	ReceivedAt     time.Time
-	RecordedBy     string
-	IdempotencyKey string
-	Fingerprint    []byte
-	Lines          []CountLine
-	SoldQty        int
-	ReturnedQty    int
-	Split          pricing.Split
+	ID               string
+	Number           string
+	PartnershipID    string
+	StoreID          string
+	ConsignorID      string
+	Status           Status
+	Occasion         Occasion
+	Note             string
+	CountedAt        time.Time
+	ClientRecordedAt time.Time
+	ReceivedAt       time.Time
+	RecordedOffline  bool
+	RecordedBy       string
+	IdempotencyKey   string
+	Fingerprint      []byte
+	Lines            []CountLine
+	SoldQty          int
+	ReturnedQty      int
+	Split            pricing.Split
 }
 
 type Recording struct {
@@ -108,7 +110,8 @@ func (d Draft) Record(recording Recording) Count {
 	count := Count{
 		ID: queue.next(), Number: Number(recording.At, recording.Sequence), PartnershipID: d.sheet.PartnershipID,
 		StoreID: d.sheet.StoreID, ConsignorID: d.sheet.ConsignorID, Status: Recorded, Occasion: d.Occasion,
-		Note: d.Note, CountedAt: d.CountedAt, ReceivedAt: recording.At, RecordedBy: recording.RecordedBy,
+		Note: d.Note, CountedAt: d.CountedAt, ClientRecordedAt: d.ClientRecordedAt, ReceivedAt: recording.At,
+		RecordedOffline: d.RecordedOffline, RecordedBy: recording.RecordedBy,
 		IdempotencyKey: recording.IdempotencyKey, Fingerprint: recording.Fingerprint,
 		SoldQty: d.Tally.SoldQty, ReturnedQty: d.Tally.ReturnedQty, Split: d.Tally.Split,
 	}

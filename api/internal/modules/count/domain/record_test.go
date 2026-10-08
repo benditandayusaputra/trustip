@@ -253,3 +253,62 @@ func TestCheck_BRCNT06_CountCannotLandInASettledPeriod(t *testing.T) {
 		t.Fatalf("at the settled boundary: %v", err)
 	}
 }
+
+func TestCheck_BRPWA07_OmittedCountTimeIsTheDeviceTime(t *testing.T) {
+	input := anInput()
+	input.CountedAt = claimed.Absent()
+	input.ClientRecordedAt = claimed.At(noon().Add(-time.Hour))
+
+	draft, err := aSheet().Check(input, noon())
+	if err != nil {
+		t.Fatalf("check: %v", err)
+	}
+
+	if !draft.CountedAt.Equal(noon().Add(-time.Hour)) || !draft.ClientRecordedAt.Equal(noon().Add(-time.Hour)) {
+		t.Fatalf("counted = %s, client = %s", draft.CountedAt, draft.ClientRecordedAt)
+	}
+}
+
+func TestCheck_BRPWA07_CountDeviceTimeTooFarAheadBecomesTheReceipt(t *testing.T) {
+	input := anInput()
+	input.CountedAt = claimed.Absent()
+	input.ClientRecordedAt = claimed.At(noon().Add(6 * time.Minute))
+
+	draft, err := aSheet().Check(input, noon())
+	if err != nil {
+		t.Fatalf("check: %v", err)
+	}
+
+	if !draft.CountedAt.Equal(noon()) || !draft.ClientRecordedAt.Equal(noon()) {
+		t.Fatalf("counted = %s, client = %s", draft.CountedAt, draft.ClientRecordedAt)
+	}
+}
+
+func TestRecord_FRPWA10_KeepsTheOfflineMarkOnTheCount(t *testing.T) {
+	input := anInput()
+	input.ClientRecordedAt = claimed.At(noon().Add(-time.Hour))
+	input.RecordedOffline = true
+	draft, err := aSheet().Check(input, noon())
+	if err != nil {
+		t.Fatalf("check: %v", err)
+	}
+
+	count := draft.Record(Recording{IDs: idsFor(draft), At: noon()})
+
+	if !count.RecordedOffline || !count.ClientRecordedAt.Equal(noon().Add(-time.Hour)) ||
+		!count.ReceivedAt.Equal(noon()) {
+		t.Fatalf("count = %+v", count)
+	}
+}
+
+func TestFingerprint_BRPWA03_OfflineMarkLeavesTheCountFingerprintAlone(t *testing.T) {
+	offline := anInput()
+	offline.RecordedOffline = true
+
+	first, firstErr := anInput().Fingerprint()
+	second, secondErr := offline.Fingerprint()
+
+	if errors.Join(firstErr, secondErr) != nil || !bytes.Equal(first, second) {
+		t.Fatalf("fingerprints differ: %x %x", first, second)
+	}
+}

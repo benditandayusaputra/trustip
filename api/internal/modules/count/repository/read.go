@@ -46,7 +46,8 @@ func viewOf(row sqlc.GetCountRow) domain.View {
 		Count: domain.Count{
 			ID: row.ID, Number: row.Number, PartnershipID: row.PartnershipID, StoreID: row.StoreOrgID,
 			ConsignorID: row.ConsignorOrgID, Status: domain.Status(row.Status), Occasion: domain.Occasion(row.Occasion),
-			Note: row.Note, CountedAt: row.CountedAt, ReceivedAt: row.ReceivedAt, RecordedBy: row.RecordedBy,
+			Note: row.Note, CountedAt: row.CountedAt, ClientRecordedAt: row.ClientRecordedAt,
+			ReceivedAt: row.ReceivedAt, RecordedOffline: row.RecordedOffline, RecordedBy: row.RecordedBy,
 			SoldQty: int(row.SoldQty), ReturnedQty: int(row.ReturnedQty),
 			Split: pricing.Split{
 				Gross: money.Rupiah(row.GrossAmount), StoreShare: money.Rupiah(row.StoreShareAmount),
@@ -55,8 +56,8 @@ func viewOf(row sqlc.GetCountRow) domain.View {
 		},
 		StoreName: row.StoreName, ConsignorName: row.ConsignorName, RecordedByName: row.RecordedByName,
 		ConfirmedByName: row.ConfirmedByName, ConfirmedAt: row.ConfirmedAt, IsConfirmed: row.IsConfirmed,
-		AutoConfirmed: row.AutoConfirmed, RecordedOffline: row.RecordedOffline,
-		Products: map[string]domain.LineProduct{},
+		AutoConfirmed: row.AutoConfirmed,
+		Products:      map[string]domain.LineProduct{},
 	}
 }
 

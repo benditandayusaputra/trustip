@@ -40,25 +40,26 @@ type sealResponse struct {
 }
 
 type countResponse struct {
-	ID              string                `json:"id"`
-	Number          string                `json:"number"`
-	PartnershipID   string                `json:"partnership_id"`
-	Status          string                `json:"status"`
-	Occasion        string                `json:"occasion"`
-	Note            string                `json:"note"`
-	CountedAt       string                `json:"counted_at"`
-	ReceivedAt      string                `json:"received_at"`
-	RecordedOffline bool                  `json:"recorded_offline"`
-	Store           partyResponse         `json:"store"`
-	Consignor       partyResponse         `json:"consignor"`
-	RecordedByName  string                `json:"recorded_by_name"`
-	Confirmation    *confirmationResponse `json:"confirmation"`
-	Lines           []lineResponse        `json:"lines"`
-	SoldQty         int                   `json:"sold_qty"`
-	ReturnedQty     int                   `json:"returned_qty"`
-	Split           splitResponse         `json:"split"`
-	Settlement      *settlementRef        `json:"settlement"`
-	Seal            sealResponse          `json:"seal"`
+	ID               string                `json:"id"`
+	Number           string                `json:"number"`
+	PartnershipID    string                `json:"partnership_id"`
+	Status           string                `json:"status"`
+	Occasion         string                `json:"occasion"`
+	Note             string                `json:"note"`
+	CountedAt        string                `json:"counted_at"`
+	ClientRecordedAt string                `json:"client_recorded_at"`
+	ReceivedAt       string                `json:"received_at"`
+	RecordedOffline  bool                  `json:"recorded_offline"`
+	Store            partyResponse         `json:"store"`
+	Consignor        partyResponse         `json:"consignor"`
+	RecordedByName   string                `json:"recorded_by_name"`
+	Confirmation     *confirmationResponse `json:"confirmation"`
+	Lines            []lineResponse        `json:"lines"`
+	SoldQty          int                   `json:"sold_qty"`
+	ReturnedQty      int                   `json:"returned_qty"`
+	Split            splitResponse         `json:"split"`
+	Settlement       *settlementRef        `json:"settlement"`
+	Seal             sealResponse          `json:"seal"`
 }
 
 type settlementRef struct {
@@ -78,10 +79,11 @@ func toCountResponse(sealed domain.SealedView) countResponse {
 	return countResponse{
 		ID: view.ID, Number: view.Number, PartnershipID: view.PartnershipID, Status: string(view.Status),
 		Occasion: string(view.Occasion), Note: view.Note, CountedAt: timestamp(view.CountedAt),
-		ReceivedAt: timestamp(view.ReceivedAt), RecordedOffline: view.RecordedOffline,
-		Store:          partyResponse{ID: view.StoreID, Name: view.StoreName},
-		Consignor:      partyResponse{ID: view.ConsignorID, Name: view.ConsignorName},
-		RecordedByName: view.RecordedByName, Confirmation: toConfirmation(view), Lines: toLines(view),
+		ClientRecordedAt: timestamp(view.ClientRecordedAt), ReceivedAt: timestamp(view.ReceivedAt),
+		RecordedOffline: view.RecordedOffline,
+		Store:           partyResponse{ID: view.StoreID, Name: view.StoreName},
+		Consignor:       partyResponse{ID: view.ConsignorID, Name: view.ConsignorName},
+		RecordedByName:  view.RecordedByName, Confirmation: toConfirmation(view), Lines: toLines(view),
 		SoldQty: view.SoldQty, ReturnedQty: view.ReturnedQty, Split: toSplit(view.Split),
 		Settlement: toSettlementRef(view.Settlement), Seal: toSealResponse(sealed.Seal),
 	}

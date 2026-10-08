@@ -188,12 +188,12 @@ func (q *Queries) CountDropOutflows(ctx context.Context, dropID string) (int64, 
 const createDrop = `-- name: CreateDrop :execrows
 INSERT INTO drops (
     id, number, partnership_id, agreement_id, store_org_id, initiated_by, status, occurred_at, recorded_by,
-    idempotency_key, request_fingerprint, client_recorded_at, received_at, created_at, updated_at
+    idempotency_key, request_fingerprint, client_recorded_at, received_at, recorded_offline, created_at, updated_at
 ) VALUES (
     $1::uuid, $2::text, $3::uuid, $4::uuid, $5::uuid, 'STORE',
     'RECORDED', $6::timestamptz, $7::uuid, $8::uuid,
-    $9::bytea, $10::timestamptz, $10::timestamptz, $10::timestamptz,
-    $10::timestamptz
+    $9::bytea, $10::timestamptz, $11::timestamptz,
+    $12::boolean, $11::timestamptz, $11::timestamptz
 )
 ON CONFLICT (store_org_id, idempotency_key) DO NOTHING
 `
@@ -208,7 +208,9 @@ type CreateDropParams struct {
 	RecordedBy         string
 	IdempotencyKey     string
 	RequestFingerprint []byte
+	ClientRecordedAt   time.Time
 	ReceivedAt         time.Time
+	RecordedOffline    bool
 }
 
 func (q *Queries) CreateDrop(ctx context.Context, arg CreateDropParams) (int64, error) {
@@ -222,7 +224,9 @@ func (q *Queries) CreateDrop(ctx context.Context, arg CreateDropParams) (int64, 
 		arg.RecordedBy,
 		arg.IdempotencyKey,
 		arg.RequestFingerprint,
+		arg.ClientRecordedAt,
 		arg.ReceivedAt,
+		arg.RecordedOffline,
 	)
 	if err != nil {
 		return 0, err
@@ -256,8 +260,8 @@ func (q *Queries) FindDropByIdempotencyKey(ctx context.Context, arg FindDropById
 const getDrop = `-- name: GetDrop :one
 SELECT
     d.id, d.number, d.partnership_id, d.agreement_id, a.version AS agreement_version, d.store_org_id,
-    s.name AS store_name, p.consignor_org_id, c.name AS consignor_name, d.status, d.occurred_at, d.received_at,
-    d.recorded_offline, d.recorded_by, ru.full_name AS recorded_by_name,
+    s.name AS store_name, p.consignor_org_id, c.name AS consignor_name, d.status, d.occurred_at,
+    d.client_recorded_at, d.received_at, d.recorded_offline, d.recorded_by, ru.full_name AS recorded_by_name,
     COALESCE(cu.full_name, '')::text AS confirmed_by_name,
     COALESCE(d.confirmed_at, d.received_at)::timestamptz AS confirmed_at, (d.confirmed_at IS NOT NULL)::boolean AS
     is_confirmed, d.auto_confirmed, COALESCE(xu.full_name, '')::text AS cancelled_by_name,
@@ -290,6 +294,7 @@ type GetDropRow struct {
 	ConsignorName    string
 	Status           string
 	OccurredAt       time.Time
+	ClientRecordedAt time.Time
 	ReceivedAt       time.Time
 	RecordedOffline  bool
 	RecordedBy       string
@@ -317,6 +322,7 @@ func (q *Queries) GetDrop(ctx context.Context, arg GetDropParams) (GetDropRow, e
 		&i.ConsignorName,
 		&i.Status,
 		&i.OccurredAt,
+		&i.ClientRecordedAt,
 		&i.ReceivedAt,
 		&i.RecordedOffline,
 		&i.RecordedBy,

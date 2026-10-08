@@ -1839,6 +1839,8 @@ export interface components {
             partnership_id: string;
             agreement_version: number;
             occurred_at?: string | null;
+            client_recorded_at?: string | null;
+            recorded_offline?: boolean;
             items: components["schemas"]["DropItemRequest"][];
         };
         DropItem: {
@@ -1867,6 +1869,8 @@ export interface components {
             status: components["schemas"]["DropStatus"];
             /** Format: date-time */
             occurred_at: string;
+            /** Format: date-time */
+            client_recorded_at: string;
             /** Format: date-time */
             received_at: string;
             recorded_offline: boolean;
@@ -2015,6 +2019,8 @@ export interface components {
             partnership_id: string;
             agreement_version: number;
             counted_at?: string | null;
+            client_recorded_at?: string | null;
+            recorded_offline?: boolean;
             occasion: components["schemas"]["CountOccasion"];
             note?: string;
             lines: components["schemas"]["CountLineRequest"][];
@@ -2048,6 +2054,8 @@ export interface components {
             note: string;
             /** Format: date-time */
             counted_at: string;
+            /** Format: date-time */
+            client_recorded_at: string;
             /** Format: date-time */
             received_at: string;
             recorded_offline: boolean;

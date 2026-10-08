@@ -47,13 +47,13 @@ WHERE store_org_id = @store_org_id::uuid AND idempotency_key = @idempotency_key:
 INSERT INTO counts (
     id, number, partnership_id, store_org_id, occasion, counted_at, status, note, sold_qty, returned_qty,
     gross_amount, store_share_amount, consignor_share_amount, recorded_by, idempotency_key, request_fingerprint,
-    client_recorded_at, received_at, created_at, updated_at
+    client_recorded_at, received_at, recorded_offline, created_at, updated_at
 ) VALUES (
     @id::uuid, @number::text, @partnership_id::uuid, @store_org_id::uuid, @occasion::text,
     @counted_at::timestamptz, 'RECORDED', @note::text, @sold_qty::bigint, @returned_qty::bigint,
     @gross_amount::bigint, @store_share_amount::bigint, @consignor_share_amount::bigint, @recorded_by::uuid,
-    @idempotency_key::uuid, @request_fingerprint::bytea, @received_at::timestamptz, @received_at::timestamptz,
-    @received_at::timestamptz, @received_at::timestamptz
+    @idempotency_key::uuid, @request_fingerprint::bytea, @client_recorded_at::timestamptz,
+    @received_at::timestamptz, @recorded_offline::boolean, @received_at::timestamptz, @received_at::timestamptz
 )
 ON CONFLICT (store_org_id, idempotency_key) DO NOTHING;
 
@@ -102,7 +102,7 @@ FROM (
 -- name: GetCount :one
 SELECT
     c.id, c.number, c.partnership_id, c.store_org_id, s.name AS store_name, p.consignor_org_id,
-    o.name AS consignor_name, c.occasion, c.counted_at, c.received_at, c.status, c.note, c.sold_qty,
+    o.name AS consignor_name, c.occasion, c.counted_at, c.client_recorded_at, c.received_at, c.status, c.note, c.sold_qty,
     c.returned_qty, c.gross_amount, c.store_share_amount, c.consignor_share_amount, c.recorded_by,
     ru.full_name AS recorded_by_name, COALESCE(cu.full_name, '')::text AS confirmed_by_name,
     COALESCE(c.confirmed_at, c.received_at)::timestamptz AS confirmed_at,

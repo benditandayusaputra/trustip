@@ -4555,6 +4555,11 @@ components:
         occurred_at:
           type: string
           nullable: true
+        client_recorded_at:
+          type: string
+          nullable: true
+        recorded_offline:
+          type: boolean
         items:
           type: array
           items:
@@ -4600,6 +4605,7 @@ components:
         - agreement_version
         - status
         - occurred_at
+        - client_recorded_at
         - received_at
         - recorded_offline
         - store
@@ -4628,6 +4634,9 @@ components:
         status:
           $ref: "#/components/schemas/DropStatus"
         occurred_at:
+          type: string
+          format: date-time
+        client_recorded_at:
           type: string
           format: date-time
         received_at:
@@ -4947,6 +4956,11 @@ components:
         counted_at:
           type: string
           nullable: true
+        client_recorded_at:
+          type: string
+          nullable: true
+        recorded_offline:
+          type: boolean
         occasion:
           $ref: "#/components/schemas/CountOccasion"
         note:
@@ -5011,6 +5025,7 @@ components:
         - occasion
         - note
         - counted_at
+        - client_recorded_at
         - received_at
         - recorded_offline
         - store
@@ -5041,6 +5056,9 @@ components:
         note:
           type: string
         counted_at:
+          type: string
+          format: date-time
+        client_recorded_at:
           type: string
           format: date-time
         received_at:

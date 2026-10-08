@@ -80,6 +80,8 @@ type RecordInput struct {
 	PartnershipID    string
 	AgreementVersion int
 	CountedAt        claimed.Time
+	ClientRecordedAt claimed.Time
+	RecordedOffline  bool
 	Occasion         string
 	Note             string
 	Lines            []RequestLine
@@ -95,7 +97,8 @@ func (i RecordInput) Fingerprint() ([]byte, error) {
 	}
 	digest, err := canonical.Digest(map[string]any{
 		"partnership_id": i.PartnershipID, "agreement_version": i.AgreementVersion, "occasion": i.Occasion,
-		"counted_at": i.CountedAt.Text(), "note": i.Note, "lines": lines,
+		"counted_at": i.CountedAt.Text(), "client_recorded_at": i.ClientRecordedAt.Text(), "note": i.Note,
+		"lines": lines,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("fingerprint count request: %w", err)
@@ -104,11 +107,13 @@ func (i RecordInput) Fingerprint() ([]byte, error) {
 }
 
 type Draft struct {
-	sheet     Sheet
-	CountedAt time.Time
-	Occasion  Occasion
-	Note      string
-	Tally     Tally
+	sheet            Sheet
+	CountedAt        time.Time
+	ClientRecordedAt time.Time
+	RecordedOffline  bool
+	Occasion         Occasion
+	Note             string
+	Tally            Tally
 }
 
 func (s Sheet) Check(input RecordInput, now time.Time) (Draft, error) {
@@ -119,7 +124,8 @@ func (s Sheet) Check(input RecordInput, now time.Time) (Draft, error) {
 		return Draft{}, apperror.New(apperror.CodeAgreementChanged).WithParam("n", strconv.Itoa(s.AgreementVersion))
 	}
 	lineInputs, problems := s.matchLines(input.Lines)
-	countedAt := input.CountedAt.Or(now).Truncate(time.Second)
+	clientRecordedAt := input.ClientRecordedAt.SettledBy(now).Truncate(time.Second)
+	countedAt := input.CountedAt.Or(clientRecordedAt).Truncate(time.Second)
 	problems = append(problems, field.Collect(
 		s.findTimeProblem(countedAt, now), findOccasionProblem(input.Occasion),
 		field.CheckLength("note", input.Note, field.Length{Max: MaxNoteLength}),
@@ -134,9 +140,10 @@ func (s Sheet) Check(input RecordInput, now time.Time) (Draft, error) {
 	if err != nil {
 		return Draft{}, fmt.Errorf("tally count: %w", err)
 	}
-	draft := Draft{sheet: s, CountedAt: countedAt, Occasion: Occasion(input.Occasion), Note: input.Note}
-	draft.Tally = tally
-	return draft, nil
+	return Draft{
+		sheet: s, CountedAt: countedAt, ClientRecordedAt: clientRecordedAt, RecordedOffline: input.RecordedOffline,
+		Occasion: Occasion(input.Occasion), Note: input.Note, Tally: tally,
+	}, nil
 }
 
 func (s Sheet) productOf(productID string) (StockedProduct, bool) {

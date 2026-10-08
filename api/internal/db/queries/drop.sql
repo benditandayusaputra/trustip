@@ -22,12 +22,12 @@ WHERE store_org_id = @store_org_id::uuid AND idempotency_key = @idempotency_key:
 -- name: CreateDrop :execrows
 INSERT INTO drops (
     id, number, partnership_id, agreement_id, store_org_id, initiated_by, status, occurred_at, recorded_by,
-    idempotency_key, request_fingerprint, client_recorded_at, received_at, created_at, updated_at
+    idempotency_key, request_fingerprint, client_recorded_at, received_at, recorded_offline, created_at, updated_at
 ) VALUES (
     @id::uuid, @number::text, @partnership_id::uuid, @agreement_id::uuid, @store_org_id::uuid, 'STORE',
     'RECORDED', @occurred_at::timestamptz, @recorded_by::uuid, @idempotency_key::uuid,
-    @request_fingerprint::bytea, @received_at::timestamptz, @received_at::timestamptz, @received_at::timestamptz,
-    @received_at::timestamptz
+    @request_fingerprint::bytea, @client_recorded_at::timestamptz, @received_at::timestamptz,
+    @recorded_offline::boolean, @received_at::timestamptz, @received_at::timestamptz
 )
 ON CONFLICT (store_org_id, idempotency_key) DO NOTHING;
 
@@ -66,8 +66,8 @@ FROM (
 -- name: GetDrop :one
 SELECT
     d.id, d.number, d.partnership_id, d.agreement_id, a.version AS agreement_version, d.store_org_id,
-    s.name AS store_name, p.consignor_org_id, c.name AS consignor_name, d.status, d.occurred_at, d.received_at,
-    d.recorded_offline, d.recorded_by, ru.full_name AS recorded_by_name,
+    s.name AS store_name, p.consignor_org_id, c.name AS consignor_name, d.status, d.occurred_at,
+    d.client_recorded_at, d.received_at, d.recorded_offline, d.recorded_by, ru.full_name AS recorded_by_name,
     COALESCE(cu.full_name, '')::text AS confirmed_by_name,
     COALESCE(d.confirmed_at, d.received_at)::timestamptz AS confirmed_at, (d.confirmed_at IS NOT NULL)::boolean AS
     is_confirmed, d.auto_confirmed, COALESCE(xu.full_name, '')::text AS cancelled_by_name,

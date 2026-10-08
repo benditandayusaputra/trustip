@@ -33,6 +33,8 @@ type RecordInput struct {
 	PartnershipID    string
 	AgreementVersion int
 	OccurredAt       claimed.Time
+	ClientRecordedAt claimed.Time
+	RecordedOffline  bool
 	Items            []ItemInput
 }
 
@@ -45,7 +47,8 @@ func (i RecordInput) Fingerprint() ([]byte, error) {
 	}
 	digest, err := canonical.Digest(map[string]any{
 		"partnership_id": i.PartnershipID, "agreement_version": i.AgreementVersion,
-		"occurred_at": i.OccurredAt.Text(), "items": items,
+		"occurred_at":        i.OccurredAt.Text(),
+		"client_recorded_at": i.ClientRecordedAt.Text(), "items": items,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("fingerprint drop request: %w", err)
@@ -77,9 +80,11 @@ type Setting struct {
 }
 
 type Draft struct {
-	setting    Setting
-	OccurredAt time.Time
-	Items      []Item
+	setting          Setting
+	OccurredAt       time.Time
+	ClientRecordedAt time.Time
+	RecordedOffline  bool
+	Items            []Item
 }
 
 func (s Setting) Check(input RecordInput, now time.Time) (Draft, error) {
@@ -90,7 +95,8 @@ func (s Setting) Check(input RecordInput, now time.Time) (Draft, error) {
 		return Draft{}, apperror.New(apperror.CodeAgreementChanged).
 			WithParam("n", strconv.Itoa(s.AgreementVersion))
 	}
-	occurredAt := input.OccurredAt.Or(now).Truncate(time.Second)
+	clientRecordedAt := input.ClientRecordedAt.SettledBy(now).Truncate(time.Second)
+	occurredAt := input.OccurredAt.Or(clientRecordedAt).Truncate(time.Second)
 	problems := field.Collect(findItemCountProblem(len(input.Items)), s.findDateProblem(occurredAt, now))
 	items := make([]Item, 0, len(input.Items))
 	for index, itemInput := range input.Items {
@@ -101,7 +107,10 @@ func (s Setting) Check(input RecordInput, now time.Time) (Draft, error) {
 	if len(problems) > 0 {
 		return Draft{}, apperror.Validation(problems...)
 	}
-	return Draft{setting: s, OccurredAt: occurredAt, Items: items}, nil
+	return Draft{
+		setting: s, OccurredAt: occurredAt, ClientRecordedAt: clientRecordedAt, RecordedOffline: input.RecordedOffline,
+		Items: items,
+	}, nil
 }
 
 func findItemCountProblem(count int) field.Problem {
@@ -222,7 +231,8 @@ func (d Draft) Record(recording Recording) Drop {
 		ID: recording.IDs.DropID, Number: number, PartnershipID: d.setting.PartnershipID,
 		AgreementID: d.setting.AgreementID, AgreementVersion: d.setting.AgreementVersion,
 		StoreID: d.setting.StoreID, ConsignorID: d.setting.ConsignorID, Status: Recorded,
-		OccurredAt: d.OccurredAt, ReceivedAt: recording.At, RecordedBy: recording.RecordedBy,
+		OccurredAt: d.OccurredAt, ClientRecordedAt: d.ClientRecordedAt, ReceivedAt: recording.At,
+		RecordedOffline: d.RecordedOffline, RecordedBy: recording.RecordedBy,
 		IdempotencyKey: recording.IdempotencyKey, Fingerprint: recording.Fingerprint, Items: items,
 	}
 }

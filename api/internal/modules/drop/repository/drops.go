@@ -124,7 +124,8 @@ func (r *Drops) CreateDrop(ctx context.Context, drop domain.Drop) error {
 	inserted, err := queries.CreateDrop(writeCtx, sqlc.CreateDropParams{
 		ID: drop.ID, Number: drop.Number, PartnershipID: drop.PartnershipID, AgreementID: drop.AgreementID,
 		StoreOrgID: drop.StoreID, OccurredAt: drop.OccurredAt, RecordedBy: drop.RecordedBy,
-		IdempotencyKey: drop.IdempotencyKey, RequestFingerprint: drop.Fingerprint, ReceivedAt: drop.ReceivedAt,
+		IdempotencyKey: drop.IdempotencyKey, RequestFingerprint: drop.Fingerprint,
+		ClientRecordedAt: drop.ClientRecordedAt, ReceivedAt: drop.ReceivedAt, RecordedOffline: drop.RecordedOffline,
 	})
 	if err != nil {
 		return fmt.Errorf("create drop %s: %w", drop.ID, err)
