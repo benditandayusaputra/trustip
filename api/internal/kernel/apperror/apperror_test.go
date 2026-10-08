@@ -40,6 +40,8 @@ func TestCatalog_StatusesFollowContractTable(t *testing.T) {
 		apperror.CodeInternal:             http.StatusInternalServerError,
 		apperror.CodeProposalLimitReached: http.StatusConflict,
 		apperror.CodeProposalCooldown:     http.StatusConflict,
+		apperror.CodeNeedLimitReached:     http.StatusConflict,
+		apperror.CodeNeedNotOpen:          http.StatusConflict,
 	}
 	for code, want := range cases {
 		if got := apperror.New(code).Status(); got != want {

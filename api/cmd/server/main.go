@@ -77,7 +77,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		files:     buildFileComponents(pool, cfg, systemClock),
 		inbox:     buildNotificationComponents(pool, systemClock),
 		trade:     trade,
-		directory: buildDirectoryComponents(pool),
+		directory: buildDirectoryComponents(pool, systemClock),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -157,7 +157,8 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 		securityLog: securityLog, clock: deps.clock,
 	})
 	mountDirectory(server.API(), deps.directory, directoryRoutes{
-		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, securityLog: securityLog, clock: deps.clock,
+		authenticate: authenticate, writeLimiter: writeLimiter, filesBaseURL: deps.files.publicBaseURL,
+		securityLog: securityLog, clock: deps.clock,
 	})
 	return server
 }

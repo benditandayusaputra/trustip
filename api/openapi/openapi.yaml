@@ -1255,6 +1255,236 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/needs:
+    get:
+      operationId: listNeeds
+      tags: [need]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/NeedStatus"
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Kebutuhan milik toko, terbaru lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NeedListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+    post:
+      operationId: postNeed
+      tags: [need]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NeedRequest"
+      responses:
+        "201":
+          description: Kebutuhan tayang 30 hari
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NeedResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/needs/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getNeed
+      tags: [need]
+      responses:
+        "200":
+          description: Kebutuhan beserta tanggapan penitip
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NeedDetailResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/needs/{id}/extend:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: extendNeed
+      tags: [need]
+      responses:
+        "200":
+          description: Masa tayang diperpanjang 30 hari dari sekarang
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NeedResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/needs/{id}/fulfill:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: fulfillNeed
+      tags: [need]
+      responses:
+        "200":
+          description: Kebutuhan ditandai terpenuhi
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NeedResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/needs/{id}/close:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: closeNeed
+      tags: [need]
+      responses:
+        "200":
+          description: Kebutuhan ditutup
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NeedResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/products:
     get:
       operationId: listProducts
@@ -3492,6 +3722,8 @@ components:
         - ALREADY_PARTNERS
         - PROPOSAL_LIMIT_REACHED
         - PROPOSAL_COOLDOWN
+        - NEED_LIMIT_REACHED
+        - NEED_NOT_OPEN
         - NOT_YOUR_TURN
         - PROPOSAL_ALREADY_DECIDED
         - PARTNERSHIP_NOT_ACTIVE
@@ -6740,5 +6972,188 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProposalRevisionRecord"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    NeedStatus:
+      type: string
+      enum: [OPEN, FULFILLED, CLOSED, EXPIRED]
+    NeedRequest:
+      type: object
+      additionalProperties: false
+      required: [title, category_id, description, est_qty_per_week, max_retail_price, preferred_model,
+        offered_commission_bps]
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 80
+        category_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+          maxLength: 500
+        est_qty_per_week:
+          type: integer
+          nullable: true
+          minimum: 1
+        max_retail_price:
+          type: integer
+          nullable: true
+          minimum: 1
+        preferred_model:
+          type: string
+          nullable: true
+          enum: [FIXED_DEPOSIT, COMMISSION, null]
+        offered_commission_bps:
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 5000
+    Need:
+      type: object
+      additionalProperties: false
+      required: [id, store, title, category, description, est_qty_per_week, max_retail_price, preferred_model,
+        offered_commission_bps, status, expires_at, created_at, response_count]
+      properties:
+        id:
+          type: string
+          format: uuid
+        store:
+          $ref: "#/components/schemas/PartyRef"
+        title:
+          type: string
+        category:
+          $ref: "#/components/schemas/PartyRef"
+        description:
+          type: string
+        est_qty_per_week:
+          type: integer
+          nullable: true
+        max_retail_price:
+          type: integer
+          nullable: true
+        preferred_model:
+          type: string
+          nullable: true
+          enum: [FIXED_DEPOSIT, COMMISSION, null]
+        offered_commission_bps:
+          type: integer
+          nullable: true
+        status:
+          $ref: "#/components/schemas/NeedStatus"
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        response_count:
+          type: integer
+    NeedDetail:
+      type: object
+      additionalProperties: false
+      required: [id, store, title, category, description, est_qty_per_week, max_retail_price, preferred_model,
+        offered_commission_bps, status, expires_at, created_at, response_count, responses]
+      properties:
+        id:
+          type: string
+          format: uuid
+        store:
+          $ref: "#/components/schemas/PartyRef"
+        title:
+          type: string
+        category:
+          $ref: "#/components/schemas/PartyRef"
+        description:
+          type: string
+        est_qty_per_week:
+          type: integer
+          nullable: true
+        max_retail_price:
+          type: integer
+          nullable: true
+        preferred_model:
+          type: string
+          nullable: true
+          enum: [FIXED_DEPOSIT, COMMISSION, null]
+        offered_commission_bps:
+          type: integer
+          nullable: true
+        status:
+          $ref: "#/components/schemas/NeedStatus"
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        response_count:
+          type: integer
+        responses:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [proposal_id, number, status, from_org_id, awaiting_org_id, consignor_name, created_at]
+            properties:
+              proposal_id:
+                type: string
+                format: uuid
+              number:
+                type: string
+              status:
+                type: string
+                enum: [OPEN, ACCEPTED, DECLINED, WITHDRAWN, EXPIRED]
+              from_org_id:
+                type: string
+                format: uuid
+              awaiting_org_id:
+                type: string
+                nullable: true
+              consignor_name:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+    NeedResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Need"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    NeedDetailResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/NeedDetail"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    NeedListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Need"
         meta:
           $ref: "#/components/schemas/ListMeta"

@@ -201,6 +201,24 @@ type Membership struct {
 	UpdatedAt         time.Time
 }
 
+type Need struct {
+	ID                   string
+	StoreOrgID           string
+	Title                string
+	CategoryID           string
+	Description          string
+	EstQtyPerWeek        pgtype.Int4
+	MaxRetailPrice       pgtype.Int8
+	PreferredModel       pgtype.Text
+	OfferedCommissionBps pgtype.Int4
+	Status               string
+	ExpiresAt            time.Time
+	RemindedAt           pgtype.Timestamptz
+	CreatedBy            string
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+}
+
 type Notification struct {
 	ID        string
 	UserID    string
@@ -326,6 +344,7 @@ type Proposal struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	DecisionReason    string
+	NeedID            pgtype.UUID
 }
 
 type ProposalItem struct {

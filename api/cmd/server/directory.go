@@ -9,7 +9,10 @@ import (
 	directoryhandler "github.com/benditandayusaputra/trustip/api/internal/modules/directory/handler"
 	directoryrepository "github.com/benditandayusaputra/trustip/api/internal/modules/directory/repository"
 	directoryservice "github.com/benditandayusaputra/trustip/api/internal/modules/directory/service"
+	needhandler "github.com/benditandayusaputra/trustip/api/internal/modules/need/handler"
+	needservice "github.com/benditandayusaputra/trustip/api/internal/modules/need/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
 )
 
@@ -20,15 +23,20 @@ type directoryComponents struct {
 	stores     directoryservice.StoreDirectory
 	consignors directoryservice.ConsignorDirectory
 	contacts   directoryservice.ContactReader
+	needs      needservice.Deps
 }
 
-func buildDirectoryComponents(pool *database.Pool) directoryComponents {
+func buildDirectoryComponents(pool *database.Pool, clock serverClock) directoryComponents {
 	directory := directoryrepository.NewDirectory(pool)
-	return directoryComponents{viewers: directory, stores: directory, consignors: directory, contacts: directory}
+	return directoryComponents{
+		viewers: directory, stores: directory, consignors: directory, contacts: directory,
+		needs: buildNeedDeps(pool, clock),
+	}
 }
 
 type directoryRoutes struct {
 	authenticate fiber.Handler
+	writeLimiter httpserver.RateLimiter
 	filesBaseURL string
 	securityLog  *slog.Logger
 	clock        serverClock
@@ -47,4 +55,5 @@ func mountDirectory(api fiber.Router, components directoryComponents, routes dir
 			routes.clock),
 		SecurityLog: routes.securityLog,
 	})
+	needhandler.Mount(api, needDeps(components.needs, routes))
 }

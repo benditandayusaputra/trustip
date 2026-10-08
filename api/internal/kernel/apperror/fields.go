@@ -31,6 +31,7 @@ const (
 	FieldPeriodSettled     FieldCode = "PERIOD_ALREADY_SETTLED"
 	FieldAmountMismatch    FieldCode = "PAYMENT_AMOUNT_MISMATCH"
 	FieldProofRequired     FieldCode = "PROOF_REQUIRED"
+	FieldContactInText     FieldCode = "CONTACT_NOT_ALLOWED"
 )
 
 type Param struct {
@@ -66,6 +67,8 @@ func fieldMessages() map[FieldCode]string {
 		FieldPeriodSettled:     "Tanggal ini sudah masuk Setoran {no}.",
 		FieldAmountMismatch:    "Jumlah harus sama dengan sisa Setoran ({Rp}).",
 		FieldProofRequired:     "Unggah bukti untuk pembayaran transfer atau QRIS.",
+		FieldContactInText: "Nomor telepon dan tautan tidak boleh ada di teks. " +
+			"Calon mitra menghubungi lewat tombol yang tersedia.",
 	}
 }
 

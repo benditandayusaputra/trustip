@@ -13,6 +13,8 @@ import (
 	countservice "github.com/benditandayusaputra/trustip/api/internal/modules/count/service"
 	droprepository "github.com/benditandayusaputra/trustip/api/internal/modules/drop/repository"
 	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
+	needrepository "github.com/benditandayusaputra/trustip/api/internal/modules/need/repository"
+	needservice "github.com/benditandayusaputra/trustip/api/internal/modules/need/service"
 	proposalrepository "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/repository"
 	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
@@ -30,6 +32,7 @@ type jobRunners struct {
 	deemCounts  *countservice.DeemConfirmed
 	expire      *proposalservice.ExpireProposals
 	settlements *settlementservice.IssueDueSettlements
+	needs       *needservice.ExpireNeeds
 }
 
 func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
@@ -38,6 +41,7 @@ func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
 		deemCounts:  countservice.NewDeemConfirmed(countrepository.NewCounts(pool)),
 		expire:      proposalservice.NewExpireProposals(proposalrepository.NewProposals(pool)),
 		settlements: settlementservice.NewIssueDueSettlements(trade.settlements),
+		needs:       needservice.NewExpireNeeds(needrepository.NewNeeds(pool)),
 	}
 }
 
@@ -59,7 +63,8 @@ func (r jobRunners) daily(ctx context.Context, now time.Time) error {
 	_, dropErr := r.deemDrops.Execute(ctx, now)
 	_, countErr := r.deemCounts.Execute(ctx, now)
 	_, proposalErr := r.expire.Execute(ctx, now)
-	return errors.Join(dropErr, countErr, proposalErr)
+	_, needErr := r.needs.Execute(ctx, now)
+	return errors.Join(dropErr, countErr, proposalErr, needErr)
 }
 
 func (r jobRunners) issue(schedule terms.Schedule) scheduler.Work {

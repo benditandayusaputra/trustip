@@ -37,7 +37,7 @@ func databaseBrowser(t *testing.T) *browser {
 	server := newServerFrom(alwaysReady, now, testModules{
 		auth: components, org: buildOrgComponents(pool, now), files: databaseFileComponents(t, pool, now),
 		inbox: buildNotificationComponents(pool, now),
-		trade: buildTradeComponents(pool, now, testSealKeys{}), directory: buildDirectoryComponents(pool),
+		trade: buildTradeComponents(pool, now, testSealKeys{}), directory: buildDirectoryComponents(pool, now),
 	})
 	if got := perform(t, server, postUsers(t, registration("sari@contoh.id"))); got.status != http.StatusCreated {
 		t.Fatalf("register = %d %s", got.status, got.body)

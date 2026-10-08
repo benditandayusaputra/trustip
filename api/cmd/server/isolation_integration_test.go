@@ -52,6 +52,8 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	}
 	paid := storeOwner.recordPayment(world.consignor.settlementID, paymentBody(1750, "CASH", ""), paymentKey)
 	world.consignor.paymentID = quotedAfter(string(paid.body), `"payments":[{"id":"`)
+	posted := storeOwner.postJSON(needsPath, needBody("Butuh roti untuk sarapan"))
+	world.store.needID = quotedAfter(string(posted.body), `"id":"`)
 	world.storeStranger = storeOwner.anotherUserOnTheSameServer("tini@contoh.id")
 	world.storeStranger.found(strings.Replace(onboarding(semarangCityCode), "Warung Bu Tini", "Toko Lain", 1), "LOGO")
 	world.consignorStranger = storeOwner.anotherUserOnTheSameServer("ani@contoh.id")
