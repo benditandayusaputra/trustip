@@ -5,6 +5,7 @@ import { organization } from './organization';
 import { partnerships } from './partnerships';
 import { products } from './products';
 import { proposals } from './proposals';
+import { stock } from './stock';
 
 export const id = {
 	brand: 'Trustip',
@@ -15,6 +16,7 @@ export const id = {
 	...partnerships,
 	...products,
 	...proposals,
+	...stock,
 	layout: {
 		skipToContent: 'Lewati ke konten',
 		mainNavigation: 'Navigasi utama',

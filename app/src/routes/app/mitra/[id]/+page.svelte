@@ -3,12 +3,18 @@
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import AgreementView from '#lib/features/agreements/components/AgreementView.svelte';
 	import DropHistoryList from '#lib/features/drops/components/DropHistoryList.svelte';
+	import PartnerStock from '#lib/features/stock/components/PartnerStock.svelte';
 	import PartnerPage from '#lib/features/partnerships/components/PartnerPage.svelte';
 	import { id } from '#lib/i18n/id.js';
 
 	const partnershipId = $derived(page.params.id ?? '');
 	const session = getAccountSession();
 	const membership = $derived(session.account?.membership);
+	const recordHref = $derived(
+		membership?.organization_type === 'STORE'
+			? `/app/titipan/baru?mitra=${partnershipId}`
+			: undefined
+	);
 </script>
 
 <svelte:head>
@@ -25,13 +31,11 @@
 			{#snippet agreement()}
 				<AgreementView {partnershipId} />
 			{/snippet}
+			{#snippet stock()}
+				<PartnerStock {partnershipId} {recordHref} />
+			{/snippet}
 			{#snippet drops()}
-				<DropHistoryList
-					{partnershipId}
-					recordHref={membership?.organization_type === 'STORE'
-						? `/app/titipan/baru?mitra=${partnershipId}`
-						: undefined}
-				/>
+				<DropHistoryList {partnershipId} {recordHref} />
 			{/snippet}
 		</PartnerPage>
 	{/key}

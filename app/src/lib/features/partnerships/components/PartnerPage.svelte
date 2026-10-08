@@ -17,9 +17,10 @@
 		isConsignor: boolean;
 		agreement: Snippet;
 		drops?: Snippet;
+		stock?: Snippet;
 	}
 
-	let { partnershipId, canAmend, isConsignor, agreement, drops }: Props = $props();
+	let { partnershipId, canAmend, isConsignor, agreement, drops, stock }: Props = $props();
 
 	const amendHref = $derived(`/app/mitra/${partnershipId}/perubahan`);
 
@@ -69,6 +70,8 @@
 							: undefined}
 					/>
 				</div>
+			{:else if key === 'stock' && stock}
+				{@render stock()}
 			{:else if key === 'drops' && drops}
 				{@render drops()}
 			{:else}
