@@ -1,6 +1,10 @@
 package money
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+	"strings"
+)
 
 const MaxRupiah = 100_000_000
 
@@ -17,4 +21,18 @@ func NewRupiah(amount int64) (Rupiah, error) {
 
 func (r Rupiah) Int64() int64 {
 	return int64(r)
+}
+
+const thousandsGroup = 3
+
+func (r Rupiah) Text() string {
+	digits := strconv.FormatInt(int64(r), 10)
+	var grouped strings.Builder
+	for index, digit := range digits {
+		if index > 0 && (len(digits)-index)%thousandsGroup == 0 {
+			grouped.WriteByte('.')
+		}
+		grouped.WriteRune(digit)
+	}
+	return "Rp" + grouped.String()
 }

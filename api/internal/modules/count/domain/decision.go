@@ -66,3 +66,9 @@ type Deadline struct {
 func DeadlineAt(now time.Time) Deadline {
 	return Deadline{Cutoff: now.Add(-ConfirmWindow), Window: ConfirmWindow, At: now}
 }
+
+type SettlementApproval struct {
+	SettlementID string
+	By           string
+	At           time.Time
+}

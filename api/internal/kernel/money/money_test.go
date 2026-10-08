@@ -24,3 +24,14 @@ func TestNewRupiah_BRAGR01_WholeRupiahFromZeroToOneHundredMillion(t *testing.T) 
 		}
 	}
 }
+
+func TestText_SpecTwentyFour_RupiahWithThousandsDots(t *testing.T) {
+	cases := map[Rupiah]string{
+		0: "Rp0", 750: "Rp750", 1000: "Rp1.000", 691187: "Rp691.187", 100_000_000: "Rp100.000.000",
+	}
+	for amount, want := range cases {
+		if got := amount.Text(); got != want {
+			t.Errorf("%d: got %q, want %q", amount, got, want)
+		}
+	}
+}

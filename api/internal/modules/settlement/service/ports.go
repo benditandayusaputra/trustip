@@ -25,10 +25,32 @@ type DueLister interface {
 	LockLedger(ctx context.Context, partnershipID string) (domain.Ledger, error)
 }
 
+type PaymentWriter interface {
+	FindPaymentByKey(ctx context.Context, key domain.PaymentKeyRef) (domain.StoredPayment, bool, error)
+	LockPayable(ctx context.Context, key domain.PayableKey) (domain.Payable, error)
+	CreatePayment(ctx context.Context, payment domain.Payment) error
+}
+
+type PaymentReviewer interface {
+	LockPayment(ctx context.Context, key domain.PaymentKey) (domain.Payment, error)
+	SaveReview(ctx context.Context, review domain.Review) error
+	MarkPaid(ctx context.Context, settlementID string, paidAt time.Time) error
+}
+
+type PaymentStore interface {
+	PaymentWriter
+	PaymentReviewer
+}
+
 type SettlementStore interface {
 	LedgerStore
 	SettlementReader
 	DueLister
+	PaymentStore
+}
+
+type CountApprover interface {
+	ApproveSources(ctx context.Context, approval domain.Approval) error
 }
 
 type Sealer interface {
@@ -65,6 +87,7 @@ type Deps struct {
 	Seals       SealChecker
 	Announcer   Announcer
 	Audit       AuditTrail
+	Approver    CountApprover
 	Tx          Transactor
 	Clock       Clock
 	IDs         IDGenerator

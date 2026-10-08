@@ -41,7 +41,10 @@ func (r *Settlements) GetSettlement(ctx context.Context, key domain.SettlementKe
 	view = withSales(view, sales)
 	view.Summary.Qty = int(row.SoldQty)
 	view.Summary.Split = splitOf(row.GrossAmount, row.StoreShareAmount, row.ConsignorShareAmount)
-	return view, nil
+	if row.ShowsPayee {
+		view.Payee = domain.Payee{IsShown: true, Info: row.PaymentInfo, QRFileID: row.PaymentQrFileID}
+	}
+	return withPayments(readCtx, queries, view)
 }
 
 func viewOf(row sqlc.GetSettlementRow) (domain.View, error) {

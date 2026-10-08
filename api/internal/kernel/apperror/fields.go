@@ -29,6 +29,8 @@ const (
 	FieldInvalidDate       FieldCode = "INVALID_DATE"
 	FieldBeforeLastDoc     FieldCode = "BEFORE_LAST_DOCUMENT"
 	FieldPeriodSettled     FieldCode = "PERIOD_ALREADY_SETTLED"
+	FieldAmountMismatch    FieldCode = "PAYMENT_AMOUNT_MISMATCH"
+	FieldProofRequired     FieldCode = "PROOF_REQUIRED"
 )
 
 type Param struct {
@@ -62,6 +64,8 @@ func fieldMessages() map[FieldCode]string {
 		FieldInvalidDate:       "Tulis tanggal dengan format TTTT-BB-HH.",
 		FieldBeforeLastDoc:     "Waktu ini lebih awal dari dokumen terakhir dengan mitra ini.",
 		FieldPeriodSettled:     "Tanggal ini sudah masuk Setoran {no}.",
+		FieldAmountMismatch:    "Jumlah harus sama dengan sisa Setoran ({Rp}).",
+		FieldProofRequired:     "Unggah bukti untuk pembayaran transfer atau QRIS.",
 	}
 }
 

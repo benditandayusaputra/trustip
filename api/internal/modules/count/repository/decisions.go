@@ -83,3 +83,15 @@ func (r *Counts) ConfirmUnanswered(ctx context.Context, deadline domain.Deadline
 	}
 	return int(changed), nil
 }
+
+func (r *Counts) ApproveCountsOfSettlement(ctx context.Context, approval domain.SettlementApproval) error {
+	writeCtx, cancel := database.WriteContext(ctx)
+	defer cancel()
+	_, err := sqlc.New(r.pool.Querier(ctx)).ApproveCountsOfSettlement(writeCtx, sqlc.ApproveCountsOfSettlementParams{
+		ConfirmedBy: approval.By, ConfirmedAt: approval.At, SettlementID: approval.SettlementID,
+	})
+	if err != nil {
+		return fmt.Errorf("approve counts of settlement %s: %w", approval.SettlementID, err)
+	}
+	return nil
+}

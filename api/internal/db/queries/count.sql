@@ -198,3 +198,14 @@ UPDATE counts
 SET status = 'CONFIRMED', auto_confirmed = true,
     confirmed_at = received_at + make_interval(0, 0, 0, 0, 0, 0, @window_seconds::double precision), updated_at = @now::timestamptz
 WHERE status = 'RECORDED' AND received_at <= @cutoff::timestamptz;
+
+-- name: ApproveCountsOfSettlement :execrows
+UPDATE counts
+SET status = 'CONFIRMED', confirmed_by = @confirmed_by::uuid, confirmed_at = @confirmed_at::timestamptz,
+    auto_confirmed = false, updated_at = @confirmed_at::timestamptz
+WHERE status = 'RECORDED' AND id IN (
+    SELECT l.count_id
+    FROM count_lines AS l
+    JOIN sale_allocations AS a ON a.count_line_id = l.id
+    WHERE a.settlement_id = @settlement_id::uuid
+);

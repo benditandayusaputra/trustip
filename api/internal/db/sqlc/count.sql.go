@@ -130,6 +130,32 @@ func (q *Queries) AddSaleAllocations(ctx context.Context, arg AddSaleAllocations
 	return err
 }
 
+const approveCountsOfSettlement = `-- name: ApproveCountsOfSettlement :execrows
+UPDATE counts
+SET status = 'CONFIRMED', confirmed_by = $1::uuid, confirmed_at = $2::timestamptz,
+    auto_confirmed = false, updated_at = $2::timestamptz
+WHERE status = 'RECORDED' AND id IN (
+    SELECT l.count_id
+    FROM count_lines AS l
+    JOIN sale_allocations AS a ON a.count_line_id = l.id
+    WHERE a.settlement_id = $3::uuid
+)
+`
+
+type ApproveCountsOfSettlementParams struct {
+	ConfirmedBy  string
+	ConfirmedAt  time.Time
+	SettlementID string
+}
+
+func (q *Queries) ApproveCountsOfSettlement(ctx context.Context, arg ApproveCountsOfSettlementParams) (int64, error) {
+	result, err := q.db.Exec(ctx, approveCountsOfSettlement, arg.ConfirmedBy, arg.ConfirmedAt, arg.SettlementID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const confirmCount = `-- name: ConfirmCount :execrows
 UPDATE counts
 SET status = 'CONFIRMED', confirmed_by = $1::uuid, confirmed_at = $2::timestamptz,

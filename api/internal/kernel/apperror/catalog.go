@@ -37,6 +37,8 @@ const (
 	CodeCancelWindowPassed   Code = "CANCEL_WINDOW_PASSED"
 	CodeDropAlreadyCounted   Code = "DROP_ALREADY_COUNTED"
 	CodeStockChanged         Code = "STOCK_CHANGED"
+	CodeSettlementPaid       Code = "SETTLEMENT_ALREADY_PAID"
+	CodePaymentPending       Code = "PAYMENT_PENDING"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -170,6 +172,10 @@ func documentEntries() map[Code]entry {
 		},
 		CodeDropAlreadyCounted: {
 			KindConflict, http.StatusConflict, "Titipan ini sudah masuk Hitung Sisa sehingga tidak bisa dibatalkan.",
+		},
+		CodeSettlementPaid: {KindConflict, http.StatusConflict, "Setoran ini sudah lunas."},
+		CodePaymentPending: {
+			KindConflict, http.StatusConflict, "Pembayaran sebelumnya masih menunggu tanggapan penitip.",
 		},
 	}
 }

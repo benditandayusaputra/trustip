@@ -28,11 +28,14 @@ func countedAt() time.Time {
 }
 
 type fakeSettlements struct {
-	ledger  domain.Ledger
-	created []domain.Settlement
-	listed  []domain.ListQuery
-	dueKeys []domain.DueKey
-	locks   int
+	ledger   domain.Ledger
+	created  []domain.Settlement
+	listed   []domain.ListQuery
+	dueKeys  []domain.DueKey
+	locks    int
+	payments map[string]domain.Payment
+	paid     []string
+	approved []domain.Approval
 }
 
 func (f *fakeSettlements) GetLedger(_ context.Context, partnershipID string) (domain.Ledger, error) {
@@ -148,14 +151,15 @@ func newScenario(schedule terms.Schedule, quantities ...int) scenario {
 			Split: bread.SplitOf(qty),
 		})
 	}
-	settlements := &fakeSettlements{ledger: domain.Ledger{
+	settlements := &fakeSettlements{payments: map[string]domain.Payment{}, ledger: domain.Ledger{
 		PartnershipID: partnershipID, ConsignorID: consignorID, StoreID: storeID, StoreName: "Warung Bu Sri",
 		Schedule: schedule, PaymentTermsDays: 7, Unsettled: allocations,
 	}}
 	recorded := &events{}
 	return scenario{settlements: settlements, events: recorded, deps: service.Deps{
 		Settlements: settlements, Sealer: recorded, Seals: recorded, Announcer: recorded, Audit: recorded,
-		Tx: inlineTx{}, Clock: fixedClock{now: countedAt().Add(time.Minute)}, IDs: &sequentialIDs{},
+		Approver: settlements, Tx: inlineTx{}, Clock: fixedClock{now: countedAt().Add(time.Minute)},
+		IDs: &sequentialIDs{},
 	}}
 }
 

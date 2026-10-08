@@ -25,6 +25,12 @@ func (uc *GetSettlement) Execute(
 	if err := policy.Require(signedIn, policy.ViewDocumentValues); err != nil {
 		return domain.SealedView{}, fmt.Errorf("check settlement reader: %w", err)
 	}
+	return uc.read(ctx, signedIn, settlementID)
+}
+
+func (uc *GetSettlement) read(
+	ctx context.Context, signedIn actor.Actor, settlementID string,
+) (domain.SealedView, error) {
 	view, err := uc.settlements.GetSettlement(ctx, domain.SettlementKey{
 		OrganizationID: signedIn.Membership.OrganizationID, SettlementID: settlementID,
 	})
@@ -35,5 +41,14 @@ func (uc *GetSettlement) Execute(
 	if err != nil {
 		return domain.SealedView{}, fmt.Errorf("check seal of settlement %s: %w", settlementID, err)
 	}
-	return domain.SealedView{View: view, Standing: view.StandingAt(uc.clock.Now()), Seal: verdict}, nil
+	sealed := domain.SealedView{
+		View: view, Standing: view.StandingAt(uc.clock.Now()), Seal: verdict,
+		PaymentSeals: make(map[string]domain.SealVerdict, len(view.Payments)),
+	}
+	for _, payment := range view.Payments {
+		if sealed.PaymentSeals[payment.ID], err = uc.seals.Check(ctx, payment.SealCheck()); err != nil {
+			return domain.SealedView{}, fmt.Errorf("check seal of payment %s: %w", payment.ID, err)
+		}
+	}
+	return sealed, nil
 }

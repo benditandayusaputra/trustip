@@ -37,6 +37,7 @@ type Deps struct {
 	Get          Reader
 	List         Lister
 	Running      RunningReader
+	Payments     PaymentDeps
 	SecurityLog  *slog.Logger
 }
 
@@ -44,6 +45,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Get(settlementsPath, deps.Authenticate, list(deps.List))
 	api.Get(settlementPath, deps.Authenticate, byID(deps.Get, deps.SecurityLog))
 	api.Get(runningPath, deps.Authenticate, running(deps.Running))
+	mountPayments(api, deps)
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {

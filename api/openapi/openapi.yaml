@@ -662,7 +662,7 @@ paths:
                   format: binary
                 purpose:
                   type: string
-                  enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO]
+                  enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO, PAYMENT_PROOF]
       responses:
         "201":
           description: Gambar dikode ulang dan disimpan
@@ -2398,6 +2398,219 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/settlements/{id}/payments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: recordPayment
+      tags: [settlement]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequest"
+      responses:
+        "201":
+          description: Toko mencatat bayar sebesar sisa Setoran, menunggu penitip, atau Setoran semula untuk kunci yang sama
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            Idempotent-Replay:
+              $ref: "#/components/headers/IdempotentReplay"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/settlements/{id}/mark-paid:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: markSettlementPaid
+      tags: [settlement]
+      responses:
+        "200":
+          description: Penitip menandai Setoran lunas karena uang diterima tunai
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/payments/{id}/confirm:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: confirmPayment
+      tags: [settlement]
+      responses:
+        "200":
+          description: Penitip menyatakan uang diterima sehingga Setoran lunas
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/payments/{id}/reject:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: rejectPayment
+      tags: [settlement]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  maxLength: 200
+      responses:
+        "200":
+          description: Penitip menolak pembayaran dengan alasan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -2542,6 +2755,8 @@ components:
         - CANCEL_WINDOW_PASSED
         - DROP_ALREADY_COUNTED
         - STOCK_CHANGED
+        - SETTLEMENT_ALREADY_PAID
+        - PAYMENT_PENDING
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -3107,7 +3322,7 @@ components:
           format: uuid
         purpose:
           type: string
-          enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO]
+          enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO, PAYMENT_PROOF]
         visibility:
           type: string
           enum: [PUBLIC, PRIVATE]
@@ -4832,6 +5047,8 @@ components:
         - sold_qty
         - split
         - counts
+        - payments
+        - payee
         - seal
       properties:
         id:
@@ -4891,6 +5108,22 @@ components:
               counted_at:
                 type: string
                 format: date-time
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+        payee:
+          type: object
+          nullable: true
+          additionalProperties: false
+          required: [payment_info, payment_qr_file_id]
+          properties:
+            payment_info:
+              type: string
+            payment_qr_file_id:
+              type: string
+              format: uuid
+              nullable: true
         seal:
           $ref: "#/components/schemas/SealStatus"
     SettlementResponse:
@@ -5000,3 +5233,77 @@ components:
           $ref: "#/components/schemas/RunningSales"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    PaymentRequest:
+      type: object
+      additionalProperties: false
+      required: [amount, method, paid_on, proof_file_id]
+      properties:
+        amount:
+          type: integer
+          minimum: 1
+        method:
+          $ref: "#/components/schemas/PaymentMethod"
+        paid_on:
+          type: string
+          format: date
+        proof_file_id:
+          type: string
+          format: uuid
+          nullable: true
+    PaymentMethod:
+      type: string
+      enum: [TRANSFER, QRIS, CASH]
+    Payment:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - amount
+        - method
+        - paid_on
+        - proof_file_id
+        - status
+        - rejection_reason
+        - recorded_by_name
+        - recorded_at
+        - review
+        - seal
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+        method:
+          $ref: "#/components/schemas/PaymentMethod"
+        paid_on:
+          type: string
+          format: date
+        proof_file_id:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          enum: [PENDING_CONFIRMATION, CONFIRMED, REJECTED]
+        rejection_reason:
+          type: string
+          nullable: true
+        recorded_by_name:
+          type: string
+        recorded_at:
+          type: string
+          format: date-time
+        review:
+          type: object
+          nullable: true
+          additionalProperties: false
+          required: [by_name, at]
+          properties:
+            by_name:
+              type: string
+            at:
+              type: string
+              format: date-time
+        seal:
+          $ref: "#/components/schemas/SealStatus"

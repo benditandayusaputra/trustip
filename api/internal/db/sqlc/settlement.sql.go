@@ -10,6 +10,63 @@ import (
 	"time"
 )
 
+const createPayment = `-- name: CreatePayment :execrows
+INSERT INTO payments (
+    id, settlement_id, partnership_id, amount, method, paid_on, proof_file_id, proof_sha256, status,
+    recorded_by, recorded_by_org_id, reviewed_by, reviewed_at, idempotency_key, request_fingerprint, created_at,
+    updated_at
+) VALUES (
+    $1::uuid, $2::uuid, $3::uuid, $4::bigint, $5::text,
+    CAST($6::text AS date), NULLIF($7::text, '')::uuid,
+    CASE WHEN $7::text = '' THEN NULL ELSE $8::bytea END, $9::text,
+    $10::uuid, $11::uuid,
+    CASE WHEN $9::text = 'CONFIRMED' THEN $10::uuid END,
+    CASE WHEN $9::text = 'CONFIRMED' THEN $12::timestamptz END,
+    $13::uuid, $14::bytea, $12::timestamptz, $12::timestamptz
+)
+ON CONFLICT (recorded_by_org_id, idempotency_key) DO NOTHING
+`
+
+type CreatePaymentParams struct {
+	ID                 string
+	SettlementID       string
+	PartnershipID      string
+	Amount             int64
+	Method             string
+	PaidOn             string
+	ProofFileID        string
+	ProofSha256        []byte
+	Status             string
+	RecordedBy         string
+	RecordedByOrgID    string
+	RecordedAt         time.Time
+	IdempotencyKey     string
+	RequestFingerprint []byte
+}
+
+func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (int64, error) {
+	result, err := q.db.Exec(ctx, createPayment,
+		arg.ID,
+		arg.SettlementID,
+		arg.PartnershipID,
+		arg.Amount,
+		arg.Method,
+		arg.PaidOn,
+		arg.ProofFileID,
+		arg.ProofSha256,
+		arg.Status,
+		arg.RecordedBy,
+		arg.RecordedByOrgID,
+		arg.RecordedAt,
+		arg.IdempotencyKey,
+		arg.RequestFingerprint,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const createSettlement = `-- name: CreateSettlement :exec
 INSERT INTO settlements (
     id, number, partnership_id, consignor_org_id, store_org_id, schedule, period_start, period_end, status,
@@ -60,6 +117,48 @@ func (q *Queries) CreateSettlement(ctx context.Context, arg CreateSettlementPara
 	return err
 }
 
+const findPaymentByKey = `-- name: FindPaymentByKey :one
+SELECT id, settlement_id, request_fingerprint
+FROM payments
+WHERE recorded_by_org_id = $1::uuid AND idempotency_key = $2::uuid
+`
+
+type FindPaymentByKeyParams struct {
+	OrganizationID string
+	IdempotencyKey string
+}
+
+type FindPaymentByKeyRow struct {
+	ID                 string
+	SettlementID       string
+	RequestFingerprint []byte
+}
+
+func (q *Queries) FindPaymentByKey(ctx context.Context, arg FindPaymentByKeyParams) (FindPaymentByKeyRow, error) {
+	row := q.db.QueryRow(ctx, findPaymentByKey, arg.OrganizationID, arg.IdempotencyKey)
+	var i FindPaymentByKeyRow
+	err := row.Scan(&i.ID, &i.SettlementID, &i.RequestFingerprint)
+	return i, err
+}
+
+const getProofFile = `-- name: GetProofFile :one
+SELECT sha256
+FROM files
+WHERE id = $1::uuid AND organization_id = $2::uuid AND purpose = 'PAYMENT_PROOF'
+`
+
+type GetProofFileParams struct {
+	ID             string
+	OrganizationID string
+}
+
+func (q *Queries) GetProofFile(ctx context.Context, arg GetProofFileParams) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getProofFile, arg.ID, arg.OrganizationID)
+	var sha256 []byte
+	err := row.Scan(&sha256)
+	return sha256, err
+}
+
 const getRunningSales = `-- name: GetRunningSales :one
 SELECT
     COUNT(a.id)::bigint AS allocation_count, COALESCE(SUM(a.qty), 0)::bigint AS sold_qty,
@@ -107,17 +206,20 @@ SELECT
     st.id, st.number, st.partnership_id, st.consignor_org_id, c.name AS consignor_name, st.store_org_id,
     s.name AS store_name, st.schedule, st.period_start, st.period_end, st.status, st.sold_qty, st.gross_amount,
     st.store_share_amount, st.consignor_share_amount, to_char(st.due_date, 'YYYY-MM-DD')::text AS due_date,
-    st.issued_at, COALESCE(st.paid_at, st.issued_at)::timestamptz AS paid_at
+    st.issued_at, COALESCE(st.paid_at, st.issued_at)::timestamptz AS paid_at,
+    (st.consignor_org_id = $1::uuid OR pa.status = 'ACTIVE')::boolean AS shows_payee,
+    c.payment_info, COALESCE(c.payment_qr_file_id::text, '')::text AS payment_qr_file_id
 FROM settlements AS st
+JOIN partnerships AS pa ON pa.id = st.partnership_id
 JOIN organizations AS c ON c.id = st.consignor_org_id
 JOIN organizations AS s ON s.id = st.store_org_id
-WHERE st.id = $1::uuid
-    AND (st.consignor_org_id = $2::uuid OR st.store_org_id = $2::uuid)
+WHERE st.id = $2::uuid
+    AND (st.consignor_org_id = $1::uuid OR st.store_org_id = $1::uuid)
 `
 
 type GetSettlementParams struct {
-	ID             string
 	OrganizationID string
+	ID             string
 }
 
 type GetSettlementRow struct {
@@ -139,10 +241,13 @@ type GetSettlementRow struct {
 	DueDate              string
 	IssuedAt             time.Time
 	PaidAt               time.Time
+	ShowsPayee           bool
+	PaymentInfo          string
+	PaymentQrFileID      string
 }
 
 func (q *Queries) GetSettlement(ctx context.Context, arg GetSettlementParams) (GetSettlementRow, error) {
-	row := q.db.QueryRow(ctx, getSettlement, arg.ID, arg.OrganizationID)
+	row := q.db.QueryRow(ctx, getSettlement, arg.OrganizationID, arg.ID)
 	var i GetSettlementRow
 	err := row.Scan(
 		&i.ID,
@@ -163,6 +268,9 @@ func (q *Queries) GetSettlement(ctx context.Context, arg GetSettlementParams) (G
 		&i.DueDate,
 		&i.IssuedAt,
 		&i.PaidAt,
+		&i.ShowsPayee,
+		&i.PaymentInfo,
+		&i.PaymentQrFileID,
 	)
 	return i, err
 }
@@ -333,6 +441,73 @@ func (q *Queries) ListSettlementAllocations(ctx context.Context, settlementID st
 	return items, nil
 }
 
+const listSettlementPayments = `-- name: ListSettlementPayments :many
+SELECT
+    p.id, p.amount, p.method, to_char(p.paid_on, 'YYYY-MM-DD')::text AS paid_on,
+    COALESCE(p.proof_file_id::text, '')::text AS proof_file_id,
+    COALESCE(p.proof_sha256, ''::bytea)::bytea AS proof_sha256,
+    p.status, p.rejection_reason, p.recorded_by, p.recorded_by_org_id, ru.full_name AS recorded_by_name,
+    COALESCE(vu.full_name, '')::text AS reviewed_by_name,
+    COALESCE(p.reviewed_at, p.created_at)::timestamptz AS reviewed_at, p.created_at
+FROM payments AS p
+JOIN users AS ru ON ru.id = p.recorded_by
+LEFT JOIN users AS vu ON vu.id = p.reviewed_by
+WHERE p.settlement_id = $1::uuid
+ORDER BY p.created_at, p.id
+`
+
+type ListSettlementPaymentsRow struct {
+	ID              string
+	Amount          int64
+	Method          string
+	PaidOn          string
+	ProofFileID     string
+	ProofSha256     []byte
+	Status          string
+	RejectionReason string
+	RecordedBy      string
+	RecordedByOrgID string
+	RecordedByName  string
+	ReviewedByName  string
+	ReviewedAt      time.Time
+	CreatedAt       time.Time
+}
+
+func (q *Queries) ListSettlementPayments(ctx context.Context, settlementID string) ([]ListSettlementPaymentsRow, error) {
+	rows, err := q.db.Query(ctx, listSettlementPayments, settlementID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListSettlementPaymentsRow{}
+	for rows.Next() {
+		var i ListSettlementPaymentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Amount,
+			&i.Method,
+			&i.PaidOn,
+			&i.ProofFileID,
+			&i.ProofSha256,
+			&i.Status,
+			&i.RejectionReason,
+			&i.RecordedBy,
+			&i.RecordedByOrgID,
+			&i.RecordedByName,
+			&i.ReviewedByName,
+			&i.ReviewedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSettlements = `-- name: ListSettlements :many
 SELECT
     st.id, st.number, st.partnership_id, st.status, st.schedule, st.period_start, st.period_end,
@@ -480,6 +655,118 @@ func (q *Queries) ListUnsettledAllocations(ctx context.Context, partnershipID st
 	return items, nil
 }
 
+const lockPayable = `-- name: LockPayable :one
+SELECT
+    st.id, st.number, st.partnership_id, st.consignor_org_id, st.store_org_id, s.name AS store_name, st.status,
+    st.consignor_share_amount,
+    EXISTS (
+        SELECT 1 FROM payments AS p
+        WHERE p.settlement_id = st.id AND p.status IN ('PENDING_CONFIRMATION', 'CONFIRMED')
+    )::boolean AS has_open_payment
+FROM settlements AS st
+JOIN organizations AS s ON s.id = st.store_org_id
+WHERE st.id = $1::uuid
+    AND (st.consignor_org_id = $2::uuid OR st.store_org_id = $2::uuid)
+FOR UPDATE OF st
+`
+
+type LockPayableParams struct {
+	ID             string
+	OrganizationID string
+}
+
+type LockPayableRow struct {
+	ID                   string
+	Number               string
+	PartnershipID        string
+	ConsignorOrgID       string
+	StoreOrgID           string
+	StoreName            string
+	Status               string
+	ConsignorShareAmount int64
+	HasOpenPayment       bool
+}
+
+func (q *Queries) LockPayable(ctx context.Context, arg LockPayableParams) (LockPayableRow, error) {
+	row := q.db.QueryRow(ctx, lockPayable, arg.ID, arg.OrganizationID)
+	var i LockPayableRow
+	err := row.Scan(
+		&i.ID,
+		&i.Number,
+		&i.PartnershipID,
+		&i.ConsignorOrgID,
+		&i.StoreOrgID,
+		&i.StoreName,
+		&i.Status,
+		&i.ConsignorShareAmount,
+		&i.HasOpenPayment,
+	)
+	return i, err
+}
+
+const lockPayment = `-- name: LockPayment :one
+SELECT
+    p.id, p.settlement_id, st.number AS settlement_number, p.partnership_id, st.consignor_org_id, st.store_org_id,
+    s.name AS store_name, p.amount, p.method, to_char(p.paid_on, 'YYYY-MM-DD')::text AS paid_on,
+    COALESCE(p.proof_file_id::text, '')::text AS proof_file_id,
+    COALESCE(p.proof_sha256, ''::bytea)::bytea AS proof_sha256,
+    p.status, p.recorded_by, p.recorded_by_org_id, p.created_at
+FROM payments AS p
+JOIN settlements AS st ON st.id = p.settlement_id
+JOIN organizations AS s ON s.id = st.store_org_id
+WHERE p.id = $1::uuid
+    AND (st.consignor_org_id = $2::uuid OR st.store_org_id = $2::uuid)
+FOR UPDATE OF p, st
+`
+
+type LockPaymentParams struct {
+	ID             string
+	OrganizationID string
+}
+
+type LockPaymentRow struct {
+	ID               string
+	SettlementID     string
+	SettlementNumber string
+	PartnershipID    string
+	ConsignorOrgID   string
+	StoreOrgID       string
+	StoreName        string
+	Amount           int64
+	Method           string
+	PaidOn           string
+	ProofFileID      string
+	ProofSha256      []byte
+	Status           string
+	RecordedBy       string
+	RecordedByOrgID  string
+	CreatedAt        time.Time
+}
+
+func (q *Queries) LockPayment(ctx context.Context, arg LockPaymentParams) (LockPaymentRow, error) {
+	row := q.db.QueryRow(ctx, lockPayment, arg.ID, arg.OrganizationID)
+	var i LockPaymentRow
+	err := row.Scan(
+		&i.ID,
+		&i.SettlementID,
+		&i.SettlementNumber,
+		&i.PartnershipID,
+		&i.ConsignorOrgID,
+		&i.StoreOrgID,
+		&i.StoreName,
+		&i.Amount,
+		&i.Method,
+		&i.PaidOn,
+		&i.ProofFileID,
+		&i.ProofSha256,
+		&i.Status,
+		&i.RecordedBy,
+		&i.RecordedByOrgID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const lockSettlementPartnership = `-- name: LockSettlementPartnership :one
 SELECT id
 FROM partnerships
@@ -492,4 +779,52 @@ func (q *Queries) LockSettlementPartnership(ctx context.Context, partnershipID s
 	var id string
 	err := row.Scan(&id)
 	return id, err
+}
+
+const markSettlementPaid = `-- name: MarkSettlementPaid :execrows
+UPDATE settlements
+SET status = 'PAID', paid_at = $1::timestamptz, updated_at = $1::timestamptz
+WHERE id = $2::uuid AND status = 'ISSUED'
+`
+
+type MarkSettlementPaidParams struct {
+	PaidAt time.Time
+	ID     string
+}
+
+func (q *Queries) MarkSettlementPaid(ctx context.Context, arg MarkSettlementPaidParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markSettlementPaid, arg.PaidAt, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const reviewPayment = `-- name: ReviewPayment :execrows
+UPDATE payments
+SET status = $1::text, rejection_reason = $2::text, reviewed_by = $3::uuid,
+    reviewed_at = $4::timestamptz, updated_at = $4::timestamptz
+WHERE id = $5::uuid AND status = 'PENDING_CONFIRMATION'
+`
+
+type ReviewPaymentParams struct {
+	Status          string
+	RejectionReason string
+	ReviewedBy      string
+	ReviewedAt      time.Time
+	ID              string
+}
+
+func (q *Queries) ReviewPayment(ctx context.Context, arg ReviewPaymentParams) (int64, error) {
+	result, err := q.db.Exec(ctx, reviewPayment,
+		arg.Status,
+		arg.RejectionReason,
+		arg.ReviewedBy,
+		arg.ReviewedAt,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

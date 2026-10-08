@@ -43,8 +43,11 @@ SELECT
     st.id, st.number, st.partnership_id, st.consignor_org_id, c.name AS consignor_name, st.store_org_id,
     s.name AS store_name, st.schedule, st.period_start, st.period_end, st.status, st.sold_qty, st.gross_amount,
     st.store_share_amount, st.consignor_share_amount, to_char(st.due_date, 'YYYY-MM-DD')::text AS due_date,
-    st.issued_at, COALESCE(st.paid_at, st.issued_at)::timestamptz AS paid_at
+    st.issued_at, COALESCE(st.paid_at, st.issued_at)::timestamptz AS paid_at,
+    (st.consignor_org_id = @organization_id::uuid OR pa.status = 'ACTIVE')::boolean AS shows_payee,
+    c.payment_info, COALESCE(c.payment_qr_file_id::text, '')::text AS payment_qr_file_id
 FROM settlements AS st
+JOIN partnerships AS pa ON pa.id = st.partnership_id
 JOIN organizations AS c ON c.id = st.consignor_org_id
 JOIN organizations AS s ON s.id = st.store_org_id
 WHERE st.id = @id::uuid
@@ -105,3 +108,82 @@ SELECT id
 FROM partnerships
 WHERE id = @partnership_id::uuid
 FOR UPDATE;
+
+-- name: FindPaymentByKey :one
+SELECT id, settlement_id, request_fingerprint
+FROM payments
+WHERE recorded_by_org_id = @organization_id::uuid AND idempotency_key = @idempotency_key::uuid;
+
+-- name: LockPayable :one
+SELECT
+    st.id, st.number, st.partnership_id, st.consignor_org_id, st.store_org_id, s.name AS store_name, st.status,
+    st.consignor_share_amount,
+    EXISTS (
+        SELECT 1 FROM payments AS p
+        WHERE p.settlement_id = st.id AND p.status IN ('PENDING_CONFIRMATION', 'CONFIRMED')
+    )::boolean AS has_open_payment
+FROM settlements AS st
+JOIN organizations AS s ON s.id = st.store_org_id
+WHERE st.id = @id::uuid
+    AND (st.consignor_org_id = @organization_id::uuid OR st.store_org_id = @organization_id::uuid)
+FOR UPDATE OF st;
+
+-- name: GetProofFile :one
+SELECT sha256
+FROM files
+WHERE id = @id::uuid AND organization_id = @organization_id::uuid AND purpose = 'PAYMENT_PROOF';
+
+-- name: CreatePayment :execrows
+INSERT INTO payments (
+    id, settlement_id, partnership_id, amount, method, paid_on, proof_file_id, proof_sha256, status,
+    recorded_by, recorded_by_org_id, reviewed_by, reviewed_at, idempotency_key, request_fingerprint, created_at,
+    updated_at
+) VALUES (
+    @id::uuid, @settlement_id::uuid, @partnership_id::uuid, @amount::bigint, @method::text,
+    CAST(@paid_on::text AS date), NULLIF(@proof_file_id::text, '')::uuid,
+    CASE WHEN @proof_file_id::text = '' THEN NULL ELSE @proof_sha256::bytea END, @status::text,
+    @recorded_by::uuid, @recorded_by_org_id::uuid,
+    CASE WHEN @status::text = 'CONFIRMED' THEN @recorded_by::uuid END,
+    CASE WHEN @status::text = 'CONFIRMED' THEN @recorded_at::timestamptz END,
+    @idempotency_key::uuid, @request_fingerprint::bytea, @recorded_at::timestamptz, @recorded_at::timestamptz
+)
+ON CONFLICT (recorded_by_org_id, idempotency_key) DO NOTHING;
+
+-- name: LockPayment :one
+SELECT
+    p.id, p.settlement_id, st.number AS settlement_number, p.partnership_id, st.consignor_org_id, st.store_org_id,
+    s.name AS store_name, p.amount, p.method, to_char(p.paid_on, 'YYYY-MM-DD')::text AS paid_on,
+    COALESCE(p.proof_file_id::text, '')::text AS proof_file_id,
+    COALESCE(p.proof_sha256, ''::bytea)::bytea AS proof_sha256,
+    p.status, p.recorded_by, p.recorded_by_org_id, p.created_at
+FROM payments AS p
+JOIN settlements AS st ON st.id = p.settlement_id
+JOIN organizations AS s ON s.id = st.store_org_id
+WHERE p.id = @id::uuid
+    AND (st.consignor_org_id = @organization_id::uuid OR st.store_org_id = @organization_id::uuid)
+FOR UPDATE OF p, st;
+
+-- name: ReviewPayment :execrows
+UPDATE payments
+SET status = @status::text, rejection_reason = @rejection_reason::text, reviewed_by = @reviewed_by::uuid,
+    reviewed_at = @reviewed_at::timestamptz, updated_at = @reviewed_at::timestamptz
+WHERE id = @id::uuid AND status = 'PENDING_CONFIRMATION';
+
+-- name: MarkSettlementPaid :execrows
+UPDATE settlements
+SET status = 'PAID', paid_at = @paid_at::timestamptz, updated_at = @paid_at::timestamptz
+WHERE id = @id::uuid AND status = 'ISSUED';
+
+-- name: ListSettlementPayments :many
+SELECT
+    p.id, p.amount, p.method, to_char(p.paid_on, 'YYYY-MM-DD')::text AS paid_on,
+    COALESCE(p.proof_file_id::text, '')::text AS proof_file_id,
+    COALESCE(p.proof_sha256, ''::bytea)::bytea AS proof_sha256,
+    p.status, p.rejection_reason, p.recorded_by, p.recorded_by_org_id, ru.full_name AS recorded_by_name,
+    COALESCE(vu.full_name, '')::text AS reviewed_by_name,
+    COALESCE(p.reviewed_at, p.created_at)::timestamptz AS reviewed_at, p.created_at
+FROM payments AS p
+JOIN users AS ru ON ru.id = p.recorded_by
+LEFT JOIN users AS vu ON vu.id = p.reviewed_by
+WHERE p.settlement_id = @settlement_id::uuid
+ORDER BY p.created_at, p.id;

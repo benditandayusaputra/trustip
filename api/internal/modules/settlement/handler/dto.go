@@ -78,6 +78,8 @@ type settlementResponse struct {
 	SoldQty       int                `json:"sold_qty"`
 	Split         splitResponse      `json:"split"`
 	Counts        []countRefResponse `json:"counts"`
+	Payments      []paymentResponse  `json:"payments"`
+	Payee         *payeeResponse     `json:"payee"`
 	Seal          sealResponse       `json:"seal"`
 }
 
@@ -90,7 +92,8 @@ func toSettlementResponse(sealed domain.SealedView) settlementResponse {
 		Store:     partyResponse{ID: view.StoreID, Name: view.StoreName},
 		Consignor: partyResponse{ID: view.ConsignorID, Name: view.ConsignorName},
 		Lines:     toLines(view), SoldQty: view.Summary.Qty, Split: toSplit(view.Summary.Split),
-		Counts: toCountRefs(view.Counts), Seal: toSealResponse(sealed.Seal),
+		Counts: toCountRefs(view.Counts), Payments: toPayments(sealed), Payee: toPayee(view.Payee),
+		Seal: toSealResponse(sealed.Seal),
 	}
 	if !view.PaidAt.IsZero() {
 		paidAt := timestamp(view.PaidAt)

@@ -28,6 +28,9 @@ const (
 	CountRecorded           Action = "COUNT_RECORDED"
 	CountConfirmed          Action = "COUNT_CONFIRMED"
 	SettlementIssued        Action = "SETTLEMENT_ISSUED"
+	PaymentRecorded         Action = "PAYMENT_RECORDED"
+	PaymentConfirmed        Action = "PAYMENT_CONFIRMED"
+	PaymentRejected         Action = "PAYMENT_REJECTED"
 )
 
 type EntityType string
@@ -40,6 +43,7 @@ const (
 	DropEntity         EntityType = "DROP"
 	CountEntity        EntityType = "COUNT"
 	SettlementEntity   EntityType = "SETTLEMENT"
+	PaymentEntity      EntityType = "PAYMENT"
 )
 
 type Entry struct {

@@ -258,6 +258,27 @@ type Partnership struct {
 	UpdatedAt      time.Time
 }
 
+type Payment struct {
+	ID                 string
+	SettlementID       string
+	PartnershipID      string
+	Amount             int64
+	Method             string
+	PaidOn             pgtype.Date
+	ProofFileID        pgtype.UUID
+	ProofSha256        []byte
+	Status             string
+	RejectionReason    string
+	RecordedBy         string
+	RecordedByOrgID    string
+	ReviewedBy         pgtype.UUID
+	ReviewedAt         pgtype.Timestamptz
+	IdempotencyKey     string
+	RequestFingerprint []byte
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
 type Product struct {
 	ID                    string
 	ConsignorOrgID        string

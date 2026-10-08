@@ -57,6 +57,8 @@ type View struct {
 	PaidAt        time.Time
 	Products      map[string]ProductInfo
 	Counts        []SourceCount
+	Payments      []PaymentView
+	Payee         Payee
 }
 
 func (v View) StandingAt(now time.Time) Standing {
@@ -88,8 +90,9 @@ type SealVerdict struct {
 
 type SealedView struct {
 	View
-	Standing Standing
-	Seal     SealVerdict
+	Standing     Standing
+	Seal         SealVerdict
+	PaymentSeals map[string]SealVerdict
 }
 
 type RunningKey struct {
