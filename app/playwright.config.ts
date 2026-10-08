@@ -20,7 +20,11 @@ export default defineConfig({
 	],
 	use: { baseURL: `http://localhost:${String(appOriginPort)}` },
 	projects: [
-		{ name: 'mobile', use: { ...devices['Pixel 7'] }, testIgnore: /partnership\.test\.ts/u },
+		{
+			name: 'mobile',
+			use: { ...devices['Pixel 7'] },
+			testIgnore: /(partnership|matchmaking)\.test\.ts/u
+		},
 		{ name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: /account\.test\.ts/u }
 	]
 });

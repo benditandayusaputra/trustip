@@ -81,4 +81,5 @@ build:
 	cd app && npm run build
 
 e2e: migrate
-	cd app && npx playwright test
+	cd app && npx playwright test --grep-invert @own-server
+	cd app && npx playwright test --grep @own-server

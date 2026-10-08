@@ -13,6 +13,7 @@ import {
 	signOut,
 	signOutKeepingEntries
 } from './offline';
+import { consignorWithProduct } from './catalog';
 import { networkTimeoutMs, onboard, registerThenSignIn, uniqueEmail } from './session';
 
 const appOrigin = 'http://localhost:5173';
@@ -22,23 +23,6 @@ const partnerPagePattern = /\/app\/mitra\/[0-9a-f-]{36}$/u;
 async function openAs(browser: Browser, device: string): Promise<Page> {
 	const context = await browser.newContext({ ...devices[device], baseURL: appOrigin });
 	return context.newPage();
-}
-
-async function consignorWithProduct(page: Page): Promise<string> {
-	const email = uniqueEmail('consignor');
-	await page.goto('/daftar?lanjut=%2Fapp');
-	await registerThenSignIn(page, email);
-	await onboard(page, { choice: /Penitip/u, name: 'Roti Uji', dashboard: '/app/penitip' });
-	await expect(page).toHaveURL(/\/app\/penitip$/u, { timeout: networkTimeoutMs });
-	await page.goto('/app/produk/baru');
-	await page.getByLabel('Nama produk').fill('Roti Manis Uji');
-	await expect(page.getByRole('option', { name: 'Roti dan kue basah' })).toBeAttached();
-	await page.getByLabel('Kategori').selectOption({ label: 'Roti dan kue basah' });
-	await page.getByLabel('Harga jual saran').fill('2000');
-	await page.getByLabel('Harga setor saran').fill('1750');
-	await page.getByRole('button', { name: 'Simpan produk' }).click();
-	await expect(page.getByText('Produk tersimpan.')).toBeVisible({ timeout: networkTimeoutMs });
-	return email;
 }
 
 async function sendInvitation(page: Page): Promise<string> {
