@@ -2758,6 +2758,50 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/reports/sales:
+    get:
+      operationId: getSalesReport
+      tags: [report]
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: group_by
+          in: query
+          schema:
+            type: string
+            enum: [PARTNER, PRODUCT, DAY]
+      responses:
+        "200":
+          description: Laporan penjualan OWNER dari alokasi penjualan dan mutasi yang sama dengan Setoran
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesReportResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -5498,3 +5542,72 @@ components:
             $ref: "#/components/schemas/PartnershipBlocker"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    ReportFigures:
+      type: object
+      additionalProperties: false
+      required: [sold_qty, returned_qty, received_qty, returned_bps, split]
+      properties:
+        sold_qty:
+          type: integer
+        returned_qty:
+          type: integer
+        received_qty:
+          type: integer
+        returned_bps:
+          type: integer
+          minimum: 0
+        split:
+          $ref: "#/components/schemas/Split"
+    SalesReportRow:
+      type: object
+      additionalProperties: false
+      required: [key, label, sold_qty, returned_qty, received_qty, returned_bps, split]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        sold_qty:
+          type: integer
+        returned_qty:
+          type: integer
+        received_qty:
+          type: integer
+        returned_bps:
+          type: integer
+          minimum: 0
+        split:
+          $ref: "#/components/schemas/Split"
+    SalesReport:
+      type: object
+      additionalProperties: false
+      required: [from, to, group_by, summary, rows]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        group_by:
+          type: string
+          enum: [PARTNER, PRODUCT, DAY]
+        summary:
+          $ref: "#/components/schemas/ReportFigures"
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/SalesReportRow"
+    SalesReportResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/SalesReport"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
