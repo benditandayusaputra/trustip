@@ -18,7 +18,11 @@ function report(groupBy: string) {
 		to: '2026-11-20',
 		group_by: groupBy,
 		summary: figures,
-		rows: [{ key: 'a', label: 'Roti Pak Anton', ...figures }]
+		rows: [
+			groupBy === 'DAY'
+				? { key: '2026-11-20', label: '2026-11-20', ...figures }
+				: { key: 'a', label: 'Roti Pak Anton', ...figures }
+		]
 	};
 }
 
@@ -66,6 +70,7 @@ function serve() {
 afterEach(() => {
 	vi.useRealTimers();
 	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
 });
 
 describe('Sales report', () => {
@@ -123,5 +128,42 @@ describe('Sales report', () => {
 		await expect.element(page.getByText('2 · Rp45.500').first()).toBeVisible();
 		await expect.element(page.getByText('Lewat tempo').first()).toBeVisible();
 		expect(requested).toContain('/api/v1/reports/settlements?from=2026-11-01&to=2026-11-20');
+	});
+
+	it('FR-RPT-05 draws the daily chart and offers it as a table', async () => {
+		vi.useFakeTimers({ now: new Date('2026-11-20T05:00:00Z'), toFake: ['Date'] });
+		const requested = serve();
+		const { container } = await render(ReportsHarness, {});
+
+		await expect.element(page.getByRole('img', { name: /Omzet per hari/u })).toBeVisible();
+		expect(requested).toContain('/api/v1/reports/sales?from=2026-11-14&to=2026-11-20&group_by=DAY');
+		await userEvent.click(page.getByRole('button', { name: 'Lihat sebagai tabel' }));
+
+		await expect.element(page.getByRole('button', { name: 'Lihat sebagai grafik' })).toBeVisible();
+		await expectAccessible(container);
+	});
+
+	it('FR-RPT-08 exports the rows on screen as CSV', async () => {
+		vi.useFakeTimers({ now: new Date('2026-11-20T05:00:00Z'), toFake: ['Date'] });
+		serve();
+		const blobs: Blob[] = [];
+		vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+			blobs.push(blob as Blob);
+			return 'blob:trustip';
+		});
+		vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+		const click = vi
+			.spyOn(HTMLAnchorElement.prototype, 'click')
+			.mockImplementation(() => undefined);
+		await render(ReportsHarness, {});
+
+		await userEvent.click(page.getByRole('button', { name: 'Unduh CSV' }));
+
+		const csv = await blobs[0]?.text();
+		expect(click).toHaveBeenCalled();
+		expect(csv).toContain(
+			'Kelompok,Unit terjual,Omzet,Untung toko,Harus setor,Unit dikembalikan,Persen dikembalikan'
+		);
+		expect(csv).toContain('Roti Pak Anton,18,36000,4500,31500,2,10%');
 	});
 });

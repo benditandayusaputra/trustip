@@ -1,5 +1,10 @@
 import type { DailyRecap, SalesReport, SettlementReport } from '#lib/api/reports.js';
-import { formatBasisPoints, formatInteger, formatRupiah } from '#lib/i18n/format.js';
+import {
+	formatBasisPoints,
+	formatBusinessDate,
+	formatInteger,
+	formatRupiah
+} from '#lib/i18n/format.js';
 import { id } from '#lib/i18n/id.js';
 
 type Figures = SalesReport['summary'];
@@ -101,4 +106,43 @@ export function settlementCells(row: SettlementRow): SettlementCells {
 		unpaid: tallyText(row.unpaid),
 		overdue: tallyText(row.overdue)
 	};
+}
+
+export function salesCsv(report: SalesReport, isStore: boolean): string[][] {
+	const text = id.reports;
+	const header = [
+		text.rowLabel,
+		text.soldUnits,
+		text.gross,
+		text.storeShare,
+		isStore ? text.mustPay : text.consignorShare,
+		text.returnedUnits,
+		text.returnedPercent
+	];
+	const lines = report.rows.map((row) => [
+		row.label,
+		String(row.sold_qty),
+		String(row.split.gross),
+		String(row.split.store_share),
+		String(row.split.consignor_share),
+		String(row.returned_qty),
+		formatBasisPoints(row.returned_bps)
+	]);
+	return [header, ...lines];
+}
+
+export interface DayCells extends Record<string, string> {
+	key: string;
+	day: string;
+	sold: string;
+	gross: string;
+}
+
+export function dayCells(report: SalesReport): DayCells[] {
+	return report.rows.map((row) => ({
+		key: row.key,
+		day: formatBusinessDate(row.key),
+		sold: formatInteger(row.sold_qty),
+		gross: formatRupiah(row.split.gross)
+	}));
 }

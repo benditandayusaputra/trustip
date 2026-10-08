@@ -11,8 +11,11 @@
 	import type { ReportGrouping } from '#lib/api/reports.js';
 	import type { RangePreset } from '#lib/domain/ranges.js';
 	import { id } from '#lib/i18n/id.js';
-	import { reportRows, summaryCards } from '../rows';
+	import Button from '#lib/components/ui/Button.svelte';
+	import { downloadCsv } from '../download';
+	import { reportRows, salesCsv, summaryCards } from '../rows';
 	import { SalesReportView } from '../state.svelte';
+	import DailySalesChart from './DailySalesChart.svelte';
 
 	interface Props {
 		organizationType: 'STORE' | 'CONSIGNOR';
@@ -91,6 +94,15 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
+		<DailySalesChart range={view.range} />
 		<ResponsiveTable caption={text.salesTitle} {columns} rows={reportRows(report)} rowKey="key" />
+		<Button
+			variant="secondary"
+			onclick={() => {
+				downloadCsv(text.fileName('penjualan', report.from, report.to), salesCsv(report, isStore));
+			}}
+		>
+			{text.exportCsv}
+		</Button>
 	{/if}
 {/if}

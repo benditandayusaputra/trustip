@@ -44,6 +44,14 @@ export const reports = {
 		overdue: 'Lewat tempo',
 		tally: (count: string, amount: string) => `${count} · ${amount}`,
 		settlementsEmpty: 'Belum ada Setoran yang terbit pada rentang ini.',
-		toSettlements: 'Lihat Setoran'
+		toSettlements: 'Lihat Setoran',
+		dailyChart: 'Penjualan harian',
+		chartCaption: (from: string, to: string) => `Omzet per hari, ${from} sampai ${to}`,
+		showTable: 'Lihat sebagai tabel',
+		showChart: 'Lihat sebagai grafik',
+		chartFailed: 'Grafik penjualan tidak bisa dimuat.',
+		day: 'Tanggal',
+		exportCsv: 'Unduh CSV',
+		fileName: (kind: string, from: string, to: string) => `trustip-${kind}-${from}-${to}.csv`
 	}
 };
