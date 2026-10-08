@@ -8,6 +8,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/canonical"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
 )
@@ -78,7 +79,7 @@ type RequestLine struct {
 type RecordInput struct {
 	PartnershipID    string
 	AgreementVersion int
-	CountedAt        time.Time
+	CountedAt        claimed.Time
 	Occasion         string
 	Note             string
 	Lines            []RequestLine
@@ -94,7 +95,7 @@ func (i RecordInput) Fingerprint() ([]byte, error) {
 	}
 	digest, err := canonical.Digest(map[string]any{
 		"partnership_id": i.PartnershipID, "agreement_version": i.AgreementVersion, "occasion": i.Occasion,
-		"counted_at": i.CountedAt.UTC().Format(time.RFC3339Nano), "note": i.Note, "lines": lines,
+		"counted_at": i.CountedAt.Text(), "note": i.Note, "lines": lines,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("fingerprint count request: %w", err)
@@ -118,7 +119,7 @@ func (s Sheet) Check(input RecordInput, now time.Time) (Draft, error) {
 		return Draft{}, apperror.New(apperror.CodeAgreementChanged).WithParam("n", strconv.Itoa(s.AgreementVersion))
 	}
 	lineInputs, problems := s.matchLines(input.Lines)
-	countedAt := input.CountedAt.Truncate(time.Second)
+	countedAt := input.CountedAt.Or(now).Truncate(time.Second)
 	problems = append(problems, field.Collect(
 		s.findTimeProblem(countedAt, now), findOccasionProblem(input.Occasion),
 		field.CheckLength("note", input.Note, field.Length{Max: MaxNoteLength}),

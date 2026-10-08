@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/stock"
 )
@@ -41,7 +42,7 @@ func aSetting() Setting {
 
 func anInput() RecordInput {
 	return RecordInput{
-		PartnershipID: partnershipID, AgreementVersion: 2, OccurredAt: nineInTheMorning(),
+		PartnershipID: partnershipID, AgreementVersion: 2, OccurredAt: claimed.At(nineInTheMorning()),
 		Items: []ItemInput{{ProductID: breadID, Qty: 20}, {ProductID: sambalID, Qty: 6, ExpiryDate: "2027-01-31"}},
 	}
 }
@@ -160,7 +161,7 @@ func TestCheck_BRDRP06_DropDateGoesBackThreeCalendarDaysAtMost(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			input := anInput()
-			input.OccurredAt = tc.occurredAt
+			input.OccurredAt = claimed.At(tc.occurredAt)
 
 			_, err := aSetting().Check(input, now)
 
@@ -341,7 +342,7 @@ func TestCheck_BRDRP06_DropMayNotPrecedeTheLastCount(t *testing.T) {
 	setting := aSetting()
 	setting.LastCount = LastCount{At: nineInTheMorning(), Given: true}
 	input := anInput()
-	input.OccurredAt = nineInTheMorning().Add(-time.Minute)
+	input.OccurredAt = claimed.At(nineInTheMorning().Add(-time.Minute))
 
 	_, err := setting.Check(input, nineInTheMorning())
 

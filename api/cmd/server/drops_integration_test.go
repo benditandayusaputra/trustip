@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/benditandayusaputra/trustip/api/internal/db/sqlc"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	dropdomain "github.com/benditandayusaputra/trustip/api/internal/modules/drop/domain"
 	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver/edgetest"
@@ -106,7 +107,7 @@ func TestRecordDrop_BRDRP07_ConcurrentSavesWithOneKeyMakeOneDocument(t *testing.
 	deps := buildTradeComponents(scene.store.pool, scene.store.now, testSealKeys{}).drops
 	cashier := scene.store.actor(t)
 	command := dropservice.RecordDropCommand{IdempotencyKey: dropKey, Input: dropdomain.RecordInput{
-		PartnershipID: partnershipID, AgreementVersion: 1, OccurredAt: testNow(),
+		PartnershipID: partnershipID, AgreementVersion: 1, OccurredAt: claimed.At(testNow()),
 		Items: []dropdomain.ItemInput{{ProductID: scene.productID, Qty: 20}},
 	}}
 	receipts := make([]dropservice.DropReceipt, 2)

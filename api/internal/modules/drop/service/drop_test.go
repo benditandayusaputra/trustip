@@ -11,6 +11,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/stock"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/drop/domain"
@@ -203,7 +204,7 @@ func consignorOwner() actor.Actor {
 
 func (w world) command() service.RecordDropCommand {
 	return service.RecordDropCommand{IdempotencyKey: idempotencyKey, Input: domain.RecordInput{
-		PartnershipID: partnershipID, AgreementVersion: 1, OccurredAt: w.now,
+		PartnershipID: partnershipID, AgreementVersion: 1, OccurredAt: claimed.At(w.now),
 		Items: []domain.ItemInput{{ProductID: breadID, Qty: 20}},
 	}}
 }
@@ -299,6 +300,21 @@ func TestRecordDrop_BRDRP07_SameKeyAndBodyReplaysTheFirstDrop(t *testing.T) {
 
 	if errors.Join(firstErr, secondErr) != nil || !second.IsReplay || second.View.ID != first.View.ID ||
 		len(scenario.drops.saved) != 1 || len(scenario.recorder.seals) != 1 {
+		t.Fatalf("first = %+v, second = %+v, err = %v", first, second, errors.Join(firstErr, secondErr))
+	}
+}
+
+func TestRecordDrop_BRPWA03_RetryWithoutADropTimeReplaysAfterTheClockMoves(t *testing.T) {
+	scenario := newWorld()
+	record := service.NewRecordDrop(scenario.deps)
+	command := scenario.command()
+	command.Input.OccurredAt = claimed.Absent()
+	first, firstErr := record.Execute(t.Context(), cashier(), command)
+	*scenario.clock = scenario.now.Add(time.Minute)
+
+	second, secondErr := record.Execute(t.Context(), cashier(), command)
+
+	if errors.Join(firstErr, secondErr) != nil || !second.IsReplay || second.View.ID != first.View.ID {
 		t.Fatalf("first = %+v, second = %+v, err = %v", first, second, errors.Join(firstErr, secondErr))
 	}
 }

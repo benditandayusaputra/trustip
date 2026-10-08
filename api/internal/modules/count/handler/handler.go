@@ -43,10 +43,6 @@ type Lister interface {
 	Execute(ctx context.Context, signedIn actor.Actor, request service.ListRequest) (service.Page, error)
 }
 
-type Clock interface {
-	Now() time.Time
-}
-
 type Deps struct {
 	Authenticate fiber.Handler
 	Record       Recorder
@@ -54,7 +50,6 @@ type Deps struct {
 	Sheet        SheetReader
 	Confirm      Reader
 	List         Lister
-	Clock        Clock
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
 }
@@ -90,7 +85,7 @@ func record(deps Deps) fiber.Handler {
 		if err := httpserver.DecodeJSON(c, &request); err != nil {
 			return fmt.Errorf("read count: %w", err)
 		}
-		input, err := request.toInput(deps.Clock.Now())
+		input, err := request.toInput()
 		if err != nil {
 			return err
 		}

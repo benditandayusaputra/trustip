@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/count/domain"
 )
 
@@ -24,15 +25,15 @@ type countRequest struct {
 	Lines            []lineRequest `json:"lines"`
 }
 
-func (r countRequest) toInput(now time.Time) (domain.RecordInput, error) {
+func (r countRequest) toInput() (domain.RecordInput, error) {
 	var problems []apperror.FieldError
 	if !uuidFormat.MatchString(r.PartnershipID) {
 		problems = append(problems, apperror.InvalidField("partnership_id", apperror.FieldUnknownChoice))
 	}
-	countedAt := now
+	countedAt := claimed.Absent()
 	if r.CountedAt != nil {
 		parsed, err := time.Parse(time.RFC3339, *r.CountedAt)
-		countedAt = parsed
+		countedAt = claimed.At(parsed)
 		if err != nil {
 			problems = append(problems, apperror.InvalidField("counted_at", apperror.FieldInvalidDate))
 		}

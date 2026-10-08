@@ -7,6 +7,7 @@ import (
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/canonical"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/field"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
@@ -31,7 +32,7 @@ type ItemInput struct {
 type RecordInput struct {
 	PartnershipID    string
 	AgreementVersion int
-	OccurredAt       time.Time
+	OccurredAt       claimed.Time
 	Items            []ItemInput
 }
 
@@ -44,7 +45,7 @@ func (i RecordInput) Fingerprint() ([]byte, error) {
 	}
 	digest, err := canonical.Digest(map[string]any{
 		"partnership_id": i.PartnershipID, "agreement_version": i.AgreementVersion,
-		"occurred_at": i.OccurredAt.UTC().Format(time.RFC3339Nano), "items": items,
+		"occurred_at": i.OccurredAt.Text(), "items": items,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("fingerprint drop request: %w", err)
@@ -89,7 +90,7 @@ func (s Setting) Check(input RecordInput, now time.Time) (Draft, error) {
 		return Draft{}, apperror.New(apperror.CodeAgreementChanged).
 			WithParam("n", strconv.Itoa(s.AgreementVersion))
 	}
-	occurredAt := input.OccurredAt.Truncate(time.Second)
+	occurredAt := input.OccurredAt.Or(now).Truncate(time.Second)
 	problems := field.Collect(findItemCountProblem(len(input.Items)), s.findDateProblem(occurredAt, now))
 	items := make([]Item, 0, len(input.Items))
 	for index, itemInput := range input.Items {

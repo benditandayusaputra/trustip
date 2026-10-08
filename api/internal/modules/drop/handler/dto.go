@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/drop/domain"
 )
@@ -21,15 +22,15 @@ type dropRequest struct {
 	Items            []itemRequest `json:"items"`
 }
 
-func (r dropRequest) toInput(now time.Time) (domain.RecordInput, error) {
+func (r dropRequest) toInput() (domain.RecordInput, error) {
 	var problems []apperror.FieldError
 	if !isUUID(r.PartnershipID) {
 		problems = append(problems, apperror.InvalidField("partnership_id", apperror.FieldUnknownChoice))
 	}
-	occurredAt := now
+	occurredAt := claimed.Absent()
 	if r.OccurredAt != nil {
 		parsed, err := time.Parse(time.RFC3339, *r.OccurredAt)
-		occurredAt = parsed
+		occurredAt = claimed.At(parsed)
 		if err != nil {
 			problems = append(problems, apperror.InvalidField("occurred_at", apperror.FieldInvalidDate))
 		}

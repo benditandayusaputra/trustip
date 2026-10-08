@@ -10,6 +10,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/stock"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/count/domain"
@@ -187,7 +188,8 @@ func consignorStaff() actor.Actor {
 
 func command(recorded int) service.RecordCountCommand {
 	return service.RecordCountCommand{IdempotencyKey: idempotencyKey, Input: domain.RecordInput{
-		PartnershipID: partnershipID, AgreementVersion: 1, CountedAt: fixedClock{}.Now(), Occasion: "STORE_CLOSING",
+		PartnershipID: partnershipID, AgreementVersion: 1, CountedAt: claimed.At(fixedClock{}.Now()),
+		Occasion: "STORE_CLOSING",
 		Lines: []domain.RequestLine{{
 			ProductID: breadID, RecordedQty: recorded, CountedQty: 2, ReturnedQty: 2, ReturnReason: "UNSOLD",
 		}},

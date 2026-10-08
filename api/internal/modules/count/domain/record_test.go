@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/pricing"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/stock"
 )
@@ -45,7 +46,8 @@ func aSheet() Sheet {
 
 func anInput() RecordInput {
 	return RecordInput{
-		PartnershipID: partnershipID, AgreementVersion: 1, CountedAt: noon(), Occasion: string(StoreClosing),
+		PartnershipID: partnershipID, AgreementVersion: 1, CountedAt: claimed.At(noon()),
+		Occasion: string(StoreClosing),
 		Lines: []RequestLine{{
 			ProductID: breadID, RecordedQty: 20, CountedQty: 2, ReturnedQty: 2, ReturnReason: string(ReasonUnsold),
 		}},
@@ -108,7 +110,7 @@ func TestCheck_BRCNT06_CountTimeBoundaries(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			input := anInput()
-			input.CountedAt = tc.countedAt
+			input.CountedAt = claimed.At(tc.countedAt)
 
 			_, err := aSheet().Check(input, noon())
 
@@ -126,7 +128,7 @@ func TestCheck_BRCNT06_ThreeCalendarDaysBackWithoutEarlierDocuments(t *testing.T
 	sheet := aSheet()
 	sheet.LastDocument = LastDocument{}
 	input := anInput()
-	input.CountedAt = time.Date(2026, 11, 6, 23, 59, 0, 0, noon().Location())
+	input.CountedAt = claimed.At(time.Date(2026, 11, 6, 23, 59, 0, 0, noon().Location()))
 
 	_, err := sheet.Check(input, noon())
 
@@ -236,7 +238,7 @@ func TestCheck_BRCNT06_CountCannotLandInASettledPeriod(t *testing.T) {
 	sheet := aSheet()
 	sheet.Settled = Settled{Until: noon().Add(-time.Hour), Number: "ST-202611-0004", Given: true}
 	input := anInput()
-	input.CountedAt = noon().Add(-90 * time.Minute)
+	input.CountedAt = claimed.At(noon().Add(-90 * time.Minute))
 	sheet.LastDocument = LastDocument{}
 
 	_, err := sheet.Check(input, noon())
@@ -246,7 +248,7 @@ func TestCheck_BRCNT06_CountCannotLandInASettledPeriod(t *testing.T) {
 		appErr.Fields()[0].Message != "Tanggal ini sudah masuk Setoran ST-202611-0004." {
 		t.Fatalf("err = %v", err)
 	}
-	input.CountedAt = noon().Add(-time.Hour)
+	input.CountedAt = claimed.At(noon().Add(-time.Hour))
 	if _, err := sheet.Check(input, noon()); err != nil {
 		t.Fatalf("at the settled boundary: %v", err)
 	}

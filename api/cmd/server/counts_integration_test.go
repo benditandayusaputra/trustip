@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/claimed"
 	countdomain "github.com/benditandayusaputra/trustip/api/internal/modules/count/domain"
 	countservice "github.com/benditandayusaputra/trustip/api/internal/modules/count/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver/edgetest"
@@ -89,7 +90,7 @@ func TestRecordCount_CNT_ConcurrentCountsOnOnePartnerOnlyOnePasses(t *testing.T)
 		group.Go(func() {
 			_, errs[index] = countservice.NewRecordCount(deps).Execute(t.Context(), cashier,
 				countservice.RecordCountCommand{IdempotencyKey: key, Input: countdomain.RecordInput{
-					PartnershipID: scene.partnershipID, AgreementVersion: 1, CountedAt: testNow(),
+					PartnershipID: scene.partnershipID, AgreementVersion: 1, CountedAt: claimed.At(testNow()),
 					Occasion: "STORE_CLOSING", Lines: []countdomain.RequestLine{
 						{ProductID: scene.productID, RecordedQty: 20, CountedQty: 12},
 					},
