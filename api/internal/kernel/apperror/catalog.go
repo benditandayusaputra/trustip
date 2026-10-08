@@ -31,6 +31,8 @@ const (
 	CodeNotYourTurn          Code = "NOT_YOUR_TURN"
 	CodeProposalDecided      Code = "PROPOSAL_ALREADY_DECIDED"
 	CodePartnershipNotActive Code = "PARTNERSHIP_NOT_ACTIVE"
+	CodeAgreementChanged     Code = "AGREEMENT_CHANGED"
+	CodeIdempotencyKeyReused Code = "IDEMPOTENCY_KEY_REUSED"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -81,6 +83,10 @@ func requestEntries() map[Code]entry {
 			KindValidation, http.StatusUnprocessableEntity, "Lengkapi profil dulu: {daftar}.",
 		},
 		CodeInviteWrongOrgType: {KindValidation, http.StatusUnprocessableEntity, "Undangan ini untuk {jenis}."},
+		CodeIdempotencyKeyReused: {
+			KindValidation, http.StatusUnprocessableEntity,
+			"Kunci permintaan ini sudah dipakai untuk isi yang berbeda. Muat ulang lalu simpan lagi.",
+		},
 	}
 }
 
@@ -123,6 +129,9 @@ func outcomeEntries() map[Code]entry {
 		CodeNotYourTurn:          {KindConflict, http.StatusConflict, "Menunggu tanggapan dari {organisasi}."},
 		CodeProposalDecided:      {KindConflict, http.StatusConflict, "Ajuan ini sudah diputuskan."},
 		CodePartnershipNotActive: {KindConflict, http.StatusConflict, "Kemitraan ini sudah tidak aktif."},
+		CodeAgreementChanged: {
+			KindConflict, http.StatusConflict, "Kesepakatan sudah berubah ke versi {n}. Tinjau lagi catatan ini.",
+		},
 		CodeProposalAlreadyOpen: {
 			KindConflict, http.StatusConflict, "Masih ada Ajuan yang terbuka dengan {organisasi}.",
 		},

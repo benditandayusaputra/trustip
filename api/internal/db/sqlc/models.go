@@ -84,6 +84,45 @@ type DocumentSequence struct {
 	LastValue      int32
 }
 
+type Drop struct {
+	ID                 string
+	Number             string
+	PartnershipID      string
+	AgreementID        string
+	StoreOrgID         string
+	InitiatedBy        string
+	Status             string
+	OccurredAt         time.Time
+	Note               string
+	RecordedBy         string
+	ConfirmedBy        pgtype.UUID
+	ConfirmedAt        pgtype.Timestamptz
+	AutoConfirmed      bool
+	IdempotencyKey     string
+	RequestFingerprint []byte
+	ClientRecordedAt   time.Time
+	ReceivedAt         time.Time
+	RecordedOffline    bool
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type DropItem struct {
+	ID            string
+	DropID        string
+	LineNo        int32
+	ProductID     string
+	BatchCode     string
+	ExpiryDate    pgtype.Date
+	QtyDeclared   int32
+	QtyReceived   int32
+	PricingModel  string
+	RetailPrice   int64
+	CommissionBps int32
+	DepositPrice  int64
+	CreatedAt     time.Time
+}
+
 type File struct {
 	ID             string
 	OrganizationID string
@@ -261,6 +300,21 @@ type Session struct {
 	RotatedAt pgtype.Timestamptz
 	RevokedAt pgtype.Timestamptz
 	CreatedAt time.Time
+}
+
+type StockMovement struct {
+	ID            string
+	PartnershipID string
+	ProductID     string
+	DropItemID    string
+	Type          string
+	Qty           int32
+	OccurredAt    time.Time
+	SourceType    string
+	SourceID      string
+	SourceNumber  string
+	CreatedBy     string
+	CreatedAt     time.Time
 }
 
 type StoreAcceptedCategory struct {

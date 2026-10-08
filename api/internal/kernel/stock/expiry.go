@@ -30,6 +30,10 @@ func ExpiresOn(date time.Time) Expiry {
 	return Expiry{date: calendarDay(date), given: true}
 }
 
+func (e Expiry) Date() (time.Time, bool) {
+	return e.date, e.given
+}
+
 type ShelfLife struct {
 	days  int
 	given bool
@@ -41,6 +45,10 @@ func UnknownShelfLife() ShelfLife {
 
 func ShelfLifeOf(days int) ShelfLife {
 	return ShelfLife{days: days, given: true}
+}
+
+func (s ShelfLife) Days() (int, bool) {
+	return s.days, s.given
 }
 
 func (s ShelfLife) nearExpiryThreshold() int {

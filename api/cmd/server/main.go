@@ -127,7 +127,7 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	}))
 	mountTrade(server.API(), deps.trade, tradeRoutes{
 		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
-		securityLog: securityLog,
+		securityLog: securityLog, clock: deps.clock,
 	})
 	return server
 }

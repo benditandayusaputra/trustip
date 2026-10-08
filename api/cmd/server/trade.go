@@ -6,6 +6,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	agreementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/handler"
+	drophandler "github.com/benditandayusaputra/trustip/api/internal/modules/drop/handler"
+	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
 	partnershiphandler "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/handler"
 	partnershiprepository "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/repository"
 	partnershipservice "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/service"
@@ -21,6 +23,7 @@ type tradeComponents struct {
 	proposals    proposalComponents
 	agreements   agreementComponents
 	partnerships partnershipservice.PartnershipReader
+	drops        dropservice.Deps
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
@@ -34,6 +37,7 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		}),
 		agreements:   agreements,
 		partnerships: partnershiprepository.NewPartnerships(pool),
+		drops:        buildDropDeps(pool, clock, seals),
 	}
 }
 
@@ -42,10 +46,14 @@ type tradeRoutes struct {
 	filesBaseURL string
 	writeLimiter httpserver.RateLimiter
 	securityLog  *slog.Logger
+	clock        serverClock
 }
 
 func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes) {
-	producthandler.Mount(api, productDeps(components.products, productRoutes(routes)))
+	producthandler.Mount(api, productDeps(components.products, productRoutes{
+		authenticate: routes.authenticate, filesBaseURL: routes.filesBaseURL, writeLimiter: routes.writeLimiter,
+		securityLog: routes.securityLog,
+	}))
 	negotiation := proposalRoutes{
 		authenticate: routes.authenticate, writeLimiter: routes.writeLimiter, securityLog: routes.securityLog,
 	}
@@ -58,4 +66,5 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 		Catalog:      partnershipservice.NewListCatalog(components.partnerships),
 		FilesBaseURL: routes.filesBaseURL,
 	})
+	drophandler.Mount(api, dropDeps(components.drops, routes))
 }

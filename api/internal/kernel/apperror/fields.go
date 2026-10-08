@@ -24,6 +24,9 @@ const (
 	FieldTaken             FieldCode = "TAKEN"
 	FieldExceedsRetail     FieldCode = "EXCEEDS_RETAIL_PRICE"
 	FieldCountExceedsStock FieldCode = "COUNT_EXCEEDS_STOCK"
+	FieldNotInAgreement    FieldCode = "PRODUCT_NOT_IN_AGREEMENT"
+	FieldExpiryBeforeDrop  FieldCode = "EXPIRY_BEFORE_DROP"
+	FieldInvalidDate       FieldCode = "INVALID_DATE"
 )
 
 type Param struct {
@@ -52,6 +55,9 @@ func fieldMessages() map[FieldCode]string {
 		FieldTaken:             "Sudah dipakai. Pilih yang lain.",
 		FieldExceedsRetail:     "Harga setor tidak boleh melebihi harga jual.",
 		FieldCountExceedsStock: "Sisa melebihi stok tercatat ({n}). Catat dulu titipan masuk yang belum dicatat.",
+		FieldNotInAgreement:    "Produk ini belum ada di kesepakatan. Usulkan dulu lewat Ajuan.",
+		FieldExpiryBeforeDrop:  "Tanggal kedaluwarsa tidak boleh sebelum tanggal titip.",
+		FieldInvalidDate:       "Tulis tanggal dengan format TTTT-BB-HH.",
 	}
 }
 

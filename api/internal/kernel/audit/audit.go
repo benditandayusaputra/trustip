@@ -22,6 +22,7 @@ const (
 	ProposalAccepted        Action = "PROPOSAL_ACCEPTED"
 	ProposalDeclined        Action = "PROPOSAL_DECLINED"
 	ProposalWithdrawn       Action = "PROPOSAL_WITHDRAWN"
+	DropRecorded            Action = "DROP_RECORDED"
 )
 
 type EntityType string
@@ -31,6 +32,7 @@ const (
 	OrganizationEntity EntityType = "ORGANIZATION"
 	ProductEntity      EntityType = "PRODUCT"
 	ProposalEntity     EntityType = "PROPOSAL"
+	DropEntity         EntityType = "DROP"
 )
 
 type Entry struct {

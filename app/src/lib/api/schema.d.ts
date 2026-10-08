@@ -769,12 +769,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/drops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recordDrop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drops/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getDrop"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -1406,6 +1440,66 @@ export interface components {
             data: components["schemas"]["AgreementVersion"][];
             meta: components["schemas"]["ListMeta"];
         };
+        DropItemRequest: {
+            product_id: string;
+            qty: number;
+            expiry_date?: string | null;
+        };
+        DropRequest: {
+            partnership_id: string;
+            agreement_version: number;
+            occurred_at?: string | null;
+            items: components["schemas"]["DropItemRequest"][];
+        };
+        DropItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            product_id: string;
+            product_name: string;
+            sku: string;
+            unit: string;
+            batch_code: string;
+            /** Format: date */
+            expiry_date: string | null;
+            qty: number;
+            terms: components["schemas"]["TermsSnapshot"];
+        };
+        /** @enum {string} */
+        DropStatus: "RECORDED" | "CONFIRMED" | "CANCELLED";
+        Drop: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            partnership_id: string;
+            agreement_version: number;
+            status: components["schemas"]["DropStatus"];
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: date-time */
+            received_at: string;
+            recorded_offline: boolean;
+            store: components["schemas"]["PartyRef"];
+            consignor: components["schemas"]["PartyRef"];
+            recorded_by_name: string;
+            confirmation: {
+                by_name: string;
+                /** Format: date-time */
+                at: string;
+                is_automatic: boolean;
+            } | null;
+            items: components["schemas"]["DropItem"][];
+            total_qty: number;
+            value_if_sold: components["schemas"]["Split"];
+            seal: components["schemas"]["SealStatus"];
+        };
+        DropResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Drop"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
     };
     responses: {
         /** @description Permintaan tidak terbaca atau memuat isian tak dikenal */
@@ -1514,6 +1608,8 @@ export interface components {
     requestBodies: never;
     headers: {
         RequestId: string;
+        /** @description Ada bila jawaban adalah dokumen semula untuk kunci idempotensi yang sama */
+        IdempotentReplay: "true";
         RateLimitLimit: number;
         RateLimitRemaining: number;
         RateLimitReset: number;
@@ -3022,6 +3118,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgreementResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    recordDrop: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DropRequest"];
+            };
+        };
+        responses: {
+            /** @description Titipan Masuk tercatat dan stok bertambah, atau dokumen semula untuk kunci yang sama */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    Location: components["headers"]["Location"];
+                    "Idempotent-Replay": components["headers"]["IdempotentReplay"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DropResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getDrop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Titipan Masuk yang sama untuk kedua pihak, dengan status segel yang dihitung ulang */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DropResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

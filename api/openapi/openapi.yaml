@@ -1737,12 +1737,106 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/drops:
+    post:
+      operationId: recordDrop
+      tags: [drop]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DropRequest"
+      responses:
+        "201":
+          description: Titipan Masuk tercatat dan stok bertambah, atau dokumen semula untuk kunci yang sama
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            Idempotent-Replay:
+              $ref: "#/components/headers/IdempotentReplay"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/drops/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getDrop
+      tags: [drop]
+      responses:
+        "200":
+          description: Titipan Masuk yang sama untuk kedua pihak, dengan status segel yang dihitung ulang
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
       required: true
       schema:
         type: string
+    IdempotentReplay:
+      description: Ada bila jawaban adalah dokumen semula untuk kunci idempotensi yang sama
+      schema:
+        type: string
+        enum: ["true"]
     RateLimitLimit:
       required: true
       schema:
@@ -1870,6 +1964,8 @@ components:
         - NOT_YOUR_TURN
         - PROPOSAL_ALREADY_DECIDED
         - PARTNERSHIP_NOT_ACTIVE
+        - AGREEMENT_CHANGED
+        - IDEMPOTENCY_KEY_REUSED
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -3356,3 +3452,147 @@ components:
             $ref: "#/components/schemas/AgreementVersion"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    DropItemRequest:
+      type: object
+      additionalProperties: false
+      required: [product_id, qty]
+      properties:
+        product_id:
+          type: string
+        qty:
+          type: integer
+        expiry_date:
+          type: string
+          nullable: true
+    DropRequest:
+      type: object
+      additionalProperties: false
+      required: [partnership_id, agreement_version, items]
+      properties:
+        partnership_id:
+          type: string
+        agreement_version:
+          type: integer
+        occurred_at:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropItemRequest"
+    DropItem:
+      type: object
+      additionalProperties: false
+      required: [id, product_id, product_name, sku, unit, batch_code, expiry_date, qty, terms]
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        batch_code:
+          type: string
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        qty:
+          type: integer
+          minimum: 1
+        terms:
+          $ref: "#/components/schemas/TermsSnapshot"
+    DropStatus:
+      type: string
+      enum: [RECORDED, CONFIRMED, CANCELLED]
+    Drop:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - partnership_id
+        - agreement_version
+        - status
+        - occurred_at
+        - received_at
+        - recorded_offline
+        - store
+        - consignor
+        - recorded_by_name
+        - confirmation
+        - items
+        - total_qty
+        - value_if_sold
+        - seal
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+          pattern: "^TM-[0-9]{6}-[0-9]{4,}$"
+        partnership_id:
+          type: string
+          format: uuid
+        agreement_version:
+          type: integer
+          minimum: 1
+        status:
+          $ref: "#/components/schemas/DropStatus"
+        occurred_at:
+          type: string
+          format: date-time
+        received_at:
+          type: string
+          format: date-time
+        recorded_offline:
+          type: boolean
+        store:
+          $ref: "#/components/schemas/PartyRef"
+        consignor:
+          $ref: "#/components/schemas/PartyRef"
+        recorded_by_name:
+          type: string
+        confirmation:
+          type: object
+          nullable: true
+          additionalProperties: false
+          required: [by_name, at, is_automatic]
+          properties:
+            by_name:
+              type: string
+            at:
+              type: string
+              format: date-time
+            is_automatic:
+              type: boolean
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropItem"
+        total_qty:
+          type: integer
+        value_if_sold:
+          $ref: "#/components/schemas/Split"
+        seal:
+          $ref: "#/components/schemas/SealStatus"
+    DropResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Drop"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
