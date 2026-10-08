@@ -49,6 +49,16 @@ type AuditLog struct {
 	CreatedAt      time.Time
 }
 
+type BatchBalance struct {
+	DropItemID    string
+	PartnershipID string
+	ProductID     string
+	BatchCode     string
+	ExpiryDate    pgtype.Date
+	ReceivedAt    time.Time
+	Balance       int32
+}
+
 type Category struct {
 	ID        string
 	Name      string

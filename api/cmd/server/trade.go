@@ -13,6 +13,9 @@ import (
 	partnershipservice "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/service"
 	producthandler "github.com/benditandayusaputra/trustip/api/internal/modules/product/handler"
 	proposalhandler "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/handler"
+	stockhandler "github.com/benditandayusaputra/trustip/api/internal/modules/stock/handler"
+	stockrepository "github.com/benditandayusaputra/trustip/api/internal/modules/stock/repository"
+	stockservice "github.com/benditandayusaputra/trustip/api/internal/modules/stock/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
@@ -24,6 +27,7 @@ type tradeComponents struct {
 	agreements   agreementComponents
 	partnerships partnershipservice.PartnershipReader
 	drops        dropservice.Deps
+	stocks       stockservice.StockReader
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
@@ -38,6 +42,7 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		agreements:   agreements,
 		partnerships: partnershiprepository.NewPartnerships(pool),
 		drops:        buildDropDeps(pool, clock, seals),
+		stocks:       stockrepository.NewStocks(pool),
 	}
 }
 
@@ -67,4 +72,5 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 		FilesBaseURL: routes.filesBaseURL,
 	})
 	drophandler.Mount(api, dropDeps(components.drops, routes))
+	stockhandler.Mount(api, stockDeps(components.stocks, routes))
 }

@@ -1961,6 +1961,118 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/stock:
+    get:
+      operationId: listStock
+      tags: [stock]
+      responses:
+        "200":
+          description: Stok gabungan organisasi pelaku per kemitraan dan produk
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockHoldingListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/stock:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPartnershipStock
+      tags: [stock]
+      responses:
+        "200":
+          description: Stok pada satu kemitraan per produk dan batch dengan tandanya
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductStockListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/stock/{product_id}/card:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getStockCard
+      tags: [stock]
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Kartu stok satu produk pada satu kemitraan, mutasi terbaru lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockCardResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -3815,3 +3927,177 @@ components:
             $ref: "#/components/schemas/DropSummary"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    BatchFlag:
+      type: string
+      enum: [SAFE, NEAR_EXPIRY, EXPIRED]
+    StockBatch:
+      type: object
+      additionalProperties: false
+      required: [id, batch_code, expiry_date, received_at, balance, age_days, flag]
+      properties:
+        id:
+          type: string
+          format: uuid
+        batch_code:
+          type: string
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        received_at:
+          type: string
+          format: date-time
+        balance:
+          type: integer
+          minimum: 1
+        age_days:
+          type: integer
+        flag:
+          $ref: "#/components/schemas/BatchFlag"
+    ProductStock:
+      type: object
+      additionalProperties: false
+      required: [product_id, product_name, sku, unit, balance, flag, nearest_expiry, batches]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        balance:
+          type: integer
+        flag:
+          $ref: "#/components/schemas/BatchFlag"
+        nearest_expiry:
+          type: string
+          format: date
+          nullable: true
+        batches:
+          type: array
+          items:
+            $ref: "#/components/schemas/StockBatch"
+    ProductStockListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductStock"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    StockHolding:
+      type: object
+      additionalProperties: false
+      required: [partnership_id, counterpart, product_id, product_name, sku, unit, balance, flag, nearest_expiry]
+      properties:
+        partnership_id:
+          type: string
+          format: uuid
+        counterpart:
+          $ref: "#/components/schemas/CounterpartRef"
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        balance:
+          type: integer
+        flag:
+          $ref: "#/components/schemas/BatchFlag"
+        nearest_expiry:
+          type: string
+          format: date
+          nullable: true
+    StockHoldingListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/StockHolding"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    StockCardEntry:
+      type: object
+      additionalProperties: false
+      required: [id, type, qty, occurred_at, batch_code, source_type, source_id, source_number, balance_after]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [RECEIVE, SALE, RETURN, ADJUSTMENT]
+        qty:
+          type: integer
+        occurred_at:
+          type: string
+          format: date-time
+        batch_code:
+          type: string
+        source_type:
+          type: string
+          enum: [DROP, COUNT]
+        source_id:
+          type: string
+          format: uuid
+        source_number:
+          type: string
+        balance_after:
+          type: integer
+    StockCard:
+      type: object
+      additionalProperties: false
+      required: [product_id, product_name, sku, unit, entries, next_cursor, has_more]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/StockCardEntry"
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+    StockCardResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/StockCard"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
