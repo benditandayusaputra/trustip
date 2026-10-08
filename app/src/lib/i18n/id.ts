@@ -1,5 +1,6 @@
 import { agreements } from './agreements';
 import { counts } from './counts';
+import { dashboard } from './dashboard';
 import { directory } from './directory';
 import { drops } from './drops';
 import { legal } from './legal';
@@ -18,6 +19,7 @@ export const id = {
 	legal,
 	...agreements,
 	...counts,
+	...dashboard,
 	...directory,
 	...drops,
 	...needs,

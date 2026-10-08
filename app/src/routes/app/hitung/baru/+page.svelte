@@ -2,11 +2,13 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import CountForm from '#lib/features/counts/components/CountForm.svelte';
+	import { expiredReturnOf } from '#lib/features/counts/schema.js';
 	import PartnerChooser from '#lib/features/drops/components/PartnerChooser.svelte';
 	import { id } from '#lib/i18n/id.js';
 
 	const partnershipId = $derived(page.url.searchParams.get('mitra') ?? '');
 	const revisionOf = $derived(page.url.searchParams.get('antrean') ?? '');
+	const expiredReturn = $derived(expiredReturnOf(page.url.searchParams));
 </script>
 
 <svelte:head>
@@ -23,6 +25,7 @@
 			<CountForm
 				{partnershipId}
 				{revisionOf}
+				{expiredReturn}
 				dropHref="/app/titipan/baru?mitra={partnershipId}"
 				onsaved={(countId: string) => void goto(`/app/hitung/${countId}`)}
 				onqueued={() => void goto('/app/antrean')}

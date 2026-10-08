@@ -4,7 +4,12 @@ import type { components } from './schema';
 export type SalesReport = components['schemas']['SalesReport'];
 export type ReportGrouping = SalesReport['group_by'];
 
-export interface SalesFilter {
+export interface SalesNarrowing {
+	partnerId?: string;
+	productId?: string;
+}
+
+export interface SalesFilter extends SalesNarrowing {
 	from: string;
 	to: string;
 	groupBy: ReportGrouping;
@@ -12,6 +17,12 @@ export interface SalesFilter {
 
 export function getSalesReport(client: ApiClient, filter: SalesFilter): Promise<SalesReport> {
 	const query = new URLSearchParams({ from: filter.from, to: filter.to, group_by: filter.groupBy });
+	if (filter.partnerId) {
+		query.set('partner_id', filter.partnerId);
+	}
+	if (filter.productId) {
+		query.set('product_id', filter.productId);
+	}
 	return client.get<SalesReport>(`/api/v1/reports/sales?${query.toString()}`);
 }
 

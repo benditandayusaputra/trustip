@@ -87,6 +87,31 @@ export function withChanges(
 	};
 }
 
+export interface ExpiredReturn {
+	productId: string;
+	qty: number;
+}
+
+export function expiredReturnOf(params: Pick<URLSearchParams, 'get'>): ExpiredReturn | undefined {
+	const productId = params.get('produk') ?? '';
+	const qty = Number(params.get('kembali'));
+	return productId !== '' && Number.isInteger(qty) && qty > 0 ? { productId, qty } : undefined;
+}
+
+export function withExpiredReturn(
+	lines: CountLineValues[],
+	expired: ExpiredReturn
+): CountLineValues[] {
+	return lines.map((line) =>
+		line.productId === expired.productId
+			? withChanges(line, {
+					returnedQty: Math.min(expired.qty, line.countedQty),
+					returnReason: 'EXPIRED'
+				})
+			: line
+	);
+}
+
 export function allSold(lines: CountLineValues[]): CountLineValues[] {
 	return lines.map((line) =>
 		withChanges(line, { countedQty: 0, returnedQty: 0, returnReason: '' })

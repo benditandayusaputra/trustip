@@ -15,19 +15,33 @@
 	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { findOwnEntry, outboxScheduler, waitingEntries } from '#lib/offline/device.js';
 	import { CountComposer } from '../composer.svelte';
-	import { maxNoteLength, previewOf, type InputMode, type withChanges } from '../schema';
+	import {
+		maxNoteLength,
+		previewOf,
+		type ExpiredReturn,
+		type InputMode,
+		type withChanges
+	} from '../schema';
 	import CountLineRow from './CountLineRow.svelte';
 	import CountPreview from './CountPreview.svelte';
 
 	interface Props {
 		partnershipId: string;
 		dropHref: string;
+		expiredReturn?: ExpiredReturn | undefined;
 		onsaved: (countId: string) => void;
 		onqueued: () => void;
 		revisionOf?: string;
 	}
 
-	let { partnershipId, dropHref, onsaved, onqueued, revisionOf = '' }: Props = $props();
+	let {
+		partnershipId,
+		dropHref,
+		expiredReturn,
+		onsaved,
+		onqueued,
+		revisionOf = ''
+	}: Props = $props();
 
 	const text = id.counts;
 	const toaster = getToaster();
@@ -51,7 +65,11 @@
 
 	$effect(() => {
 		void (revisionOf === ''
-			? composer.load(partnershipId)
+			? composer.load(partnershipId).then(() => {
+					if (expiredReturn) {
+						composer.returnExpired(expiredReturn);
+					}
+				})
 			: composer.loadRevision(partnershipId, revisionOf));
 	});
 

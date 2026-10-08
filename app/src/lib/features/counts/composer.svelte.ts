@@ -14,6 +14,8 @@ import {
 	refilledCountLines,
 	returnAllRemaining,
 	revisionDateOf,
+	withExpiredReturn,
+	type ExpiredReturn,
 	toCountRequest,
 	validateCount,
 	withChanges,
@@ -115,6 +117,10 @@ export class CountComposer {
 
 	markAllSold(): void {
 		this.lines = allSold(this.lines);
+	}
+
+	returnExpired(expired: ExpiredReturn): void {
+		this.lines = withExpiredReturn(this.lines, expired);
 	}
 
 	returnAllRemaining(): void {

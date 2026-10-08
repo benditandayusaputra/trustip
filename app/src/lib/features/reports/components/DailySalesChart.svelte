@@ -4,6 +4,7 @@
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
+	import type { SalesNarrowing } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { formatBusinessDate, formatRupiah } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
@@ -13,9 +14,10 @@
 
 	interface Props {
 		range: DateRange;
+		narrowing?: SalesNarrowing;
 	}
 
-	let { range }: Props = $props();
+	let { range, narrowing = {} }: Props = $props();
 
 	const text = id.reports;
 	const daily = new SalesReportView(apiClient, () => new Date());
@@ -31,7 +33,7 @@
 	);
 
 	$effect(() => {
-		void daily.load(range, 'DAY');
+		void daily.load(range, 'DAY', narrowing);
 	});
 </script>
 
