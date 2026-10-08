@@ -120,6 +120,15 @@ export default defineConfig(
 		rules: { 'no-restricted-globals': 'off' }
 	},
 	{
+		files: ['src/lib/offline/store.ts'],
+		rules: {
+			'no-restricted-globals': [
+				'error',
+				{ name: 'fetch', message: 'Call the API through apiClient.' }
+			]
+		}
+	},
+	{
 		files: ['**/*.test.ts', '**/*.test.js', 'tests/**'],
 		rules: {
 			'max-lines-per-function': 'off',

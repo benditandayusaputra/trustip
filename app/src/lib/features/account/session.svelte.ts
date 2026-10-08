@@ -5,6 +5,7 @@ import { ApiError } from '#lib/api/errors.js';
 import { logOut, logOutEverywhere } from '#lib/api/sessions.js';
 import type { OrganizationType } from '#lib/api/organizations.js';
 import type { Account } from '#lib/api/users.js';
+import { deviceReadCache } from '#lib/offline/read-cache.js';
 
 export type AccountStatus = 'loading' | 'ready' | 'failed' | 'signedOut';
 export type Placement = 'member' | 'newcomer';
@@ -27,9 +28,11 @@ export class AccountSession {
 	status = $state<AccountStatus>('loading');
 	failure = $state('');
 	readonly #client: () => ApiClient;
+	readonly #forgetDeviceData: () => Promise<void>;
 
-	constructor(client: () => ApiClient) {
+	constructor(client: () => ApiClient, forgetDeviceData = () => deviceReadCache().forget()) {
 		this.#client = client;
+		this.#forgetDeviceData = forgetDeviceData;
 	}
 
 	async load(): Promise<void> {
@@ -44,11 +47,13 @@ export class AccountSession {
 
 	async endThisDevice(): Promise<void> {
 		await logOut(this.#client());
+		await this.#forgetDeviceData();
 		this.status = 'signedOut';
 	}
 
 	async endEveryDevice(): Promise<void> {
 		await logOutEverywhere(this.#client());
+		await this.#forgetDeviceData();
 		this.status = 'signedOut';
 	}
 

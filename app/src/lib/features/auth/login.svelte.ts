@@ -2,6 +2,7 @@ import type { ApiClient } from '#lib/api/client.js';
 import { ApiError, NetworkError } from '#lib/api/errors.js';
 import { logIn } from '#lib/api/sessions.js';
 import { id } from '#lib/i18n/id.js';
+import { deviceReadCache } from '#lib/offline/read-cache.js';
 
 const firstServerErrorStatus = 500;
 const formLevelCodes = new Set(['LOGIN_FAILED', 'ACCOUNT_LOCKED', 'RATE_LIMITED']);
@@ -24,9 +25,11 @@ export class LoginForm {
 	captchaToken = $state('');
 	busy = $state(false);
 	readonly #client: () => ApiClient;
+	readonly #forgetDeviceData: () => Promise<void>;
 
-	constructor(client: () => ApiClient) {
+	constructor(client: () => ApiClient, forgetDeviceData = () => deviceReadCache().forget()) {
 		this.#client = client;
+		this.#forgetDeviceData = forgetDeviceData;
 	}
 
 	async submit(): Promise<LoginOutcome> {
@@ -41,6 +44,7 @@ export class LoginForm {
 				password: this.values.password,
 				captcha_token: this.captchaToken
 			});
+			await this.#forgetDeviceData();
 			return { kind: 'signedIn' };
 		} catch (error) {
 			return this.#explain(error);

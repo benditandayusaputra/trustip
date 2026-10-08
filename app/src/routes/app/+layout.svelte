@@ -4,6 +4,7 @@
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
 	import { onboardingHref, signInHref } from '#lib/features/auth/links.js';
 	import NotificationBell from '#lib/features/notifications/components/NotificationBell.svelte';
+	import OfflineRibbon from '#lib/features/system/OfflineRibbon.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -11,6 +12,7 @@
 	const here = $derived(page.url.pathname + page.url.search);
 </script>
 
+<OfflineRibbon />
 <AccountGate
 	placement="member"
 	onsignedout={() => {

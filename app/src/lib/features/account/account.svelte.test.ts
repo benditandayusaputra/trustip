@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import AccountHarness from '#lib/testing/AccountHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
+import { cacheStore } from '#lib/offline/store.js';
 
 type Route = Record<string, () => Response>;
 
@@ -120,6 +121,26 @@ describe('AccountMenu', () => {
 			expect(onsignedout).toHaveBeenCalledOnce();
 		});
 		expect(calls).toContain('POST /api/v1/sessions/logout');
+	});
+
+	it('BR-PWA-02 forgets the data saved on this device when logging out', async () => {
+		serve({
+			'GET /api/v1/me': () => ok(sari),
+			'POST /api/v1/sessions/logout': () => ok(null)
+		});
+		const onsignedout = vi.fn();
+		await render(AccountHarness, { onsignedout });
+		await expect.element(page.getByRole('heading', { name: 'Halo, Sari Wulandari' })).toBeVisible();
+		await vi.waitFor(async () => {
+			await expect(cacheStore.get('/api/v1/me')).resolves.toBeDefined();
+		});
+
+		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
+
+		await vi.waitFor(() => {
+			expect(onsignedout).toHaveBeenCalledOnce();
+		});
+		await expect(cacheStore.get('/api/v1/me')).resolves.toBeUndefined();
 	});
 
 	it('FR-AUTH-03 asks for confirmation before logging out every device', async () => {

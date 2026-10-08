@@ -15,7 +15,8 @@ describe('uploadImage (R-SEC-54)', () => {
 				);
 			},
 			newKey: () => 'key',
-			withRefreshLock: (task) => task()
+			withRefreshLock: (task) => task(),
+			readCache: { remember: () => Promise.resolve(), recall: () => Promise.resolve(undefined) }
 		});
 		const canvas = new OffscreenCanvas(40, 30);
 		canvas.getContext('2d')?.fillRect(0, 0, 40, 30);

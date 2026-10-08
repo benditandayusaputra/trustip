@@ -2,6 +2,7 @@ import { agreements } from './agreements';
 import { counts } from './counts';
 import { drops } from './drops';
 import { legal } from './legal';
+import { offline } from './offline';
 import { organization } from './organization';
 import { partnerships } from './partnerships';
 import { products } from './products';
@@ -16,6 +17,7 @@ export const id = {
 	...agreements,
 	...counts,
 	...drops,
+	...offline,
 	...organization,
 	...partnerships,
 	...products,
@@ -69,11 +71,6 @@ export const id = {
 		apiVersion: (version: string) => `Versi API ${version}`,
 		updateAvailable: 'Versi baru Trustip tersedia.',
 		reload: 'Muat ulang'
-	},
-	offline: {
-		title: 'Tanpa koneksi',
-		body: 'Halaman ini belum tersimpan di perangkat. Sambungkan internet lalu coba lagi.',
-		retry: 'Coba lagi'
 	},
 	feedback: {
 		loading: 'Memuat',

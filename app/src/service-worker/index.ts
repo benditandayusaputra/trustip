@@ -3,6 +3,8 @@ import { assets, immutable, prerendered } from '$app/manifest';
 import { version } from '$app/env';
 
 const shellCache = `trustip-shell-${version}`;
+const pageCache = `trustip-pages-${version}`;
+const keptCaches = new Set([shellCache, pageCache]);
 const offlinePage = '/luring';
 const shellFiles = [...immutable, ...assets, ...prerendered].map((file) => file.path);
 
@@ -20,7 +22,7 @@ self.addEventListener('activate', (event) => {
 		caches
 			.keys()
 			.then((keys) =>
-				Promise.all(keys.filter((key) => key !== shellCache).map((key) => caches.delete(key)))
+				Promise.all(keys.filter((key) => !keptCaches.has(key)).map((key) => caches.delete(key)))
 			)
 			.then(() => self.clients.claim())
 	);
@@ -41,7 +43,7 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 	if (request.mode === 'navigate') {
-		event.respondWith(networkOrOfflinePage(request));
+		event.respondWith(networkOrSavedPage(request, url));
 	}
 });
 
@@ -50,11 +52,16 @@ async function cachedFirst(request: Request): Promise<Response> {
 	return cached ?? fetch(request);
 }
 
-async function networkOrOfflinePage(request: Request): Promise<Response> {
+async function networkOrSavedPage(request: Request, url: URL): Promise<Response> {
 	try {
-		return await fetch(request);
+		const response = await fetch(request);
+		if (response.ok && url.pathname.startsWith('/app')) {
+			const cache = await caches.open(pageCache);
+			await cache.put(request, response.clone());
+		}
+		return response;
 	} catch {
-		const offline = await caches.match(offlinePage);
-		return offline ?? Response.error();
+		const saved = (await caches.match(request)) ?? (await caches.match(offlinePage));
+		return saved ?? Response.error();
 	}
 }

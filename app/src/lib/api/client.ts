@@ -1,7 +1,8 @@
 import { browser } from '$app/env';
 import { ApiError, NetworkError } from './errors';
-import { readEnvelope, toPage, type Page } from './envelope';
+import { readEnvelope, toPage, type Page, type SuccessEnvelope } from './envelope';
 import { id } from '#lib/i18n/id.js';
+import { deviceReadCache } from '#lib/offline/read-cache.js';
 
 const refreshPath = '/api/v1/sessions/refresh';
 const refreshLockName = 'trustip-session-refresh';
@@ -15,10 +16,16 @@ interface Call {
 	idempotencyKey?: string;
 }
 
+export interface ReadCache {
+	remember: (path: string, envelope: SuccessEnvelope<unknown>) => Promise<void>;
+	recall: (path: string) => Promise<SuccessEnvelope<unknown> | undefined>;
+}
+
 export interface ClientDeps {
 	fetch: typeof fetch;
 	newKey: () => string;
 	withRefreshLock: <T>(task: () => Promise<T>) => Promise<T>;
+	readCache: ReadCache;
 }
 
 export class ApiClient {
@@ -53,7 +60,31 @@ export class ApiClient {
 		return (await this.#call<T>({ method: 'POST', path, body: form })).data;
 	}
 
-	async #call<T>(call: Call) {
+	async #call<T>(call: Call): Promise<SuccessEnvelope<T>> {
+		if (call.method !== 'GET') {
+			return this.#exchange<T>(call);
+		}
+		try {
+			const envelope = await this.#exchange<T>(call);
+			void this.#deps.readCache.remember(call.path, envelope);
+			return envelope;
+		} catch (error) {
+			if (!(error instanceof NetworkError)) {
+				throw error;
+			}
+			return this.#recall<T>(call.path, error);
+		}
+	}
+
+	async #recall<T>(path: string, failure: NetworkError): Promise<SuccessEnvelope<T>> {
+		const stored = await this.#deps.readCache.recall(path);
+		if (!stored) {
+			throw failure;
+		}
+		return stored as SuccessEnvelope<T>;
+	}
+
+	async #exchange<T>(call: Call): Promise<SuccessEnvelope<T>> {
 		try {
 			return await readEnvelope<T>(await this.#request(call));
 		} catch (error) {
@@ -124,7 +155,8 @@ export function apiClient(): ApiClient {
 	browserClient ??= new ApiClient({
 		fetch: (input, init) => fetch(input, init),
 		newKey: () => crypto.randomUUID(),
-		withRefreshLock: withWebLock
+		withRefreshLock: withWebLock,
+		readCache: deviceReadCache()
 	});
 	return browserClient;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ApiClient } from './client';
+import { ApiClient, type ReadCache } from './client';
+import type { SuccessEnvelope } from './envelope';
 import { ApiError, NetworkError } from './errors';
 
 interface Sent {
@@ -16,7 +17,17 @@ const failure = (status: number, code: string, extra: object = {}) =>
 		{ status }
 	);
 
-function clientWith(responses: (() => Response)[], sent: Sent[] = []) {
+function memoryCache(entries = new Map<string, SuccessEnvelope<unknown>>()): ReadCache {
+	return {
+		remember: (path, envelope) => {
+			entries.set(path, envelope);
+			return Promise.resolve();
+		},
+		recall: (path) => Promise.resolve(entries.get(path))
+	};
+}
+
+function clientWith(responses: (() => Response)[], sent: Sent[] = [], readCache = memoryCache()) {
 	const queue = [...responses];
 	return new ApiClient({
 		fetch: (input, init = {}) => {
@@ -25,7 +36,8 @@ function clientWith(responses: (() => Response)[], sent: Sent[] = []) {
 			return next ? Promise.resolve(next()) : Promise.reject(new TypeError('no response queued'));
 		},
 		newKey: () => 'generated-key',
-		withRefreshLock: (task) => task()
+		withRefreshLock: (task) => task(),
+		readCache
 	});
 }
 
@@ -57,6 +69,46 @@ describe('ApiClient reading', () => {
 		await clientWith([() => ok(null)], sent).get('/api/v1/meta');
 
 		expect(headerOf(sent[0], 'x-trustip-client')).toBe('web');
+	});
+});
+
+describe('ApiClient reading without a connection (FR-PWA-04)', () => {
+	it('answers a read from the device copy of its last answer', async () => {
+		const readCache = memoryCache();
+		await clientWith([() => ok({ number: 'TM-1' })], [], readCache).get('/api/v1/drops/7');
+
+		const offline = clientWith([], [], readCache);
+
+		await expect(offline.get('/api/v1/drops/7')).resolves.toEqual({ number: 'TM-1' });
+	});
+
+	it('keeps the lost connection error when the device has no copy', async () => {
+		const error = await clientWith([])
+			.get('/api/v1/drops/8')
+			.catch((caught: unknown) => caught);
+
+		expect(error).toBeInstanceOf(NetworkError);
+	});
+
+	it('never answers a write from the device copy (BR-PWA-01)', async () => {
+		const readCache = memoryCache();
+		await clientWith([() => ok({ id: '7' })], [], readCache).get('/api/v1/drops');
+
+		const error = await clientWith([], [], readCache)
+			.create('/api/v1/drops', {})
+			.catch((caught: unknown) => caught);
+
+		expect(error).toBeInstanceOf(NetworkError);
+	});
+
+	it('does not keep a copy of a failed read', async () => {
+		const entries = new Map<string, SuccessEnvelope<unknown>>();
+
+		await expect(
+			clientWith([() => failure(404, 'NOT_FOUND')], [], memoryCache(entries)).get('/api/v1/drops/9')
+		).rejects.toBeInstanceOf(ApiError);
+
+		expect(entries.size).toBe(0);
 	});
 });
 
