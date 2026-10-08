@@ -1178,6 +1178,11 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: consignor_id
+          in: query
+          schema:
+            type: string
+            format: uuid
         - name: q
           in: query
           schema:
@@ -1207,6 +1212,41 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/directory/organizations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getDirectoryContact
+      tags: [directory]
+      responses:
+        "200":
+          description: Kontak WhatsApp organisasi yang tampil di Cari Mitra, hanya untuk pengguna yang masuk
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectoryContactResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "422":
           $ref: "#/components/responses/Unprocessable"
         "429":
@@ -1517,6 +1557,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "415":
           $ref: "#/components/responses/UnsupportedMediaType"
         "422":
@@ -1783,6 +1825,53 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+    post:
+      operationId: sendProposal
+      tags: [proposal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectProposalRequest"
+      responses:
+        "201":
+          description: Ajuan kerja sama langsung ke organisasi di Cari Mitra dibuat
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
         "422":
           $ref: "#/components/responses/Unprocessable"
         "429":
@@ -3323,6 +3412,8 @@ components:
         - PROPOSAL_EXPIRED
         - PROPOSAL_ALREADY_OPEN
         - ALREADY_PARTNERS
+        - PROPOSAL_LIMIT_REACHED
+        - PROPOSAL_COOLDOWN
         - NOT_YOUR_TURN
         - PROPOSAL_ALREADY_DECIDED
         - PARTNERSHIP_NOT_ACTIVE
@@ -6450,3 +6541,51 @@ components:
             $ref: "#/components/schemas/DirectoryProductCard"
         meta:
           $ref: "#/components/schemas/DirectoryListMeta"
+    DirectProposalRequest:
+      type: object
+      additionalProperties: false
+      required: [target_organization_id, terms, items, message]
+      properties:
+        target_organization_id:
+          type: string
+          format: uuid
+        terms:
+          $ref: "#/components/schemas/GeneralTerms"
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/ProposalItemRequest"
+        message:
+          type: string
+          maxLength: 1000
+    DirectoryContact:
+      type: object
+      additionalProperties: false
+      required: [id, name, type, city_name, whatsapp]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/OrganizationType"
+        city_name:
+          type: string
+        whatsapp:
+          type: string
+          pattern: "^62[0-9]{8,13}$"
+    DirectoryContactResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/DirectoryContact"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"

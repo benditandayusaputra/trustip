@@ -135,3 +135,26 @@ LIMIT @row_limit::bigint;
 UPDATE proposals
 SET status = 'EXPIRED', updated_at = @now::timestamptz
 WHERE status = 'OPEN' AND expires_at <= @now::timestamptz;
+
+-- name: ConsumeProposalQuota :exec
+INSERT INTO proposal_quotas (organization_id, day, sent)
+VALUES (@organization_id::uuid, (@day::text)::date, 1)
+ON CONFLICT (organization_id, day) DO UPDATE SET sent = proposal_quotas.sent + 1;
+
+-- name: GetDirectParties :one
+SELECT
+    sender.name AS sender_name, target.id AS target_id, target.name AS target_name, target.type AS target_type,
+    COALESCE((
+        SELECT max(p.decided_at) FROM proposals AS p
+        WHERE p.from_org_id = sender.id AND p.status = 'DECLINED'
+            AND (p.consignor_org_id = target.id OR p.store_org_id = target.id)
+    ), '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS last_declined_at,
+    EXISTS (
+        SELECT 1 FROM partnerships AS pa
+        WHERE pa.status = 'ACTIVE'
+            AND ((pa.consignor_org_id = sender.id AND pa.store_org_id = target.id)
+                OR (pa.consignor_org_id = target.id AND pa.store_org_id = sender.id))
+    )::boolean AS are_partners
+FROM organizations AS sender
+JOIN organizations AS target ON target.id = @target_id::uuid
+WHERE sender.id = @sender_id::uuid AND target.status = 'ACTIVE' AND target.is_listed;

@@ -88,12 +88,3 @@ func (c CurrentAgreement) resolve(changes []Item) ([]Item, []apperror.FieldError
 func (c CurrentAgreement) CounterpartName(organizationID string) string {
 	return c.counterpartOf(organizationID).Name
 }
-
-func (o Opening) ReceivedNotice() Notice {
-	return Notice{
-		OrganizationID: o.AwaitingID, ActorUserID: o.Sender.UserID, Type: "PROPOSAL_RECEIVED",
-		Title: "Ajuan perubahan",
-		Body:  fmt.Sprintf("%s mengajukan perubahan Kesepakatan (%s).", o.SenderName, o.Number),
-		Link:  proposalLinkRoot + o.IDs.ProposalID, OwnersOnly: true,
-	}
-}

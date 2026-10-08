@@ -184,6 +184,7 @@ WITH origin AS (
     LEFT JOIN files AS pf ON pf.id = p.photo_file_id
     WHERE p.is_seeking_stores AND NOT p.is_archived
         AND o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
+        AND (@consignor_id::text = '' OR o.id = NULLIF(@consignor_id::text, '')::uuid)
         AND (
             NOT @within_radius::boolean
             OR ST_DWithin(o.location_public, origin.point, @radius_meters::float8, false)

@@ -387,27 +387,28 @@ WITH origin AS (
     LEFT JOIN files AS pf ON pf.id = p.photo_file_id
     WHERE p.is_seeking_stores AND NOT p.is_archived
         AND o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
+        AND ($12::text = '' OR o.id = NULLIF($12::text, '')::uuid)
         AND (
-            NOT $12::boolean
-            OR ST_DWithin(o.location_public, origin.point, $13::float8, false)
+            NOT $13::boolean
+            OR ST_DWithin(o.location_public, origin.point, $14::float8, false)
         )
-        AND (cardinality($14::uuid[]) = 0 OR p.category_id = ANY ($14::uuid[]))
-        AND (NOT $15::boolean OR p.suggested_retail_price >= $16::bigint)
-        AND (NOT $17::boolean OR p.suggested_retail_price <= $18::bigint)
-        AND (NOT $19::boolean OR p.shelf_life_days >= $20::bigint)
-        AND (NOT $21::boolean OR cp.distribution_permit_no <> '')
-        AND (NOT $22::boolean OR cp.halal_cert_no <> '')
-        AND (NOT $23::boolean OR cp.can_provide_sample)
+        AND (cardinality($15::uuid[]) = 0 OR p.category_id = ANY ($15::uuid[]))
+        AND (NOT $16::boolean OR p.suggested_retail_price >= $17::bigint)
+        AND (NOT $18::boolean OR p.suggested_retail_price <= $19::bigint)
+        AND (NOT $20::boolean OR p.shelf_life_days >= $21::bigint)
+        AND (NOT $22::boolean OR cp.distribution_permit_no <> '')
+        AND (NOT $23::boolean OR cp.halal_cert_no <> '')
+        AND (NOT $24::boolean OR cp.can_provide_sample)
         AND (
-            NOT $24::boolean
+            NOT $25::boolean
             OR ST_DWithin(o.location_public, viewer.point, cp.delivery_radius_km * 1000.0, false)
         )
         AND (
-            $25::text = ''
-            OR p.name ILIKE '%' || replace(replace(replace($25::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR p.description ILIKE '%' || replace(replace(replace($25::text, '\', '\\'), '%', '\%'), '_', '\_')
+            $26::text = ''
+            OR p.name ILIKE '%' || replace(replace(replace($26::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR p.description ILIKE '%' || replace(replace(replace($26::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
-            OR o.name ILIKE '%' || replace(replace(replace($25::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR o.name ILIKE '%' || replace(replace(replace($26::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
         )
 ), ranked AS (
     SELECT
@@ -417,8 +418,8 @@ WITH origin AS (
         listed.last_active_at, listed.delivery_radius_km, listed.preferred_store_types, listed.has_permit,
         listed.has_halal, listed.can_provide_sample, listed.active_partner_count, listed.distance_meters,
         listed.is_self, listed.is_partner,
-        CASE $26::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
-        CASE $26::text
+        CASE $27::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
+        CASE $27::text
             WHEN 'NEAREST' THEN listed.distance_meters
             WHEN 'REPUTATION' THEN -listed.active_partner_count
             ELSE -extract(epoch FROM listed.created_at)
@@ -448,6 +449,7 @@ type ListDirectoryProductsParams struct {
 	ViewerLatitude   float64
 	HasOrigin        bool
 	ViewerID         string
+	ConsignorID      string
 	WithinRadius     bool
 	RadiusMeters     float64
 	CategoryIds      []string
@@ -507,6 +509,7 @@ func (q *Queries) ListDirectoryProducts(ctx context.Context, arg ListDirectoryPr
 		arg.ViewerLatitude,
 		arg.HasOrigin,
 		arg.ViewerID,
+		arg.ConsignorID,
 		arg.WithinRadius,
 		arg.RadiusMeters,
 		arg.CategoryIds,

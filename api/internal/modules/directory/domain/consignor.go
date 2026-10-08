@@ -23,6 +23,7 @@ type ConsignorSearchForm struct {
 	HasHalal         bool
 	CanSample        bool
 	DeliversToViewer bool
+	ConsignorID      string
 }
 
 type ConsignorFilters struct {
@@ -35,6 +36,7 @@ type ConsignorFilters struct {
 	HasHalal         bool
 	CanSample        bool
 	DeliversToViewer bool
+	ConsignorID      string
 }
 
 type ConsignorSearch struct {
@@ -49,15 +51,23 @@ func NewConsignorSearch(form ConsignorSearchForm) (ConsignorSearch, error) {
 	maxPrice, maxProblem := readBound("max_price", form.MaxPrice, prices)
 	shelfLife, shelfLifeProblem := readBound("min_shelf_life_days", form.MinShelfLifeDays,
 		field.Length{Min: minShelfLifeDays, Max: maxShelfLifeDays})
-	problems = append(problems, field.Collect(minProblem, maxProblem, shelfLifeProblem)...)
+	problems = append(problems, field.Collect(minProblem, maxProblem, shelfLifeProblem,
+		findConsignorProblem(form.ConsignorID))...)
 	if len(problems) > 0 {
 		return ConsignorSearch{}, apperror.Validation(problems...)
 	}
 	return ConsignorSearch{Search: search, Filters: ConsignorFilters{
 		CategoryIDs: search.CategoryIDs, Text: search.Text, MinPrice: minPrice, MaxPrice: maxPrice,
 		MinShelfLifeDays: shelfLife, HasPermit: form.HasPermit, HasHalal: form.HasHalal, CanSample: form.CanSample,
-		DeliversToViewer: form.DeliversToViewer,
+		DeliversToViewer: form.DeliversToViewer, ConsignorID: form.ConsignorID,
 	}}, nil
+}
+
+func findConsignorProblem(consignorID string) field.Problem {
+	if consignorID == "" || idFormat.MatchString(consignorID) {
+		return field.Problem{}
+	}
+	return field.Invalid("consignor_id", apperror.FieldUnknownChoice)
 }
 
 func (s ConsignorSearch) CheckViewer(viewer Viewer) error {

@@ -38,6 +38,9 @@ func (uc *SendInvitation) Execute(
 	sentAt := uc.deps.Clock.Now()
 	var proposal domain.Proposal
 	err = uc.deps.Tx.WithinTx(ctx, func(ctx context.Context) error {
+		if err := consumeQuota(ctx, uc.deps.Direct, signedIn.Membership.OrganizationID, sentAt); err != nil {
+			return err
+		}
 		invitation, err := uc.invite(ctx, draft, domain.InvitationParams{IDs: ids, Sender: domain.Sender{
 			UserID: signedIn.UserID, OrganizationID: signedIn.Membership.OrganizationID,
 			OrganizationType: signedIn.Membership.OrganizationType,

@@ -31,6 +31,10 @@ type InvitationSender interface {
 	Execute(ctx context.Context, signedIn actor.Actor, input domain.RevisionInput) (domain.Proposal, error)
 }
 
+type DirectSender interface {
+	Execute(ctx context.Context, signedIn actor.Actor, cmd service.DirectCommand) (domain.Proposal, error)
+}
+
 type InvitationViewer interface {
 	Execute(ctx context.Context, signedIn actor.Actor, code string) (domain.InvitationView, error)
 }
@@ -54,6 +58,7 @@ type Lister interface {
 type Deps struct {
 	Authenticate fiber.Handler
 	Send         InvitationSender
+	Propose      DirectSender
 	View         InvitationViewer
 	Claim        ProposalByKey
 	Get          ProposalByKey
@@ -73,6 +78,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Post(claimPath, deps.Authenticate, writeLimit, byKey(deps.Claim, "code"))
 	api.Get(proposalPath, deps.Authenticate, byID(deps.Get))
 	api.Get(proposalsPath, deps.Authenticate, list(deps.List))
+	api.Post(proposalsPath, deps.Authenticate, writeLimit, propose(deps.Propose))
 	api.Post(acceptPath, deps.Authenticate, writeLimit, byID(deps.Accept))
 	api.Post(declinePath, deps.Authenticate, writeLimit, decline(deps.Decline))
 	api.Post(withdrawPath, deps.Authenticate, writeLimit, byID(deps.Withdraw))
@@ -104,6 +110,31 @@ func send(sender InvitationSender) fiber.Handler {
 		proposal, err := sender.Execute(c.Context(), signedIn, input)
 		if err != nil {
 			return fmt.Errorf("send invitation: %w", err)
+		}
+		c.Location(httpserver.APIPrefix + proposalsPath + "/" + proposal.ID)
+		return httpserver.Respond(c, httpserver.Reply{Status: fiber.StatusCreated, Data: toProposalResponse(proposal)})
+	}
+}
+
+func propose(sender DirectSender) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		signedIn, err := signedInActor(c)
+		if err != nil {
+			return err
+		}
+		var request directRequest
+		if err := httpserver.DecodeJSON(c, &request); err != nil {
+			return fmt.Errorf("read proposal: %w", err)
+		}
+		input, err := request.revision().toInput()
+		if err != nil {
+			return err
+		}
+		proposal, err := sender.Execute(c.Context(), signedIn, service.DirectCommand{
+			TargetID: request.TargetOrganizationID, Input: input,
+		})
+		if err != nil {
+			return fmt.Errorf("send proposal: %w", err)
 		}
 		c.Location(httpserver.APIPrefix + proposalsPath + "/" + proposal.ID)
 		return httpserver.Respond(c, httpserver.Reply{Status: fiber.StatusCreated, Data: toProposalResponse(proposal)})

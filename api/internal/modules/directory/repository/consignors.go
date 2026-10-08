@@ -110,7 +110,7 @@ func productListParams(query domain.ConsignorQuery) sqlc.ListDirectoryProductsPa
 		HasMaxPrice: list.HasMaxPrice, MaxPrice: list.MaxPrice, HasMinShelfLife: list.HasMinShelfLife,
 		MinShelfLifeDays: list.MinShelfLifeDays, HasPermit: list.HasPermit, HasHalal: list.HasHalal,
 		CanSample: list.CanSample, DeliversToViewer: list.DeliversToViewer, Query: list.Query,
-		SortOrder: list.SortOrder,
+		SortOrder: list.SortOrder, ConsignorID: query.Filters.ConsignorID,
 	}
 }
 

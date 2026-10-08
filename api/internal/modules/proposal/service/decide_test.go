@@ -101,7 +101,7 @@ func newDecisionScene() decisionScene {
 		proposals: proposals, founder: founder, announcer: announcer, audit: trail,
 		deps: service.ProposalDeps{
 			Proposals: proposals, Audit: trail, Tx: inlineTx{}, Clock: fixedClock{at: sentAt()}, IDs: &sequenceIDs{},
-			Codes: fixedCode{}, Keeper: founder, Announcer: announcer, Current: currentReader{},
+			Codes: fixedCode{}, Keeper: founder, Announcer: announcer, Current: currentReader{}, Direct: &fakeDirect{},
 		},
 	}
 }

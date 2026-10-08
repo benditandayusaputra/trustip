@@ -38,6 +38,8 @@ func TestCatalog_StatusesFollowContractTable(t *testing.T) {
 		apperror.CodeRateLimited:          http.StatusTooManyRequests,
 		apperror.CodeServiceUnavailable:   http.StatusServiceUnavailable,
 		apperror.CodeInternal:             http.StatusInternalServerError,
+		apperror.CodeProposalLimitReached: http.StatusConflict,
+		apperror.CodeProposalCooldown:     http.StatusConflict,
 	}
 	for code, want := range cases {
 		if got := apperror.New(code).Status(); got != want {

@@ -70,6 +70,7 @@ func catalog() map[Code]entry {
 	maps.Copy(entries, accessEntries())
 	maps.Copy(entries, outcomeEntries())
 	maps.Copy(entries, documentEntries())
+	maps.Copy(entries, negotiationEntries())
 	return entries
 }
 

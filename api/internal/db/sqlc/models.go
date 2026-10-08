@@ -338,6 +338,12 @@ type ProposalItem struct {
 	DepositPrice  int64
 }
 
+type ProposalQuota struct {
+	OrganizationID string
+	Day            pgtype.Date
+	Sent           int32
+}
+
 type ProposalRevision struct {
 	ID                 string
 	ProposalID         string

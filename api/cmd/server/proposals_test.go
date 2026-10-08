@@ -21,6 +21,12 @@ const invitationsPath = "/api/v1/invitations"
 
 type emptyProposals struct{}
 
+func (emptyProposals) ConsumeQuota(context.Context, domain.QuotaKey) error { return nil }
+
+func (emptyProposals) GetDirectParties(context.Context, domain.DirectPair) (domain.DirectParties, error) {
+	return domain.DirectParties{}, apperror.NotFound()
+}
+
 func (emptyProposals) NextNumber(context.Context, domain.SequenceKey) (int, error) { return 1, nil }
 
 func (emptyProposals) Open(context.Context, domain.Opening) error {
@@ -84,7 +90,8 @@ func (emptyProposals) HasActivePartnership(context.Context, domain.Pair) (bool, 
 
 func testProposalComponents(now *clock.Manual) proposalComponents {
 	return proposalComponents{deps: proposalservice.ProposalDeps{
-		Proposals: emptyProposals{}, Audit: &memoryAudit{}, Tx: inlineTx{}, Clock: now, IDs: idgen.NewSequence(),
+		Proposals: emptyProposals{}, Direct: emptyProposals{}, Audit: &memoryAudit{}, Tx: inlineTx{}, Clock: now,
+		IDs:    idgen.NewSequence(),
 		Codes:  inviteCodes(),
 		Keeper: refusingCollaborators{}, Announcer: refusingCollaborators{}, Current: refusingCollaborators{},
 	}}

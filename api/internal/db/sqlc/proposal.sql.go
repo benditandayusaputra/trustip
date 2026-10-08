@@ -85,6 +85,22 @@ func (q *Queries) ClaimInvitation(ctx context.Context, arg ClaimInvitationParams
 	return result.RowsAffected(), nil
 }
 
+const consumeProposalQuota = `-- name: ConsumeProposalQuota :exec
+INSERT INTO proposal_quotas (organization_id, day, sent)
+VALUES ($1::uuid, ($2::text)::date, 1)
+ON CONFLICT (organization_id, day) DO UPDATE SET sent = proposal_quotas.sent + 1
+`
+
+type ConsumeProposalQuotaParams struct {
+	OrganizationID string
+	Day            string
+}
+
+func (q *Queries) ConsumeProposalQuota(ctx context.Context, arg ConsumeProposalQuotaParams) error {
+	_, err := q.db.Exec(ctx, consumeProposalQuota, arg.OrganizationID, arg.Day)
+	return err
+}
+
 const createProposal = `-- name: CreateProposal :exec
 INSERT INTO proposals (
     id, number, kind, consignor_org_id, store_org_id, from_org_id, awaiting_org_id, partnership_id, invite_code,
@@ -219,6 +235,53 @@ func (q *Queries) ExpireOpenProposals(ctx context.Context, now time.Time) (int64
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const getDirectParties = `-- name: GetDirectParties :one
+SELECT
+    sender.name AS sender_name, target.id AS target_id, target.name AS target_name, target.type AS target_type,
+    COALESCE((
+        SELECT max(p.decided_at) FROM proposals AS p
+        WHERE p.from_org_id = sender.id AND p.status = 'DECLINED'
+            AND (p.consignor_org_id = target.id OR p.store_org_id = target.id)
+    ), '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS last_declined_at,
+    EXISTS (
+        SELECT 1 FROM partnerships AS pa
+        WHERE pa.status = 'ACTIVE'
+            AND ((pa.consignor_org_id = sender.id AND pa.store_org_id = target.id)
+                OR (pa.consignor_org_id = target.id AND pa.store_org_id = sender.id))
+    )::boolean AS are_partners
+FROM organizations AS sender
+JOIN organizations AS target ON target.id = $1::uuid
+WHERE sender.id = $2::uuid AND target.status = 'ACTIVE' AND target.is_listed
+`
+
+type GetDirectPartiesParams struct {
+	TargetID string
+	SenderID string
+}
+
+type GetDirectPartiesRow struct {
+	SenderName     string
+	TargetID       string
+	TargetName     string
+	TargetType     string
+	LastDeclinedAt time.Time
+	ArePartners    bool
+}
+
+func (q *Queries) GetDirectParties(ctx context.Context, arg GetDirectPartiesParams) (GetDirectPartiesRow, error) {
+	row := q.db.QueryRow(ctx, getDirectParties, arg.TargetID, arg.SenderID)
+	var i GetDirectPartiesRow
+	err := row.Scan(
+		&i.SenderName,
+		&i.TargetID,
+		&i.TargetName,
+		&i.TargetType,
+		&i.LastDeclinedAt,
+		&i.ArePartners,
+	)
+	return i, err
 }
 
 const getInvitation = `-- name: GetInvitation :one

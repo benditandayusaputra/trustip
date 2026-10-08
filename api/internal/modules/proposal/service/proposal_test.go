@@ -99,6 +99,27 @@ func (f *fakeProposals) HasActivePartnership(context.Context, domain.Pair) (bool
 	return f.partners, nil
 }
 
+type fakeDirect struct {
+	exhausted bool
+	parties   domain.DirectParties
+	consumed  []domain.QuotaKey
+}
+
+func (f *fakeDirect) ConsumeQuota(_ context.Context, key domain.QuotaKey) error {
+	if f.exhausted {
+		return domain.ErrQuotaExhausted
+	}
+	f.consumed = append(f.consumed, key)
+	return nil
+}
+
+func (f *fakeDirect) GetDirectParties(_ context.Context, pair domain.DirectPair) (domain.DirectParties, error) {
+	if f.parties.Target.OrganizationID != pair.TargetID {
+		return domain.DirectParties{}, apperror.NotFound()
+	}
+	return f.parties, nil
+}
+
 type fakeAudit struct{ entries []audit.Entry }
 
 func (f *fakeAudit) Record(_ context.Context, entry audit.Entry) error {
@@ -131,15 +152,16 @@ func (fixedCode) NewCode() (string, error) { return inviteCode, nil }
 
 type scene struct {
 	proposals *fakeProposals
+	direct    *fakeDirect
 	audit     *fakeAudit
 	deps      service.ProposalDeps
 }
 
 func newScene(at time.Time) scene {
-	proposals, trail := newFakeProposals(), &fakeAudit{}
-	return scene{proposals: proposals, audit: trail, deps: service.ProposalDeps{
-		Proposals: proposals, Audit: trail, Tx: inlineTx{}, Clock: fixedClock{at: at}, IDs: &sequenceIDs{},
-		Codes: fixedCode{},
+	proposals, direct, trail := newFakeProposals(), &fakeDirect{}, &fakeAudit{}
+	return scene{proposals: proposals, direct: direct, audit: trail, deps: service.ProposalDeps{
+		Proposals: proposals, Direct: direct, Audit: trail, Tx: inlineTx{}, Clock: fixedClock{at: at},
+		IDs: &sequenceIDs{}, Codes: fixedCode{},
 	}}
 }
 

@@ -32,6 +32,11 @@ type ProposalStore interface {
 	ProposalLister
 }
 
+type DirectProposals interface {
+	ConsumeQuota(ctx context.Context, key domain.QuotaKey) error
+	GetDirectParties(ctx context.Context, pair domain.DirectPair) (domain.DirectParties, error)
+}
+
 type AgreementKeeper interface {
 	Found(ctx context.Context, founding domain.Founding) (string, error)
 	Amend(ctx context.Context, founding domain.Founding) (int, error)

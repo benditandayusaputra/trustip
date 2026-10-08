@@ -165,3 +165,8 @@ FROM ranked
 WHERE @from_start::boolean OR (sort_text, sort_number, id) > (@after_text::text, @after_number::float8, @after_id::uuid)
 ORDER BY sort_text, sort_number, id
 LIMIT @row_limit::bigint;
+
+-- name: GetDirectoryContact :one
+SELECT o.id, o.name, o.type, o.city_name, o.whatsapp
+FROM organizations AS o
+WHERE o.id = @id::uuid AND o.status = 'ACTIVE' AND o.is_listed;

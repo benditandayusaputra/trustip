@@ -104,6 +104,33 @@ func (q *Queries) CountDirectoryStoresByRadius(ctx context.Context, arg CountDir
 	return items, nil
 }
 
+const getDirectoryContact = `-- name: GetDirectoryContact :one
+SELECT o.id, o.name, o.type, o.city_name, o.whatsapp
+FROM organizations AS o
+WHERE o.id = $1::uuid AND o.status = 'ACTIVE' AND o.is_listed
+`
+
+type GetDirectoryContactRow struct {
+	ID       string
+	Name     string
+	Type     string
+	CityName string
+	Whatsapp string
+}
+
+func (q *Queries) GetDirectoryContact(ctx context.Context, id string) (GetDirectoryContactRow, error) {
+	row := q.db.QueryRow(ctx, getDirectoryContact, id)
+	var i GetDirectoryContactRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.CityName,
+		&i.Whatsapp,
+	)
+	return i, err
+}
+
 const getDirectoryViewer = `-- name: GetDirectoryViewer :one
 SELECT
     o.type,

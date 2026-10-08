@@ -19,11 +19,12 @@ type directoryComponents struct {
 	viewers    directoryservice.ViewerReader
 	stores     directoryservice.StoreDirectory
 	consignors directoryservice.ConsignorDirectory
+	contacts   directoryservice.ContactReader
 }
 
 func buildDirectoryComponents(pool *database.Pool) directoryComponents {
 	directory := directoryrepository.NewDirectory(pool)
-	return directoryComponents{viewers: directory, stores: directory, consignors: directory}
+	return directoryComponents{viewers: directory, stores: directory, consignors: directory, contacts: directory}
 }
 
 type directoryRoutes struct {
@@ -40,6 +41,7 @@ func mountDirectory(api fiber.Router, components directoryComponents, routes dir
 		ListConsignors: directoryservice.NewListConsignors(components.viewers, components.consignors,
 			routes.clock),
 		ListProducts: directoryservice.NewListProducts(components.viewers, components.consignors, routes.clock),
+		GetContact:   directoryservice.NewGetContact(components.contacts),
 		FilesBaseURL: routes.filesBaseURL,
 		SearchLimiter: ratelimit.New(ratelimit.Rule{Limit: searchesPerMinutePerIP, Window: time.Minute},
 			routes.clock),

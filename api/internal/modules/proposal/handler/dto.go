@@ -32,6 +32,17 @@ type invitationRequest struct {
 	Message string        `json:"message"`
 }
 
+type directRequest struct {
+	TargetOrganizationID string        `json:"target_organization_id"`
+	Terms                termsBody     `json:"terms"`
+	Items                []itemRequest `json:"items"`
+	Message              string        `json:"message"`
+}
+
+func (r directRequest) revision() invitationRequest {
+	return invitationRequest{Terms: r.Terms, Items: r.Items, Message: r.Message}
+}
+
 func (r invitationRequest) toInput() (domain.RevisionInput, error) {
 	notes := httpserver.MultilineInput("terms.notes", r.Terms.Notes)
 	message := httpserver.MultilineInput("message", r.Message)

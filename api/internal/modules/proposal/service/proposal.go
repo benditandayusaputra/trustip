@@ -2,16 +2,19 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/audit"
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 )
 
 type ProposalDeps struct {
 	Proposals ProposalStore
+	Direct    DirectProposals
 	Audit     AuditTrail
 	Tx        Transactor
 	Clock     Clock
@@ -50,4 +53,15 @@ func reloadProposal(
 		return domain.Proposal{}, fmt.Errorf("load proposal %s: %w", proposalID, err)
 	}
 	return proposal, nil
+}
+
+func consumeQuota(ctx context.Context, direct DirectProposals, organizationID string, at time.Time) error {
+	err := direct.ConsumeQuota(ctx, domain.QuotaKeyOf(organizationID, at))
+	if errors.Is(err, domain.ErrQuotaExhausted) {
+		return apperror.New(apperror.CodeProposalLimitReached)
+	}
+	if err != nil {
+		return fmt.Errorf("consume proposal quota: %w", err)
+	}
+	return nil
 }

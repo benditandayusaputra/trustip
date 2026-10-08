@@ -18,6 +18,7 @@ const (
 	storesPath     = "/directory/stores"
 	consignorsPath = "/directory/consignors"
 	productsPath   = "/directory/products"
+	contactPath    = "/directory/organizations/:id"
 	trueValue      = "true"
 )
 
@@ -30,6 +31,7 @@ type Deps struct {
 	ListStores     Lister[domain.StoreSearchForm, domain.StoreCard]
 	ListConsignors Lister[domain.ConsignorSearchForm, domain.ConsignorCard]
 	ListProducts   Lister[domain.ConsignorSearchForm, domain.ProductCard]
+	GetContact     ContactReader
 	FilesBaseURL   string
 	SearchLimiter  httpserver.RateLimiter
 	SecurityLog    *slog.Logger
@@ -43,6 +45,40 @@ func Mount(api fiber.Router, deps Deps) {
 		list(deps.ListConsignors, consignorSearchForm, present.consignorCard))
 	api.Get(productsPath, deps.Authenticate, searchLimit,
 		list(deps.ListProducts, consignorSearchForm, present.productCard))
+	api.Get(contactPath, deps.Authenticate, searchLimit, getContact(deps.GetContact))
+}
+
+type ContactReader interface {
+	Execute(ctx context.Context, signedIn actor.Actor, organizationID string) (domain.Contact, error)
+}
+
+type contactResponse struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	CityName string `json:"city_name"`
+	WhatsApp string `json:"whatsapp"`
+}
+
+func getContact(reader ContactReader) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		signedIn, err := signedInActor(c)
+		if err != nil {
+			return err
+		}
+		organizationID, err := httpserver.IDParam(c, "id")
+		if err != nil {
+			return fmt.Errorf("read organization id: %w", err)
+		}
+		contact, err := reader.Execute(c.Context(), signedIn, organizationID)
+		if err != nil {
+			return fmt.Errorf("get contact: %w", err)
+		}
+		return httpserver.Respond(c, httpserver.Reply{Data: contactResponse{
+			ID: contact.OrganizationID, Name: contact.Name, Type: string(contact.Type), CityName: contact.CityName,
+			WhatsApp: contact.WhatsApp,
+		}})
+	}
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {
@@ -105,7 +141,7 @@ func consignorSearchForm(c fiber.Ctx, search domain.SearchForm) domain.Consignor
 		Search: search, MinPrice: c.Query("min_price"), MaxPrice: c.Query("max_price"),
 		MinShelfLifeDays: c.Query("min_shelf_life_days"), HasPermit: c.Query("has_permit") == trueValue,
 		HasHalal: c.Query("has_halal") == trueValue, CanSample: c.Query("can_sample") == trueValue,
-		DeliversToViewer: c.Query("delivers_to_me") == trueValue,
+		DeliversToViewer: c.Query("delivers_to_me") == trueValue, ConsignorID: c.Query("consignor_id"),
 	}
 }
 

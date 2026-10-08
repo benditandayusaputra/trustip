@@ -32,11 +32,13 @@ type proposalCollaborators struct {
 func buildProposalComponents(
 	pool *database.Pool, clock proposalservice.Clock, collaborators proposalCollaborators,
 ) proposalComponents {
+	proposals := proposalrepository.NewProposals(pool)
 	return proposalComponents{deps: proposalservice.ProposalDeps{
 		Keeper:    collaborators.keeper,
 		Current:   collaborators.current,
 		Announcer: collaborators.announcer,
-		Proposals: proposalrepository.NewProposals(pool),
+		Proposals: proposals,
+		Direct:    proposals,
 		Audit:     newAuditTrail(auditrepository.NewRecords(pool)),
 		Tx:        pool,
 		Clock:     clock,
@@ -56,6 +58,7 @@ func proposalDeps(components proposalComponents, routes proposalRoutes) proposal
 	return proposalhandler.Deps{
 		Authenticate: routes.authenticate,
 		Send:         proposalservice.NewSendInvitation(deps),
+		Propose:      proposalservice.NewSendProposal(deps),
 		View:         proposalservice.NewViewInvitation(deps),
 		Claim:        proposalservice.NewClaimInvitation(deps),
 		Get:          proposalservice.NewGetProposal(deps.Proposals),

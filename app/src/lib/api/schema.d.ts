@@ -464,6 +464,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/directory/organizations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getDirectoryContact"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/products": {
         parameters: {
             query?: never;
@@ -685,7 +703,7 @@ export interface paths {
         };
         get: operations["listProposals"];
         put?: never;
-        post?: never;
+        post: operations["sendProposal"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1241,7 +1259,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "DOCUMENT_NOT_PENDING" | "CANCEL_WINDOW_PASSED" | "DROP_ALREADY_COUNTED" | "STOCK_CHANGED" | "SETTLEMENT_ALREADY_PAID" | "PAYMENT_PENDING" | "PARTNERSHIP_HAS_BLOCKERS" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "PROPOSAL_LIMIT_REACHED" | "PROPOSAL_COOLDOWN" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "DOCUMENT_NOT_PENDING" | "CANCEL_WINDOW_PASSED" | "DROP_ALREADY_COUNTED" | "STOCK_CHANGED" | "SETTLEMENT_ALREADY_PAID" | "PAYMENT_PENDING" | "PARTNERSHIP_HAS_BLOCKERS" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -2567,6 +2585,27 @@ export interface components {
             data: components["schemas"]["DirectoryProductCard"][];
             meta: components["schemas"]["DirectoryListMeta"];
         };
+        DirectProposalRequest: {
+            /** Format: uuid */
+            target_organization_id: string;
+            terms: components["schemas"]["GeneralTerms"];
+            items: components["schemas"]["ProposalItemRequest"][];
+            message: string;
+        };
+        DirectoryContact: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["OrganizationType"];
+            city_name: string;
+            whatsapp: string;
+        };
+        DirectoryContactResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["DirectoryContact"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
     };
     responses: {
         /** @description Permintaan tidak terbaca atau memuat isian tak dikenal */
@@ -3596,6 +3635,7 @@ export interface operations {
                 has_halal?: boolean;
                 can_sample?: boolean;
                 delivers_to_me?: boolean;
+                consignor_id?: string;
                 q?: string;
                 cursor?: string;
                 limit?: number;
@@ -3618,6 +3658,36 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getDirectoryContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kontak WhatsApp organisasi yang tampil di Cari Mitra, hanya untuk pengguna yang masuk */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryContactResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
@@ -3882,6 +3952,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
@@ -4104,6 +4175,45 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    sendProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DirectProposalRequest"];
+            };
+        };
+        responses: {
+            /** @description Ajuan kerja sama langsung ke organisasi di Cari Mitra dibuat */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    Location: components["headers"]["Location"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];

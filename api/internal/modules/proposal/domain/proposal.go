@@ -13,6 +13,7 @@ var (
 	ErrAlreadyOpen     = errors.New("an open proposal of this kind already exists for the pair")
 	ErrAlreadyDecided  = errors.New("proposal was decided or revised meanwhile")
 	ErrAlreadyPartners = errors.New("the pair already has an active partnership")
+	ErrQuotaExhausted  = errors.New("the daily proposal quota is used up")
 )
 
 type Party struct {
