@@ -192,3 +192,9 @@ JOIN count_lines AS l ON l.id = a.count_line_id
 JOIN settlements AS st ON st.id = a.settlement_id
 WHERE l.count_id = @count_id::uuid
 ORDER BY st.number;
+
+-- name: ConfirmUnansweredCounts :execrows
+UPDATE counts
+SET status = 'CONFIRMED', auto_confirmed = true,
+    confirmed_at = received_at + make_interval(0, 0, 0, 0, 0, 0, @window_seconds::double precision), updated_at = @now::timestamptz
+WHERE status = 'RECORDED' AND received_at <= @cutoff::timestamptz;

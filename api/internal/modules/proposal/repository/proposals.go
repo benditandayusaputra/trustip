@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 
@@ -168,4 +169,14 @@ func (r *Proposals) SaveDecision(ctx context.Context, decision domain.Decision) 
 		return domain.ErrAlreadyDecided
 	}
 	return nil
+}
+
+func (r *Proposals) ExpireOpen(ctx context.Context, now time.Time) (int, error) {
+	writeCtx, cancel := database.WriteContext(ctx)
+	defer cancel()
+	expired, err := sqlc.New(r.pool.Querier(ctx)).ExpireOpenProposals(writeCtx, now)
+	if err != nil {
+		return 0, fmt.Errorf("expire proposals open at %s: %w", now, err)
+	}
+	return int(expired), nil
 }

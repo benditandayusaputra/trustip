@@ -20,9 +20,15 @@ type SettlementReader interface {
 	GetRunning(ctx context.Context, key domain.RunningKey) (domain.Running, error)
 }
 
+type DueLister interface {
+	ListDue(ctx context.Context, key domain.DueKey) ([]string, error)
+	LockLedger(ctx context.Context, partnershipID string) (domain.Ledger, error)
+}
+
 type SettlementStore interface {
 	LedgerStore
 	SettlementReader
+	DueLister
 }
 
 type Sealer interface {
@@ -41,6 +47,10 @@ type AuditTrail interface {
 	Record(ctx context.Context, entry audit.Entry) error
 }
 
+type Transactor interface {
+	WithinTx(ctx context.Context, work func(context.Context) error) error
+}
+
 type Clock interface {
 	Now() time.Time
 }
@@ -55,6 +65,7 @@ type Deps struct {
 	Seals       SealChecker
 	Announcer   Announcer
 	Audit       AuditTrail
+	Tx          Transactor
 	Clock       Clock
 	IDs         IDGenerator
 }

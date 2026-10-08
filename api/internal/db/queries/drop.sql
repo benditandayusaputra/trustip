@@ -160,3 +160,9 @@ SELECT
     COALESCE(max(counted_at), '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS last_at
 FROM counts
 WHERE partnership_id = @partnership_id::uuid;
+
+-- name: ConfirmUnansweredDrops :execrows
+UPDATE drops
+SET status = 'CONFIRMED', auto_confirmed = true,
+    confirmed_at = received_at + make_interval(0, 0, 0, 0, 0, 0, @window_seconds::double precision), updated_at = @now::timestamptz
+WHERE status = 'RECORDED' AND received_at <= @cutoff::timestamptz;

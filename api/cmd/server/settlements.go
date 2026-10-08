@@ -56,6 +56,7 @@ func buildSettlementDeps(pool *database.Pool, clock serverClock, seals sealCompo
 		Seals:       settlementSealChecker{documentSealChecker{verifier: seals.verifier}},
 		Announcer:   settlementAnnouncer{newOrganizationAnnouncer(pool, clock)},
 		Audit:       newAuditTrail(auditrepository.NewRecords(pool)),
+		Tx:          pool,
 		Clock:       clock,
 		IDs:         idgen.UUIDv7{},
 	}

@@ -122,3 +122,27 @@ func (r *Settlements) link(ctx context.Context, queries *sqlc.Queries, settlemen
 	}
 	return nil
 }
+
+func (r *Settlements) ListDue(ctx context.Context, key domain.DueKey) ([]string, error) {
+	readCtx, cancel := database.ReadContext(ctx)
+	defer cancel()
+	ids, err := sqlc.New(r.pool.Querier(ctx)).ListPartnershipsDueForSettlement(readCtx,
+		sqlc.ListPartnershipsDueForSettlementParams{Before: key.Before, Schedule: key.Schedule})
+	if err != nil {
+		return nil, fmt.Errorf("list partnerships due for %s settlements: %w", key.Schedule, err)
+	}
+	return ids, nil
+}
+
+func (r *Settlements) LockLedger(ctx context.Context, partnershipID string) (domain.Ledger, error) {
+	writeCtx, cancel := database.WriteContext(ctx)
+	defer cancel()
+	_, err := sqlc.New(r.pool.Querier(ctx)).LockSettlementPartnership(writeCtx, partnershipID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.Ledger{}, apperror.OutsideScope()
+	}
+	if err != nil {
+		return domain.Ledger{}, fmt.Errorf("lock partnership %s: %w", partnershipID, err)
+	}
+	return r.GetLedger(ctx, partnershipID)
+}

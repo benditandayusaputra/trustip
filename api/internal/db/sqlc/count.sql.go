@@ -151,6 +151,27 @@ func (q *Queries) ConfirmCount(ctx context.Context, arg ConfirmCountParams) (int
 	return result.RowsAffected(), nil
 }
 
+const confirmUnansweredCounts = `-- name: ConfirmUnansweredCounts :execrows
+UPDATE counts
+SET status = 'CONFIRMED', auto_confirmed = true,
+    confirmed_at = received_at + make_interval(0, 0, 0, 0, 0, 0, $1::double precision), updated_at = $2::timestamptz
+WHERE status = 'RECORDED' AND received_at <= $3::timestamptz
+`
+
+type ConfirmUnansweredCountsParams struct {
+	WindowSeconds float64
+	Now           time.Time
+	Cutoff        time.Time
+}
+
+func (q *Queries) ConfirmUnansweredCounts(ctx context.Context, arg ConfirmUnansweredCountsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, confirmUnansweredCounts, arg.WindowSeconds, arg.Now, arg.Cutoff)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const createCount = `-- name: CreateCount :execrows
 INSERT INTO counts (
     id, number, partnership_id, store_org_id, occasion, counted_at, status, note, sold_qty, returned_qty,

@@ -207,6 +207,20 @@ func (q *Queries) DecideProposal(ctx context.Context, arg DecideProposalParams) 
 	return result.RowsAffected(), nil
 }
 
+const expireOpenProposals = `-- name: ExpireOpenProposals :execrows
+UPDATE proposals
+SET status = 'EXPIRED', updated_at = $1::timestamptz
+WHERE status = 'OPEN' AND expires_at <= $1::timestamptz
+`
+
+func (q *Queries) ExpireOpenProposals(ctx context.Context, now time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, expireOpenProposals, now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getInvitation = `-- name: GetInvitation :one
 SELECT
     p.id, p.status, p.expires_at, p.from_org_id, o.name AS sender_name, o.type AS sender_type,

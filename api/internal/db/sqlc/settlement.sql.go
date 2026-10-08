@@ -227,6 +227,40 @@ func (q *Queries) LinkSettlementAllocations(ctx context.Context, arg LinkSettlem
 	return result.RowsAffected(), nil
 }
 
+const listPartnershipsDueForSettlement = `-- name: ListPartnershipsDueForSettlement :many
+SELECT DISTINCT a.partnership_id
+FROM sale_allocations AS a
+JOIN agreements AS ag ON ag.partnership_id = a.partnership_id AND ag.status = 'ACTIVE'
+WHERE a.settlement_id IS NULL AND a.occurred_at < $1::timestamptz
+    AND ag.settlement_schedule = $2::text
+ORDER BY a.partnership_id
+`
+
+type ListPartnershipsDueForSettlementParams struct {
+	Before   time.Time
+	Schedule string
+}
+
+func (q *Queries) ListPartnershipsDueForSettlement(ctx context.Context, arg ListPartnershipsDueForSettlementParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, listPartnershipsDueForSettlement, arg.Before, arg.Schedule)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var partnership_id string
+		if err := rows.Scan(&partnership_id); err != nil {
+			return nil, err
+		}
+		items = append(items, partnership_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSettlementAllocations = `-- name: ListSettlementAllocations :many
 SELECT
     a.id, a.product_id, pr.name AS product_name, pr.sku, pr.unit, a.occurred_at, a.qty, a.gross_amount,
@@ -444,4 +478,18 @@ func (q *Queries) ListUnsettledAllocations(ctx context.Context, partnershipID st
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockSettlementPartnership = `-- name: LockSettlementPartnership :one
+SELECT id
+FROM partnerships
+WHERE id = $1::uuid
+FOR UPDATE
+`
+
+func (q *Queries) LockSettlementPartnership(ctx context.Context, partnershipID string) (string, error) {
+	row := q.db.QueryRow(ctx, lockSettlementPartnership, partnershipID)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }

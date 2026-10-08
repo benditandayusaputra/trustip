@@ -28,6 +28,11 @@ func ParseDueDate(raw string) (time.Time, error) {
 	return day, nil
 }
 
+type DueKey struct {
+	Schedule string
+	Before   time.Time
+}
+
 type SettlementKey struct {
 	OrganizationID string
 	SettlementID   string

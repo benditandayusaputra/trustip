@@ -91,3 +91,17 @@ LEFT JOIN sale_allocations AS a ON a.partnership_id = p.id AND a.settlement_id I
 WHERE p.id = @partnership_id::uuid
     AND (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organization_id::uuid)
 GROUP BY p.id;
+
+-- name: ListPartnershipsDueForSettlement :many
+SELECT DISTINCT a.partnership_id
+FROM sale_allocations AS a
+JOIN agreements AS ag ON ag.partnership_id = a.partnership_id AND ag.status = 'ACTIVE'
+WHERE a.settlement_id IS NULL AND a.occurred_at < @before::timestamptz
+    AND ag.settlement_schedule = @schedule::text
+ORDER BY a.partnership_id;
+
+-- name: LockSettlementPartnership :one
+SELECT id
+FROM partnerships
+WHERE id = @partnership_id::uuid
+FOR UPDATE;

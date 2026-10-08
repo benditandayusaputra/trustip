@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/logger"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/scheduler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
@@ -56,6 +58,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	trade := buildTradeComponents(pool, systemClock, cfg.SealKeys)
 	server := newServer(base, serverDeps{
 		ready:     pool.Ping,
 		edge:      security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
@@ -65,16 +68,28 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		org:       buildOrgComponents(pool, systemClock),
 		files:     buildFileComponents(pool, cfg, systemClock),
 		inbox:     buildNotificationComponents(pool, systemClock),
-		trade:     buildTradeComponents(pool, systemClock, cfg.SealKeys),
+		trade:     trade,
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	logger.ForStream(base, logger.App).Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
+	appLog := logger.ForStream(base, logger.App)
+	jobs := newScheduler(buildJobRunners(pool, trade), systemClock, scheduler.SystemWaits{}, appLog)
+	defer startJobs(ctx, jobs, stop)()
+	appLog.Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
 	if err := server.Run(ctx, cfg.HTTPAddr); err != nil {
 		return fmt.Errorf("run http server: %w", err)
 	}
 	return nil
+}
+
+func startJobs(ctx context.Context, jobs *scheduler.Scheduler, stop context.CancelFunc) func() {
+	var background sync.WaitGroup
+	background.Go(func() { jobs.Run(ctx) })
+	return func() {
+		stop()
+		background.Wait()
+	}
 }
 
 type serverDeps struct {

@@ -71,3 +71,15 @@ func (r *Counts) ListCounts(ctx context.Context, query domain.ListQuery) ([]doma
 	}
 	return summaries, nil
 }
+
+func (r *Counts) ConfirmUnanswered(ctx context.Context, deadline domain.Deadline) (int, error) {
+	writeCtx, cancel := database.WriteContext(ctx)
+	defer cancel()
+	changed, err := sqlc.New(r.pool.Querier(ctx)).ConfirmUnansweredCounts(writeCtx, sqlc.ConfirmUnansweredCountsParams{
+		WindowSeconds: deadline.Window.Seconds(), Now: deadline.At, Cutoff: deadline.Cutoff,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("confirm counts received before %s: %w", deadline.Cutoff, err)
+	}
+	return int(changed), nil
+}

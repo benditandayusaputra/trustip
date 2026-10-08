@@ -31,6 +31,8 @@ type fakeSettlements struct {
 	ledger  domain.Ledger
 	created []domain.Settlement
 	listed  []domain.ListQuery
+	dueKeys []domain.DueKey
+	locks   int
 }
 
 func (f *fakeSettlements) GetLedger(_ context.Context, partnershipID string) (domain.Ledger, error) {
@@ -75,6 +77,22 @@ func (f *fakeSettlements) GetRunning(_ context.Context, key domain.RunningKey) (
 		return domain.Running{}, apperror.OutsideScope()
 	}
 	return domain.Running{PartnershipID: key.PartnershipID}, nil
+}
+
+func (f *fakeSettlements) ListDue(_ context.Context, key domain.DueKey) ([]string, error) {
+	f.dueKeys = append(f.dueKeys, key)
+	return []string{f.ledger.PartnershipID}, nil
+}
+
+func (f *fakeSettlements) LockLedger(ctx context.Context, partnershipID string) (domain.Ledger, error) {
+	f.locks++
+	return f.GetLedger(ctx, partnershipID)
+}
+
+type inlineTx struct{}
+
+func (inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
+	return work(ctx)
 }
 
 type events struct {
@@ -137,7 +155,7 @@ func newScenario(schedule terms.Schedule, quantities ...int) scenario {
 	recorded := &events{}
 	return scenario{settlements: settlements, events: recorded, deps: service.Deps{
 		Settlements: settlements, Sealer: recorded, Seals: recorded, Announcer: recorded, Audit: recorded,
-		Clock: fixedClock{now: countedAt().Add(time.Minute)}, IDs: &sequentialIDs{},
+		Tx: inlineTx{}, Clock: fixedClock{now: countedAt().Add(time.Minute)}, IDs: &sequentialIDs{},
 	}}
 }
 

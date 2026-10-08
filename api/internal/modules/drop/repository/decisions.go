@@ -77,3 +77,15 @@ func wrapQuery(err error) error {
 	}
 	return nil
 }
+
+func (r *Drops) ConfirmUnanswered(ctx context.Context, deadline domain.Deadline) (int, error) {
+	writeCtx, cancel := database.WriteContext(ctx)
+	defer cancel()
+	changed, err := sqlc.New(r.pool.Querier(ctx)).ConfirmUnansweredDrops(writeCtx, sqlc.ConfirmUnansweredDropsParams{
+		WindowSeconds: deadline.Window.Seconds(), Now: deadline.At, Cutoff: deadline.Cutoff,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("confirm drops received before %s: %w", deadline.Cutoff, err)
+	}
+	return int(changed), nil
+}

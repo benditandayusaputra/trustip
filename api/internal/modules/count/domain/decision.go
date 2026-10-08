@@ -56,3 +56,13 @@ func (v View) SealRequestOf(decision Decision) SealRequest {
 	request.At = decision.At
 	return request
 }
+
+type Deadline struct {
+	Cutoff time.Time
+	Window time.Duration
+	At     time.Time
+}
+
+func DeadlineAt(now time.Time) Deadline {
+	return Deadline{Cutoff: now.Add(-ConfirmWindow), Window: ConfirmWindow, At: now}
+}

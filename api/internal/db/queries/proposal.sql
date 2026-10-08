@@ -130,3 +130,8 @@ WHERE (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organiza
     AND (@from_start::boolean OR (p.created_at, p.id) < (@after_at::timestamptz, @after_id::uuid))
 ORDER BY p.created_at DESC, p.id DESC
 LIMIT @row_limit::bigint;
+
+-- name: ExpireOpenProposals :execrows
+UPDATE proposals
+SET status = 'EXPIRED', updated_at = @now::timestamptz
+WHERE status = 'OPEN' AND expires_at <= @now::timestamptz;

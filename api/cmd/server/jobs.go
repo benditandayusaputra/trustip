@@ -1,0 +1,78 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"time"
+
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/terms"
+	countrepository "github.com/benditandayusaputra/trustip/api/internal/modules/count/repository"
+	countservice "github.com/benditandayusaputra/trustip/api/internal/modules/count/service"
+	droprepository "github.com/benditandayusaputra/trustip/api/internal/modules/drop/repository"
+	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
+	proposalrepository "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/repository"
+	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
+	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/scheduler"
+)
+
+const (
+	dailyMinute      = 5
+	settlementMinute = 10
+)
+
+type jobRunners struct {
+	deemDrops   *dropservice.DeemConfirmed
+	deemCounts  *countservice.DeemConfirmed
+	expire      *proposalservice.ExpireProposals
+	settlements *settlementservice.IssueDueSettlements
+}
+
+func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
+	return jobRunners{
+		deemDrops:   dropservice.NewDeemConfirmed(droprepository.NewDrops(pool)),
+		deemCounts:  countservice.NewDeemConfirmed(countrepository.NewCounts(pool)),
+		expire:      proposalservice.NewExpireProposals(proposalrepository.NewProposals(pool)),
+		settlements: settlementservice.NewIssueDueSettlements(trade.settlements),
+	}
+}
+
+func scheduledJobs(runners jobRunners) []scheduler.Job {
+	return []scheduler.Job{
+		{Name: "deem-confirmed-and-expire", Minute: dailyMinute, Days: scheduler.EveryDay, Work: runners.daily},
+		{
+			Name: "weekly-settlements", Minute: settlementMinute, Days: scheduler.Mondays,
+			Work: runners.issue(terms.ScheduleWeekly),
+		},
+		{
+			Name: "monthly-settlements", Minute: settlementMinute, Days: scheduler.FirstOfMonth,
+			Work: runners.issue(terms.ScheduleMonthly),
+		},
+	}
+}
+
+func (r jobRunners) daily(ctx context.Context, now time.Time) error {
+	_, dropErr := r.deemDrops.Execute(ctx, now)
+	_, countErr := r.deemCounts.Execute(ctx, now)
+	_, proposalErr := r.expire.Execute(ctx, now)
+	return errors.Join(dropErr, countErr, proposalErr)
+}
+
+func (r jobRunners) issue(schedule terms.Schedule) scheduler.Work {
+	return func(ctx context.Context, now time.Time) error {
+		if _, err := r.settlements.Execute(ctx, schedule, now); err != nil {
+			return fmt.Errorf("issue %s settlements: %w", schedule, err)
+		}
+		return nil
+	}
+}
+
+func newScheduler(runners jobRunners, clock serverClock, waits scheduler.Waits, log *slog.Logger) *scheduler.Scheduler {
+	return scheduler.New(scheduler.Options{
+		Jobs: scheduledJobs(runners), Clock: clock, Waits: waits, Location: period.Jakarta(), Log: log,
+	})
+}

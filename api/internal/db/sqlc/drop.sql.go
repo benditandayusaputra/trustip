@@ -150,6 +150,27 @@ func (q *Queries) ConfirmDrop(ctx context.Context, arg ConfirmDropParams) (int64
 	return result.RowsAffected(), nil
 }
 
+const confirmUnansweredDrops = `-- name: ConfirmUnansweredDrops :execrows
+UPDATE drops
+SET status = 'CONFIRMED', auto_confirmed = true,
+    confirmed_at = received_at + make_interval(0, 0, 0, 0, 0, 0, $1::double precision), updated_at = $2::timestamptz
+WHERE status = 'RECORDED' AND received_at <= $3::timestamptz
+`
+
+type ConfirmUnansweredDropsParams struct {
+	WindowSeconds float64
+	Now           time.Time
+	Cutoff        time.Time
+}
+
+func (q *Queries) ConfirmUnansweredDrops(ctx context.Context, arg ConfirmUnansweredDropsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, confirmUnansweredDrops, arg.WindowSeconds, arg.Now, arg.Cutoff)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const countDropOutflows = `-- name: CountDropOutflows :one
 SELECT count(*)::bigint AS outflows
 FROM stock_movements AS m
