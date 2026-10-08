@@ -14,6 +14,12 @@ function invitationPath(code: string): string {
 	return `${invitationsPath}/${encodeURIComponent(code)}`;
 }
 
+export type DirectProposalRequest = components['schemas']['DirectProposalRequest'];
+
+export function sendProposal(client: ApiClient, request: DirectProposalRequest): Promise<Proposal> {
+	return client.send<Proposal>('/api/v1/proposals', request);
+}
+
 export function sendInvitation(client: ApiClient, request: InvitationRequest): Promise<Proposal> {
 	return client.send<Proposal>(invitationsPath, request);
 }

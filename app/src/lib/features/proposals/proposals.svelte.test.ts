@@ -358,3 +358,94 @@ describe('Proposal list', () => {
 		expect(calls).toContain('/api/v1/proposals?box=OUTGOING');
 	});
 });
+
+describe('Direct proposal', () => {
+	const contact = (type: string, name: string) => () =>
+		envelope({ id: storeId, name, type, city_name: 'Kota Semarang', whatsapp: '6281234567890' });
+
+	it('FR-PRP-01 sends the proposal straight to the chosen store', async () => {
+		const sent = serve({
+			[`GET /api/v1/directory/organizations/${storeId}`]: contact('STORE', 'Warung Bu Sri'),
+			'GET /api/v1/products': catalog,
+			'POST /api/v1/proposals': () => envelope(proposal, 201)
+		});
+		const ondone = vi.fn();
+		const { container } = await render(ProposalsHarness, {
+			view: 'direct',
+			proposalId: storeId,
+			ondone
+		});
+
+		await expect
+			.element(page.getByRole('heading', { name: 'Ajukan kerja sama ke Warung Bu Sri' }))
+			.toBeVisible();
+		await userEvent.click(page.getByLabelText(/Roti Manis/u));
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('button', { name: 'Kirim ajuan' }));
+
+		await expect.element(page.getByText('Ajuan kerja sama terkirim.')).toBeVisible();
+		expect(sent['POST /api/v1/proposals']).toMatchObject({
+			target_organization_id: storeId,
+			items: [{ product_id: bread.id, deposit_price: 1750 }]
+		});
+		expect(ondone).toHaveBeenCalled();
+	});
+
+	it('BR-PRP-01 a store picks the consignor products it saw in the directory', async () => {
+		const sent = serve({
+			[`GET /api/v1/directory/organizations/${storeId}`]: contact('CONSIGNOR', 'Roti Pak Anton'),
+			'GET /api/v1/directory/products': () =>
+				Response.json({
+					code: 'OK',
+					message: '',
+					data: [{ id: bread.id, name: 'Roti Manis', unit: 'pcs', suggested_retail_price: 2000 }],
+					meta: { request_id: 'r', next_cursor: null, has_more: false }
+				}),
+			'POST /api/v1/proposals': () => envelope(proposal, 201)
+		});
+		await render(ProposalsHarness, {
+			view: 'direct',
+			proposalId: storeId,
+			code: bread.id,
+			isConsignor: false
+		});
+
+		await expect.element(page.getByLabelText(/Roti Manis/u)).toBeChecked();
+		await userEvent.click(page.getByRole('button', { name: 'Kirim ajuan' }));
+
+		await vi.waitFor(() => {
+			expect(sent['POST /api/v1/proposals']).toMatchObject({
+				items: [{ product_id: bread.id, pricing_model: 'COMMISSION' }]
+			});
+		});
+	});
+
+	it('BR-PRP-06 shows the daily limit message from the server', async () => {
+		serve({
+			[`GET /api/v1/directory/organizations/${storeId}`]: contact('STORE', 'Warung Bu Sri'),
+			'GET /api/v1/products': catalog,
+			'POST /api/v1/proposals': () =>
+				failure(
+					409,
+					'PROPOSAL_LIMIT_REACHED',
+					'Batas 10 ajuan baru per hari tercapai. Coba lagi besok.'
+				)
+		});
+		await render(ProposalsHarness, { view: 'direct', proposalId: storeId });
+
+		await userEvent.click(page.getByRole('button', { name: 'Kirim ajuan' }));
+
+		await expect
+			.element(page.getByText('Batas 10 ajuan baru per hari tercapai. Coba lagi besok.'))
+			.toBeVisible();
+	});
+
+	it('tells when the target is not listed anymore', async () => {
+		serve({});
+		await render(ProposalsHarness, { view: 'direct', proposalId: storeId });
+
+		await expect
+			.element(page.getByText('Usaha ini tidak ditemukan atau sudah tidak tampil di Cari Mitra.'))
+			.toBeVisible();
+	});
+});

@@ -38,3 +38,14 @@ export async function listDirectory<T>(
 		search: page.search as DirectorySearch
 	};
 }
+
+export type DirectoryContact = components['schemas']['DirectoryContact'];
+
+export function getDirectoryContact(
+	client: ApiClient,
+	organizationId: string
+): Promise<DirectoryContact> {
+	return client.get<DirectoryContact>(
+		`/api/v1/directory/organizations/${encodeURIComponent(organizationId)}`
+	);
+}

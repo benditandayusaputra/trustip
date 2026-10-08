@@ -7,9 +7,10 @@
 	import ProposalDetail from '#lib/features/proposals/components/ProposalDetail.svelte';
 	import ProposalList from '#lib/features/proposals/components/ProposalList.svelte';
 	import AmendmentForm from '#lib/features/proposals/components/AmendmentForm.svelte';
+	import DirectProposalView from '#lib/features/proposals/components/DirectProposalView.svelte';
 
 	interface Props {
-		view: 'form' | 'detail' | 'landing' | 'list' | 'amend';
+		view: 'form' | 'detail' | 'landing' | 'list' | 'amend' | 'direct';
 		isConsignor?: boolean;
 		proposalId?: string;
 		viewerOrganizationId?: string;
@@ -35,6 +36,13 @@
 	<ProposalDetail {proposalId} {viewerOrganizationId} />
 {:else if view === 'list'}
 	<ProposalList organizationId={viewerOrganizationId} />
+{:else if view === 'direct'}
+	<DirectProposalView
+		targetId={proposalId}
+		preselectedProductId={code}
+		{isConsignor}
+		onsent={ondone}
+	/>
 {:else if view === 'amend'}
 	<AmendmentForm partnershipId={proposalId} prefillProductId={code} onsent={ondone} />
 {:else}

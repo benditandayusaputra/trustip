@@ -60,7 +60,13 @@ export const directory = {
 			activeRecently: 'Aktif 2 minggu terakhir'
 		},
 		self: 'Usaha Anda',
-		partner: 'Sudah bermitra'
+		partner: 'Sudah bermitra',
+		propose: 'Ajukan kerja sama',
+		askWhatsApp: 'Tanya lewat WhatsApp',
+		openWhatsApp: (name: string) => `Buka WhatsApp ${name}`,
+		contactFailed: 'Kontak tidak bisa dimuat. Coba lagi.',
+		greeting: (name: string) =>
+			`Halo ${name}, saya menemukan usaha Anda di Trustip dan tertarik bekerja sama titip jual.`
 	},
 	consignorDirectory: {
 		title: 'Cari penitip',

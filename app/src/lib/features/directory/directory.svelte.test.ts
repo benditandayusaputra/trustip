@@ -144,4 +144,48 @@ describe('Store directory', () => {
 		await expect.element(page.getByRole('button', { name: 'Coba lagi' })).toBeVisible();
 		await expect.element(page.getByRole('combobox', { name: 'Jenis toko' })).toHaveValue('CAFE');
 	});
+
+	it('FR-DIR-11 offers a proposal link and reveals the WhatsApp chat on request', async () => {
+		const stranger = { ...canteen, is_partner: false };
+		serve({
+			[storesPath]: () => list([stranger]),
+			[`/api/v1/directory/organizations/${canteen.id}`]: () =>
+				Response.json({
+					code: 'OK',
+					message: '',
+					data: {
+						id: canteen.id,
+						name: 'Kantin Kampus',
+						type: 'STORE',
+						city_name: 'Kota Semarang',
+						whatsapp: '6281234567890'
+					},
+					meta: { request_id: 'r' }
+				})
+		});
+		await render(DirectoryHarness, {});
+
+		await expect
+			.element(page.getByRole('link', { name: 'Ajukan kerja sama' }))
+			.toHaveAttribute('href', `/app/ajuan/baru?sasaran=${canteen.id}`);
+		await userEvent.click(page.getByRole('button', { name: 'Tanya lewat WhatsApp' }));
+
+		const chat = page.getByRole('link', { name: 'Buka WhatsApp Kantin Kampus' });
+		await expect
+			.element(chat)
+			.toHaveAttribute(
+				'href',
+				expect.stringMatching(/^https:\/\/wa\.me\/6281234567890\?text=Halo/u)
+			);
+	});
+
+	it('BR-PRP-05 hides the proposal link for a partner', async () => {
+		serve({ [storesPath]: () => list([canteen]) });
+		await render(DirectoryHarness, {});
+
+		await expect.element(page.getByRole('heading', { name: 'Kantin Kampus' })).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: 'Ajukan kerja sama' }))
+			.not.toBeInTheDocument();
+	});
 });

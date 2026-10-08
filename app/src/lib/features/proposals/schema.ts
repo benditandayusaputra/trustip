@@ -40,14 +40,32 @@ export function emptyInvitation(): InvitationValues {
 	};
 }
 
-export function itemFromProduct(product: Product): ItemValues {
+export interface CatalogEntry {
+	id: string;
+	name: string;
+	unit: string;
+	retailPrice: number;
+	depositPrice: number | undefined;
+}
+
+export function entryOfProduct(product: Product): CatalogEntry {
 	return {
-		productId: product.id,
+		id: product.id,
 		name: product.name,
 		unit: product.unit,
-		model: 'FIXED_DEPOSIT',
 		retailPrice: product.suggested_retail_price,
-		depositPrice: product.suggested_deposit_price,
+		depositPrice: product.suggested_deposit_price
+	};
+}
+
+export function itemFromEntry(entry: CatalogEntry): ItemValues {
+	return {
+		productId: entry.id,
+		name: entry.name,
+		unit: entry.unit,
+		model: entry.depositPrice === undefined ? 'COMMISSION' : 'FIXED_DEPOSIT',
+		retailPrice: entry.retailPrice,
+		depositPrice: entry.depositPrice,
 		commissionPercent: defaultCommissionPercent
 	};
 }

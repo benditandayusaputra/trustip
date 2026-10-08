@@ -7,6 +7,12 @@ describe('whatsAppChatUrl', () => {
 		expect(whatsAppChatUrl('0812-3456')).toBeUndefined();
 		expect(whatsAppChatUrl('62812/../evil')).toBeUndefined();
 	});
+
+	it('FR-NTF-06 fills the first message', () => {
+		expect(whatsAppChatUrl('6281234567890', 'Halo Bu Sri')).toBe(
+			'https://wa.me/6281234567890?text=Halo+Bu+Sri'
+		);
+	});
 });
 
 describe('whatsAppMessageUrl', () => {

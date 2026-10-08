@@ -1,5 +1,12 @@
 export const proposals = {
 	proposals: {
+		directTitle: (name: string) => `Ajukan kerja sama ke ${name}`,
+		directIntro:
+			'Atur produk dan syaratnya. Pihak lawan bisa menerima, menawar, atau menolak dalam 14 hari.',
+		directSend: 'Kirim ajuan',
+		directSent: 'Ajuan kerja sama terkirim.',
+		targetLoading: 'Memuat data usaha...',
+		targetMissing: 'Usaha ini tidak ditemukan atau sudah tidak tampil di Cari Mitra.',
 		newTitle: 'Undang mitra',
 		newIntro:
 			'Buat Ajuan Kerja Sama lalu bagikan tautannya ke mitra lama lewat WhatsApp. Mitra yang membuka tautan bisa menerima atau menolak.',

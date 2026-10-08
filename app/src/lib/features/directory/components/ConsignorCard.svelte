@@ -5,6 +5,7 @@
 	import { formatDistance } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
 	import ConsignorTraits from './ConsignorTraits.svelte';
+	import ContactActions from './ContactActions.svelte';
 	import MatchReasons from './MatchReasons.svelte';
 	import MatchSummary from './MatchSummary.svelte';
 
@@ -60,5 +61,8 @@
 	<ConsignorTraits traits={card.traits} />
 	{#if card.match}
 		<MatchReasons reasons={card.match.reasons} isApproximate />
+	{/if}
+	{#if !card.is_self}
+		<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
 	{/if}
 </article>

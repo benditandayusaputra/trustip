@@ -14,19 +14,33 @@
 
 	interface Props {
 		isConsignor: boolean;
+		targetId?: string;
+		preselectedProductId?: string;
+		submitLabel?: string;
+		sentMessage?: string;
 		onsent: (proposal: Proposal) => void;
 	}
 
-	let { isConsignor, onsent }: Props = $props();
+	let {
+		isConsignor,
+		targetId = '',
+		preselectedProductId = '',
+		submitLabel = id.proposals.send,
+		sentMessage = id.proposals.sent,
+		onsent
+	}: Props = $props();
 
 	const text = id.proposals;
-	const composer = new InvitationComposer(apiClient);
+	const composer = new InvitationComposer(apiClient, () => targetId);
+	const listsProducts = $derived(isConsignor || targetId !== '');
 	const toaster = getToaster();
 	let formElement: HTMLFormElement | undefined = $state();
 
 	$effect(() => {
 		if (isConsignor) {
 			void composer.loadCatalog();
+		} else if (targetId !== '') {
+			void composer.loadTargetCatalog(preselectedProductId);
 		}
 	});
 
@@ -34,7 +48,7 @@
 		event.preventDefault();
 		const outcome = await composer.send();
 		if (outcome.kind === 'sent') {
-			toaster.show({ tone: 'success', message: text.sent });
+			toaster.show({ tone: 'success', message: sentMessage });
 			onsent(outcome.proposal);
 		} else if (outcome.kind === 'failed') {
 			toaster.show({ tone: 'danger', message: outcome.message });
@@ -46,18 +60,18 @@
 </script>
 
 <form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-6">
-	{#if isConsignor}
+	{#if listsProducts}
 		<fieldset class="flex flex-col gap-2">
 			<legend class="mb-2 text-lg font-semibold text-text">{text.products}</legend>
 			<p class="text-sm text-text-muted">{text.productsHint}</p>
-			{#each composer.catalog as product (product.id)}
+			{#each composer.catalog as entry (entry.id)}
 				<Checkbox
-					checked={composer.isChosen(product.id)}
+					checked={composer.isChosen(entry.id)}
 					onchange={(isChosen: boolean) => {
-						composer.choose(product, isChosen);
+						composer.choose(entry, isChosen);
 					}}
 				>
-					{product.name} · {formatRupiah(product.suggested_retail_price)}
+					{entry.name} · {formatRupiah(entry.retailPrice)}
 				</Checkbox>
 			{:else}
 				<p class="text-sm text-warning">{text.noProducts}</p>
@@ -76,5 +90,5 @@
 		bind:value={composer.values.message}
 		error={composer.errors.message}
 	/>
-	<Button type="submit" busy={composer.busy}>{text.send}</Button>
+	<Button type="submit" busy={composer.busy}>{submitLabel}</Button>
 </form>
