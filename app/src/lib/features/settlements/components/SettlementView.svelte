@@ -6,17 +6,24 @@
 	import SealPanel from '#lib/components/ui/SealPanel.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
+	import type { Settlement } from '#lib/api/settlements.js';
 	import { formatBusinessDate, formatDate, formatDateTime } from '#lib/i18n/format.js';
 	import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
+	import { whatsAppMessageUrl } from '#lib/domain/whatsapp.js';
+	import { canRecordPayment, canRemind, type Viewer } from '../access';
 	import { SettlementRecord } from '../record.svelte';
 	import { lineRows, periodLabel, standingLabel, standingTone } from '../rows';
+	import PaymentActions from './PaymentActions.svelte';
+	import PaymentForm from './PaymentForm.svelte';
+	import PaymentList from './PaymentList.svelte';
 
 	interface Props {
 		settlementId: string;
+		viewer: Viewer;
 	}
 
-	let { settlementId }: Props = $props();
+	let { settlementId, viewer }: Props = $props();
 
 	const text = id.settlements;
 	const record = new SettlementRecord(apiClient);
@@ -30,8 +37,27 @@
 		{ key: 'consignorShare' as const, label: text.consignorShare, numeric: true }
 	];
 
+	const reminderUrl = $derived.by(() => {
+		const settlement = record.settlement;
+		if (!settlement || !canRemind(settlement, viewer)) {
+			return undefined;
+		}
+		const message = text.reminder({
+			store: settlement.store.name,
+			number: settlement.number,
+			amount: formatRupiah(settlement.split.consignor_share),
+			due: formatBusinessDate(settlement.due_date)
+		});
+		return whatsAppMessageUrl(record.counterpartWhatsApp, message);
+	});
+
 	$effect(() => {
-		void record.load(settlementId);
+		void record.load(settlementId).then(() => {
+			const settlement = record.settlement;
+			if (settlement && canRemind(settlement, viewer)) {
+				void record.loadCounterpart(settlement.partnership_id);
+			}
+		});
 	});
 </script>
 
@@ -69,6 +95,16 @@
 			? text.paidOn(formatDate(settlement.paid_at))
 			: text.dueOn(formatBusinessDate(settlement.due_date))}
 	</p>
+	<PaymentActions {record} {viewer} {reminderUrl} />
+	{#if canRecordPayment(settlement, viewer)}
+		<PaymentForm
+			{settlement}
+			onsaved={(saved: Settlement) => {
+				record.replace(saved);
+			}}
+		/>
+	{/if}
+	<PaymentList payments={settlement.payments} />
 	<h2 class="text-lg font-semibold text-text">{text.lines}</h2>
 	<ResponsiveTable caption={text.lines} {columns} rows={lineRows(settlement)} rowKey="key" />
 	<h2 class="text-lg font-semibold text-text">{text.sources}</h2>

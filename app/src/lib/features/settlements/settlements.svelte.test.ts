@@ -53,6 +53,22 @@ const settlement = {
 			counted_at: '2026-11-14T12:00:00Z'
 		}
 	],
+	payments: [] as unknown[],
+	payee: { payment_info: 'BCA 1234567890 a.n. Anton', payment_qr_file_id: null },
+	seal: { is_valid: true, events: [] }
+};
+
+const pending = {
+	id: '0192f0c4-0000-7000-8000-000000000801',
+	amount: 691187,
+	method: 'CASH',
+	paid_on: '2026-11-20',
+	proof_file_id: null,
+	status: 'PENDING_CONFIRMATION',
+	rejection_reason: null,
+	recorded_by_name: 'Sri',
+	recorded_at: '2026-11-20T03:00:00Z',
+	review: null,
 	seal: { is_valid: true, events: [] }
 };
 
@@ -75,11 +91,14 @@ function envelope(data: unknown, meta: Record<string, unknown> = {}): Response {
 	return Response.json({ code: 'OK', message: '', data, meta: { request_id: 'r', ...meta } });
 }
 
-function serve(routes: Record<string, () => Response>) {
+function serve(routes: Record<string, () => Response>, sent: unknown[] = []) {
 	const requested: string[] = [];
 	vi.stubGlobal('fetch', (path: string, init: RequestInit) => {
 		const key = `${init.method ?? 'GET'} ${path}`;
 		requested.push(key);
+		if (typeof init.body === 'string') {
+			sent.push(JSON.parse(init.body));
+		}
 		return Promise.resolve(
 			routes[key]?.() ??
 				Response.json(
@@ -161,5 +180,92 @@ describe('Running sales', () => {
 
 		await expect.element(page.getByText('Rp31.500')).toBeVisible();
 		await expect.element(page.getByText('18', { exact: true })).toBeVisible();
+	});
+});
+
+describe('Payments', () => {
+	it('FR-STL-05 lets the store owner record cash for the remaining amount', async () => {
+		const sent: unknown[] = [];
+		serve(
+			{
+				[`GET /api/v1/settlements/${settlementId}`]: () => envelope(settlement),
+				[`POST /api/v1/settlements/${settlementId}/payments`]: () =>
+					envelope({ ...settlement, payments: [pending] })
+			},
+			sent
+		);
+		const { container } = await render(SettlementsHarness, {
+			view: 'detail',
+			targetId: settlementId
+		});
+
+		await expect.element(page.getByText('BCA 1234567890 a.n. Anton')).toBeVisible();
+		await userEvent.selectOptions(page.getByRole('combobox', { name: 'Metode' }), 'CASH');
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('button', { name: 'Simpan pembayaran' }));
+
+		await expect.element(page.getByText('Menunggu penitip').first()).toBeVisible();
+		expect(sent[0]).toMatchObject({ amount: 691187, method: 'CASH', proof_file_id: null });
+	});
+
+	it('BR-STL-05 asks for proof before sending a transfer', async () => {
+		const sent: unknown[] = [];
+		serve({ [`GET /api/v1/settlements/${settlementId}`]: () => envelope(settlement) }, sent);
+		await render(SettlementsHarness, { view: 'detail', targetId: settlementId });
+
+		await userEvent.click(page.getByRole('button', { name: 'Simpan pembayaran' }));
+
+		await expect
+			.element(page.getByText('Unggah bukti untuk pembayaran transfer atau QRIS.'))
+			.toBeVisible();
+		expect(sent).toHaveLength(0);
+	});
+
+	it('FR-STL-06 lets the consignor owner accept the pending payment', async () => {
+		const requested = serve({
+			[`GET /api/v1/settlements/${settlementId}`]: () =>
+				envelope({ ...settlement, payments: [pending] }),
+			[`GET /api/v1/partnerships/${partnershipId}`]: () =>
+				envelope({ counterpart: { whatsapp: '6281234567890' } }),
+			[`POST /api/v1/payments/${pending.id}/confirm`]: () =>
+				envelope({
+					...settlement,
+					status: 'PAID',
+					standing: { is_overdue: false, days_late: 0, age: 'PAID' },
+					payments: [{ ...pending, status: 'CONFIRMED' }]
+				})
+		});
+		await render(SettlementsHarness, {
+			view: 'detail',
+			targetId: settlementId,
+			viewerOrganizationId: consignor.id
+		});
+
+		await expect
+			.element(page.getByRole('link', { name: /Ingatkan lewat WhatsApp/u }))
+			.toHaveAttribute('href', expect.stringContaining('https://wa.me/6281234567890?text=Halo'));
+		await userEvent.click(page.getByRole('button', { name: 'Uang diterima' }));
+		await userEvent.click(page.getByRole('dialog').getByRole('button', { name: 'Uang diterima' }));
+
+		await expect.element(page.getByText('Pembayaran diterima. Setoran lunas.')).toBeVisible();
+		expect(requested).toContain(`POST /api/v1/payments/${pending.id}/confirm`);
+	});
+
+	it('FR-STL-06 needs a reason to reject', async () => {
+		const requested = serve({
+			[`GET /api/v1/settlements/${settlementId}`]: () =>
+				envelope({ ...settlement, payments: [pending] })
+		});
+		await render(SettlementsHarness, {
+			view: 'detail',
+			targetId: settlementId,
+			viewerOrganizationId: consignor.id
+		});
+
+		await userEvent.click(page.getByRole('button', { name: 'Tolak' }));
+		await userEvent.click(page.getByRole('dialog').getByRole('button', { name: 'Tolak' }));
+
+		await expect.element(page.getByText('Tulis alasan penolakan.')).toBeVisible();
+		expect(requested).not.toContain(`POST /api/v1/payments/${pending.id}/reject`);
 	});
 });

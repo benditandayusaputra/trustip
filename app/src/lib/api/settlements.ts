@@ -45,3 +45,44 @@ export function listSettlements(
 	const suffix = query.size > 0 ? `?${query.toString()}` : '';
 	return client.list<SettlementSummary>(`${settlementsPath}${suffix}`);
 }
+
+export type Payment = components['schemas']['Payment'];
+export type PaymentRequest = components['schemas']['PaymentRequest'];
+export type PaymentMethod = components['schemas']['PaymentMethod'];
+
+export interface PaymentSubmission {
+	settlementId: string;
+	request: PaymentRequest;
+	idempotencyKey: string;
+}
+
+export function recordPayment(
+	client: ApiClient,
+	submission: PaymentSubmission
+): Promise<Settlement> {
+	return client.create<Settlement>(
+		`${settlementsPath}/${encodeURIComponent(submission.settlementId)}/payments`,
+		submission.request,
+		submission.idempotencyKey
+	);
+}
+
+export function markSettlementPaid(client: ApiClient, settlementId: string): Promise<Settlement> {
+	return client.send<Settlement>(
+		`${settlementsPath}/${encodeURIComponent(settlementId)}/mark-paid`
+	);
+}
+
+export function confirmPayment(client: ApiClient, paymentId: string): Promise<Settlement> {
+	return client.send<Settlement>(`/api/v1/payments/${encodeURIComponent(paymentId)}/confirm`);
+}
+
+export function rejectPayment(
+	client: ApiClient,
+	paymentId: string,
+	reason: string
+): Promise<Settlement> {
+	return client.send<Settlement>(`/api/v1/payments/${encodeURIComponent(paymentId)}/reject`, {
+		reason
+	});
+}
