@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import AgreementView from '#lib/features/agreements/components/AgreementView.svelte';
+	import DropHistoryList from '#lib/features/drops/components/DropHistoryList.svelte';
 	import PartnerPage from '#lib/features/partnerships/components/PartnerPage.svelte';
 	import { id } from '#lib/i18n/id.js';
 
@@ -23,6 +24,14 @@
 		>
 			{#snippet agreement()}
 				<AgreementView {partnershipId} />
+			{/snippet}
+			{#snippet drops()}
+				<DropHistoryList
+					{partnershipId}
+					recordHref={membership?.organization_type === 'STORE'
+						? `/app/titipan/baru?mitra=${partnershipId}`
+						: undefined}
+				/>
 			{/snippet}
 		</PartnerPage>
 	{/key}

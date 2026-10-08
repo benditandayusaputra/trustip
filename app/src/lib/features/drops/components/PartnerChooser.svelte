@@ -6,7 +6,7 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { id } from '#lib/i18n/id.js';
-	import { ActivePartners } from '../partners.svelte';
+	import { PartnerOptions } from '../partners.svelte';
 
 	interface Props {
 		hrefOf: (partnershipId: string) => string;
@@ -15,7 +15,7 @@
 	let { hrefOf }: Props = $props();
 
 	const text = id.drops;
-	const partners = new ActivePartners(apiClient);
+	const partners = new PartnerOptions(apiClient);
 
 	$effect(() => {
 		void partners.load();

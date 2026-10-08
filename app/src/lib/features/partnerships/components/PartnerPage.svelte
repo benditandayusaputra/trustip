@@ -16,9 +16,10 @@
 		canAmend: boolean;
 		isConsignor: boolean;
 		agreement: Snippet;
+		drops?: Snippet;
 	}
 
-	let { partnershipId, canAmend, isConsignor, agreement }: Props = $props();
+	let { partnershipId, canAmend, isConsignor, agreement, drops }: Props = $props();
 
 	const amendHref = $derived(`/app/mitra/${partnershipId}/perubahan`);
 
@@ -68,6 +69,8 @@
 							: undefined}
 					/>
 				</div>
+			{:else if key === 'drops' && drops}
+				{@render drops()}
 			{:else}
 				<EmptyState icon={ClipboardList} message={upcoming[key] ?? ''}>
 					{#snippet action()}

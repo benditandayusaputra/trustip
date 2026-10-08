@@ -1,16 +1,18 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import { getAgreement } from '#lib/api/agreements.js';
-import { recordDrop, type Drop } from '#lib/api/drops.js';
+import { getDrop, listDrops, recordDrop, type Drop } from '#lib/api/drops.js';
 import { listPartnerCatalog } from '#lib/api/partnerships.js';
 import { addDays } from '#lib/domain/dates.js';
 import { businessDateOf } from '#lib/i18n/format.js';
+import { emptyFilter } from './history.svelte';
 import {
 	defaultExpiry,
 	errorKeyOf,
 	filledLines,
 	linesOf,
 	maxDaysBack,
+	repeatQuantities,
 	toDropRequest,
 	validateDrop,
 	type DropErrors,
@@ -79,6 +81,18 @@ export class DropComposer {
 				line.expiryDate = defaultExpiry(next, line.shelfLifeDays);
 			}
 		}
+	}
+
+	async repeatLast(): Promise<string | undefined> {
+		const client = this.#deps.client();
+		const page = await listDrops(client, emptyFilter(this.#partnershipId), null);
+		const last = page.items.find((summary) => summary.status !== 'CANCELLED');
+		if (!last) {
+			return undefined;
+		}
+		const previous = await getDrop(client, last.id);
+		this.lines = repeatQuantities(this.lines, previous);
+		return previous.number;
 	}
 
 	updateLine(productId: string, changes: Partial<DropLine>): void {

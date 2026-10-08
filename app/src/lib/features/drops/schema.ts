@@ -1,5 +1,5 @@
 import type { Agreement } from '#lib/api/agreements.js';
-import type { DropRequest } from '#lib/api/drops.js';
+import type { Drop, DropRequest } from '#lib/api/drops.js';
 import type { PartnerCatalogItem } from '#lib/api/partnerships.js';
 import { addDays, daysBetween } from '#lib/domain/dates.js';
 import { splitOf, summarize, type Split, type Terms } from '#lib/domain/pricing.js';
@@ -126,4 +126,12 @@ export function errorKeyOf(field: string, sent: DropLine[]): string {
 		return field === 'occurred_at' ? 'dropDate' : 'items';
 	}
 	return `${line.productId}.${fieldNames[match[2] ?? ''] ?? 'qty'}`;
+}
+
+export function repeatQuantities(lines: DropLine[], previous: Drop): DropLine[] {
+	const quantities = new Map<string, number>();
+	for (const item of previous.items) {
+		quantities.set(item.product_id, (quantities.get(item.product_id) ?? 0) + item.qty);
+	}
+	return lines.map((line) => ({ ...line, qty: quantities.get(line.productId) ?? 0 }));
 }

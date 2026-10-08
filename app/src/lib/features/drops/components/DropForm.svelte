@@ -36,6 +36,18 @@
 		void composer.load(partnershipId);
 	});
 
+	async function repeatLast() {
+		const number = await composer.repeatLast().catch((error: unknown) => {
+			toaster.show({ tone: 'danger', message: error instanceof Error ? error.message : '' });
+			return null;
+		});
+		if (number === undefined) {
+			toaster.show({ tone: 'info', message: text.nothingToRepeat });
+		} else if (number !== null) {
+			toaster.show({ tone: 'info', message: text.repeated(number) });
+		}
+	}
+
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const outcome = await composer.save();
@@ -75,6 +87,7 @@
 				composer.changeDate(next);
 			}}
 		/>
+		<Button variant="secondary" onclick={() => void repeatLast()}>{text.repeatLast}</Button>
 		{#each composer.lines as line (line.productId)}
 			<DropLineRow
 				{line}

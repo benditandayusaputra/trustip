@@ -1,7 +1,7 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { listPartnerships, type PartnershipSummary } from '#lib/api/partnerships.js';
 
-export class ActivePartners {
+export class PartnerOptions {
 	items = $state<PartnershipSummary[]>([]);
 	status = $state<'loading' | 'ready' | 'failed'>('loading');
 	failure = $state('');
@@ -11,10 +11,10 @@ export class ActivePartners {
 		this.#client = client;
 	}
 
-	async load(): Promise<void> {
+	async load(status: PartnershipSummary['status'] | '' = 'ACTIVE'): Promise<void> {
 		this.status = 'loading';
 		try {
-			this.items = (await listPartnerships(this.#client(), 'ACTIVE', null)).items;
+			this.items = (await listPartnerships(this.#client(), status, null)).items;
 			this.status = 'ready';
 		} catch (error) {
 			this.failure = error instanceof Error ? error.message : '';
