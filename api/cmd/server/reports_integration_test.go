@@ -71,3 +71,26 @@ func TestSettlementReport_FRRPT06_CountsIssuedPaidUnpaidAndOverdue(t *testing.T)
 		t.Fatalf("report = %s", report.body)
 	}
 }
+
+func TestSalesReport_DSH_DailyChartNarrowsToOneProductOrPartner(t *testing.T) {
+	scene := issuedSettlement(t)
+	byDay := salesReportPath + "&group_by=DAY"
+	unknownID := "0192f0c4-0000-7000-8000-00000000ffff"
+
+	ownProduct := scene.consignor.get(byDay + "&product_id=" + scene.productID)
+	otherProduct := scene.consignor.get(byDay + "&product_id=" + unknownID)
+	otherPartner := scene.consignor.get(byDay + "&partner_id=" + unknownID)
+	malformed := scene.consignor.get(byDay + "&partner_id=toko")
+
+	requireCode(t, ownProduct, "OK")
+	loadContract(t).requireConforms(t, ownProduct)
+	if !strings.Contains(string(ownProduct.body), `"summary":{"sold_qty":18,`) {
+		t.Fatalf("own product = %s", ownProduct.body)
+	}
+	for _, got := range []exchange{otherProduct, otherPartner} {
+		if !strings.Contains(string(got.body), `"summary":{"sold_qty":0,"returned_qty":0,"received_qty":0,`) {
+			t.Fatalf("got = %s", got.body)
+		}
+	}
+	requireCode(t, malformed, "VALIDATION_FAILED")
+}

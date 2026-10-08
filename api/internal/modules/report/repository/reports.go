@@ -61,6 +61,7 @@ func (r *Reports) SalesRows(ctx context.Context, query domain.Query) ([]domain.R
 	defer cancel()
 	rows, err := salesQueries()[query.GroupBy](readCtx, sqlc.New(r.pool.Querier(ctx)), sqlc.SalesByPartnerParams{
 		OrganizationID: query.OrganizationID, FromAt: query.From, ToAt: query.To,
+		PartnerID: query.PartnerID, ProductID: query.ProductID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("report sales of %s by %s: %w", query.OrganizationID, query.GroupBy, err)

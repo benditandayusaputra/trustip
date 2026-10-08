@@ -5,9 +5,16 @@ import (
 	insightservice "github.com/benditandayusaputra/trustip/api/internal/modules/insight/service"
 )
 
-func insightDeps(histories insightservice.DropHistoryReader, routes tradeRoutes) insighthandler.Deps {
+type insightComponents struct {
+	histories  insightservice.DropHistoryReader
+	dashboards insightservice.DashboardReader
+}
+
+func insightDeps(components insightComponents, routes tradeRoutes) insighthandler.Deps {
 	return insighthandler.Deps{
 		Authenticate: routes.authenticate,
-		DropSuggest:  insightservice.NewSuggestDrops(histories, routes.clock),
+		DropSuggest:  insightservice.NewSuggestDrops(components.histories, routes.clock),
+		Insights:     insightservice.NewListInsights(components.dashboards, routes.clock),
+		Dashboard:    insightservice.NewGetDashboard(components.dashboards, routes.clock),
 	}
 }

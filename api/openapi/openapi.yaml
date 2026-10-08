@@ -2782,6 +2782,54 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/insights:
+    get:
+      operationId: listInsights
+      tags: [insights]
+      responses:
+        "200":
+          description: Lima saran teratas untuk organisasi pelaku, terurut menurut tingkat lalu nilai rupiah
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsightListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/dashboard:
+    get:
+      operationId: getDashboard
+      tags: [insights]
+      responses:
+        "200":
+          description: Angka stok dan Setoran, daftar perlu tindakan, dan mitra yang belum dihitung hari ini
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/partnerships/{id}/drop-suggestions:
     parameters:
       - name: id
@@ -3607,6 +3655,16 @@ paths:
           schema:
             type: string
             enum: [PARTNER, PRODUCT, DAY]
+        - name: partner_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: product_id
+          in: query
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Laporan penjualan OWNER dari alokasi penjualan dan mutasi yang sama dengan Setoran
@@ -5634,6 +5692,173 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/StockBatch"
+    InsightSubject:
+      type: object
+      additionalProperties: false
+      required: [partnership_id, counterpart_name, product_id, product_name, batch_id, batch_code, settlement_id,
+        settlement_number, organization_id, organization_name]
+      properties:
+        partnership_id:
+          type: string
+          format: uuid
+          nullable: true
+        counterpart_name:
+          type: string
+        product_id:
+          type: string
+          format: uuid
+          nullable: true
+        product_name:
+          type: string
+        batch_id:
+          type: string
+          format: uuid
+          nullable: true
+        batch_code:
+          type: string
+        settlement_id:
+          type: string
+          format: uuid
+          nullable: true
+        settlement_number:
+          type: string
+        organization_id:
+          type: string
+          format: uuid
+          nullable: true
+        organization_name:
+          type: string
+    Insight:
+      type: object
+      additionalProperties: false
+      required: [kind, level, action, subject, units, days, amount, score]
+      properties:
+        kind:
+          type: string
+          enum: [EXPIRED, NEAR_EXPIRY, LOW_STOCK, SETTLEMENT_OVERDUE, NOT_COUNTED, MATCHING_PARTNER]
+        level:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        action:
+          type: string
+          enum: [COUNT_WITH_RETURNS, COUNT, REMIND_STORE, VIEW_DROP_SUGGESTION, ASK_RESTOCK, REMIND_PAYMENT,
+            RECORD_PAYMENT, REMIND_COUNT, OPEN_PROFILE]
+        subject:
+          $ref: "#/components/schemas/InsightSubject"
+        units:
+          type: integer
+        days:
+          type: integer
+        amount:
+          type: integer
+          minimum: 0
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+    InsightListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/Insight"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    DashboardTally:
+      type: object
+      additionalProperties: false
+      required: [count, amount]
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        amount:
+          type: integer
+          minimum: 0
+    DashboardFigures:
+      type: object
+      additionalProperties: false
+      required: [active_partners, stock_units, unpaid, overdue, due_soon]
+      properties:
+        active_partners:
+          type: integer
+          minimum: 0
+        stock_units:
+          type: integer
+          minimum: 0
+        unpaid:
+          $ref: "#/components/schemas/DashboardTally"
+        overdue:
+          $ref: "#/components/schemas/DashboardTally"
+        due_soon:
+          $ref: "#/components/schemas/DashboardTally"
+    DashboardTasks:
+      type: object
+      additionalProperties: false
+      required: [drops_to_confirm, counts_to_confirm, payments_to_review, payments_rejected, proposals_awaiting]
+      properties:
+        drops_to_confirm:
+          type: integer
+          minimum: 0
+        counts_to_confirm:
+          type: integer
+          minimum: 0
+        payments_to_review:
+          type: integer
+          minimum: 0
+        payments_rejected:
+          type: integer
+          minimum: 0
+        proposals_awaiting:
+          type: integer
+          minimum: 0
+    UncountedPartner:
+      type: object
+      additionalProperties: false
+      required: [partnership_id, counterpart_name, stock_units]
+      properties:
+        partnership_id:
+          type: string
+          format: uuid
+        counterpart_name:
+          type: string
+        stock_units:
+          type: integer
+          minimum: 1
+    Dashboard:
+      type: object
+      additionalProperties: false
+      required: [figures, tasks, quick_count]
+      properties:
+        figures:
+          $ref: "#/components/schemas/DashboardFigures"
+        tasks:
+          $ref: "#/components/schemas/DashboardTasks"
+        quick_count:
+          type: array
+          items:
+            $ref: "#/components/schemas/UncountedPartner"
+    DashboardResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Dashboard"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
     DropSuggestion:
       type: object
       additionalProperties: false

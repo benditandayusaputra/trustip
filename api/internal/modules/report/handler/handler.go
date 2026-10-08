@@ -48,6 +48,7 @@ func sales(reader SalesReader) fiber.Handler {
 		}
 		report, err := reader.Execute(c.Context(), signedIn, domain.Filter{
 			From: c.Query("from"), To: c.Query("to"), GroupBy: c.Query("group_by"),
+			PartnerID: c.Query("partner_id"), ProductID: c.Query("product_id"),
 		})
 		if err != nil {
 			return fmt.Errorf("read sales report: %w", err)

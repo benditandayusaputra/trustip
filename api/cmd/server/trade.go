@@ -12,7 +12,6 @@ import (
 	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
 	insighthandler "github.com/benditandayusaputra/trustip/api/internal/modules/insight/handler"
 	insightrepository "github.com/benditandayusaputra/trustip/api/internal/modules/insight/repository"
-	insightservice "github.com/benditandayusaputra/trustip/api/internal/modules/insight/service"
 	partnershiphandler "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/handler"
 	partnershiprepository "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/repository"
 	partnershipservice "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/service"
@@ -41,7 +40,7 @@ type tradeComponents struct {
 	settlements  settlementservice.Deps
 	ending       partnershipservice.EndDeps
 	reports      *reportrepository.Reports
-	histories    insightservice.DropHistoryReader
+	insights     insightComponents
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
@@ -64,7 +63,9 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		settlements:  settlements,
 		ending:       buildEndingDeps(pool, endingParts{clock: clock, seals: seals, settlements: settlements}),
 		reports:      reportrepository.NewReports(pool),
-		histories:    insightrepository.NewHistories(pool),
+		insights: insightComponents{
+			histories: insightrepository.NewHistories(pool), dashboards: insightrepository.NewDashboards(pool),
+		},
 	}
 }
 
@@ -92,5 +93,5 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 	counthandler.Mount(api, countDeps(components.counts, routes))
 	settlementhandler.Mount(api, settlementDeps(components.settlements, routes))
 	reporthandler.Mount(api, reportDeps(components.reports, routes))
-	insighthandler.Mount(api, insightDeps(components.histories, routes))
+	insighthandler.Mount(api, insightDeps(components.insights, routes))
 }

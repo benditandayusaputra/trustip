@@ -16,12 +16,10 @@ type HistoryQuery struct {
 }
 
 func NewHistoryQuery(organizationID, partnershipID string, now time.Time) HistoryQuery {
-	today := now.In(period.Jakarta())
-	startOfToday := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, period.Jakarta())
 	return HistoryQuery{
 		OrganizationID: organizationID, PartnershipID: partnershipID, Now: now,
-		SalesSince:     startOfToday.AddDate(0, 0, 1-salesWindowDays),
-		ISOWeekday:     isoWeekday(today.Weekday()),
+		SalesSince:     NewSnapshotQuery(organizationID, now).SalesSince,
+		ISOWeekday:     isoWeekday(now.In(period.Jakarta()).Weekday()),
 		MaxOccurrences: maxSameWeekdayOccurrences,
 	}
 }

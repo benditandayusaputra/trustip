@@ -29,6 +29,116 @@ func (q *Queries) FindInsightPartnership(ctx context.Context, arg FindInsightPar
 	return id, err
 }
 
+const getDashboardFigures = `-- name: GetDashboardFigures :one
+WITH scoped AS (
+    SELECT p.id, p.status, p.consignor_org_id
+    FROM partnerships AS p
+    WHERE p.store_org_id = $3::uuid OR p.consignor_org_id = $3::uuid
+),
+open_settlements AS (
+    SELECT st.id, st.due_date, st.consignor_share_amount
+    FROM settlements AS st
+    WHERE (st.store_org_id = $3::uuid OR st.consignor_org_id = $3::uuid)
+        AND st.status = 'ISSUED'
+)
+SELECT
+    (SELECT count(*) FROM scoped AS s WHERE s.status = 'ACTIVE')::bigint AS active_partners,
+    COALESCE((
+        SELECT sum(b.balance) FROM batch_balances AS b WHERE b.partnership_id IN (SELECT s.id FROM scoped AS s)
+    ), 0)::bigint AS stock_units,
+    (SELECT count(*) FROM open_settlements)::bigint AS unpaid_count,
+    COALESCE((SELECT sum(o.consignor_share_amount) FROM open_settlements AS o), 0)::bigint AS unpaid_amount,
+    (SELECT count(*) FROM open_settlements AS o WHERE o.due_date < CAST($1::text AS date))::bigint
+        AS overdue_count,
+    COALESCE((
+        SELECT sum(o.consignor_share_amount) FROM open_settlements AS o
+        WHERE o.due_date < CAST($1::text AS date)
+    ), 0)::bigint AS overdue_amount,
+    (
+        SELECT count(*) FROM open_settlements AS o
+        WHERE o.due_date BETWEEN CAST($1::text AS date) AND CAST($2::text AS date)
+    )::bigint AS due_soon_count,
+    COALESCE((
+        SELECT sum(o.consignor_share_amount) FROM open_settlements AS o
+        WHERE o.due_date BETWEEN CAST($1::text AS date) AND CAST($2::text AS date)
+    ), 0)::bigint AS due_soon_amount,
+    (
+        SELECT count(*) FROM drops AS d
+        JOIN scoped AS s ON s.id = d.partnership_id AND s.consignor_org_id = $3::uuid
+        WHERE d.status = 'RECORDED' AND d.received_at > $4::timestamptz
+    )::bigint AS drops_to_confirm,
+    (
+        SELECT count(*) FROM counts AS c
+        JOIN scoped AS s ON s.id = c.partnership_id AND s.consignor_org_id = $3::uuid
+        WHERE c.status = 'RECORDED' AND c.received_at > $4::timestamptz
+    )::bigint AS counts_to_confirm,
+    (
+        SELECT count(*) FROM payments AS pm
+        JOIN scoped AS s ON s.id = pm.partnership_id AND s.consignor_org_id = $3::uuid
+        WHERE pm.status = 'PENDING_CONFIRMATION'
+    )::bigint AS payments_to_review,
+    (
+        SELECT count(*) FROM open_settlements AS o
+        WHERE EXISTS (SELECT 1 FROM payments AS pm WHERE pm.settlement_id = o.id AND pm.status = 'REJECTED')
+            AND NOT EXISTS (
+                SELECT 1 FROM payments AS pm WHERE pm.settlement_id = o.id AND pm.status <> 'REJECTED'
+            )
+    )::bigint AS payments_rejected,
+    (
+        SELECT count(*) FROM proposals AS pp
+        WHERE pp.status = 'OPEN' AND pp.awaiting_org_id = $3::uuid
+    )::bigint AS proposals_awaiting
+`
+
+type GetDashboardFiguresParams struct {
+	Today          string
+	DueSoonUntil   string
+	OrganizationID string
+	PendingSince   time.Time
+}
+
+type GetDashboardFiguresRow struct {
+	ActivePartners    int64
+	StockUnits        int64
+	UnpaidCount       int64
+	UnpaidAmount      int64
+	OverdueCount      int64
+	OverdueAmount     int64
+	DueSoonCount      int64
+	DueSoonAmount     int64
+	DropsToConfirm    int64
+	CountsToConfirm   int64
+	PaymentsToReview  int64
+	PaymentsRejected  int64
+	ProposalsAwaiting int64
+}
+
+func (q *Queries) GetDashboardFigures(ctx context.Context, arg GetDashboardFiguresParams) (GetDashboardFiguresRow, error) {
+	row := q.db.QueryRow(ctx, getDashboardFigures,
+		arg.Today,
+		arg.DueSoonUntil,
+		arg.OrganizationID,
+		arg.PendingSince,
+	)
+	var i GetDashboardFiguresRow
+	err := row.Scan(
+		&i.ActivePartners,
+		&i.StockUnits,
+		&i.UnpaidCount,
+		&i.UnpaidAmount,
+		&i.OverdueCount,
+		&i.OverdueAmount,
+		&i.DueSoonCount,
+		&i.DueSoonAmount,
+		&i.DropsToConfirm,
+		&i.CountsToConfirm,
+		&i.PaymentsToReview,
+		&i.PaymentsRejected,
+		&i.ProposalsAwaiting,
+	)
+	return i, err
+}
+
 const listDropSuggestionProducts = `-- name: ListDropSuggestionProducts :many
 SELECT
     ai.product_id, a.count_rhythm,
@@ -102,6 +212,169 @@ func (q *Queries) ListDropSuggestionProducts(ctx context.Context, arg ListDropSu
 	return items, nil
 }
 
+const listInsightStock = `-- name: ListInsightStock :many
+WITH scoped AS (
+    SELECT
+        p.id, p.status,
+        CASE WHEN p.store_org_id = $3::uuid THEN p.consignor_org_id ELSE p.store_org_id END
+            AS counterpart_id
+    FROM partnerships AS p
+    WHERE p.store_org_id = $3::uuid OR p.consignor_org_id = $3::uuid
+),
+held AS (
+    SELECT b.partnership_id, b.product_id
+    FROM batch_balances AS b
+    WHERE b.partnership_id IN (SELECT s.id FROM scoped AS s) AND b.balance > 0
+    UNION
+    SELECT a.partnership_id, ai.product_id
+    FROM agreements AS a
+    JOIN agreement_items AS ai ON ai.agreement_id = a.id AND ai.is_active
+    JOIN scoped AS s ON s.id = a.partnership_id AND s.status = 'ACTIVE'
+    WHERE a.status = 'ACTIVE'
+)
+SELECT
+    h.partnership_id, o.name AS counterpart_name, COALESCE(a.count_rhythm, 'EACH_VISIT')::text AS count_rhythm,
+    h.product_id, pr.name AS product_name, COALESCE(pr.shelf_life_days, 0)::bigint AS shelf_life_days,
+    COALESCE(ai.retail_price, (
+        SELECT i.retail_price FROM drop_items AS i
+        JOIN drops AS d ON d.id = i.drop_id
+        WHERE d.partnership_id = h.partnership_id AND i.product_id = h.product_id
+        ORDER BY d.occurred_at DESC, i.id DESC
+        LIMIT 1
+    ), 0)::bigint AS retail_price,
+    COALESCE(b.drop_item_id::text, '')::text AS batch_id, COALESCE(b.batch_code, '')::text AS batch_code,
+    COALESCE(to_char(b.expiry_date, 'YYYY-MM-DD'), '')::text AS expiry_date, COALESCE(b.balance, 0)::bigint AS balance,
+    COALESCE((
+        SELECT sum(sa.qty) FROM sale_allocations AS sa
+        WHERE sa.partnership_id = h.partnership_id AND sa.product_id = h.product_id
+            AND sa.occurred_at >= $1::timestamptz
+    ), 0)::bigint AS sold_since,
+    COALESCE((
+        SELECT min(d.occurred_at) FROM drops AS d
+        WHERE d.partnership_id = h.partnership_id AND d.status <> 'CANCELLED'
+    ), $2::timestamptz)::timestamptz AS first_drop_at,
+    COALESCE((
+        SELECT max(c.counted_at) FROM counts AS c WHERE c.partnership_id = h.partnership_id
+    ), (
+        SELECT min(d.occurred_at) FROM drops AS d
+        WHERE d.partnership_id = h.partnership_id AND d.status <> 'CANCELLED'
+    ), $2::timestamptz)::timestamptz AS uncounted_since
+FROM held AS h
+JOIN scoped AS s ON s.id = h.partnership_id
+JOIN organizations AS o ON o.id = s.counterpart_id
+JOIN products AS pr ON pr.id = h.product_id
+LEFT JOIN agreements AS a ON a.partnership_id = h.partnership_id AND a.status = 'ACTIVE'
+LEFT JOIN agreement_items AS ai ON ai.agreement_id = a.id AND ai.product_id = h.product_id
+LEFT JOIN batch_balances AS b ON b.partnership_id = h.partnership_id AND b.product_id = h.product_id AND b.balance > 0
+ORDER BY h.partnership_id, h.product_id, b.expiry_date NULLS LAST, b.drop_item_id
+`
+
+type ListInsightStockParams struct {
+	SalesSince     time.Time
+	Now            time.Time
+	OrganizationID string
+}
+
+type ListInsightStockRow struct {
+	PartnershipID   string
+	CounterpartName string
+	CountRhythm     string
+	ProductID       string
+	ProductName     string
+	ShelfLifeDays   int64
+	RetailPrice     int64
+	BatchID         string
+	BatchCode       string
+	ExpiryDate      string
+	Balance         int64
+	SoldSince       int64
+	FirstDropAt     time.Time
+	UncountedSince  time.Time
+}
+
+func (q *Queries) ListInsightStock(ctx context.Context, arg ListInsightStockParams) ([]ListInsightStockRow, error) {
+	rows, err := q.db.Query(ctx, listInsightStock, arg.SalesSince, arg.Now, arg.OrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListInsightStockRow{}
+	for rows.Next() {
+		var i ListInsightStockRow
+		if err := rows.Scan(
+			&i.PartnershipID,
+			&i.CounterpartName,
+			&i.CountRhythm,
+			&i.ProductID,
+			&i.ProductName,
+			&i.ShelfLifeDays,
+			&i.RetailPrice,
+			&i.BatchID,
+			&i.BatchCode,
+			&i.ExpiryDate,
+			&i.Balance,
+			&i.SoldSince,
+			&i.FirstDropAt,
+			&i.UncountedSince,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOpenSettlements = `-- name: ListOpenSettlements :many
+SELECT
+    st.id, st.number, st.partnership_id, o.name AS counterpart_name,
+    to_char(st.due_date, 'YYYY-MM-DD')::text AS due_date, st.consignor_share_amount
+FROM settlements AS st
+JOIN organizations AS o
+    ON o.id = CASE WHEN st.store_org_id = $1::uuid THEN st.consignor_org_id ELSE st.store_org_id END
+WHERE (st.store_org_id = $1::uuid OR st.consignor_org_id = $1::uuid)
+    AND st.status = 'ISSUED'
+ORDER BY st.due_date, st.id
+`
+
+type ListOpenSettlementsRow struct {
+	ID                   string
+	Number               string
+	PartnershipID        string
+	CounterpartName      string
+	DueDate              string
+	ConsignorShareAmount int64
+}
+
+func (q *Queries) ListOpenSettlements(ctx context.Context, organizationID string) ([]ListOpenSettlementsRow, error) {
+	rows, err := q.db.Query(ctx, listOpenSettlements, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOpenSettlementsRow{}
+	for rows.Next() {
+		var i ListOpenSettlementsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.PartnershipID,
+			&i.CounterpartName,
+			&i.DueDate,
+			&i.ConsignorShareAmount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSameWeekdaySales = `-- name: ListSameWeekdaySales :many
 WITH daily AS (
     SELECT
@@ -155,6 +428,51 @@ func (q *Queries) ListSameWeekdaySales(ctx context.Context, arg ListSameWeekdayS
 	for rows.Next() {
 		var i ListSameWeekdaySalesRow
 		if err := rows.Scan(&i.ProductID, &i.Sold, &i.SoldOut); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUncountedPartners = `-- name: ListUncountedPartners :many
+SELECT p.id AS partnership_id, o.name AS counterpart_name, stock.units AS stock_units
+FROM partnerships AS p
+JOIN organizations AS o ON o.id = p.consignor_org_id
+JOIN LATERAL (
+    SELECT COALESCE(sum(b.balance), 0)::bigint AS units FROM batch_balances AS b WHERE b.partnership_id = p.id
+) AS stock ON true
+WHERE p.store_org_id = $1::uuid AND p.status = 'ACTIVE' AND stock.units > 0
+    AND NOT EXISTS (
+        SELECT 1 FROM counts AS c WHERE c.partnership_id = p.id AND c.counted_at >= $2::timestamptz
+    )
+ORDER BY o.name, p.id
+`
+
+type ListUncountedPartnersParams struct {
+	OrganizationID string
+	TodayStart     time.Time
+}
+
+type ListUncountedPartnersRow struct {
+	PartnershipID   string
+	CounterpartName string
+	StockUnits      int64
+}
+
+func (q *Queries) ListUncountedPartners(ctx context.Context, arg ListUncountedPartnersParams) ([]ListUncountedPartnersRow, error) {
+	rows, err := q.db.Query(ctx, listUncountedPartners, arg.OrganizationID, arg.TodayStart)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUncountedPartnersRow{}
+	for rows.Next() {
+		var i ListUncountedPartnersRow
+		if err := rows.Scan(&i.PartnershipID, &i.CounterpartName, &i.StockUnits); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

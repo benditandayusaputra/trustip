@@ -5,15 +5,9 @@ import (
 	"slices"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/money"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
-)
-
-type Side string
-
-const (
-	ConsignorSide Side = "CONSIGNOR"
-	StoreSide     Side = "STORE"
 )
 
 type Level string
@@ -74,7 +68,7 @@ type Insight struct {
 }
 
 type Snapshot struct {
-	Side         Side
+	Side         actor.OrganizationType
 	Products     []ProductStock
 	Settlements  []OpenSettlement
 	Partnerships []PartnershipCadence
@@ -100,7 +94,7 @@ func Generate(snapshot Snapshot, now time.Time) []Insight {
 	return ordered(withActions(insights, snapshot.Side))
 }
 
-func withActions(insights []Insight, side Side) []Insight {
+func withActions(insights []Insight, side actor.OrganizationType) []Insight {
 	actions := actionsFor(side)
 	for i := range insights {
 		insights[i].Action = actions[insights[i].Kind]
@@ -108,8 +102,8 @@ func withActions(insights []Insight, side Side) []Insight {
 	return insights
 }
 
-func actionsFor(side Side) map[Kind]Action {
-	if side == ConsignorSide {
+func actionsFor(side actor.OrganizationType) map[Kind]Action {
+	if side == actor.Consignor {
 		return map[Kind]Action{
 			KindExpired: ActionRemindStore, KindNearExpiry: ActionRemindStore,
 			KindLowStock: ActionViewDropSuggestion, KindSettlementOverdue: ActionRemindPayment,

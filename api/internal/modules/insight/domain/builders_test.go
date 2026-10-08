@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/money"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/stock"
@@ -86,11 +87,11 @@ func aCandidate(score int) Candidate {
 }
 
 func storeSnapshot() Snapshot {
-	return Snapshot{Side: StoreSide}
+	return Snapshot{Side: actor.Store}
 }
 
 func consignorSnapshot() Snapshot {
-	return Snapshot{Side: ConsignorSide}
+	return Snapshot{Side: actor.Consignor}
 }
 
 func onlyInsight(t *testing.T, insights []Insight) Insight {

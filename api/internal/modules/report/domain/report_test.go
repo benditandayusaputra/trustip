@@ -101,3 +101,23 @@ func TestFillDays_FRRPT05_EveryDayOfTheRangeAppearsInOrder(t *testing.T) {
 		t.Fatalf("days = %+v", days)
 	}
 }
+
+func TestNewQuery_DSH_NarrowsToOnePartnerOrProduct(t *testing.T) {
+	partnerID := "0192f0c4-0000-7000-8000-000000000401"
+	productID := "0192f0c4-0000-7000-8000-000000000101"
+
+	got, err := NewQuery(Filter{From: "2026-10-01", To: "2026-10-30", PartnerID: partnerID, ProductID: productID})
+
+	if err != nil || got.PartnerID != partnerID || got.ProductID != productID {
+		t.Fatalf("query = %+v, err = %v", got, err)
+	}
+}
+
+func TestNewQuery_DSH_RefusesMalformedPartnerAndProduct(t *testing.T) {
+	_, err := NewQuery(Filter{From: "2026-10-01", To: "2026-10-30", PartnerID: "toko", ProductID: "1"})
+
+	fields := apperror.From(err).Fields()
+	if len(fields) != 2 || fields[0].Field != "partner_id" || fields[1].Field != "product_id" {
+		t.Fatalf("fields = %+v, want partner_id and product_id", fields)
+	}
+}

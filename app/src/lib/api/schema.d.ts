@@ -1061,6 +1061,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listInsights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/partnerships/{id}/drop-suggestions": {
         parameters: {
             query?: never;
@@ -2170,6 +2202,77 @@ export interface components {
             /** Format: date */
             nearest_expiry: string | null;
             batches: components["schemas"]["StockBatch"][];
+        };
+        InsightSubject: {
+            /** Format: uuid */
+            partnership_id: string | null;
+            counterpart_name: string;
+            /** Format: uuid */
+            product_id: string | null;
+            product_name: string;
+            /** Format: uuid */
+            batch_id: string | null;
+            batch_code: string;
+            /** Format: uuid */
+            settlement_id: string | null;
+            settlement_number: string;
+            /** Format: uuid */
+            organization_id: string | null;
+            organization_name: string;
+        };
+        Insight: {
+            /** @enum {string} */
+            kind: "EXPIRED" | "NEAR_EXPIRY" | "LOW_STOCK" | "SETTLEMENT_OVERDUE" | "NOT_COUNTED" | "MATCHING_PARTNER";
+            /** @enum {string} */
+            level: "HIGH" | "MEDIUM" | "LOW";
+            /** @enum {string} */
+            action: "COUNT_WITH_RETURNS" | "COUNT" | "REMIND_STORE" | "VIEW_DROP_SUGGESTION" | "ASK_RESTOCK" | "REMIND_PAYMENT" | "RECORD_PAYMENT" | "REMIND_COUNT" | "OPEN_PROFILE";
+            subject: components["schemas"]["InsightSubject"];
+            units: number;
+            days: number;
+            amount: number;
+            score: number;
+        };
+        InsightListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Insight"][];
+            meta: components["schemas"]["ListMeta"];
+        };
+        DashboardTally: {
+            count: number;
+            amount: number;
+        };
+        DashboardFigures: {
+            active_partners: number;
+            stock_units: number;
+            unpaid: components["schemas"]["DashboardTally"];
+            overdue: components["schemas"]["DashboardTally"];
+            due_soon: components["schemas"]["DashboardTally"];
+        };
+        DashboardTasks: {
+            drops_to_confirm: number;
+            counts_to_confirm: number;
+            payments_to_review: number;
+            payments_rejected: number;
+            proposals_awaiting: number;
+        };
+        UncountedPartner: {
+            /** Format: uuid */
+            partnership_id: string;
+            counterpart_name: string;
+            stock_units: number;
+        };
+        Dashboard: {
+            figures: components["schemas"]["DashboardFigures"];
+            tasks: components["schemas"]["DashboardTasks"];
+            quick_count: components["schemas"]["UncountedPartner"][];
+        };
+        DashboardResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Dashboard"];
+            meta: components["schemas"]["ResponseMeta"];
         };
         DropSuggestion: {
             /** Format: uuid */
@@ -5256,6 +5359,58 @@ export interface operations {
             503: components["responses"]["ServiceUnavailable"];
         };
     };
+    listInsights: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lima saran teratas untuk organisasi pelaku, terurut menurut tingkat lalu nilai rupiah */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsightListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Angka stok dan Setoran, daftar perlu tindakan, dan mitra yang belum dihitung hari ini */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
     listDropSuggestions: {
         parameters: {
             query?: never;
@@ -5884,6 +6039,8 @@ export interface operations {
                 from: string;
                 to: string;
                 group_by?: "PARTNER" | "PRODUCT" | "DAY";
+                partner_id?: string;
+                product_id?: string;
             };
             header?: never;
             path?: never;

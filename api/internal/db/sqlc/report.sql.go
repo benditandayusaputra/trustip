@@ -99,14 +99,20 @@ const salesByDay = `-- name: SalesByDay :many
 WITH scoped AS (
     SELECT p.id, p.consignor_org_id, p.store_org_id
     FROM partnerships AS p
-    WHERE p.store_org_id = $1::uuid OR p.consignor_org_id = $1::uuid
+    WHERE (p.store_org_id = $1::uuid OR p.consignor_org_id = $1::uuid)
+        AND (
+            $2::text = ''
+            OR (CASE WHEN p.store_org_id = $1::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+                = $2::text
+        )
 ), facts AS (
     SELECT
         a.partnership_id, a.product_id, a.occurred_at, a.qty::bigint AS sold_qty, a.gross_amount,
         a.store_share_amount, a.consignor_share_amount, 0::bigint AS returned_qty, 0::bigint AS received_qty
     FROM sale_allocations AS a
     WHERE a.partnership_id IN (SELECT s.id FROM scoped AS s)
-        AND a.occurred_at >= $2::timestamptz AND a.occurred_at < $3::timestamptz
+        AND a.occurred_at >= $3::timestamptz AND a.occurred_at < $4::timestamptz
+        AND ($5::text = '' OR a.product_id::text = $5::text)
     UNION ALL
     SELECT
         m.partnership_id, m.product_id, m.occurred_at, 0::bigint, 0::bigint, 0::bigint, 0::bigint,
@@ -114,7 +120,8 @@ WITH scoped AS (
         (CASE WHEN m.source_type = 'DROP' THEN m.qty ELSE 0 END)::bigint
     FROM stock_movements AS m
     WHERE m.partnership_id IN (SELECT s.id FROM scoped AS s) AND m.type IN ('RETURN', 'RECEIVE', 'ADJUSTMENT')
-        AND m.occurred_at >= $2::timestamptz AND m.occurred_at < $3::timestamptz
+        AND m.occurred_at >= $3::timestamptz AND m.occurred_at < $4::timestamptz
+        AND ($5::text = '' OR m.product_id::text = $5::text)
 )
 SELECT
     to_char(f.occurred_at AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD')::text AS key,
@@ -130,8 +137,10 @@ ORDER BY 1
 
 type SalesByDayParams struct {
 	OrganizationID string
+	PartnerID      string
 	FromAt         time.Time
 	ToAt           time.Time
+	ProductID      string
 }
 
 type SalesByDayRow struct {
@@ -146,7 +155,13 @@ type SalesByDayRow struct {
 }
 
 func (q *Queries) SalesByDay(ctx context.Context, arg SalesByDayParams) ([]SalesByDayRow, error) {
-	rows, err := q.db.Query(ctx, salesByDay, arg.OrganizationID, arg.FromAt, arg.ToAt)
+	rows, err := q.db.Query(ctx, salesByDay,
+		arg.OrganizationID,
+		arg.PartnerID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.ProductID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -178,14 +193,20 @@ const salesByPartner = `-- name: SalesByPartner :many
 WITH scoped AS (
     SELECT p.id, p.consignor_org_id, p.store_org_id
     FROM partnerships AS p
-    WHERE p.store_org_id = $1::uuid OR p.consignor_org_id = $1::uuid
+    WHERE (p.store_org_id = $1::uuid OR p.consignor_org_id = $1::uuid)
+        AND (
+            $2::text = ''
+            OR (CASE WHEN p.store_org_id = $1::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+                = $2::text
+        )
 ), facts AS (
     SELECT
         a.partnership_id, a.product_id, a.occurred_at, a.qty::bigint AS sold_qty, a.gross_amount,
         a.store_share_amount, a.consignor_share_amount, 0::bigint AS returned_qty, 0::bigint AS received_qty
     FROM sale_allocations AS a
     WHERE a.partnership_id IN (SELECT s.id FROM scoped AS s)
-        AND a.occurred_at >= $2::timestamptz AND a.occurred_at < $3::timestamptz
+        AND a.occurred_at >= $3::timestamptz AND a.occurred_at < $4::timestamptz
+        AND ($5::text = '' OR a.product_id::text = $5::text)
     UNION ALL
     SELECT
         m.partnership_id, m.product_id, m.occurred_at, 0::bigint, 0::bigint, 0::bigint, 0::bigint,
@@ -193,7 +214,8 @@ WITH scoped AS (
         (CASE WHEN m.source_type = 'DROP' THEN m.qty ELSE 0 END)::bigint
     FROM stock_movements AS m
     WHERE m.partnership_id IN (SELECT s.id FROM scoped AS s) AND m.type IN ('RETURN', 'RECEIVE', 'ADJUSTMENT')
-        AND m.occurred_at >= $2::timestamptz AND m.occurred_at < $3::timestamptz
+        AND m.occurred_at >= $3::timestamptz AND m.occurred_at < $4::timestamptz
+        AND ($5::text = '' OR m.product_id::text = $5::text)
 )
 SELECT
     o.id::text AS key, o.name AS label,
@@ -211,8 +233,10 @@ ORDER BY gross_amount DESC, o.name
 
 type SalesByPartnerParams struct {
 	OrganizationID string
+	PartnerID      string
 	FromAt         time.Time
 	ToAt           time.Time
+	ProductID      string
 }
 
 type SalesByPartnerRow struct {
@@ -227,7 +251,13 @@ type SalesByPartnerRow struct {
 }
 
 func (q *Queries) SalesByPartner(ctx context.Context, arg SalesByPartnerParams) ([]SalesByPartnerRow, error) {
-	rows, err := q.db.Query(ctx, salesByPartner, arg.OrganizationID, arg.FromAt, arg.ToAt)
+	rows, err := q.db.Query(ctx, salesByPartner,
+		arg.OrganizationID,
+		arg.PartnerID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.ProductID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -259,14 +289,20 @@ const salesByProduct = `-- name: SalesByProduct :many
 WITH scoped AS (
     SELECT p.id, p.consignor_org_id, p.store_org_id
     FROM partnerships AS p
-    WHERE p.store_org_id = $1::uuid OR p.consignor_org_id = $1::uuid
+    WHERE (p.store_org_id = $1::uuid OR p.consignor_org_id = $1::uuid)
+        AND (
+            $2::text = ''
+            OR (CASE WHEN p.store_org_id = $1::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+                = $2::text
+        )
 ), facts AS (
     SELECT
         a.partnership_id, a.product_id, a.occurred_at, a.qty::bigint AS sold_qty, a.gross_amount,
         a.store_share_amount, a.consignor_share_amount, 0::bigint AS returned_qty, 0::bigint AS received_qty
     FROM sale_allocations AS a
     WHERE a.partnership_id IN (SELECT s.id FROM scoped AS s)
-        AND a.occurred_at >= $2::timestamptz AND a.occurred_at < $3::timestamptz
+        AND a.occurred_at >= $3::timestamptz AND a.occurred_at < $4::timestamptz
+        AND ($5::text = '' OR a.product_id::text = $5::text)
     UNION ALL
     SELECT
         m.partnership_id, m.product_id, m.occurred_at, 0::bigint, 0::bigint, 0::bigint, 0::bigint,
@@ -274,7 +310,8 @@ WITH scoped AS (
         (CASE WHEN m.source_type = 'DROP' THEN m.qty ELSE 0 END)::bigint
     FROM stock_movements AS m
     WHERE m.partnership_id IN (SELECT s.id FROM scoped AS s) AND m.type IN ('RETURN', 'RECEIVE', 'ADJUSTMENT')
-        AND m.occurred_at >= $2::timestamptz AND m.occurred_at < $3::timestamptz
+        AND m.occurred_at >= $3::timestamptz AND m.occurred_at < $4::timestamptz
+        AND ($5::text = '' OR m.product_id::text = $5::text)
 )
 SELECT
     pr.id::text AS key, (pr.name || ' (' || pr.sku || ')')::text AS label,
@@ -290,8 +327,10 @@ ORDER BY gross_amount DESC, pr.name
 
 type SalesByProductParams struct {
 	OrganizationID string
+	PartnerID      string
 	FromAt         time.Time
 	ToAt           time.Time
+	ProductID      string
 }
 
 type SalesByProductRow struct {
@@ -306,7 +345,13 @@ type SalesByProductRow struct {
 }
 
 func (q *Queries) SalesByProduct(ctx context.Context, arg SalesByProductParams) ([]SalesByProductRow, error) {
-	rows, err := q.db.Query(ctx, salesByProduct, arg.OrganizationID, arg.FromAt, arg.ToAt)
+	rows, err := q.db.Query(ctx, salesByProduct,
+		arg.OrganizationID,
+		arg.PartnerID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.ProductID,
+	)
 	if err != nil {
 		return nil, err
 	}

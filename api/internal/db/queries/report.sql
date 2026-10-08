@@ -2,7 +2,12 @@
 WITH scoped AS (
     SELECT p.id, p.consignor_org_id, p.store_org_id
     FROM partnerships AS p
-    WHERE p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid
+    WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+        AND (
+            @partner_id::text = ''
+            OR (CASE WHEN p.store_org_id = @organization_id::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+                = @partner_id::text
+        )
 ), facts AS (
     SELECT
         a.partnership_id, a.product_id, a.occurred_at, a.qty::bigint AS sold_qty, a.gross_amount,
@@ -10,6 +15,7 @@ WITH scoped AS (
     FROM sale_allocations AS a
     WHERE a.partnership_id IN (SELECT s.id FROM scoped AS s)
         AND a.occurred_at >= @from_at::timestamptz AND a.occurred_at < @to_at::timestamptz
+        AND (@product_id::text = '' OR a.product_id::text = @product_id::text)
     UNION ALL
     SELECT
         m.partnership_id, m.product_id, m.occurred_at, 0::bigint, 0::bigint, 0::bigint, 0::bigint,
@@ -18,6 +24,7 @@ WITH scoped AS (
     FROM stock_movements AS m
     WHERE m.partnership_id IN (SELECT s.id FROM scoped AS s) AND m.type IN ('RETURN', 'RECEIVE', 'ADJUSTMENT')
         AND m.occurred_at >= @from_at::timestamptz AND m.occurred_at < @to_at::timestamptz
+        AND (@product_id::text = '' OR m.product_id::text = @product_id::text)
 )
 SELECT
     o.id::text AS key, o.name AS label,
@@ -36,7 +43,12 @@ ORDER BY gross_amount DESC, o.name;
 WITH scoped AS (
     SELECT p.id, p.consignor_org_id, p.store_org_id
     FROM partnerships AS p
-    WHERE p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid
+    WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+        AND (
+            @partner_id::text = ''
+            OR (CASE WHEN p.store_org_id = @organization_id::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+                = @partner_id::text
+        )
 ), facts AS (
     SELECT
         a.partnership_id, a.product_id, a.occurred_at, a.qty::bigint AS sold_qty, a.gross_amount,
@@ -44,6 +56,7 @@ WITH scoped AS (
     FROM sale_allocations AS a
     WHERE a.partnership_id IN (SELECT s.id FROM scoped AS s)
         AND a.occurred_at >= @from_at::timestamptz AND a.occurred_at < @to_at::timestamptz
+        AND (@product_id::text = '' OR a.product_id::text = @product_id::text)
     UNION ALL
     SELECT
         m.partnership_id, m.product_id, m.occurred_at, 0::bigint, 0::bigint, 0::bigint, 0::bigint,
@@ -52,6 +65,7 @@ WITH scoped AS (
     FROM stock_movements AS m
     WHERE m.partnership_id IN (SELECT s.id FROM scoped AS s) AND m.type IN ('RETURN', 'RECEIVE', 'ADJUSTMENT')
         AND m.occurred_at >= @from_at::timestamptz AND m.occurred_at < @to_at::timestamptz
+        AND (@product_id::text = '' OR m.product_id::text = @product_id::text)
 )
 SELECT
     pr.id::text AS key, (pr.name || ' (' || pr.sku || ')')::text AS label,
@@ -68,7 +82,12 @@ ORDER BY gross_amount DESC, pr.name;
 WITH scoped AS (
     SELECT p.id, p.consignor_org_id, p.store_org_id
     FROM partnerships AS p
-    WHERE p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid
+    WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+        AND (
+            @partner_id::text = ''
+            OR (CASE WHEN p.store_org_id = @organization_id::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+                = @partner_id::text
+        )
 ), facts AS (
     SELECT
         a.partnership_id, a.product_id, a.occurred_at, a.qty::bigint AS sold_qty, a.gross_amount,
@@ -76,6 +95,7 @@ WITH scoped AS (
     FROM sale_allocations AS a
     WHERE a.partnership_id IN (SELECT s.id FROM scoped AS s)
         AND a.occurred_at >= @from_at::timestamptz AND a.occurred_at < @to_at::timestamptz
+        AND (@product_id::text = '' OR a.product_id::text = @product_id::text)
     UNION ALL
     SELECT
         m.partnership_id, m.product_id, m.occurred_at, 0::bigint, 0::bigint, 0::bigint, 0::bigint,
@@ -84,6 +104,7 @@ WITH scoped AS (
     FROM stock_movements AS m
     WHERE m.partnership_id IN (SELECT s.id FROM scoped AS s) AND m.type IN ('RETURN', 'RECEIVE', 'ADJUSTMENT')
         AND m.occurred_at >= @from_at::timestamptz AND m.occurred_at < @to_at::timestamptz
+        AND (@product_id::text = '' OR m.product_id::text = @product_id::text)
 )
 SELECT
     to_char(f.occurred_at AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD')::text AS key,

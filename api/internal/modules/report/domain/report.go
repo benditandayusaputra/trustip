@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
@@ -23,14 +24,18 @@ const (
 	ByDay     Grouping = "DAY"
 )
 
+var idFormat = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+
 func Groupings() []string {
 	return []string{string(ByPartner), string(ByProduct), string(ByDay)}
 }
 
 type Filter struct {
-	From    string
-	To      string
-	GroupBy string
+	From      string
+	To        string
+	GroupBy   string
+	PartnerID string
+	ProductID string
 }
 
 type Query struct {
@@ -38,6 +43,8 @@ type Query struct {
 	From           time.Time
 	To             time.Time
 	GroupBy        Grouping
+	PartnerID      string
+	ProductID      string
 }
 
 func NewQuery(filter Filter) (Query, error) {
@@ -47,14 +54,25 @@ func NewQuery(filter Filter) (Query, error) {
 	if grouping == "" {
 		grouping = ByPartner
 	}
-	problems := field.Collect(fromProblem, toProblem, field.CheckChoice("group_by", string(grouping), Groupings()))
+	problems := field.Collect(fromProblem, toProblem, field.CheckChoice("group_by", string(grouping), Groupings()),
+		findIDProblem("partner_id", filter.PartnerID), findIDProblem("product_id", filter.ProductID))
 	if fromProblem == (field.Problem{}) && toProblem == (field.Problem{}) {
 		problems = append(problems, field.Collect(findRangeProblem(firstDay, lastDay))...)
 	}
 	if len(problems) > 0 {
 		return Query{}, apperror.Validation(problems...)
 	}
-	return Query{From: firstDay, To: lastDay.AddDate(0, 0, 1), GroupBy: grouping}, nil
+	return Query{
+		From: firstDay, To: lastDay.AddDate(0, 0, 1), GroupBy: grouping,
+		PartnerID: filter.PartnerID, ProductID: filter.ProductID,
+	}, nil
+}
+
+func findIDProblem(name, id string) field.Problem {
+	if id == "" || idFormat.MatchString(id) {
+		return field.Problem{}
+	}
+	return field.Invalid(name, apperror.FieldUnknownChoice)
 }
 
 func parseDay(name, raw string) (time.Time, field.Problem) {
