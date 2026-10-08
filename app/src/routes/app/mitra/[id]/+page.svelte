@@ -6,6 +6,8 @@
 	import DropHistoryList from '#lib/features/drops/components/DropHistoryList.svelte';
 	import PartnerStock from '#lib/features/stock/components/PartnerStock.svelte';
 	import PartnerPage from '#lib/features/partnerships/components/PartnerPage.svelte';
+	import RunningSales from '#lib/features/settlements/components/RunningSales.svelte';
+	import SettlementList from '#lib/features/settlements/components/SettlementList.svelte';
 	import { id } from '#lib/i18n/id.js';
 
 	const partnershipId = $derived(page.params.id ?? '');
@@ -43,6 +45,12 @@
 			{/snippet}
 			{#snippet drops()}
 				<DropHistoryList {partnershipId} {recordHref} />
+			{/snippet}
+			{#snippet settlements()}
+				<div class="flex flex-col gap-6">
+					<RunningSales {partnershipId} />
+					<SettlementList {partnershipId} />
+				</div>
 			{/snippet}
 		</PartnerPage>
 	{/key}

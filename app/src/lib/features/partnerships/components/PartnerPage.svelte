@@ -19,9 +19,19 @@
 		drops?: Snippet;
 		stock?: Snippet;
 		counts?: Snippet;
+		settlements?: Snippet;
 	}
 
-	let { partnershipId, canAmend, isConsignor, agreement, drops, stock, counts }: Props = $props();
+	let {
+		partnershipId,
+		canAmend,
+		isConsignor,
+		agreement,
+		drops,
+		stock,
+		counts,
+		settlements
+	}: Props = $props();
 
 	const amendHref = $derived(`/app/mitra/${partnershipId}/perubahan`);
 
@@ -82,6 +92,8 @@
 				{@render counts()}
 			{:else if key === 'drops' && drops}
 				{@render drops()}
+			{:else if key === 'settlements' && settlements}
+				{@render settlements()}
 			{:else}
 				<EmptyState icon={ClipboardList} message={upcoming[key] ?? ''}>
 					{#snippet action()}

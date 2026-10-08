@@ -81,6 +81,14 @@
 	<h2 class="text-lg font-semibold text-text">{text.lines}</h2>
 	<ResponsiveTable caption={text.lines} {columns} rows={lineRows(count)} rowKey="id" />
 	<SealPanel isValid={count.seal.is_valid} events={count.seal.events} />
+	{#if count.settlement}
+		<a href="/app/setoran/{count.settlement.id}" class="font-semibold text-accent">
+			{count.store.id === viewerOrganizationId
+				? id.settlements.recordPayment
+				: id.settlements.openSettlement}
+			<span class="font-mono">{count.settlement.number}</span>
+		</a>
+	{/if}
 	{#if count.store.id === viewerOrganizationId}
 		<a href="/app/titipan/baru?mitra={count.partnership_id}" class="font-semibold text-accent">
 			{text.newDrop}
