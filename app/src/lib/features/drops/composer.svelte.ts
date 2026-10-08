@@ -2,6 +2,7 @@ import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import { getAgreement } from '#lib/api/agreements.js';
 import { getDrop, listDrops } from '#lib/api/drops.js';
+import { listDropSuggestions, type DropSuggestion } from '#lib/api/insights.js';
 import { listPartnerCatalog } from '#lib/api/partnerships.js';
 import { addDays } from '#lib/domain/dates.js';
 import { businessDateOf } from '#lib/i18n/format.js';
@@ -45,6 +46,7 @@ export class DropComposer {
 	consignorName = $state('');
 	dropDate = $state('');
 	lines = $state<DropLine[]>([]);
+	suggestions = $state<DropSuggestion[]>([]);
 	errors = $state<DropErrors>({});
 	status = $state<'loading' | 'ready' | 'failed'>('loading');
 	failure = $state('');
@@ -71,10 +73,12 @@ export class DropComposer {
 		this.#partnershipId = partnershipId;
 		this.status = 'loading';
 		try {
-			const [agreement, catalog] = await Promise.all([
+			const [agreement, catalog, suggestions] = await Promise.all([
 				getAgreement(this.#deps.client(), partnershipId, 0),
-				listPartnerCatalog(this.#deps.client(), partnershipId)
+				listPartnerCatalog(this.#deps.client(), partnershipId),
+				listDropSuggestions(this.#deps.client(), partnershipId).catch(() => [])
 			]);
+			this.suggestions = suggestions;
 			this.#agreementVersion = agreement.version;
 			this.consignorName = agreement.consignor.name;
 			this.lines = linesOf(agreement, catalog, this.dropDate);
@@ -98,6 +102,10 @@ export class DropComposer {
 		this.#revising = entry.id;
 		this.changeDate(revisionDateOf(entry.request.occurred_at ?? null, entry.recordedAt));
 		this.lines = refilledLines(this.lines, entry.request.items);
+	}
+
+	suggestionFor(productId: string): DropSuggestion | undefined {
+		return this.suggestions.find((suggestion) => suggestion.product_id === productId);
 	}
 
 	changeDate(next: string): void {

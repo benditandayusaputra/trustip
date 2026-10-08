@@ -1,0 +1,114 @@
+{
+  "description": "Drop quantity suggestions from 02-SPESIFIKASI-FITUR section 15.3 INS-09. same_weekday_sales lists the newest occurrence first. sold_last_14_days and days_since_first_drop drive the daily rate for other rhythms.",
+  "suggestions": [
+    {
+      "name": "daily rhythm, four Wednesdays sold 16 18 17 17 and never sold out, the section 15.3 example",
+      "rhythm": "DAILY",
+      "same_weekday_sales": [
+        { "sold": 17, "sold_out": false },
+        { "sold": 17, "sold_out": false },
+        { "sold": 18, "sold_out": false },
+        { "sold": 16, "sold_out": false }
+      ],
+      "qty": 19,
+      "has_enough_data": true
+    },
+    {
+      "name": "daily rhythm, sold out on the last two occurrences raises the factor to 1.25",
+      "rhythm": "DAILY",
+      "same_weekday_sales": [
+        { "sold": 20, "sold_out": true },
+        { "sold": 20, "sold_out": true },
+        { "sold": 12, "sold_out": false }
+      ],
+      "qty": 22,
+      "has_enough_data": true
+    },
+    {
+      "name": "daily rhythm, sold out only once keeps the factor at 1.10",
+      "rhythm": "DAILY",
+      "same_weekday_sales": [
+        { "sold": 10, "sold_out": true },
+        { "sold": 10, "sold_out": false }
+      ],
+      "qty": 11,
+      "has_enough_data": true
+    },
+    {
+      "name": "daily rhythm, only the four newest occurrences count",
+      "rhythm": "DAILY",
+      "same_weekday_sales": [
+        { "sold": 10, "sold_out": false },
+        { "sold": 10, "sold_out": false },
+        { "sold": 10, "sold_out": false },
+        { "sold": 10, "sold_out": false },
+        { "sold": 90, "sold_out": false }
+      ],
+      "qty": 11,
+      "has_enough_data": true
+    },
+    {
+      "name": "daily rhythm, nothing sold still suggests at least one",
+      "rhythm": "DAILY",
+      "same_weekday_sales": [
+        { "sold": 0, "sold_out": false },
+        { "sold": 0, "sold_out": false }
+      ],
+      "qty": 1,
+      "has_enough_data": true
+    },
+    {
+      "name": "daily rhythm, one occurrence is not enough data",
+      "rhythm": "DAILY",
+      "same_weekday_sales": [{ "sold": 17, "sold_out": false }],
+      "qty": 0,
+      "has_enough_data": false
+    },
+    {
+      "name": "weekly rhythm, two a day for a week with 10 percent extra minus stock on hand",
+      "rhythm": "WEEKLY",
+      "sold_last_14_days": 28,
+      "days_since_first_drop": 30,
+      "stock_units": 5,
+      "qty": 11,
+      "has_enough_data": true
+    },
+    {
+      "name": "each visit rhythm, stock on hand covering the week suggests zero",
+      "rhythm": "EACH_VISIT",
+      "sold_last_14_days": 14,
+      "days_since_first_drop": 30,
+      "stock_units": 20,
+      "qty": 0,
+      "has_enough_data": true
+    },
+    {
+      "name": "weekly rhythm, shelf life of 3 days caps the suggestion at three days of sales",
+      "rhythm": "WEEKLY",
+      "sold_last_14_days": 28,
+      "days_since_first_drop": 30,
+      "stock_units": 0,
+      "shelf_life_days": 3,
+      "qty": 6,
+      "has_enough_data": true
+    },
+    {
+      "name": "weekly rhythm, a young partnership averages over its own three days",
+      "rhythm": "WEEKLY",
+      "sold_last_14_days": 6,
+      "days_since_first_drop": 3,
+      "stock_units": 0,
+      "qty": 16,
+      "has_enough_data": true
+    },
+    {
+      "name": "weekly rhythm, two days of data is not enough",
+      "rhythm": "WEEKLY",
+      "sold_last_14_days": 6,
+      "days_since_first_drop": 2,
+      "stock_units": 0,
+      "qty": 0,
+      "has_enough_data": false
+    }
+  ]
+}

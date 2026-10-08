@@ -135,6 +135,9 @@ func isolationCases() map[string]isolationCase {
 		"GET /api/v1/drops/:id": func(w isolationWorld) exchange {
 			return w.storeStranger.get(dropsPath + "/" + w.consignor.dropID)
 		},
+		"GET /api/v1/partnerships/:id/drop-suggestions": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/drop-suggestions")
+		},
 		"GET /api/v1/partnerships/:id/stock": func(w isolationWorld) exchange {
 			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/stock")
 		},

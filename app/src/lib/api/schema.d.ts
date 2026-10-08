@@ -1061,6 +1061,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/partnerships/{id}/drop-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["listDropSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/partnerships/{id}/stock": {
         parameters: {
             query?: never;
@@ -2152,6 +2170,18 @@ export interface components {
             /** Format: date */
             nearest_expiry: string | null;
             batches: components["schemas"]["StockBatch"][];
+        };
+        DropSuggestion: {
+            /** Format: uuid */
+            product_id: string;
+            suggested_qty: number;
+            has_enough_data: boolean;
+        };
+        DropSuggestionListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["DropSuggestion"][];
+            meta: components["schemas"]["ListMeta"];
         };
         ProductStockListResponse: {
             code: components["schemas"]["SuccessCode"];
@@ -5215,6 +5245,36 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StockHoldingListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listDropSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saran jumlah titip per produk aktif di Kesepakatan berjalan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DropSuggestionListResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

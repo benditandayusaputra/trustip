@@ -36,5 +36,5 @@ func (r dailyRate) unsoldWithin(stockUnits, days int) int {
 	if excessTimesDays <= 0 {
 		return 0
 	}
-	return (excessTimesDays + r.days - 1) / r.days
+	return ceilDiv(excessTimesDays, r.days)
 }

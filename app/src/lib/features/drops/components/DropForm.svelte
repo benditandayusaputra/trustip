@@ -109,6 +109,7 @@
 		{#each composer.lines as line (line.productId)}
 			<DropLineRow
 				{line}
+				suggestion={composer.suggestionFor(line.productId)}
 				dropDate={composer.dropDate}
 				errors={composer.errors}
 				onchange={(changes: Partial<DropLine>) => {

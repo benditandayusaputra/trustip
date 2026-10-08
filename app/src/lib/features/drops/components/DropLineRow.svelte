@@ -1,20 +1,27 @@
 <script lang="ts">
 	import DateField from '#lib/components/ui/DateField.svelte';
 	import NumberField from '#lib/components/ui/NumberField.svelte';
+	import type { DropSuggestion } from '#lib/api/insights.js';
 	import { id } from '#lib/i18n/id.js';
 	import { isExpirySoon, maxQty, type DropErrors, type DropLine } from '../schema';
 
 	interface Props {
 		line: DropLine;
+		suggestion: DropSuggestion | undefined;
 		dropDate: string;
 		errors: DropErrors;
 		onchange: (changes: Partial<DropLine>) => void;
 	}
 
-	let { line, dropDate, errors, onchange }: Props = $props();
+	let { line, suggestion, dropDate, errors, onchange }: Props = $props();
 
 	const text = id.drops;
 	const isSoon = $derived(line.qty > 0 && isExpirySoon(line, dropDate));
+	const suggestionHint = $derived(
+		suggestion?.has_enough_data === true
+			? text.suggestedQty(suggestion.suggested_qty, line.unit)
+			: text.notEnoughData
+	);
 </script>
 
 <fieldset class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
@@ -28,6 +35,7 @@
 			}
 		}
 		max={maxQty}
+		hint={suggestionHint}
 		error={errors[`${line.productId}.qty`]}
 	/>
 	<DateField

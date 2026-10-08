@@ -2782,6 +2782,40 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/drop-suggestions:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listDropSuggestions
+      tags: [insights]
+      responses:
+        "200":
+          description: Saran jumlah titip per produk aktif di Kesepakatan berjalan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropSuggestionListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/partnerships/{id}/stock:
     parameters:
       - name: id
@@ -5600,6 +5634,34 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/StockBatch"
+    DropSuggestion:
+      type: object
+      additionalProperties: false
+      required: [product_id, suggested_qty, has_enough_data]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        suggested_qty:
+          type: integer
+          minimum: 0
+        has_enough_data:
+          type: boolean
+    DropSuggestionListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropSuggestion"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
     ProductStockListResponse:
       type: object
       additionalProperties: false

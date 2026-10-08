@@ -10,6 +10,8 @@ export const drops = {
 		dropDate: 'Tanggal titip',
 		dropDateHint: 'Boleh mundur paling lama 3 hari.',
 		qty: (unit: string) => `Jumlah (${unit})`,
+		suggestedQty: (qty: number, unit: string) => `Saran titip: ${String(qty)} ${unit}.`,
+		notEnoughData: 'Belum cukup data untuk saran.',
 		expiry: 'Kedaluwarsa',
 		expiryHint: 'Terisi dari masa simpan. Ubah bila tanggal di kemasan berbeda.',
 		expirySoon: 'Kedaluwarsa kurang dari 2 hari lagi. Pastikan tanggalnya benar.',

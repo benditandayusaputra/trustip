@@ -171,6 +171,30 @@ describe('Drop form', () => {
 		expect(sent[0]?.key).toMatch(/^[0-9a-f-]{36}$/u);
 	});
 
+	it('FR-DRP-03 INS-09 shows the suggested quantity beside the field', async () => {
+		serve({
+			...formRoutes(() => envelope(drop, 201)),
+			[`GET /api/v1/partnerships/${partnershipId}/drop-suggestions`]: () =>
+				Response.json({
+					code: 'OK',
+					message: '',
+					data: [{ product_id: breadId, suggested_qty: 19, has_enough_data: true }],
+					meta: { request_id: 'r', next_cursor: null, has_more: false }
+				})
+		});
+		await render(DropsHarness, { view: 'form', targetId: partnershipId });
+
+		await expect.element(page.getByText('Saran titip: 19 pcs.')).toBeVisible();
+	});
+
+	it('INS-09 says there is not enough data when no suggestion is available', async () => {
+		serve(formRoutes(() => envelope(drop, 201)));
+		await render(DropsHarness, { view: 'form', targetId: partnershipId });
+
+		await expect.element(page.getByText('Belum cukup data untuk saran.')).toBeVisible();
+		await expect.element(page.getByLabelText('Kedaluwarsa')).toBeVisible();
+	});
+
 	it('BR-DRP-07 BR-PWA-03 keeps a save that met a busy server and resends it with the same key', async () => {
 		let attempts = 0;
 		const sent = serve(
