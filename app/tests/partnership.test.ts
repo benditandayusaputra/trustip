@@ -1,8 +1,22 @@
 import { devices, expect, test, type Browser, type Page } from '@playwright/test';
+import {
+	documentCounts,
+	expectRecordedStock,
+	fixReviewedCount,
+	partnershipIdOf,
+	prepareForOffline,
+	queueCount,
+	queueDrop,
+	recordDropOnline,
+	secondDevice,
+	signInAgain,
+	signOut,
+	signOutKeepingEntries
+} from './offline';
 import { networkTimeoutMs, onboard, registerThenSignIn, uniqueEmail } from './session';
 
 const appOrigin = 'http://localhost:5173';
-const flowTimeoutMs = 300_000;
+const flowTimeoutMs = 600_000;
 const partnerPagePattern = /\/app\/mitra\/[0-9a-f-]{36}$/u;
 
 async function openAs(browser: Browser, device: string): Promise<Page> {
@@ -10,7 +24,7 @@ async function openAs(browser: Browser, device: string): Promise<Page> {
 	return context.newPage();
 }
 
-async function consignorWithProduct(page: Page): Promise<void> {
+async function consignorWithProduct(page: Page): Promise<string> {
 	const email = uniqueEmail('consignor');
 	await page.goto('/daftar?lanjut=%2Fapp');
 	await registerThenSignIn(page, email);
@@ -24,6 +38,7 @@ async function consignorWithProduct(page: Page): Promise<void> {
 	await page.getByLabel('Harga setor saran').fill('1750');
 	await page.getByRole('button', { name: 'Simpan produk' }).click();
 	await expect(page.getByText('Produk tersimpan.')).toBeVisible({ timeout: networkTimeoutMs });
+	return email;
 }
 
 async function sendInvitation(page: Page): Promise<string> {
@@ -37,7 +52,12 @@ async function sendInvitation(page: Page): Promise<string> {
 	return new URL((await link.textContent()) ?? '').pathname;
 }
 
-async function storeAcceptsInvitation(page: Page, invitationPath: string): Promise<string> {
+interface StoreSide {
+	partnerPage: string;
+	email: string;
+}
+
+async function storeAcceptsInvitation(page: Page, invitationPath: string): Promise<StoreSide> {
 	const email = uniqueEmail('store');
 	await page.goto(invitationPath);
 	await page.getByRole('link', { name: 'Daftar' }).click();
@@ -55,7 +75,7 @@ async function storeAcceptsInvitation(page: Page, invitationPath: string): Promi
 	});
 	await page.getByRole('link', { name: 'Lihat kemitraan' }).click();
 	await page.waitForURL(partnerPagePattern);
-	return page.url();
+	return { partnerPage: page.url(), email };
 }
 
 async function agreementSeenOn(page: Page): Promise<string> {
@@ -123,16 +143,16 @@ async function consignorReceivesTheMoney(page: Page, settlementPage: string): Pr
 	await expect(page.getByText('Lunas', { exact: true }).first()).toBeVisible();
 }
 
-test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 FR-STL-06 two businesses partner, then 20 loaves are dropped, 2 left and returned, the recap is confirmed, and the cash payment is received', async ({
+test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
 	browser
 }) => {
 	test.setTimeout(flowTimeoutMs);
 	const consignor = await openAs(browser, 'Pixel 7');
 	const store = await openAs(browser, 'Desktop Chrome');
-	await consignorWithProduct(consignor);
+	const consignorEmail = await consignorWithProduct(consignor);
 	const invitationPath = await sendInvitation(consignor);
 
-	const partnerPage = await storeAcceptsInvitation(store, invitationPath);
+	const { partnerPage, email: storeEmail } = await storeAcceptsInvitation(store, invitationPath);
 	const seenByStore = await agreementSeenOn(store);
 	await store.goto('/app');
 	await expect(store).toHaveURL(/\/app\/toko$/u);
@@ -156,4 +176,91 @@ test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 FR-STL-06 two businesses
 	});
 	const settlementPage = await storePaysCash(store, recapPage);
 	await consignorReceivesTheMoney(consignor, settlementPage);
+
+	const partnershipId = partnershipIdOf(partnerPage);
+	await storeWorksOffline(store, partnershipId);
+	await storeReviewsAStockChangedElsewhere(browser, store, partnershipId);
+	await anotherUserNeverSendsTheEntries(
+		{ store, consignor, partnershipId },
+		{ storeEmail, consignorEmail }
+	);
 });
+
+async function storeWorksOffline(store: Page, partnershipId: string): Promise<void> {
+	await prepareForOffline(store, partnershipId);
+	const before = await documentCounts(store, partnershipId);
+	await store.context().setOffline(true);
+	await queueDrop(store, partnershipId, 10);
+	await expectRecordedStock(store, partnershipId, 10);
+	await queueCount(store, partnershipId, 4);
+	await expect(store.getByRole('link', { name: 'Antrean, 2 catatan menunggu' })).toBeVisible();
+	const secondTab = await store.context().newPage();
+	await secondTab.goto('/app/antrean');
+	await expect(secondTab.getByText('Menunggu sinyal').first()).toBeVisible();
+
+	await store.context().setOffline(false);
+
+	const sentOnce = { drops: before.drops + 1, counts: before.counts + 1 };
+	await expect
+		.poll(() => documentCounts(store, partnershipId), { timeout: networkTimeoutMs })
+		.toEqual(sentOnce);
+	await expect(store.getByRole('link', { name: /^Buka HS-[0-9]{6}-0002$/u })).toBeVisible({
+		timeout: networkTimeoutMs
+	});
+	await expect(secondTab.getByText('Menunggu sinyal')).toHaveCount(0);
+	expect(await documentCounts(store, partnershipId)).toEqual(sentOnce);
+	await secondTab.close();
+}
+
+async function storeReviewsAStockChangedElsewhere(
+	browser: Browser,
+	store: Page,
+	partnershipId: string
+): Promise<void> {
+	const otherDevice = await secondDevice(browser, store.context());
+	await prepareForOffline(store, partnershipId);
+	await store.context().setOffline(true);
+	await queueCount(store, partnershipId, 1);
+	await recordDropOnline(otherDevice, partnershipId, 3);
+	await otherDevice.context().close();
+
+	await store.context().setOffline(false);
+
+	await fixReviewedCount(store);
+	await expect(store.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
+}
+
+interface Devices {
+	store: Page;
+	consignor: Page;
+	partnershipId: string;
+}
+
+interface Emails {
+	storeEmail: string;
+	consignorEmail: string;
+}
+
+async function anotherUserNeverSendsTheEntries(devices: Devices, emails: Emails): Promise<void> {
+	const { store, consignor, partnershipId } = devices;
+	const blockDrops = '**/api/v1/drops';
+	await store.route(blockDrops, (route) =>
+		route.request().method() === 'POST' ? route.abort() : route.continue()
+	);
+	await queueDrop(store, partnershipId, 2);
+	await signOutKeepingEntries(store);
+	await store.unroute(blockDrops);
+	const kept = await documentCounts(consignor, partnershipId);
+
+	await signInAgain(store, emails.consignorEmail);
+
+	await expect(store.getByText('Tidak ada catatan yang menunggu.')).toBeVisible({
+		timeout: networkTimeoutMs
+	});
+	expect(await documentCounts(consignor, partnershipId)).toEqual(kept);
+	await signOut(store);
+	await signInAgain(store, emails.storeEmail);
+	await expect
+		.poll(() => documentCounts(consignor, partnershipId), { timeout: networkTimeoutMs })
+		.toEqual({ ...kept, drops: kept.drops + 1 });
+}
