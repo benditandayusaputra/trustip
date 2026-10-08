@@ -61,6 +61,21 @@ export const counts = {
 		product: 'Produk',
 		kept: 'Tetap dititip',
 		newDrop: 'Catat titipan baru',
+		confirm: 'Sesuai',
+		confirmTitle: 'Nyatakan hitungan ini sesuai?',
+		confirmBody: 'Jumlah terjual dan dikembalikan dianggap benar dan menjadi dasar Setoran.',
+		confirmed: 'Hitung Sisa dinyatakan sesuai.',
+		keep: 'Kembali',
+		confirmedBy: (name: string, date: string) => `Dinyatakan sesuai oleh ${name} pada ${date}.`,
+		autoConfirmed: (date: string) => `Dianggap sesuai pada ${date} karena tidak ditanggapi 48 jam.`,
+		historyTitle: 'Hitung Sisa',
+		historyFailed: 'Riwayat Hitung Sisa tidak bisa dimuat.',
+		historyEmpty: 'Belum ada Hitung Sisa. Hasil hitungan toko akan tampil di sini.',
+		historyNoMatch: 'Tidak ada Hitung Sisa yang cocok dengan saringan ini.',
+		filters: 'Saring Hitung Sisa',
+		summary: (sold: number, returned: number) =>
+			`${String(sold)} terjual, ${String(returned)} dikembalikan`,
+		loadMore: 'Muat lebih banyak',
 		count: 'Hitung sisa'
 	}
 };

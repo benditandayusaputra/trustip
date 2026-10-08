@@ -80,13 +80,17 @@ function envelope(data: unknown, status = 200): Response {
 	return Response.json({ code: 'OK', message: '', data, meta: { request_id: 'r' } }, { status });
 }
 
-function serve(post: () => Response = () => envelope(recap, 201)) {
+function serve(
+	post: () => Response = () => envelope(recap, 201),
+	extra: Record<string, () => Response> = {}
+) {
 	const sent: unknown[] = [];
 	const requested: string[] = [];
 	const routes: Record<string, () => Response> = {
 		[`GET /api/v1/partnerships/${partnershipId}/count-sheet`]: () => envelope(sheet),
 		[`GET /api/v1/counts/${countId}`]: () => envelope(recap),
-		'POST /api/v1/counts': post
+		'POST /api/v1/counts': post,
+		...extra
 	};
 	vi.stubGlobal('fetch', (path: string, init: RequestInit) => {
 		const key = `${init.method ?? 'GET'} ${path}`;
@@ -212,6 +216,69 @@ describe('Count recap', () => {
 		await expect.element(page.getByText('Rp31.500').first()).toBeInTheDocument();
 		await expect.element(page.getByText('Segel sah')).toBeVisible();
 		await expect.element(page.getByRole('link', { name: 'Catat titipan baru' })).toBeVisible();
+		await expectAccessible(container);
+	});
+});
+
+describe('Count confirmation and history', () => {
+	it('FR-CNT-08 lets the consignor confirm the recap', async () => {
+		serve(undefined, {
+			[`POST /api/v1/counts/${countId}/confirm`]: () =>
+				envelope({
+					...recap,
+					status: 'CONFIRMED',
+					confirmation: { by_name: 'Anton', at: '2026-11-10T13:00:00Z', is_automatic: false }
+				})
+		});
+		await render(CountsHarness, {
+			view: 'recap',
+			targetId: countId,
+			viewerOrganizationId: sheet.consignor.id
+		});
+
+		await userEvent.click(page.getByRole('button', { name: 'Sesuai' }));
+		await userEvent.click(page.getByRole('dialog').getByRole('button', { name: 'Sesuai' }));
+
+		await expect.element(page.getByText('Hitung Sisa dinyatakan sesuai.')).toBeVisible();
+		await expect.element(page.getByText(/Dinyatakan sesuai oleh Anton/u)).toBeVisible();
+	});
+
+	it('FR-CNT-08 shows no confirm button to the store', async () => {
+		serve();
+		await render(CountsHarness, { view: 'recap', targetId: countId });
+
+		await expect.element(page.getByText('HS-202611-0001')).toBeVisible();
+		await expect.element(page.getByRole('button', { name: 'Sesuai' })).not.toBeInTheDocument();
+	});
+
+	it('FR-CNT-10 lists the partner counts with what the store owes', async () => {
+		const summary = {
+			id: countId,
+			number: 'HS-202611-0001',
+			partnership_id: partnershipId,
+			status: 'CONFIRMED',
+			counted_at: '2026-11-10T12:00:00Z',
+			recorded_offline: false,
+			counterpart: { ...sheet.consignor, type: 'CONSIGNOR' },
+			sold_qty: 18,
+			returned_qty: 2,
+			consignor_share: 31500
+		};
+		serve(undefined, {
+			[`GET /api/v1/counts?partnership_id=${partnershipId}`]: () =>
+				Response.json({
+					code: 'OK',
+					message: '',
+					data: [summary],
+					meta: { request_id: 'r', next_cursor: null, has_more: false }
+				})
+		});
+		const { container } = await render(CountsHarness, { view: 'history', targetId: partnershipId });
+
+		await expect
+			.element(page.getByText('18 terjual, 2 dikembalikan', { exact: false }))
+			.toBeVisible();
+		await expect.element(page.getByText(/Rp31\.500/u)).toBeVisible();
 		await expectAccessible(container);
 	});
 });

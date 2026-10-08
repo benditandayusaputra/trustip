@@ -18,9 +18,10 @@
 		agreement: Snippet;
 		drops?: Snippet;
 		stock?: Snippet;
+		counts?: Snippet;
 	}
 
-	let { partnershipId, canAmend, isConsignor, agreement, drops, stock }: Props = $props();
+	let { partnershipId, canAmend, isConsignor, agreement, drops, stock, counts }: Props = $props();
 
 	const amendHref = $derived(`/app/mitra/${partnershipId}/perubahan`);
 
@@ -77,6 +78,8 @@
 				</div>
 			{:else if key === 'stock' && stock}
 				{@render stock()}
+			{:else if key === 'counts' && counts}
+				{@render counts()}
 			{:else if key === 'drops' && drops}
 				{@render drops()}
 			{:else}

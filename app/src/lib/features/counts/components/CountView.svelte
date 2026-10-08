@@ -10,13 +10,14 @@
 	import { id } from '#lib/i18n/id.js';
 	import { CountRecord } from '../record.svelte';
 	import { lineRows } from '../rows';
+	import CountConfirm from './CountConfirm.svelte';
 
 	interface Props {
 		countId: string;
-		isStore: boolean;
+		viewerOrganizationId: string;
 	}
 
-	let { countId, isStore }: Props = $props();
+	let { countId, viewerOrganizationId }: Props = $props();
 
 	const text = id.counts;
 	const record = new CountRecord(apiClient);
@@ -66,13 +67,21 @@
 		<dt class="text-text-muted">{text.returnedUnits}</dt>
 		<dd class="font-mono tabular-nums">{formatInteger(count.returned_qty)}</dd>
 	</dl>
+	{#if count.confirmation}
+		<p class="text-sm text-text">
+			{count.confirmation.is_automatic
+				? text.autoConfirmed(formatDateTime(count.confirmation.at))
+				: text.confirmedBy(count.confirmation.by_name, formatDateTime(count.confirmation.at))}
+		</p>
+	{/if}
+	<CountConfirm {record} {viewerOrganizationId} />
 	{#if count.note}
 		<p class="text-sm text-text">{text.note}: {count.note}</p>
 	{/if}
 	<h2 class="text-lg font-semibold text-text">{text.lines}</h2>
 	<ResponsiveTable caption={text.lines} {columns} rows={lineRows(count)} rowKey="id" />
 	<SealPanel isValid={count.seal.is_valid} events={count.seal.events} />
-	{#if isStore}
+	{#if count.store.id === viewerOrganizationId}
 		<a href="/app/titipan/baru?mitra={count.partnership_id}" class="font-semibold text-accent">
 			{text.newDrop}
 		</a>

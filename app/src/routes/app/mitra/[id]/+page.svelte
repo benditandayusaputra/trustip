@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import AgreementView from '#lib/features/agreements/components/AgreementView.svelte';
+	import CountHistoryList from '#lib/features/counts/components/CountHistoryList.svelte';
 	import DropHistoryList from '#lib/features/drops/components/DropHistoryList.svelte';
 	import PartnerStock from '#lib/features/stock/components/PartnerStock.svelte';
 	import PartnerPage from '#lib/features/partnerships/components/PartnerPage.svelte';
@@ -33,6 +34,12 @@
 			{/snippet}
 			{#snippet stock()}
 				<PartnerStock {partnershipId} {recordHref} />
+			{/snippet}
+			{#snippet counts()}
+				<CountHistoryList
+					{partnershipId}
+					countHref={recordHref ? `/app/hitung/baru?mitra=${partnershipId}` : undefined}
+				/>
 			{/snippet}
 			{#snippet drops()}
 				<DropHistoryList {partnershipId} {recordHref} />
