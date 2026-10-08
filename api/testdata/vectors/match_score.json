@@ -1,0 +1,111 @@
+{
+  "description": "Match score vectors (02-SPESIFIKASI-FITUR section 4, FR-DIR-10). Distance 40 x max(0, 1 - d / R) with R the consignor delivery radius or 25 km, category 30 for an open need and 20 for an accepted category, store type 10 when preferred and 5 when the consignor has no preference, reputation 10 at most and 5 while new, activity 10 within 14 days and 5 within 30 days. 75 and above is VERY_GOOD, 50 to 74 is GOOD.",
+  "now": "2026-10-20T03:00:00Z",
+  "cases": [
+    {
+      "name": "section 4 example: 5 km with R 25, accepted category without a need, no preference, 96% on time, active yesterday",
+      "distance_m": 5000,
+      "delivery_radius_km": 0,
+      "consignor_categories": [{ "id": "snacks", "name": "Kue kering dan camilan" }],
+      "accepted_category_ids": ["snacks"],
+      "need_category_ids": [],
+      "preferred_store_types": [],
+      "store_type": "CANTEEN",
+      "store_reputation": { "due_settlements": 12, "on_time_bps": 9600 },
+      "last_active_at": "2026-10-19T03:00:00Z",
+      "score": 77,
+      "label": "VERY_GOOD",
+      "reasons": [
+        { "code": "DISTANCE", "distance_m": 5000 },
+        { "code": "ACCEPTS_CATEGORY", "category": "Kue kering dan camilan" },
+        { "code": "ON_TIME_PAYMENT", "on_time_bps": 9600 }
+      ]
+    },
+    {
+      "name": "distance beyond the delivery radius scores nothing for distance",
+      "distance_m": 12000,
+      "delivery_radius_km": 10,
+      "consignor_categories": [{ "id": "bread", "name": "Roti dan kue basah" }],
+      "accepted_category_ids": [],
+      "need_category_ids": ["bread"],
+      "preferred_store_types": ["CANTEEN"],
+      "store_type": "CANTEEN",
+      "store_reputation": { "due_settlements": 2, "on_time_bps": 0 },
+      "last_active_at": "2026-09-30T03:00:00Z",
+      "score": 50,
+      "label": "GOOD",
+      "reasons": [
+        { "code": "DISTANCE", "distance_m": 12000 },
+        { "code": "NEEDS_CATEGORY", "category": "Roti dan kue basah" },
+        { "code": "PREFERRED_STORE_TYPE" }
+      ]
+    },
+    {
+      "name": "without a location the distance part and its reason are left out",
+      "distance_m": null,
+      "delivery_radius_km": 0,
+      "consignor_categories": [{ "id": "bread", "name": "Roti dan kue basah" }],
+      "accepted_category_ids": ["bread"],
+      "need_category_ids": [],
+      "preferred_store_types": ["CAFE"],
+      "store_type": "CANTEEN",
+      "store_reputation": { "due_settlements": 0, "on_time_bps": 0 },
+      "last_active_at": null,
+      "score": 25,
+      "label": "",
+      "reasons": [{ "code": "ACCEPTS_CATEGORY", "category": "Roti dan kue basah" }]
+    },
+    {
+      "name": "an open need beats an accepted category and fractional distance points round to the nearest point",
+      "distance_m": 1300,
+      "delivery_radius_km": 5,
+      "consignor_categories": [
+        { "id": "bread", "name": "Roti dan kue basah" },
+        { "id": "snacks", "name": "Kue kering dan camilan" }
+      ],
+      "accepted_category_ids": ["bread"],
+      "need_category_ids": ["snacks"],
+      "preferred_store_types": [],
+      "store_type": "GROCERY_STALL",
+      "store_reputation": { "due_settlements": 3, "on_time_bps": 10000 },
+      "last_active_at": "2026-10-06T03:00:00Z",
+      "score": 85,
+      "label": "VERY_GOOD",
+      "reasons": [
+        { "code": "DISTANCE", "distance_m": 1300 },
+        { "code": "NEEDS_CATEGORY", "category": "Kue kering dan camilan" },
+        { "code": "ON_TIME_PAYMENT", "on_time_bps": 10000 }
+      ]
+    },
+    {
+      "name": "consignor with three partners and no proven report, activity 15 to 30 days ago gives 5",
+      "distance_m": 24999,
+      "delivery_radius_km": 0,
+      "consignor_categories": [{ "id": "drinks", "name": "Minuman" }],
+      "accepted_category_ids": [],
+      "need_category_ids": [],
+      "preferred_store_types": ["CAFE"],
+      "store_type": "CANTEEN",
+      "consignor_reputation": { "active_partners": 3, "proven_reports": 0 },
+      "last_active_at": "2026-10-05T02:59:59Z",
+      "score": 15,
+      "label": "",
+      "reasons": [{ "code": "DISTANCE", "distance_m": 24999 }, { "code": "ESTABLISHED" }]
+    },
+    {
+      "name": "consignor with a proven report stays at newcomer reputation and an idle month scores no activity",
+      "distance_m": 0,
+      "delivery_radius_km": 0,
+      "consignor_categories": [],
+      "accepted_category_ids": [],
+      "need_category_ids": [],
+      "preferred_store_types": [],
+      "store_type": "",
+      "consignor_reputation": { "active_partners": 5, "proven_reports": 1 },
+      "last_active_at": "2026-09-19T02:59:59Z",
+      "score": 50,
+      "label": "GOOD",
+      "reasons": [{ "code": "DISTANCE", "distance_m": 0 }]
+    }
+  ]
+}
