@@ -18,6 +18,7 @@ type Page[T any] struct {
 	Items      []T
 	NextCursor string
 	HasMore    bool
+	Search     any
 }
 
 type meta struct {
@@ -28,6 +29,7 @@ type listMeta struct {
 	RequestID  string  `json:"request_id"`
 	NextCursor *string `json:"next_cursor"`
 	HasMore    bool    `json:"has_more"`
+	Search     any     `json:"search,omitempty"`
 }
 
 type successEnvelope struct {
@@ -58,7 +60,10 @@ func RespondList[T any](c fiber.Ctx, page Page[T]) error {
 	return writeJSON(c, fiber.StatusOK, successEnvelope{
 		Code: codeOK,
 		Data: items,
-		Meta: listMeta{RequestID: RequestIDFrom(c), NextCursor: cursorOrNull(page.NextCursor), HasMore: page.HasMore},
+		Meta: listMeta{
+			RequestID: RequestIDFrom(c), NextCursor: cursorOrNull(page.NextCursor), HasMore: page.HasMore,
+			Search: page.Search,
+		},
 	})
 }
 

@@ -900,6 +900,105 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/directory/stores:
+    get:
+      operationId: listDirectoryStores
+      tags: [directory]
+      parameters:
+        - name: origin
+          in: query
+          schema:
+            type: string
+            enum: [ORGANIZATION, HERE, CITY]
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+        - name: city_code
+          in: query
+          schema:
+            type: string
+        - name: radius_km
+          in: query
+          schema:
+            type: string
+            enum: ["2", "5", "10", "25", all]
+        - name: sort
+          in: query
+          schema:
+            $ref: "#/components/schemas/DirectorySort"
+        - name: store_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/StoreType"
+        - name: category_id
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: pricing_model
+          in: query
+          schema:
+            type: string
+            enum: [FIXED_DEPOSIT, COMMISSION]
+        - name: max_commission_bps
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 5000
+        - name: without_permit
+          in: query
+          schema:
+            type: boolean
+        - name: without_halal
+          in: query
+          schema:
+            type: boolean
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 80
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Direktori toko yang tampil di Cari Mitra, terdekat lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectoryStoreListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/products:
     get:
       operationId: listProducts
@@ -5803,3 +5902,184 @@ components:
                 $ref: "#/components/schemas/SettlementReportRow"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    DirectorySort:
+      type: string
+      enum: [NEAREST, BEST_MATCH, REPUTATION, NEWEST]
+    DirectoryCategory:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    MatchReason:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code:
+          type: string
+          enum: [DISTANCE, NEEDS_CATEGORY, ACCEPTS_CATEGORY, ON_TIME_PAYMENT, ESTABLISHED, PREFERRED_STORE_TYPE,
+            ACTIVE_RECENTLY]
+        distance_m:
+          type: integer
+        category:
+          type: string
+        on_time_bps:
+          type: integer
+    MatchScore:
+      type: object
+      additionalProperties: false
+      required: [score, label, reasons]
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        label:
+          type: string
+          nullable: true
+          enum: [VERY_GOOD, GOOD, null]
+        reasons:
+          type: array
+          maxItems: 3
+          items:
+            $ref: "#/components/schemas/MatchReason"
+    StoreReputation:
+      type: object
+      additionalProperties: false
+      required: [is_new, on_time_bps]
+      properties:
+        is_new:
+          type: boolean
+        on_time_bps:
+          type: integer
+          nullable: true
+    DirectoryStoreTerms:
+      type: object
+      additionalProperties: false
+      required: [accepts_fixed_deposit, accepts_commission, commission_min_bps, commission_max_bps,
+        requires_distribution_permit, requires_halal, requires_sample]
+      properties:
+        accepts_fixed_deposit:
+          type: boolean
+        accepts_commission:
+          type: boolean
+        commission_min_bps:
+          type: integer
+          nullable: true
+        commission_max_bps:
+          type: integer
+          nullable: true
+        requires_distribution_permit:
+          type: boolean
+        requires_halal:
+          type: boolean
+        requires_sample:
+          type: boolean
+    DirectoryStoreCard:
+      type: object
+      additionalProperties: false
+      required: [id, slug, name, city_name, district, store_type, logo_url, distance_m, accepted_categories, terms,
+        reputation, is_self, is_partner, match]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        city_name:
+          type: string
+        district:
+          type: string
+        store_type:
+          allOf:
+            - $ref: "#/components/schemas/StoreType"
+          nullable: true
+        logo_url:
+          type: string
+          nullable: true
+        distance_m:
+          type: integer
+          nullable: true
+        accepted_categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/DirectoryCategory"
+        terms:
+          $ref: "#/components/schemas/DirectoryStoreTerms"
+        reputation:
+          $ref: "#/components/schemas/StoreReputation"
+        is_self:
+          type: boolean
+        is_partner:
+          type: boolean
+        match:
+          allOf:
+            - $ref: "#/components/schemas/MatchScore"
+          nullable: true
+    DirectorySearch:
+      type: object
+      additionalProperties: false
+      required: [origin, sort, selected_radius_km, effective_radius_km, is_expanded, category_ids]
+      properties:
+        origin:
+          type: object
+          additionalProperties: false
+          required: [kind, is_known]
+          properties:
+            kind:
+              type: string
+              enum: [ORGANIZATION, HERE, CITY]
+            is_known:
+              type: boolean
+        sort:
+          type: string
+          enum: [NEAREST, BEST_MATCH, REPUTATION, NEWEST, CITY]
+        selected_radius_km:
+          type: integer
+          nullable: true
+        effective_radius_km:
+          type: integer
+          nullable: true
+        is_expanded:
+          type: boolean
+        category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    DirectoryListMeta:
+      type: object
+      additionalProperties: false
+      required: [request_id, next_cursor, has_more, search]
+      properties:
+        request_id:
+          type: string
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+        search:
+          $ref: "#/components/schemas/DirectorySearch"
+    DirectoryStoreListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DirectoryStoreCard"
+        meta:
+          $ref: "#/components/schemas/DirectoryListMeta"

@@ -47,11 +47,12 @@ func newTestServerWith(ready httpserver.ReadinessCheck, now *clock.Manual, auth 
 }
 
 type testModules struct {
-	auth  authComponents
-	org   orgComponents
-	files fileComponents
-	inbox notificationComponents
-	trade tradeComponents
+	auth      authComponents
+	org       orgComponents
+	files     fileComponents
+	inbox     notificationComponents
+	trade     tradeComponents
+	directory directoryComponents
 }
 
 func newServerFrom(ready httpserver.ReadinessCheck, now *clock.Manual, modules testModules) *httpserver.Server {
@@ -65,6 +66,7 @@ func newServerFrom(ready httpserver.ReadinessCheck, now *clock.Manual, modules t
 		files:     modules.files,
 		inbox:     modules.inbox,
 		trade:     modules.trade,
+		directory: modules.directory,
 		appOrigin: testAppOrigin,
 	})
 }

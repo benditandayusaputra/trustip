@@ -218,6 +218,15 @@ type OrgPhoto struct {
 	SortOrder      int32
 }
 
+type OrgStat struct {
+	OrganizationID     string
+	ActivePartnerCount int32
+	OnTimePaymentBps   int32
+	SettlementsCounted int32
+	ProductCount       int32
+	ComputedAt         time.Time
+}
+
 type Organization struct {
 	ID              string
 	Type            string

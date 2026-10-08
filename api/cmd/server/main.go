@@ -42,7 +42,7 @@ func main() {
 	appLog.Info("server stopped")
 }
 
-func serve(cfg config.Config, base *slog.Logger) error {
+func openDatabase(cfg config.Config, base *slog.Logger) (*database.Pool, error) {
 	pool, err := database.Open(context.Background(), database.Options{
 		URL:               cfg.DatabaseURL,
 		Logger:            logger.ForStream(base, logger.App),
@@ -50,7 +50,15 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		RefuseSchemaOwner: cfg.Environment == config.Production,
 	})
 	if err != nil {
-		return fmt.Errorf("open database: %w", err)
+		return nil, fmt.Errorf("open database: %w", err)
+	}
+	return pool, nil
+}
+
+func serve(cfg config.Config, base *slog.Logger) error {
+	pool, err := openDatabase(cfg, base)
+	if err != nil {
+		return err
 	}
 	defer pool.Close()
 	systemClock := clock.System{}
@@ -69,6 +77,7 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		files:     buildFileComponents(pool, cfg, systemClock),
 		inbox:     buildNotificationComponents(pool, systemClock),
 		trade:     trade,
+		directory: buildDirectoryComponents(pool),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -104,6 +113,7 @@ type serverDeps struct {
 	files     fileComponents
 	inbox     notificationComponents
 	trade     tradeComponents
+	directory directoryComponents
 	appOrigin string
 }
 
@@ -145,6 +155,9 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	mountTrade(server.API(), deps.trade, tradeRoutes{
 		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
 		securityLog: securityLog, clock: deps.clock,
+	})
+	mountDirectory(server.API(), deps.directory, directoryRoutes{
+		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, securityLog: securityLog, clock: deps.clock,
 	})
 	return server
 }

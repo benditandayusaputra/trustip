@@ -416,6 +416,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/directory/stores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listDirectoryStores"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/products": {
         parameters: {
             query?: never;
@@ -2380,6 +2396,81 @@ export interface components {
             };
             meta: components["schemas"]["ResponseMeta"];
         };
+        /** @enum {string} */
+        DirectorySort: "NEAREST" | "BEST_MATCH" | "REPUTATION" | "NEWEST";
+        DirectoryCategory: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        MatchReason: {
+            /** @enum {string} */
+            code: "DISTANCE" | "NEEDS_CATEGORY" | "ACCEPTS_CATEGORY" | "ON_TIME_PAYMENT" | "ESTABLISHED" | "PREFERRED_STORE_TYPE" | "ACTIVE_RECENTLY";
+            distance_m?: number;
+            category?: string;
+            on_time_bps?: number;
+        };
+        MatchScore: {
+            score: number;
+            /** @enum {string|null} */
+            label: "VERY_GOOD" | "GOOD" | null;
+            reasons: components["schemas"]["MatchReason"][];
+        };
+        StoreReputation: {
+            is_new: boolean;
+            on_time_bps: number | null;
+        };
+        DirectoryStoreTerms: {
+            accepts_fixed_deposit: boolean;
+            accepts_commission: boolean;
+            commission_min_bps: number | null;
+            commission_max_bps: number | null;
+            requires_distribution_permit: boolean;
+            requires_halal: boolean;
+            requires_sample: boolean;
+        };
+        DirectoryStoreCard: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            city_name: string;
+            district: string;
+            store_type: components["schemas"]["StoreType"] | null;
+            logo_url: string | null;
+            distance_m: number | null;
+            accepted_categories: components["schemas"]["DirectoryCategory"][];
+            terms: components["schemas"]["DirectoryStoreTerms"];
+            reputation: components["schemas"]["StoreReputation"];
+            is_self: boolean;
+            is_partner: boolean;
+            match: components["schemas"]["MatchScore"] | null;
+        };
+        DirectorySearch: {
+            origin: {
+                /** @enum {string} */
+                kind: "ORGANIZATION" | "HERE" | "CITY";
+                is_known: boolean;
+            };
+            /** @enum {string} */
+            sort: "NEAREST" | "BEST_MATCH" | "REPUTATION" | "NEWEST" | "CITY";
+            selected_radius_km: number | null;
+            effective_radius_km: number | null;
+            is_expanded: boolean;
+            category_ids: string[];
+        };
+        DirectoryListMeta: {
+            request_id: string;
+            next_cursor: string | null;
+            has_more: boolean;
+            search: components["schemas"]["DirectorySearch"];
+        };
+        DirectoryStoreListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["DirectoryStoreCard"][];
+            meta: components["schemas"]["DirectoryListMeta"];
+        };
     };
     responses: {
         /** @description Permintaan tidak terbaca atau memuat isian tak dikenal */
@@ -3299,6 +3390,49 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listDirectoryStores: {
+        parameters: {
+            query?: {
+                origin?: "ORGANIZATION" | "HERE" | "CITY";
+                lat?: number;
+                lng?: number;
+                city_code?: string;
+                radius_km?: "2" | "5" | "10" | "25" | "all";
+                sort?: components["schemas"]["DirectorySort"];
+                store_type?: components["schemas"]["StoreType"];
+                category_id?: string[];
+                pricing_model?: "FIXED_DEPOSIT" | "COMMISSION";
+                max_commission_bps?: number;
+                without_permit?: boolean;
+                without_halal?: boolean;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direktori toko yang tampil di Cari Mitra, terdekat lebih dulu */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryStoreListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];
