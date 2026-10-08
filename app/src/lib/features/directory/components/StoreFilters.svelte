@@ -110,5 +110,11 @@
 				onchange({ withoutHalal });
 			}}>{text.withoutHalal}</Checkbox
 		>
+		<Checkbox
+			checked={query.hasOpenNeed}
+			onchange={(hasOpenNeed: boolean) => {
+				onchange({ hasOpenNeed });
+			}}>{text.hasOpenNeed}</Checkbox
+		>
 	</div>
 </fieldset>

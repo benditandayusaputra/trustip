@@ -440,6 +440,23 @@ describe('Direct proposal', () => {
 			.toBeVisible();
 	});
 
+	it('FR-NED-05 answering a need sends the need with the proposal', async () => {
+		const needId = '0192f0c4-0000-7000-8000-000000000901';
+		const sent = serve({
+			[`GET /api/v1/directory/organizations/${storeId}`]: contact('STORE', 'Kantin Kampus'),
+			'GET /api/v1/products': catalog,
+			'POST /api/v1/proposals': () => envelope(proposal, 201)
+		});
+		await render(ProposalsHarness, { view: 'direct', proposalId: storeId, needId });
+
+		await expect.element(page.getByText(/menanggapi Kebutuhan toko/u)).toBeVisible();
+		await userEvent.click(page.getByRole('button', { name: 'Kirim ajuan' }));
+
+		await vi.waitFor(() => {
+			expect(sent['POST /api/v1/proposals']).toMatchObject({ need_id: needId });
+		});
+	});
+
 	it('tells when the target is not listed anymore', async () => {
 		serve({});
 		await render(ProposalsHarness, { view: 'direct', proposalId: storeId });

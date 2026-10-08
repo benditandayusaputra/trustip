@@ -15,6 +15,7 @@
 		proposalId?: string;
 		viewerOrganizationId?: string;
 		code?: string;
+		needId?: string;
 		ondone?: (proposal: Proposal) => void;
 	}
 
@@ -24,6 +25,7 @@
 		proposalId = '',
 		viewerOrganizationId = '',
 		code = '',
+		needId = '',
 		ondone = () => undefined
 	}: Props = $props();
 
@@ -39,6 +41,7 @@
 {:else if view === 'direct'}
 	<DirectProposalView
 		targetId={proposalId}
+		{needId}
 		preselectedProductId={code}
 		{isConsignor}
 		onsent={ondone}

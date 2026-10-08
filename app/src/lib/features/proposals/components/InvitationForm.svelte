@@ -15,6 +15,7 @@
 	interface Props {
 		isConsignor: boolean;
 		targetId?: string;
+		needId?: string;
 		preselectedProductId?: string;
 		submitLabel?: string;
 		sentMessage?: string;
@@ -24,6 +25,7 @@
 	let {
 		isConsignor,
 		targetId = '',
+		needId = '',
 		preselectedProductId = '',
 		submitLabel = id.proposals.send,
 		sentMessage = id.proposals.sent,
@@ -31,7 +33,11 @@
 	}: Props = $props();
 
 	const text = id.proposals;
-	const composer = new InvitationComposer(apiClient, () => targetId);
+	const composer = new InvitationComposer(
+		apiClient,
+		() => targetId,
+		() => needId
+	);
 	const listsProducts = $derived(isConsignor || targetId !== '');
 	const toaster = getToaster();
 	let formElement: HTMLFormElement | undefined = $state();

@@ -19,6 +19,7 @@ export interface StoreQuery extends SearchQuery {
 	maxCommissionBps: string;
 	withoutPermit: boolean;
 	withoutHalal: boolean;
+	hasOpenNeed: boolean;
 }
 
 export interface QueryReader {
@@ -53,7 +54,8 @@ export function defaultStoreQuery(): StoreQuery {
 		pricingModel: '',
 		maxCommissionBps: '',
 		withoutPermit: false,
-		withoutHalal: false
+		withoutHalal: false,
+		hasOpenNeed: false
 	};
 }
 
@@ -87,7 +89,8 @@ export function storeQueryFrom(params: QueryReader): StoreQuery {
 		pricingModel: textOf(params, 'pricing_model'),
 		maxCommissionBps: textOf(params, 'max_commission_bps'),
 		withoutPermit: params.get('without_permit') === 'true',
-		withoutHalal: params.get('without_halal') === 'true'
+		withoutHalal: params.get('without_halal') === 'true',
+		hasOpenNeed: params.get('has_open_need') === 'true'
 	};
 }
 
@@ -134,6 +137,7 @@ export function storeSearchParams(query: StoreQuery): URLSearchParams {
 		['pricing_model', query.pricingModel, ''],
 		['max_commission_bps', query.maxCommissionBps, ''],
 		['without_permit', String(query.withoutPermit), 'false'],
-		['without_halal', String(query.withoutHalal), 'false']
+		['without_halal', String(query.withoutHalal), 'false'],
+		['has_open_need', String(query.hasOpenNeed), 'false']
 	]);
 }

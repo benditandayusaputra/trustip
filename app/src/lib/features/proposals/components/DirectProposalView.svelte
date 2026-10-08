@@ -8,12 +8,13 @@
 
 	interface Props {
 		targetId: string;
+		needId?: string;
 		preselectedProductId: string;
 		isConsignor: boolean;
 		onsent: (proposal: Proposal) => void;
 	}
 
-	let { targetId, preselectedProductId, isConsignor, onsent }: Props = $props();
+	let { targetId, needId = '', preselectedProductId, isConsignor, onsent }: Props = $props();
 
 	const text = id.proposals;
 	let contact = $state<DirectoryContact | undefined>();
@@ -41,9 +42,13 @@
 {:else}
 	<h1 class="text-xl font-semibold text-text">{text.directTitle(contact.name)}</h1>
 	<p class="text-base text-text-muted">{text.directIntro}</p>
+	{#if needId !== ''}
+		<p role="status" class="text-base text-accent">{text.answeringNeed}</p>
+	{/if}
 	<InvitationForm
 		{isConsignor}
 		{targetId}
+		{needId}
 		{preselectedProductId}
 		submitLabel={text.directSend}
 		sentMessage={text.directSent}

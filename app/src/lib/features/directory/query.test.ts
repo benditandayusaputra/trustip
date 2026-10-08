@@ -17,6 +17,7 @@ describe('store directory query', () => {
 			storeType: 'CANTEEN',
 			categoryIds: ['a', 'b'],
 			withoutHalal: true,
+			hasOpenNeed: true,
 			text: 'kopi'
 		};
 
@@ -24,7 +25,7 @@ describe('store directory query', () => {
 
 		expect(address.toString()).toBe(
 			'origin=CITY&city_code=33.74&radius_km=25&sort=BEST_MATCH&q=kopi' +
-				'&store_type=CANTEEN&without_halal=true&category_id=a&category_id=b'
+				'&store_type=CANTEEN&without_halal=true&has_open_need=true&category_id=a&category_id=b'
 		);
 		expect(storeQueryFrom(address)).toEqual(query);
 	});

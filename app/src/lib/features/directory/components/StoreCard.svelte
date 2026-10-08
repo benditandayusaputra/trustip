@@ -61,6 +61,9 @@
 		{#if card.is_partner}
 			<Badge tone="success" label={text.partner} />
 		{/if}
+		{#if card.open_need_category_ids.length > 0}
+			<Badge tone="pending" label={text.openNeed} />
+		{/if}
 		{#each card.accepted_categories as category (category.id)}
 			<Badge tone="neutral" label={category.name} />
 		{/each}

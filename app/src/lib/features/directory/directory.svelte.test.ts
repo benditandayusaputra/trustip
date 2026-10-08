@@ -16,6 +16,7 @@ const canteen = {
 	logo_url: null,
 	distance_m: 1200,
 	accepted_categories: [{ id: 'c1', name: 'Kue kering dan camilan' }],
+	open_need_category_ids: ['c1'],
 	terms: {
 		accepts_fixed_deposit: false,
 		accepts_commission: true,
@@ -92,6 +93,7 @@ describe('Store directory', () => {
 		await expect.element(page.getByText('Bayar tepat waktu 96%').first()).toBeVisible();
 		await expect.element(page.getByText('Terima Kue kering dan camilan')).toBeVisible();
 		await expect.element(page.getByText('Sudah bermitra')).toBeVisible();
+		await expect.element(page.getByText('Kebutuhan terbuka', { exact: true })).toBeVisible();
 		await expectAccessible(container);
 	});
 

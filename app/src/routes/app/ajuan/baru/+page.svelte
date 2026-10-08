@@ -11,6 +11,7 @@
 	const membership = $derived(session.account?.membership);
 	const targetId = $derived(page.url.searchParams.get('sasaran') ?? '');
 	const productId = $derived(page.url.searchParams.get('produk') ?? '');
+	const needId = $derived(page.url.searchParams.get('kebutuhan') ?? '');
 
 	function open(proposal: Proposal) {
 		void goto(`/app/ajuan/${proposal.id}`);
@@ -25,6 +26,7 @@
 	{#if membership && targetId !== ''}
 		<DirectProposalView
 			{targetId}
+			{needId}
 			preselectedProductId={productId}
 			isConsignor={membership.organization_type === 'CONSIGNOR'}
 			onsent={open}

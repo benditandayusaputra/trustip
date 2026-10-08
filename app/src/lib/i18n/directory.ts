@@ -37,6 +37,8 @@ export const directory = {
 		maxCommission: 'Komisi maksimal (%)',
 		withoutPermit: 'Tanpa syarat izin edar',
 		withoutHalal: 'Tanpa syarat halal',
+		hasOpenNeed: 'Punya Kebutuhan terbuka',
+		openNeed: 'Kebutuhan terbuka',
 		expanded: (radiusKm: number | null) =>
 			radiusKm === null ? 'Diperluas ke semua jarak' : `Diperluas ke ${String(radiusKm)} km`,
 		noOrigin: 'Lokasi usaha belum diatur. Toko diurutkan menurut kota.',
@@ -67,6 +69,22 @@ export const directory = {
 		contactFailed: 'Kontak tidak bisa dimuat. Coba lagi.',
 		greeting: (name: string) =>
 			`Halo ${name}, saya menemukan usaha Anda di Trustip dan tertarik bekerja sama titip jual.`
+	},
+	needBoard: {
+		title: 'Papan Kebutuhan',
+		filters: 'Saring Kebutuhan',
+		search: 'Cari judul atau deskripsi Kebutuhan',
+		sorts: { NEAREST: 'Terdekat', NEWEST: 'Terbaru' },
+		category: 'Kategori',
+		anyCategory: 'Semua kategori',
+		empty: 'Belum ada Kebutuhan terbuka yang cocok dengan saringan ini.',
+		failed: 'Papan Kebutuhan tidak bisa dimuat.',
+		respond: 'Tanggapi dengan Ajuan',
+		own: 'Kebutuhan toko Anda',
+		expiresAt: (when: string) => `Tayang sampai ${when}`,
+		perWeek: (quantity: number) => `${String(quantity)} per minggu`,
+		priceUpTo: (price: string) => `Harga jual sampai ${price}`,
+		commission: (percent: string) => `Komisi ditawarkan ${percent}`
 	},
 	consignorDirectory: {
 		title: 'Cari penitip',

@@ -28,6 +28,7 @@ export const proposals = {
 		directIntro:
 			'Atur produk dan syaratnya. Pihak lawan bisa menerima, menawar, atau menolak dalam 14 hari.',
 		directSend: 'Kirim ajuan',
+		answeringNeed: 'Ajuan ini menanggapi Kebutuhan toko. Toko melihatnya di daftar tanggapan.',
 		directSent: 'Ajuan kerja sama terkirim.',
 		targetLoading: 'Memuat data usaha...',
 		targetMissing: 'Usaha ini tidak ditemukan atau sudah tidak tampil di Cari Mitra.',

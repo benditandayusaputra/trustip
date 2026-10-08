@@ -34,10 +34,16 @@ export class InvitationComposer {
 	busy = $state(false);
 	readonly #client: () => ApiClient;
 	readonly #targetId: () => string;
+	readonly #needId: () => string;
 
-	constructor(client: () => ApiClient, targetId: () => string = () => '') {
+	constructor(
+		client: () => ApiClient,
+		targetId: () => string = () => '',
+		needId: () => string = () => ''
+	) {
 		this.#client = client;
 		this.#targetId = targetId;
+		this.#needId = needId;
 	}
 
 	async loadCatalog(): Promise<void> {
@@ -88,7 +94,12 @@ export class InvitationComposer {
 		if (this.#targetId() === '') {
 			return sendInvitation(this.#client(), request);
 		}
-		return sendProposal(this.#client(), { ...request, target_organization_id: this.#targetId() });
+		const needId = this.#needId();
+		return sendProposal(this.#client(), {
+			...request,
+			target_organization_id: this.#targetId(),
+			...(needId === '' ? {} : { need_id: needId })
+		});
 	}
 
 	#explain(error: unknown): SendOutcome {
