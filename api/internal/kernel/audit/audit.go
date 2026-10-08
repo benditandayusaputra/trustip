@@ -31,6 +31,7 @@ const (
 	PaymentRecorded         Action = "PAYMENT_RECORDED"
 	PaymentConfirmed        Action = "PAYMENT_CONFIRMED"
 	PaymentRejected         Action = "PAYMENT_REJECTED"
+	PartnershipEnded        Action = "PARTNERSHIP_ENDED"
 )
 
 type EntityType string
@@ -44,6 +45,7 @@ const (
 	CountEntity        EntityType = "COUNT"
 	SettlementEntity   EntityType = "SETTLEMENT"
 	PaymentEntity      EntityType = "PAYMENT"
+	PartnershipEntity  EntityType = "PARTNERSHIP"
 )
 
 type Entry struct {

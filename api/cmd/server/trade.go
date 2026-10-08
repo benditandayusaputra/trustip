@@ -34,6 +34,7 @@ type tradeComponents struct {
 	stocks       stockservice.StockReader
 	counts       countservice.Deps
 	settlements  settlementservice.Deps
+	ending       partnershipservice.EndDeps
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
@@ -54,6 +55,7 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		stocks:       stockrepository.NewStocks(pool),
 		counts:       counts,
 		settlements:  settlements,
+		ending:       buildEndingDeps(pool, endingParts{clock: clock, seals: seals, settlements: settlements}),
 	}
 }
 
@@ -75,13 +77,7 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 	}
 	proposalhandler.Mount(api, proposalDeps(components.proposals, negotiation))
 	agreementhandler.Mount(api, agreementDeps(components.agreements, negotiation))
-	partnershiphandler.Mount(api, partnershiphandler.Deps{
-		Authenticate: routes.authenticate,
-		List:         partnershipservice.NewListPartnerships(components.partnerships),
-		Get:          partnershipservice.NewGetPartnership(components.partnerships),
-		Catalog:      partnershipservice.NewListCatalog(components.partnerships),
-		FilesBaseURL: routes.filesBaseURL,
-	})
+	partnershiphandler.Mount(api, partnershipDeps(components, routes))
 	drophandler.Mount(api, dropDeps(components.drops, routes))
 	stockhandler.Mount(api, stockDeps(components.stocks, routes))
 	counthandler.Mount(api, countDeps(components.counts, routes))

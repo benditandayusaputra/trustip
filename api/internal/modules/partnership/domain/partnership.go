@@ -46,11 +46,13 @@ type Counterpart struct {
 }
 
 type Partnership struct {
-	ID          string
-	Status      Status
-	StartedAt   time.Time
-	EndedAt     time.Time
-	Counterpart Counterpart
+	ID           string
+	Status       Status
+	StartedAt    time.Time
+	EndedAt      time.Time
+	ShowOnPublic bool
+	EndReason    string
+	Counterpart  Counterpart
 }
 
 type PartnerView struct {
@@ -80,6 +82,8 @@ type Summary struct {
 	CounterpartID   string
 	CounterpartName string
 	CounterpartType actor.OrganizationType
+	StockQty        int
+	UnpaidAmount    int64
 }
 
 type ListQuery struct {

@@ -2611,6 +2611,153 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/blockers:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listPartnershipBlockers
+      tags: [partnership]
+      responses:
+        "200":
+          description: Penghalang yang membuat kemitraan belum bisa diakhiri
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnershipBlockerListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/end:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: endPartnership
+      tags: [partnership]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  maxLength: 500
+      responses:
+        "200":
+          description: Setoran penjualan berjalan diterbitkan lebih dulu, lalu kemitraan berakhir bila tidak ada penghalang
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnershipResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/public-listing:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    patch:
+      operationId: setPartnershipPublicListing
+      tags: [partnership]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [show_on_public]
+              properties:
+                show_on_public:
+                  type: boolean
+      responses:
+        "200":
+          description: Toko memilih tampil sebagai tempat membeli produk mitra ini
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnershipResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -2757,6 +2904,7 @@ components:
         - STOCK_CHANGED
         - SETTLEMENT_ALREADY_PAID
         - PAYMENT_PENDING
+        - PARTNERSHIP_HAS_BLOCKERS
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -4014,8 +4162,14 @@ components:
     PartnershipSummary:
       type: object
       additionalProperties: false
-      required: [id, status, started_at, ended_at, counterpart]
+      required: [id, status, started_at, ended_at, counterpart, stock_qty, unpaid_amount]
       properties:
+        stock_qty:
+          type: integer
+          minimum: 0
+        unpaid_amount:
+          type: integer
+          minimum: 0
         id:
           type: string
           format: uuid
@@ -4049,8 +4203,12 @@ components:
     Partnership:
       type: object
       additionalProperties: false
-      required: [id, status, started_at, ended_at, counterpart]
+      required: [id, status, started_at, ended_at, show_on_public, end_reason, counterpart]
       properties:
+        show_on_public:
+          type: boolean
+        end_reason:
+          type: string
         id:
           type: string
           format: uuid
@@ -5307,3 +5465,36 @@ components:
               format: date-time
         seal:
           $ref: "#/components/schemas/SealStatus"
+    PartnershipBlocker:
+      type: object
+      additionalProperties: false
+      required: [kind, document_id, document_number, qty, amount, description]
+      properties:
+        kind:
+          type: string
+          enum: [STOCK_AT_STORE, PENDING_DROP, PENDING_COUNT, PENDING_PAYMENT, UNPAID_SETTLEMENT]
+        document_id:
+          type: string
+        document_number:
+          type: string
+        qty:
+          type: integer
+        amount:
+          type: integer
+        description:
+          type: string
+    PartnershipBlockerListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartnershipBlocker"
+        meta:
+          $ref: "#/components/schemas/ListMeta"

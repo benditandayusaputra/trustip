@@ -144,6 +144,17 @@ func isolationCases() map[string]isolationCase {
 		"POST /api/v1/payments/:id/reject": func(w isolationWorld) exchange {
 			return w.consignorStranger.postJSON("/api/v1/payments/"+w.consignor.paymentID+"/reject", `{"reason":"x"}`)
 		},
+		"GET /api/v1/partnerships/:id/blockers": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/blockers")
+		},
+		"POST /api/v1/partnerships/:id/end": func(w isolationWorld) exchange {
+			return w.consignorStranger.postJSON("/api/v1/partnerships/"+w.consignor.partnershipID+"/end",
+				`{"reason":""}`)
+		},
+		"PATCH /api/v1/partnerships/:id/public-listing": func(w isolationWorld) exchange {
+			return w.storeStranger.patch("/api/v1/partnerships/"+w.consignor.partnershipID+"/public-listing",
+				`{"show_on_public":true}`)
+		},
 		"GET /api/v1/partnerships/:id/running-sales": func(w isolationWorld) exchange {
 			return w.consignorStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/running-sales")
 		},

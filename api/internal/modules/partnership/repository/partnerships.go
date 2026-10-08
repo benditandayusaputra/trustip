@@ -45,6 +45,7 @@ func (r *Partnerships) ListPartnerships(ctx context.Context, query domain.ListQu
 		summary := domain.Summary{
 			ID: row.ID, Status: domain.Status(row.Status), StartedAt: row.StartedAt, CounterpartID: row.CounterpartID,
 			CounterpartName: row.CounterpartName, CounterpartType: actor.OrganizationType(row.CounterpartType),
+			StockQty: int(row.StockQty), UnpaidAmount: row.UnpaidAmount,
 		}
 		if row.HasEnded {
 			summary.EndedAt = row.EndedAt
@@ -67,7 +68,8 @@ func (r *Partnerships) GetPartnership(ctx context.Context, key domain.Key) (doma
 		return domain.Partnership{}, fmt.Errorf("get partnership %s: %w", key.PartnershipID, err)
 	}
 	partnership := domain.Partnership{
-		ID: row.ID, Status: domain.Status(row.Status), StartedAt: row.StartedAt,
+		ID: row.ID, Status: domain.Status(row.Status), StartedAt: row.StartedAt, ShowOnPublic: row.ShowOnPublic,
+		EndReason: row.EndReason,
 		Counterpart: domain.Counterpart{
 			ID: row.CounterpartID, Type: actor.OrganizationType(row.CounterpartType), Name: row.CounterpartName,
 			Slug: row.CounterpartSlug, Description: row.Description, WhatsApp: row.Whatsapp, CityName: row.CityName,

@@ -77,3 +77,21 @@ func (i *Issuer) tell(ctx context.Context, settlement domain.Settlement, storeNa
 	}
 	return nil
 }
+
+func (i *Issuer) IssueOutstanding(
+	ctx context.Context, partnershipID string, at time.Time,
+) (domain.Settlement, bool, error) {
+	ledger, err := i.deps.Settlements.GetLedger(ctx, partnershipID)
+	if err != nil {
+		return domain.Settlement{}, false, fmt.Errorf("load ledger of %s: %w", partnershipID, err)
+	}
+	draft, hasSales := ledger.DraftUpTo(at)
+	if !hasSales {
+		return domain.Settlement{}, false, nil
+	}
+	settlement, err := i.issue(ctx, ledger, draft)
+	if err != nil {
+		return domain.Settlement{}, false, err
+	}
+	return settlement, true, nil
+}

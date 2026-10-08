@@ -36,6 +36,7 @@ type Deps struct {
 	List         Lister
 	Get          Reader
 	Catalog      CatalogReader
+	Ending       EndingDeps
 	FilesBaseURL string
 }
 
@@ -44,6 +45,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Get(partnershipsPath, deps.Authenticate, list(deps.List))
 	api.Get(partnershipPath, deps.Authenticate, read(deps.Get, files))
 	api.Get(catalogPath, deps.Authenticate, catalog(deps.Catalog, files))
+	mountEnding(api, deps, files)
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {

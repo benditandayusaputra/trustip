@@ -105,3 +105,14 @@ func (a countApprover) ApproveSources(ctx context.Context, approval settlementdo
 	}
 	return nil
 }
+
+type outstandingSettler struct {
+	issuer *settlementservice.Issuer
+}
+
+func (s outstandingSettler) SettleOutstanding(ctx context.Context, partnershipID string, at time.Time) error {
+	if _, _, err := s.issuer.IssueOutstanding(ctx, partnershipID, at); err != nil {
+		return fmt.Errorf("issue outstanding settlement: %w", err)
+	}
+	return nil
+}

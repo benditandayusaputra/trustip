@@ -35,10 +35,37 @@ func (q *Queries) CreatePartnership(ctx context.Context, arg CreatePartnershipPa
 	return err
 }
 
+const endPartnership = `-- name: EndPartnership :execrows
+UPDATE partnerships
+SET status = 'ENDED', ended_at = $1::timestamptz, ended_by_org_id = $2::uuid,
+    end_reason = $3::text, updated_at = $1::timestamptz
+WHERE id = $4::uuid AND status = 'ACTIVE'
+`
+
+type EndPartnershipParams struct {
+	EndedAt      time.Time
+	EndedByOrgID string
+	EndReason    string
+	ID           string
+}
+
+func (q *Queries) EndPartnership(ctx context.Context, arg EndPartnershipParams) (int64, error) {
+	result, err := q.db.Exec(ctx, endPartnership,
+		arg.EndedAt,
+		arg.EndedByOrgID,
+		arg.EndReason,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getPartnership = `-- name: GetPartnership :one
 SELECT
     p.id, p.status, p.started_at, COALESCE(p.ended_at, p.started_at)::timestamptz AS ended_at,
-    (p.ended_at IS NOT NULL)::boolean AS has_ended,
+    (p.ended_at IS NOT NULL)::boolean AS has_ended, p.show_on_public, p.end_reason,
     o.id AS counterpart_id, o.type AS counterpart_type, o.name AS counterpart_name, o.slug AS counterpart_slug,
     o.description, o.whatsapp, o.city_name, o.district, o.address,
     (o.location IS NOT NULL)::boolean AS has_location,
@@ -65,6 +92,8 @@ type GetPartnershipRow struct {
 	StartedAt       time.Time
 	EndedAt         time.Time
 	HasEnded        bool
+	ShowOnPublic    bool
+	EndReason       string
 	CounterpartID   string
 	CounterpartType string
 	CounterpartName string
@@ -91,6 +120,8 @@ func (q *Queries) GetPartnership(ctx context.Context, arg GetPartnershipParams) 
 		&i.StartedAt,
 		&i.EndedAt,
 		&i.HasEnded,
+		&i.ShowOnPublic,
+		&i.EndReason,
 		&i.CounterpartID,
 		&i.CounterpartType,
 		&i.CounterpartName,
@@ -188,11 +219,90 @@ func (q *Queries) ListPartnerCatalog(ctx context.Context, arg ListPartnerCatalog
 	return items, nil
 }
 
+const listPartnershipBlockers = `-- name: ListPartnershipBlockers :many
+SELECT blockers.kind, blockers.document_id, blockers.document_number, blockers.qty, blockers.amount
+FROM (
+    SELECT
+        'STOCK_AT_STORE'::text AS kind, ''::text AS document_id, ''::text AS document_number,
+        COALESCE(SUM(b.balance), 0)::bigint AS qty, 0::bigint AS amount
+    FROM batch_balances AS b
+    WHERE b.partnership_id = $1::uuid
+    HAVING COALESCE(SUM(b.balance), 0) > 0
+    UNION ALL
+    SELECT 'PENDING_DROP'::text, d.id::text, d.number, 0::bigint, 0::bigint
+    FROM drops AS d
+    WHERE d.partnership_id = $1::uuid AND d.status = 'RECORDED'
+        AND d.received_at > $2::timestamptz
+    UNION ALL
+    SELECT 'PENDING_COUNT'::text, c.id::text, c.number, 0::bigint, 0::bigint
+    FROM counts AS c
+    WHERE c.partnership_id = $1::uuid AND c.status = 'RECORDED'
+        AND c.received_at > $2::timestamptz
+    UNION ALL
+    SELECT 'PENDING_PAYMENT'::text, st.id::text, st.number, 0::bigint, p.amount
+    FROM payments AS p
+    JOIN settlements AS st ON st.id = p.settlement_id
+    WHERE p.partnership_id = $1::uuid AND p.status = 'PENDING_CONFIRMATION'
+    UNION ALL
+    SELECT 'UNPAID_SETTLEMENT'::text, st.id::text, st.number, 0::bigint, st.consignor_share_amount
+    FROM settlements AS st
+    WHERE st.partnership_id = $1::uuid AND st.status = 'ISSUED'
+        AND NOT EXISTS (
+            SELECT 1 FROM payments AS p WHERE p.settlement_id = st.id AND p.status = 'PENDING_CONFIRMATION'
+        )
+) AS blockers
+ORDER BY blockers.kind, blockers.document_number
+`
+
+type ListPartnershipBlockersParams struct {
+	PartnershipID string
+	ConfirmCutoff time.Time
+}
+
+type ListPartnershipBlockersRow struct {
+	Kind           string
+	DocumentID     string
+	DocumentNumber string
+	Qty            int64
+	Amount         int64
+}
+
+func (q *Queries) ListPartnershipBlockers(ctx context.Context, arg ListPartnershipBlockersParams) ([]ListPartnershipBlockersRow, error) {
+	rows, err := q.db.Query(ctx, listPartnershipBlockers, arg.PartnershipID, arg.ConfirmCutoff)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPartnershipBlockersRow{}
+	for rows.Next() {
+		var i ListPartnershipBlockersRow
+		if err := rows.Scan(
+			&i.Kind,
+			&i.DocumentID,
+			&i.DocumentNumber,
+			&i.Qty,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPartnerships = `-- name: ListPartnerships :many
 SELECT
     p.id, p.status, p.started_at, COALESCE(p.ended_at, p.started_at)::timestamptz AS ended_at,
     (p.ended_at IS NOT NULL)::boolean AS has_ended,
-    o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type
+    o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type,
+    COALESCE((SELECT SUM(b.balance) FROM batch_balances AS b WHERE b.partnership_id = p.id), 0)::bigint AS stock_qty,
+    COALESCE((
+        SELECT SUM(st.consignor_share_amount) FROM settlements AS st
+        WHERE st.partnership_id = p.id AND st.status = 'ISSUED'
+    ), 0)::bigint AS unpaid_amount
 FROM partnerships AS p
 JOIN organizations AS o
     ON o.id = CASE WHEN p.consignor_org_id = $1::uuid THEN p.store_org_id ELSE p.consignor_org_id END
@@ -221,6 +331,8 @@ type ListPartnershipsRow struct {
 	CounterpartID   string
 	CounterpartName string
 	CounterpartType string
+	StockQty        int64
+	UnpaidAmount    int64
 }
 
 func (q *Queries) ListPartnerships(ctx context.Context, arg ListPartnershipsParams) ([]ListPartnershipsRow, error) {
@@ -248,6 +360,8 @@ func (q *Queries) ListPartnerships(ctx context.Context, arg ListPartnershipsPara
 			&i.CounterpartID,
 			&i.CounterpartName,
 			&i.CounterpartType,
+			&i.StockQty,
+			&i.UnpaidAmount,
 		); err != nil {
 			return nil, err
 		}
@@ -257,4 +371,67 @@ func (q *Queries) ListPartnerships(ctx context.Context, arg ListPartnershipsPara
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockPartnershipForEnding = `-- name: LockPartnershipForEnding :one
+SELECT p.id, p.status, p.consignor_org_id, c.name AS consignor_name, p.store_org_id, s.name AS store_name
+FROM partnerships AS p
+JOIN organizations AS c ON c.id = p.consignor_org_id
+JOIN organizations AS s ON s.id = p.store_org_id
+WHERE p.id = $1::uuid AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+FOR UPDATE OF p
+`
+
+type LockPartnershipForEndingParams struct {
+	ID             string
+	OrganizationID string
+}
+
+type LockPartnershipForEndingRow struct {
+	ID             string
+	Status         string
+	ConsignorOrgID string
+	ConsignorName  string
+	StoreOrgID     string
+	StoreName      string
+}
+
+func (q *Queries) LockPartnershipForEnding(ctx context.Context, arg LockPartnershipForEndingParams) (LockPartnershipForEndingRow, error) {
+	row := q.db.QueryRow(ctx, lockPartnershipForEnding, arg.ID, arg.OrganizationID)
+	var i LockPartnershipForEndingRow
+	err := row.Scan(
+		&i.ID,
+		&i.Status,
+		&i.ConsignorOrgID,
+		&i.ConsignorName,
+		&i.StoreOrgID,
+		&i.StoreName,
+	)
+	return i, err
+}
+
+const setPartnershipShownOnPublic = `-- name: SetPartnershipShownOnPublic :execrows
+UPDATE partnerships
+SET show_on_public = $1::boolean, updated_at = $2::timestamptz
+WHERE id = $3::uuid AND store_org_id = $4::uuid
+`
+
+type SetPartnershipShownOnPublicParams struct {
+	ShowOnPublic bool
+	UpdatedAt    time.Time
+	ID           string
+	StoreOrgID   string
+}
+
+func (q *Queries) SetPartnershipShownOnPublic(ctx context.Context, arg SetPartnershipShownOnPublicParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setPartnershipShownOnPublic,
+		arg.ShowOnPublic,
+		arg.UpdatedAt,
+		arg.ID,
+		arg.StoreOrgID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

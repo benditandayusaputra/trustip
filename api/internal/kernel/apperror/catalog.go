@@ -39,6 +39,7 @@ const (
 	CodeStockChanged         Code = "STOCK_CHANGED"
 	CodeSettlementPaid       Code = "SETTLEMENT_ALREADY_PAID"
 	CodePaymentPending       Code = "PAYMENT_PENDING"
+	CodePartnershipBlocked   Code = "PARTNERSHIP_HAS_BLOCKERS"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -174,6 +175,9 @@ func documentEntries() map[Code]entry {
 			KindConflict, http.StatusConflict, "Titipan ini sudah masuk Hitung Sisa sehingga tidak bisa dibatalkan.",
 		},
 		CodeSettlementPaid: {KindConflict, http.StatusConflict, "Setoran ini sudah lunas."},
+		CodePartnershipBlocked: {
+			KindConflict, http.StatusConflict, "Belum bisa diakhiri: {daftar penghalang}.",
+		},
 		CodePaymentPending: {
 			KindConflict, http.StatusConflict, "Pembayaran sebelumnya masih menunggu tanggapan penitip.",
 		},

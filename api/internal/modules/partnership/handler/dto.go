@@ -13,11 +13,13 @@ type counterpartRef struct {
 }
 
 type summaryResponse struct {
-	ID          string         `json:"id"`
-	Status      string         `json:"status"`
-	StartedAt   string         `json:"started_at"`
-	EndedAt     *string        `json:"ended_at"`
-	Counterpart counterpartRef `json:"counterpart"`
+	ID           string         `json:"id"`
+	Status       string         `json:"status"`
+	StartedAt    string         `json:"started_at"`
+	EndedAt      *string        `json:"ended_at"`
+	Counterpart  counterpartRef `json:"counterpart"`
+	StockQty     int            `json:"stock_qty"`
+	UnpaidAmount int64          `json:"unpaid_amount"`
 }
 
 type point struct {
@@ -38,11 +40,13 @@ type counterpartResponse struct {
 }
 
 type partnershipResponse struct {
-	ID          string              `json:"id"`
-	Status      string              `json:"status"`
-	StartedAt   string              `json:"started_at"`
-	EndedAt     *string             `json:"ended_at"`
-	Counterpart counterpartResponse `json:"counterpart"`
+	ID           string              `json:"id"`
+	Status       string              `json:"status"`
+	StartedAt    string              `json:"started_at"`
+	EndedAt      *string             `json:"ended_at"`
+	ShowOnPublic bool                `json:"show_on_public"`
+	EndReason    string              `json:"end_reason"`
+	Counterpart  counterpartResponse `json:"counterpart"`
 }
 
 type splitResponse struct {
@@ -92,6 +96,7 @@ func toSummaryResponse(summary domain.Summary) summaryResponse {
 		Counterpart: counterpartRef{
 			ID: summary.CounterpartID, Name: summary.CounterpartName, Type: string(summary.CounterpartType),
 		},
+		StockQty: summary.StockQty, UnpaidAmount: summary.UnpaidAmount,
 	}
 }
 
@@ -121,7 +126,8 @@ func (f fileLinks) partnership(partnership domain.Partnership) partnershipRespon
 	}
 	return partnershipResponse{
 		ID: partnership.ID, Status: string(partnership.Status), StartedAt: timestamp(partnership.StartedAt),
-		EndedAt: optionalTime(partnership.EndedAt), Counterpart: response,
+		EndedAt: optionalTime(partnership.EndedAt), ShowOnPublic: partnership.ShowOnPublic,
+		EndReason: partnership.EndReason, Counterpart: response,
 	}
 }
 

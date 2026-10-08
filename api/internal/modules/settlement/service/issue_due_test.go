@@ -48,3 +48,14 @@ func TestIssueDueSettlements_OnCountHasNoCalendarRun(t *testing.T) {
 		t.Fatal("an on-count schedule has no calendar period to issue")
 	}
 }
+
+func TestIssueOutstanding_BRPRT03_EndingIssuesTheRunningSalesWhateverTheSchedule(t *testing.T) {
+	run := newScenario(terms.ScheduleMonthly, 18)
+
+	settlement, isIssued, err := service.NewIssuer(run.deps).IssueOutstanding(t.Context(), partnershipID,
+		countedAt().Add(time.Hour))
+
+	if err != nil || !isIssued || settlement.Summary.Qty != 18 || settlement.Schedule != terms.ScheduleMonthly {
+		t.Fatalf("settlement = %+v, err = %v", settlement, err)
+	}
+}
