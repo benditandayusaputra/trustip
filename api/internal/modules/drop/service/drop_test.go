@@ -39,6 +39,10 @@ type fakeDrops struct {
 	reversals  []domain.Movement
 }
 
+func (f *fakeDrops) ListDrops(context.Context, domain.PageQuery) ([]domain.Summary, error) {
+	return []domain.Summary{}, nil
+}
+
 func (f *fakeDrops) LockDrop(ctx context.Context, key domain.DropKey) error {
 	_, err := f.GetDrop(ctx, key)
 	return err

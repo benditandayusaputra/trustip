@@ -260,3 +260,27 @@ func TestGetDrop_BRDRP08_UnansweredDropReadsAsConfirmedAfterFortyEightHours(t *t
 		t.Fatalf("got = %s", got.body)
 	}
 }
+
+func TestListDrops_FRDRP08_HistoryFiltersByStatusAndPartner(t *testing.T) {
+	scene := recordedDrop(t)
+	second := scene.store.recordDrop(dropBody(scene.partnershipID, scene.productID, 5),
+		"0192f0c4-0000-7000-8000-00000000d002")
+	requireCreated(t, second)
+	scene.consignor.post(scene.path + "/confirm")
+
+	all := scene.store.get(dropsPath + "?partnership_id=" + scene.partnershipID)
+	pending := scene.consignor.get(dropsPath + "?status=RECORDED")
+	ranged := scene.store.get(dropsPath + "?from=2026-10-20&to=2026-10-31")
+
+	contract := loadContract(t)
+	for _, got := range []exchange{all, pending, ranged} {
+		requireCode(t, got, "OK")
+		contract.requireConforms(t, got)
+	}
+	if strings.Count(string(all.body), `"number":"TM-`) != 2 ||
+		strings.Count(string(pending.body), `"number":"TM-`) != 1 ||
+		!strings.Contains(string(pending.body), `"total_qty":5`) ||
+		strings.Contains(string(ranged.body), `"number":"TM-`) {
+		t.Fatalf("all = %s\npending = %s\nranged = %s", all.body, pending.body, ranged.body)
+	}
+}

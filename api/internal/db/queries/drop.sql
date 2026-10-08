@@ -121,3 +121,35 @@ UPDATE drops
 SET status = 'CANCELLED', cancelled_by = @cancelled_by::uuid, cancelled_at = @cancelled_at::timestamptz,
     updated_at = @cancelled_at::timestamptz
 WHERE id = @id::uuid AND status = 'RECORDED';
+
+-- name: ListDrops :many
+SELECT
+    d.id, d.number, d.partnership_id, d.occurred_at, d.recorded_offline,
+    (CASE
+        WHEN d.status = 'RECORDED' AND d.received_at <= @confirm_cutoff::timestamptz THEN 'CONFIRMED'
+        ELSE d.status
+    END)::text AS status,
+    o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type,
+    COALESCE(lines.total_qty, 0)::bigint AS total_qty, COALESCE(lines.line_count, 0)::bigint AS line_count
+FROM drops AS d
+JOIN partnerships AS p ON p.id = d.partnership_id
+JOIN organizations AS o
+    ON o.id = CASE WHEN p.store_org_id = @organization_id::uuid THEN p.consignor_org_id ELSE p.store_org_id END
+LEFT JOIN LATERAL (
+    SELECT sum(i.qty_received) AS total_qty, count(*) AS line_count
+    FROM drop_items AS i
+    WHERE i.drop_id = d.id
+) AS lines ON true
+WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+    AND (@partnership_id::text = '' OR d.partnership_id::text = @partnership_id::text)
+    AND d.occurred_at >= @from_at::timestamptz AND d.occurred_at < @to_at::timestamptz
+    AND (
+        @status::text = ''
+        OR (CASE
+            WHEN d.status = 'RECORDED' AND d.received_at <= @confirm_cutoff::timestamptz THEN 'CONFIRMED'
+            ELSE d.status
+        END) = @status::text
+    )
+    AND (@from_start::boolean OR (d.occurred_at, d.id) < (@after_at::timestamptz, @after_id::uuid))
+ORDER BY d.occurred_at DESC, d.id DESC
+LIMIT @row_limit::bigint;

@@ -208,3 +208,32 @@ func toSealResponse(verdict domain.SealVerdict) sealResponse {
 func timestamp(at time.Time) string {
 	return at.UTC().Format(time.RFC3339)
 }
+
+type counterpartResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type summaryResponse struct {
+	ID              string              `json:"id"`
+	Number          string              `json:"number"`
+	PartnershipID   string              `json:"partnership_id"`
+	Status          string              `json:"status"`
+	OccurredAt      string              `json:"occurred_at"`
+	RecordedOffline bool                `json:"recorded_offline"`
+	Counterpart     counterpartResponse `json:"counterpart"`
+	TotalQty        int                 `json:"total_qty"`
+	LineCount       int                 `json:"line_count"`
+}
+
+func toSummaryResponse(summary domain.Summary) summaryResponse {
+	return summaryResponse{
+		ID: summary.ID, Number: summary.Number, PartnershipID: summary.PartnershipID, Status: string(summary.Status),
+		OccurredAt: timestamp(summary.OccurredAt), RecordedOffline: summary.RecordedOffline,
+		Counterpart: counterpartResponse{
+			ID: summary.CounterpartID, Name: summary.CounterpartName, Type: summary.CounterpartType,
+		},
+		TotalQty: summary.TotalQty, LineCount: summary.LineCount,
+	}
+}

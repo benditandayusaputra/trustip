@@ -453,6 +453,109 @@ func (q *Queries) ListDropProducts(ctx context.Context, agreementID string) ([]L
 	return items, nil
 }
 
+const listDrops = `-- name: ListDrops :many
+SELECT
+    d.id, d.number, d.partnership_id, d.occurred_at, d.recorded_offline,
+    (CASE
+        WHEN d.status = 'RECORDED' AND d.received_at <= $1::timestamptz THEN 'CONFIRMED'
+        ELSE d.status
+    END)::text AS status,
+    o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type,
+    COALESCE(lines.total_qty, 0)::bigint AS total_qty, COALESCE(lines.line_count, 0)::bigint AS line_count
+FROM drops AS d
+JOIN partnerships AS p ON p.id = d.partnership_id
+JOIN organizations AS o
+    ON o.id = CASE WHEN p.store_org_id = $2::uuid THEN p.consignor_org_id ELSE p.store_org_id END
+LEFT JOIN LATERAL (
+    SELECT sum(i.qty_received) AS total_qty, count(*) AS line_count
+    FROM drop_items AS i
+    WHERE i.drop_id = d.id
+) AS lines ON true
+WHERE (p.store_org_id = $2::uuid OR p.consignor_org_id = $2::uuid)
+    AND ($3::text = '' OR d.partnership_id::text = $3::text)
+    AND d.occurred_at >= $4::timestamptz AND d.occurred_at < $5::timestamptz
+    AND (
+        $6::text = ''
+        OR (CASE
+            WHEN d.status = 'RECORDED' AND d.received_at <= $1::timestamptz THEN 'CONFIRMED'
+            ELSE d.status
+        END) = $6::text
+    )
+    AND ($7::boolean OR (d.occurred_at, d.id) < ($8::timestamptz, $9::uuid))
+ORDER BY d.occurred_at DESC, d.id DESC
+LIMIT $10::bigint
+`
+
+type ListDropsParams struct {
+	ConfirmCutoff  time.Time
+	OrganizationID string
+	PartnershipID  string
+	FromAt         time.Time
+	ToAt           time.Time
+	Status         string
+	FromStart      bool
+	AfterAt        time.Time
+	AfterID        string
+	RowLimit       int64
+}
+
+type ListDropsRow struct {
+	ID              string
+	Number          string
+	PartnershipID   string
+	OccurredAt      time.Time
+	RecordedOffline bool
+	Status          string
+	CounterpartID   string
+	CounterpartName string
+	CounterpartType string
+	TotalQty        int64
+	LineCount       int64
+}
+
+func (q *Queries) ListDrops(ctx context.Context, arg ListDropsParams) ([]ListDropsRow, error) {
+	rows, err := q.db.Query(ctx, listDrops,
+		arg.ConfirmCutoff,
+		arg.OrganizationID,
+		arg.PartnershipID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.Status,
+		arg.FromStart,
+		arg.AfterAt,
+		arg.AfterID,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDropsRow{}
+	for rows.Next() {
+		var i ListDropsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.PartnershipID,
+			&i.OccurredAt,
+			&i.RecordedOffline,
+			&i.Status,
+			&i.CounterpartID,
+			&i.CounterpartName,
+			&i.CounterpartType,
+			&i.TotalQty,
+			&i.LineCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockDrop = `-- name: LockDrop :one
 SELECT d.id
 FROM drops AS d

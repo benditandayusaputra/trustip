@@ -1738,6 +1738,61 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/drops:
+    get:
+      operationId: listDrops
+      tags: [drop]
+      parameters:
+        - name: partnership_id
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [RECORDED, CONFIRMED, CANCELLED]
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Riwayat Titipan Masuk pada kemitraan organisasi pelaku, terbaru lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropSummaryListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
     post:
       operationId: recordDrop
       tags: [drop]
@@ -3710,3 +3765,53 @@ components:
           $ref: "#/components/schemas/Drop"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    DropSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - partnership_id
+        - status
+        - occurred_at
+        - recorded_offline
+        - counterpart
+        - total_qty
+        - line_count
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        partnership_id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/DropStatus"
+        occurred_at:
+          type: string
+          format: date-time
+        recorded_offline:
+          type: boolean
+        counterpart:
+          $ref: "#/components/schemas/CounterpartRef"
+        total_qty:
+          type: integer
+        line_count:
+          type: integer
+    DropSummaryListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropSummary"
+        meta:
+          $ref: "#/components/schemas/ListMeta"

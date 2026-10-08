@@ -29,6 +29,7 @@ type DropStore interface {
 	DropWriter
 	DropReader
 	DropDecider
+	DropLister
 }
 
 type Sealer interface {

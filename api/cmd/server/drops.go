@@ -67,6 +67,7 @@ func dropDeps(deps dropservice.Deps, routes tradeRoutes) drophandler.Deps {
 		Get:          dropservice.NewGetDrop(deps),
 		Confirm:      dropservice.NewConfirmDrop(deps),
 		Cancel:       dropservice.NewCancelDrop(deps),
+		List:         dropservice.NewListDrops(deps.Drops, deps.Clock),
 		Clock:        routes.clock,
 		WriteLimiter: routes.writeLimiter,
 		SecurityLog:  routes.securityLog,

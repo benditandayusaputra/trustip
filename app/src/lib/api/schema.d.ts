@@ -776,7 +776,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["listDrops"];
         put?: never;
         post: operations["recordDrop"];
         delete?: never;
@@ -1543,6 +1543,26 @@ export interface components {
             message: string;
             data: components["schemas"]["Drop"];
             meta: components["schemas"]["ResponseMeta"];
+        };
+        DropSummary: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            partnership_id: string;
+            status: components["schemas"]["DropStatus"];
+            /** Format: date-time */
+            occurred_at: string;
+            recorded_offline: boolean;
+            counterpart: components["schemas"]["CounterpartRef"];
+            total_qty: number;
+            line_count: number;
+        };
+        DropSummaryListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["DropSummary"][];
+            meta: components["schemas"]["ListMeta"];
         };
     };
     responses: {
@@ -3167,6 +3187,40 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listDrops: {
+        parameters: {
+            query?: {
+                partnership_id?: string;
+                status?: "RECORDED" | "CONFIRMED" | "CANCELLED";
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Riwayat Titipan Masuk pada kemitraan organisasi pelaku, terbaru lebih dulu */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DropSummaryListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

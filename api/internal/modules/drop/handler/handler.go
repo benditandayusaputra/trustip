@@ -39,6 +39,10 @@ type Reader interface {
 	Execute(ctx context.Context, signedIn actor.Actor, dropID string) (domain.SealedView, error)
 }
 
+type Lister interface {
+	Execute(ctx context.Context, signedIn actor.Actor, request service.ListRequest) (service.Page, error)
+}
+
 type Clock interface {
 	Now() time.Time
 }
@@ -49,6 +53,7 @@ type Deps struct {
 	Get          Reader
 	Confirm      Reader
 	Cancel       Reader
+	List         Lister
 	Clock        Clock
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
@@ -57,6 +62,7 @@ type Deps struct {
 func Mount(api fiber.Router, deps Deps) {
 	writeLimit := httpserver.RateLimit(deps.WriteLimiter, httpserver.BySignedInUser, deps.SecurityLog)
 	api.Post(dropsPath, deps.Authenticate, writeLimit, record(deps))
+	api.Get(dropsPath, deps.Authenticate, list(deps.List))
 	api.Get(dropPath, deps.Authenticate, byID(deps.Get, deps.SecurityLog))
 	api.Post(confirmPath, deps.Authenticate, writeLimit, byID(deps.Confirm, deps.SecurityLog))
 	api.Post(cancelPath, deps.Authenticate, writeLimit, byID(deps.Cancel, deps.SecurityLog))
@@ -121,6 +127,32 @@ func byID(reader Reader, securityLog *slog.Logger) fiber.Handler {
 		}
 		reportInvalidSeal(c, securityLog, sealed)
 		return httpserver.Respond(c, httpserver.Reply{Data: toDropResponse(sealed)})
+	}
+}
+
+func list(lister Lister) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		signedIn, err := signedInActor(c)
+		if err != nil {
+			return err
+		}
+		page, err := lister.Execute(c.Context(), signedIn, service.ListRequest{
+			Filter: domain.ListFilter{
+				PartnershipID: c.Query("partnership_id"), Status: c.Query("status"),
+				From: c.Query("from"), To: c.Query("to"),
+			},
+			Cursor: c.Query("cursor"), Limit: c.Query("limit"),
+		})
+		if err != nil {
+			return fmt.Errorf("list drops: %w", err)
+		}
+		items := make([]summaryResponse, 0, len(page.Items))
+		for _, summary := range page.Items {
+			items = append(items, toSummaryResponse(summary))
+		}
+		return httpserver.RespondList(c, httpserver.Page[summaryResponse]{
+			Items: items, NextCursor: page.NextCursor, HasMore: page.HasMore,
+		})
 	}
 }
 
