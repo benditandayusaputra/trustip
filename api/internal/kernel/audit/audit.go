@@ -26,6 +26,7 @@ const (
 	DropConfirmed           Action = "DROP_CONFIRMED"
 	DropCancelled           Action = "DROP_CANCELLED"
 	CountRecorded           Action = "COUNT_RECORDED"
+	CountConfirmed          Action = "COUNT_CONFIRMED"
 )
 
 type EntityType string

@@ -130,6 +130,27 @@ func (q *Queries) AddSaleAllocations(ctx context.Context, arg AddSaleAllocations
 	return err
 }
 
+const confirmCount = `-- name: ConfirmCount :execrows
+UPDATE counts
+SET status = 'CONFIRMED', confirmed_by = $1::uuid, confirmed_at = $2::timestamptz,
+    auto_confirmed = false, updated_at = $2::timestamptz
+WHERE id = $3::uuid AND status = 'RECORDED'
+`
+
+type ConfirmCountParams struct {
+	ConfirmedBy string
+	ConfirmedAt time.Time
+	ID          string
+}
+
+func (q *Queries) ConfirmCount(ctx context.Context, arg ConfirmCountParams) (int64, error) {
+	result, err := q.db.Exec(ctx, confirmCount, arg.ConfirmedBy, arg.ConfirmedAt, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const createCount = `-- name: CreateCount :execrows
 INSERT INTO counts (
     id, number, partnership_id, store_org_id, occasion, counted_at, status, note, sold_qty, returned_qty,
@@ -556,6 +577,117 @@ func (q *Queries) ListCountSales(ctx context.Context, countID string) ([]ListCou
 		return nil, err
 	}
 	return items, nil
+}
+
+const listCounts = `-- name: ListCounts :many
+SELECT
+    c.id, c.number, c.partnership_id, c.counted_at, c.recorded_offline,
+    (CASE
+        WHEN c.status = 'RECORDED' AND c.received_at <= $1::timestamptz THEN 'CONFIRMED'
+        ELSE c.status
+    END)::text AS status,
+    o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type,
+    c.sold_qty, c.returned_qty, c.consignor_share_amount
+FROM counts AS c
+JOIN partnerships AS p ON p.id = c.partnership_id
+JOIN organizations AS o
+    ON o.id = CASE WHEN p.store_org_id = $2::uuid THEN p.consignor_org_id ELSE p.store_org_id END
+WHERE (p.store_org_id = $2::uuid OR p.consignor_org_id = $2::uuid)
+    AND ($3::text = '' OR c.partnership_id::text = $3::text)
+    AND c.counted_at >= $4::timestamptz AND c.counted_at < $5::timestamptz
+    AND ($6::boolean OR (c.counted_at, c.id) < ($7::timestamptz, $8::uuid))
+ORDER BY c.counted_at DESC, c.id DESC
+LIMIT $9::bigint
+`
+
+type ListCountsParams struct {
+	ConfirmCutoff  time.Time
+	OrganizationID string
+	PartnershipID  string
+	FromAt         time.Time
+	ToAt           time.Time
+	FromStart      bool
+	AfterAt        time.Time
+	AfterID        string
+	RowLimit       int64
+}
+
+type ListCountsRow struct {
+	ID                   string
+	Number               string
+	PartnershipID        string
+	CountedAt            time.Time
+	RecordedOffline      bool
+	Status               string
+	CounterpartID        string
+	CounterpartName      string
+	CounterpartType      string
+	SoldQty              int32
+	ReturnedQty          int32
+	ConsignorShareAmount int64
+}
+
+func (q *Queries) ListCounts(ctx context.Context, arg ListCountsParams) ([]ListCountsRow, error) {
+	rows, err := q.db.Query(ctx, listCounts,
+		arg.ConfirmCutoff,
+		arg.OrganizationID,
+		arg.PartnershipID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.FromStart,
+		arg.AfterAt,
+		arg.AfterID,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCountsRow{}
+	for rows.Next() {
+		var i ListCountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.PartnershipID,
+			&i.CountedAt,
+			&i.RecordedOffline,
+			&i.Status,
+			&i.CounterpartID,
+			&i.CounterpartName,
+			&i.CounterpartType,
+			&i.SoldQty,
+			&i.ReturnedQty,
+			&i.ConsignorShareAmount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockCount = `-- name: LockCount :one
+SELECT c.id
+FROM counts AS c
+JOIN partnerships AS p ON p.id = c.partnership_id
+WHERE c.id = $1::uuid AND (p.store_org_id = $2::uuid OR p.consignor_org_id = $2::uuid)
+FOR UPDATE OF c, p
+`
+
+type LockCountParams struct {
+	ID             string
+	OrganizationID string
+}
+
+func (q *Queries) LockCount(ctx context.Context, arg LockCountParams) (string, error) {
+	row := q.db.QueryRow(ctx, lockCount, arg.ID, arg.OrganizationID)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const lockPartnershipRow = `-- name: LockPartnershipRow :one

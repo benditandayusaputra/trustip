@@ -12,10 +12,11 @@ import (
 type GetCount struct {
 	counts CountReader
 	seals  SealChecker
+	clock  Clock
 }
 
 func NewGetCount(deps Deps) *GetCount {
-	return &GetCount{counts: deps.Counts, seals: deps.Seals}
+	return &GetCount{counts: deps.Counts, seals: deps.Seals, clock: deps.Clock}
 }
 
 func (uc *GetCount) Execute(ctx context.Context, signedIn actor.Actor, countID string) (domain.SealedView, error) {
@@ -36,7 +37,7 @@ func (uc *GetCount) read(ctx context.Context, signedIn actor.Actor, countID stri
 	if err != nil {
 		return domain.SealedView{}, fmt.Errorf("check seal of count %s: %w", countID, err)
 	}
-	return domain.SealedView{View: view, Seal: verdict}, nil
+	return domain.SealedView{View: view.Effective(uc.clock.Now()), Seal: verdict}, nil
 }
 
 type GetSheet struct {

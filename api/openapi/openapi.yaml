@@ -2074,6 +2074,56 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/counts:
+    get:
+      operationId: listCounts
+      tags: [count]
+      parameters:
+        - name: partnership_id
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Riwayat Hitung Sisa pada kemitraan organisasi pelaku, terbaru lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountSummaryListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
     post:
       operationId: recordCount
       tags: [count]
@@ -2188,6 +2238,46 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/counts/{id}/confirm:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: confirmCount
+      tags: [count]
+      responses:
+        "200":
+          description: Penitip menyatakan Hitung Sisa sesuai
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/RateLimited"
         "500":
@@ -4477,3 +4567,57 @@ components:
           $ref: "#/components/schemas/CountSheet"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    CountSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - partnership_id
+        - status
+        - counted_at
+        - recorded_offline
+        - counterpart
+        - sold_qty
+        - returned_qty
+        - consignor_share
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        partnership_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [RECORDED, CONFIRMED]
+        counted_at:
+          type: string
+          format: date-time
+        recorded_offline:
+          type: boolean
+        counterpart:
+          $ref: "#/components/schemas/CounterpartRef"
+        sold_qty:
+          type: integer
+        returned_qty:
+          type: integer
+        consignor_share:
+          type: integer
+    CountSummaryListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountSummary"
+        meta:
+          $ref: "#/components/schemas/ListMeta"

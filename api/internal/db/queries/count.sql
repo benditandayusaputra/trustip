@@ -138,3 +138,36 @@ FROM return_allocations AS r
 JOIN count_lines AS l ON l.id = r.count_line_id
 WHERE l.count_id = @count_id::uuid
 ORDER BY l.line_no, r.id;
+
+-- name: LockCount :one
+SELECT c.id
+FROM counts AS c
+JOIN partnerships AS p ON p.id = c.partnership_id
+WHERE c.id = @id::uuid AND (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+FOR UPDATE OF c, p;
+
+-- name: ConfirmCount :execrows
+UPDATE counts
+SET status = 'CONFIRMED', confirmed_by = @confirmed_by::uuid, confirmed_at = @confirmed_at::timestamptz,
+    auto_confirmed = false, updated_at = @confirmed_at::timestamptz
+WHERE id = @id::uuid AND status = 'RECORDED';
+
+-- name: ListCounts :many
+SELECT
+    c.id, c.number, c.partnership_id, c.counted_at, c.recorded_offline,
+    (CASE
+        WHEN c.status = 'RECORDED' AND c.received_at <= @confirm_cutoff::timestamptz THEN 'CONFIRMED'
+        ELSE c.status
+    END)::text AS status,
+    o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type,
+    c.sold_qty, c.returned_qty, c.consignor_share_amount
+FROM counts AS c
+JOIN partnerships AS p ON p.id = c.partnership_id
+JOIN organizations AS o
+    ON o.id = CASE WHEN p.store_org_id = @organization_id::uuid THEN p.consignor_org_id ELSE p.store_org_id END
+WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+    AND (@partnership_id::text = '' OR c.partnership_id::text = @partnership_id::text)
+    AND c.counted_at >= @from_at::timestamptz AND c.counted_at < @to_at::timestamptz
+    AND (@from_start::boolean OR (c.counted_at, c.id) < (@after_at::timestamptz, @after_id::uuid))
+ORDER BY c.counted_at DESC, c.id DESC
+LIMIT @row_limit::bigint;

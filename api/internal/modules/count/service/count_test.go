@@ -30,6 +30,7 @@ type fakeCounts struct {
 	saved     map[string]domain.Count
 	locks     int
 	sequences []domain.SequenceKey
+	listed    []domain.ListQuery
 }
 
 func newFakeCounts() *fakeCounts {
@@ -41,6 +42,26 @@ func newFakeCounts() *fakeCounts {
 			{Stock: stock.Batch{ID: "bread-1", Balance: 20}, Terms: terms},
 		}}},
 	}}
+}
+
+func (f *fakeCounts) LockCount(ctx context.Context, key domain.CountKey) error {
+	_, err := f.GetCount(ctx, key)
+	return err
+}
+
+func (f *fakeCounts) SaveConfirmation(_ context.Context, decision domain.Decision) error {
+	count := f.saved[decision.CountID]
+	if count.Status != domain.Recorded {
+		return domain.ErrNotPending
+	}
+	count.Status = domain.Confirmed
+	f.saved[decision.CountID] = count
+	return nil
+}
+
+func (f *fakeCounts) ListCounts(_ context.Context, query domain.ListQuery) ([]domain.Summary, error) {
+	f.listed = append(f.listed, query)
+	return []domain.Summary{}, nil
 }
 
 func (f *fakeCounts) LockSheet(ctx context.Context, key domain.SheetKey) (domain.Sheet, error) {

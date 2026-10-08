@@ -119,3 +119,33 @@ func toSealResponse(verdict domain.SealVerdict) sealResponse {
 	}
 	return sealResponse{IsValid: verdict.IsValid, Events: events}
 }
+
+type counterpartResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type summaryResponse struct {
+	ID              string              `json:"id"`
+	Number          string              `json:"number"`
+	PartnershipID   string              `json:"partnership_id"`
+	Status          string              `json:"status"`
+	CountedAt       string              `json:"counted_at"`
+	RecordedOffline bool                `json:"recorded_offline"`
+	Counterpart     counterpartResponse `json:"counterpart"`
+	SoldQty         int                 `json:"sold_qty"`
+	ReturnedQty     int                 `json:"returned_qty"`
+	ConsignorShare  int64               `json:"consignor_share"`
+}
+
+func toSummaryResponse(summary domain.Summary) summaryResponse {
+	return summaryResponse{
+		ID: summary.ID, Number: summary.Number, PartnershipID: summary.PartnershipID, Status: string(summary.Status),
+		CountedAt: timestamp(summary.CountedAt), RecordedOffline: summary.RecordedOffline,
+		Counterpart: counterpartResponse{
+			ID: summary.CounterpartID, Name: summary.CounterpartName, Type: summary.CounterpartType,
+		},
+		SoldQty: summary.SoldQty, ReturnedQty: summary.ReturnedQty, ConsignorShare: summary.ConsignorShare,
+	}
+}

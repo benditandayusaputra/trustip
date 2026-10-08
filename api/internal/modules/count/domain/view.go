@@ -7,7 +7,10 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
 )
 
-var ErrDuplicateKey = errors.New("a count with this idempotency key already exists")
+var (
+	ErrDuplicateKey = errors.New("a count with this idempotency key already exists")
+	ErrNotPending   = errors.New("the count is no longer waiting for a response")
+)
 
 type SequenceKey struct {
 	OrganizationID string

@@ -20,6 +20,7 @@ const (
 	countsPath           = "/counts"
 	countPath            = countsPath + "/:id"
 	sheetPath            = "/partnerships/:id/count-sheet"
+	confirmPath          = countPath + "/confirm"
 	idempotencyKeyHeader = "Idempotency-Key"
 	replayHeader         = "Idempotent-Replay"
 )
@@ -38,6 +39,10 @@ type SheetReader interface {
 	Execute(ctx context.Context, signedIn actor.Actor, partnershipID string) (domain.Sheet, error)
 }
 
+type Lister interface {
+	Execute(ctx context.Context, signedIn actor.Actor, request service.ListRequest) (service.Page, error)
+}
+
 type Clock interface {
 	Now() time.Time
 }
@@ -47,6 +52,8 @@ type Deps struct {
 	Record       Recorder
 	Get          Reader
 	Sheet        SheetReader
+	Confirm      Reader
+	List         Lister
 	Clock        Clock
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
@@ -55,7 +62,9 @@ type Deps struct {
 func Mount(api fiber.Router, deps Deps) {
 	writeLimit := httpserver.RateLimit(deps.WriteLimiter, httpserver.BySignedInUser, deps.SecurityLog)
 	api.Post(countsPath, deps.Authenticate, writeLimit, record(deps))
-	api.Get(countPath, deps.Authenticate, read(deps))
+	api.Get(countsPath, deps.Authenticate, list(deps.List))
+	api.Get(countPath, deps.Authenticate, byID(deps.Get, deps.SecurityLog))
+	api.Post(confirmPath, deps.Authenticate, writeLimit, byID(deps.Confirm, deps.SecurityLog))
 	api.Get(sheetPath, deps.Authenticate, sheet(deps.Sheet))
 }
 
@@ -102,7 +111,7 @@ func record(deps Deps) fiber.Handler {
 	}
 }
 
-func read(deps Deps) fiber.Handler {
+func byID(reader Reader, securityLog *slog.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		signedIn, err := signedInActor(c)
 		if err != nil {
@@ -112,11 +121,11 @@ func read(deps Deps) fiber.Handler {
 		if err != nil {
 			return fmt.Errorf("read count id: %w", err)
 		}
-		sealed, err := deps.Get.Execute(c.Context(), signedIn, countID)
+		sealed, err := reader.Execute(c.Context(), signedIn, countID)
 		if err != nil {
-			return fmt.Errorf("read count: %w", err)
+			return fmt.Errorf("act on count: %w", err)
 		}
-		reportInvalidSeal(c, deps.SecurityLog, sealed)
+		reportInvalidSeal(c, securityLog, sealed)
 		return httpserver.Respond(c, httpserver.Reply{Data: toCountResponse(sealed)})
 	}
 }
@@ -136,6 +145,31 @@ func sheet(reader SheetReader) fiber.Handler {
 			return fmt.Errorf("read count sheet: %w", err)
 		}
 		return httpserver.Respond(c, httpserver.Reply{Data: toSheetResponse(found)})
+	}
+}
+
+func list(lister Lister) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		signedIn, err := signedInActor(c)
+		if err != nil {
+			return err
+		}
+		page, err := lister.Execute(c.Context(), signedIn, service.ListRequest{
+			Filter: domain.ListFilter{
+				PartnershipID: c.Query("partnership_id"), From: c.Query("from"), To: c.Query("to"),
+			},
+			Cursor: c.Query("cursor"), Limit: c.Query("limit"),
+		})
+		if err != nil {
+			return fmt.Errorf("list counts: %w", err)
+		}
+		items := make([]summaryResponse, 0, len(page.Items))
+		for _, summary := range page.Items {
+			items = append(items, toSummaryResponse(summary))
+		}
+		return httpserver.RespondList(c, httpserver.Page[summaryResponse]{
+			Items: items, NextCursor: page.NextCursor, HasMore: page.HasMore,
+		})
 	}
 }
 

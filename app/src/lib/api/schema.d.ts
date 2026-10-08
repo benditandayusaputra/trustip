@@ -899,7 +899,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["listCounts"];
         put?: never;
         post: operations["recordCount"];
         delete?: never;
@@ -938,6 +938,24 @@ export interface paths {
         get: operations["getCountSheet"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/counts/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmCount"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1859,6 +1877,28 @@ export interface components {
             message: string;
             data: components["schemas"]["CountSheet"];
             meta: components["schemas"]["ResponseMeta"];
+        };
+        CountSummary: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            partnership_id: string;
+            /** @enum {string} */
+            status: "RECORDED" | "CONFIRMED";
+            /** Format: date-time */
+            counted_at: string;
+            recorded_offline: boolean;
+            counterpart: components["schemas"]["CounterpartRef"];
+            sold_qty: number;
+            returned_qty: number;
+            consignor_share: number;
+        };
+        CountSummaryListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["CountSummary"][];
+            meta: components["schemas"]["ListMeta"];
         };
     };
     responses: {
@@ -3751,6 +3791,39 @@ export interface operations {
             503: components["responses"]["ServiceUnavailable"];
         };
     };
+    listCounts: {
+        parameters: {
+            query?: {
+                partnership_id?: string;
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Riwayat Hitung Sisa pada kemitraan organisasi pelaku, terbaru lebih dulu */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountSummaryListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
     recordCount: {
         parameters: {
             query?: never;
@@ -3846,6 +3919,39 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    confirmCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Penitip menyatakan Hitung Sisa sesuai */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

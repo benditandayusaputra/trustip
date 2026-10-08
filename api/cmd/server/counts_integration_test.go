@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -170,5 +171,46 @@ func TestGetCount_BothPartiesSeeTheSameSealedRecap(t *testing.T) {
 	if stripRequestID(fromStore.body) != stripRequestID(fromConsignor.body) ||
 		!strings.Contains(string(fromConsignor.body), `"is_valid":true`) {
 		t.Fatalf("store = %s\nconsignor = %s", fromStore.body, fromConsignor.body)
+	}
+}
+
+func TestConfirmCount_FRCNT08_ConsignorConfirmsOnceAndBothSeeTheHistory(t *testing.T) {
+	scene := recordedDrop(t)
+	counted := scene.store.recordCount(countBody(scene.partnershipID, scene.productID,
+		countLine{recorded: 20, counted: 12}))
+	path := countsPath + "/" + quotedAfter(string(counted.body), `"id":"`)
+
+	confirmed := scene.consignor.post(path + "/confirm")
+	again := scene.consignor.post(path + "/confirm")
+	history := scene.store.get(countsPath + "?partnership_id=" + scene.partnershipID)
+
+	requireCode(t, confirmed, "OK")
+	loadContract(t).requireConforms(t, confirmed)
+	if !strings.Contains(string(confirmed.body), `"status":"CONFIRMED"`) ||
+		!strings.Contains(string(confirmed.body), `"event_type":"COUNT_CONFIRMED"`) ||
+		!strings.Contains(string(confirmed.body), `"is_valid":true`) {
+		t.Fatalf("confirmed = %s", confirmed.body)
+	}
+	requireCode(t, again, "DOCUMENT_NOT_PENDING")
+	requireCode(t, history, "OK")
+	loadContract(t).requireConforms(t, history)
+	if !strings.Contains(string(history.body), `"sold_qty":8`) ||
+		!strings.Contains(string(history.body), `"consignor_share":14000`) {
+		t.Fatalf("history = %s", history.body)
+	}
+}
+
+func TestGetCount_FRCNT08_UnansweredCountReadsAsConfirmedAfterFortyEightHours(t *testing.T) {
+	scene := recordedDrop(t)
+	counted := scene.store.recordCount(countBody(scene.partnershipID, scene.productID,
+		countLine{recorded: 20, counted: 12}))
+	scene.consignor.now.Advance(48 * time.Hour)
+	scene.consignor.post("/api/v1/sessions/refresh")
+
+	got := scene.consignor.get(countsPath + "/" + quotedAfter(string(counted.body), `"id":"`))
+
+	if !strings.Contains(string(got.body), `"status":"CONFIRMED"`) ||
+		!strings.Contains(string(got.body), `"is_automatic":true`) {
+		t.Fatalf("got = %s", got.body)
 	}
 }

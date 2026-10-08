@@ -20,9 +20,20 @@ type CountReader interface {
 	GetCount(ctx context.Context, key domain.CountKey) (domain.View, error)
 }
 
+type CountDecider interface {
+	LockCount(ctx context.Context, key domain.CountKey) error
+	SaveConfirmation(ctx context.Context, decision domain.Decision) error
+}
+
+type CountLister interface {
+	ListCounts(ctx context.Context, query domain.ListQuery) ([]domain.Summary, error)
+}
+
 type CountStore interface {
 	CountWriter
 	CountReader
+	CountDecider
+	CountLister
 }
 
 type Sealer interface {
