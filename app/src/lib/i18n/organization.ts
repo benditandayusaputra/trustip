@@ -53,8 +53,7 @@ export const organization = {
 		save: 'Simpan profil',
 		saved: 'Profil usaha tersimpan.',
 		loadFailed: 'Profil usaha tidak bisa dimuat.',
-		ownersOnly: 'Hanya pemilik usaha yang bisa mengubah profil.',
-		completeProfile: 'Lengkapi profil usaha'
+		ownersOnly: 'Hanya pemilik usaha yang bisa mengubah profil.'
 	},
 	storeProfile: {
 		title: 'Profil toko',

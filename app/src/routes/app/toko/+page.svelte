@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Greeting from '#lib/features/account/components/Greeting.svelte';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import StoreDashboard from '#lib/features/dashboard/components/StoreDashboard.svelte';
 	import { lastThirtyDays } from '#lib/features/dashboard/views.js';
@@ -14,9 +15,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">
-		{id.account.greeting(session.account?.full_name ?? '')}
-	</h1>
+	<Greeting />
 	{#key isOwner}
 		<StoreDashboard {isOwner} {range} />
 	{/key}

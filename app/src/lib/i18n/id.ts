@@ -123,7 +123,6 @@ export const id = {
 	},
 	account: {
 		greeting: (name: string) => `Halo, ${name}`,
-		emptyDashboard: 'Dasbor akan terisi setelah Anda punya mitra dan mulai mencatat titipan.',
 		menu: 'Akun',
 		logOut: 'Keluar',
 		logOutEverywhere: 'Keluar dari semua perangkat',

@@ -2,7 +2,7 @@
 	import Toaster from '#lib/components/ui/Toaster.svelte';
 	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
-	import EmptyDashboard from '#lib/features/account/components/EmptyDashboard.svelte';
+	import Greeting from '#lib/features/account/components/Greeting.svelte';
 	import type { Placement } from '#lib/features/account/session.svelte.js';
 
 	interface Props {
@@ -17,6 +17,6 @@
 </script>
 
 <AccountGate {placement} {onsignedout} {onmisplaced}>
-	<EmptyDashboard />
+	<Greeting />
 </AccountGate>
 <Toaster />

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Greeting from '#lib/features/account/components/Greeting.svelte';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import ConsignorDashboard from '#lib/features/dashboard/components/ConsignorDashboard.svelte';
 	import DailySalesChart from '#lib/features/reports/components/DailySalesChart.svelte';
@@ -16,9 +17,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">
-		{id.account.greeting(session.account?.full_name ?? '')}
-	</h1>
+	<Greeting />
 	{#key isOwner}
 		<ConsignorDashboard {isOwner} {range}>
 			{#snippet chart(narrowing: SalesNarrowing)}
