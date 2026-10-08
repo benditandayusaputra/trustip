@@ -10,8 +10,9 @@
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
-	import type { Count, CountOccasion } from '#lib/api/counts.js';
+	import type { CountOccasion } from '#lib/api/counts.js';
 	import { id } from '#lib/i18n/id.js';
+	import { outboxScheduler, waitingEntries } from '#lib/offline/device.js';
 	import { CountComposer } from '../composer.svelte';
 	import { maxNoteLength, previewOf, type InputMode, type withChanges } from '../schema';
 	import CountLineRow from './CountLineRow.svelte';
@@ -20,16 +21,17 @@
 	interface Props {
 		partnershipId: string;
 		dropHref: string;
-		onsaved: (count: Count) => void;
+		onsaved: (countId: string) => void;
+		onqueued: () => void;
 	}
 
-	let { partnershipId, dropHref, onsaved }: Props = $props();
+	let { partnershipId, dropHref, onsaved, onqueued }: Props = $props();
 
 	const text = id.counts;
 	const toaster = getToaster();
 	const composer = new CountComposer({
 		client: apiClient,
-		newKey: () => crypto.randomUUID(),
+		outbox: { submit: (draft) => outboxScheduler().submit(draft), waiting: waitingEntries },
 		now: () => new Date()
 	});
 	const preview = $derived(previewOf(composer.lines));
@@ -48,8 +50,11 @@
 		event.preventDefault();
 		const outcome = await composer.save();
 		if (outcome.kind === 'saved') {
-			toaster.show({ tone: 'success', message: text.saved(outcome.count.number) });
-			onsaved(outcome.count);
+			toaster.show({ tone: 'success', message: text.saved(outcome.document.number) });
+			onsaved(outcome.document.id);
+		} else if (outcome.kind === 'queued') {
+			toaster.show({ tone: 'info', message: id.offline.queued });
+			onqueued();
 		} else if (outcome.kind === 'failed') {
 			toaster.show({ tone: 'danger', message: outcome.message });
 		} else {

@@ -5,6 +5,8 @@ import DropsHarness from '#lib/testing/DropsHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 import { addDays } from '#lib/domain/dates.js';
 import { businessDateOf } from '#lib/i18n/format.js';
+import { outboxScheduler } from '#lib/offline/device.js';
+import { emptyOutbox, storeCashier } from '#lib/testing/outbox.js';
 
 const partnershipId = '0192f0c4-0000-7000-8000-000000000501';
 const breadId = '0192f0c4-0000-7000-8000-000000000101';
@@ -109,10 +111,12 @@ const formRoutes = (post: () => Response) => ({
 			data: [{ product_id: breadId, shelf_life_days: 3 }],
 			meta: { request_id: 'r', next_cursor: null, has_more: false }
 		}),
-	'POST /api/v1/drops': post
+	'POST /api/v1/drops': post,
+	'GET /api/v1/me': () => envelope(storeCashier)
 });
 
-afterEach(() => {
+afterEach(async () => {
+	await emptyOutbox();
 	vi.unstubAllGlobals();
 });
 
@@ -135,18 +139,20 @@ describe('Drop form', () => {
 		await userEvent.click(page.getByRole('button', { name: 'Simpan Titipan Masuk' }));
 
 		await vi.waitFor(() => {
-			expect(ondone).toHaveBeenCalledWith(expect.objectContaining({ number: 'TM-202611-0007' }));
+			expect(ondone).toHaveBeenCalledWith(dropId);
 		});
 		expect(sent[0]?.body).toEqual({
 			partnership_id: partnershipId,
 			agreement_version: 2,
 			occurred_at: null,
+			client_recorded_at: expect.any(String) as string,
+			recorded_offline: false,
 			items: [{ product_id: breadId, qty: 20, expiry_date: addDays(today, 3) }]
 		});
 		expect(sent[0]?.key).toMatch(/^[0-9a-f-]{36}$/u);
 	});
 
-	it('BR-DRP-07 retries a failed save with the same idempotency key', async () => {
+	it('BR-DRP-07 BR-PWA-03 keeps a save that met a busy server and resends it with the same key', async () => {
 		let attempts = 0;
 		const sent = serve(
 			formRoutes(() => {
@@ -159,20 +165,19 @@ describe('Drop form', () => {
 					: envelope(drop, 201);
 			})
 		);
-		const ondone = vi.fn();
-		await render(DropsHarness, { view: 'form', targetId: partnershipId, ondone });
+		const onqueued = vi.fn();
+		await render(DropsHarness, { view: 'form', targetId: partnershipId, onqueued });
 
 		await userEvent.fill(page.getByRole('textbox', { name: 'Jumlah (pcs)' }), '20');
 		await userEvent.tab();
 		await userEvent.click(page.getByRole('button', { name: 'Simpan Titipan Masuk' }));
-		await expect.element(page.getByText('Sibuk.')).toBeVisible();
-		await userEvent.click(page.getByRole('button', { name: 'Simpan Titipan Masuk' }));
+		await expect.element(page.getByText('Tersimpan di perangkat, menunggu sinyal.')).toBeVisible();
+		expect(onqueued).toHaveBeenCalledOnce();
+		await outboxScheduler().run();
 
-		await vi.waitFor(() => {
-			expect(ondone).toHaveBeenCalled();
-		});
 		expect(sent).toHaveLength(2);
 		expect(sent[1]?.key).toBe(sent[0]?.key);
+		expect(sent[1]?.body).toMatchObject({ recorded_offline: true });
 	});
 
 	it('asks for at least one quantity before sending anything', async () => {

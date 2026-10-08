@@ -35,6 +35,12 @@ const memberOf = (type: 'STORE' | 'CONSIGNOR') => ({
 });
 
 describe('refreshWorkPackets (FR-PWA-08, R-OFF-01)', () => {
+	it('reports a refresh that could not finish instead of throwing in the background', async () => {
+		const client = clientServing({}, new Map());
+
+		await expect(refreshWorkPackets(client)).resolves.toMatchObject({ kind: 'failed' });
+	});
+
 	it('keeps the agreement, catalog, and recorded stock of every active partnership on the device', async () => {
 		const saved = new Map<string, SuccessEnvelope<unknown>>();
 		const client = clientServing(
@@ -51,7 +57,10 @@ describe('refreshWorkPackets (FR-PWA-08, R-OFF-01)', () => {
 			saved
 		);
 
-		await expect(refreshWorkPackets(client)).resolves.toBe(2);
+		await expect(refreshWorkPackets(client)).resolves.toEqual({
+			kind: 'refreshed',
+			partnerships: 2
+		});
 
 		expect([...saved.keys()]).toEqual(
 			expect.arrayContaining([
@@ -67,7 +76,7 @@ describe('refreshWorkPackets (FR-PWA-08, R-OFF-01)', () => {
 		const saved = new Map<string, SuccessEnvelope<unknown>>();
 		const client = clientServing({ '/api/v1/me': memberOf('CONSIGNOR') }, saved);
 
-		await expect(refreshWorkPackets(client)).resolves.toBe(0);
+		await expect(refreshWorkPackets(client)).resolves.toEqual({ kind: 'notAStore' });
 
 		expect([...saved.keys()]).toEqual(['/api/v1/me']);
 	});

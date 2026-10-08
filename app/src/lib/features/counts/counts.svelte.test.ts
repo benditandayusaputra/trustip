@@ -1,5 +1,7 @@
 import { page, userEvent } from 'vitest/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { emptyOutbox, storeCashier } from '#lib/testing/outbox.js';
+import { outboxStore } from '#lib/offline/store.js';
 import { render } from 'vitest-browser-svelte';
 import CountsHarness from '#lib/testing/CountsHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
@@ -91,6 +93,7 @@ function serve(
 		[`GET /api/v1/partnerships/${partnershipId}/count-sheet`]: () => envelope(sheet),
 		[`GET /api/v1/counts/${countId}`]: () => envelope(recap),
 		'POST /api/v1/counts': post,
+		'GET /api/v1/me': () => envelope(storeCashier),
 		...extra
 	};
 	vi.stubGlobal('fetch', (path: string, init: RequestInit) => {
@@ -115,7 +118,8 @@ async function fill(label: string, value: string) {
 	await userEvent.tab();
 }
 
-afterEach(() => {
+afterEach(async () => {
+	await emptyOutbox();
 	vi.unstubAllGlobals();
 });
 
@@ -142,7 +146,7 @@ describe('Count form', () => {
 		await userEvent.click(page.getByRole('button', { name: 'Simpan Hitung Sisa' }));
 
 		await vi.waitFor(() => {
-			expect(ondone).toHaveBeenCalledWith(expect.objectContaining({ number: 'HS-202611-0001' }));
+			expect(ondone).toHaveBeenCalledWith(countId);
 		});
 		expect(sent[0]).toMatchObject({
 			partnership_id: partnershipId,
@@ -157,6 +161,46 @@ describe('Count form', () => {
 				}
 			]
 		});
+	});
+
+	it('R-OFF-04 counts a drop still waiting in the queue as recorded stock', async () => {
+		serve();
+		await outboxStore.put({
+			id: 'entry-1',
+			revision: 0,
+			idempotencyKey: 'entry-1',
+			kind: 'DROP',
+			partnershipId,
+			partnerName: 'Roti Pak Anton',
+			request: {
+				partnership_id: partnershipId,
+				agreement_version: 1,
+				occurred_at: null,
+				items: []
+			},
+			lines: [
+				{
+					productId: breadId,
+					name: 'Roti Manis',
+					unit: 'pcs',
+					qty: 5,
+					expiryDate: '',
+					terms: { model: 'FIXED_DEPOSIT', retailPrice: 2000, commissionBps: 0, depositPrice: 1750 }
+				}
+			],
+			recordedAt: new Date().toISOString(),
+			savedOffline: true,
+			userId: storeCashier.id,
+			organizationId: storeCashier.membership.organization_id,
+			status: 'PENDING',
+			attempts: 0,
+			problem: null,
+			document: null
+		});
+
+		await render(CountsHarness, { view: 'form', targetId: partnershipId });
+
+		await expect.element(page.getByText('Stok tercatat 25 pcs')).toBeVisible();
 	});
 
 	it('FR-CNT-07 fills sold units and works out what is left', async () => {

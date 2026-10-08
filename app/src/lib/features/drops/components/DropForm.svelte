@@ -8,8 +8,8 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
-	import type { Drop } from '#lib/api/drops.js';
 	import { id } from '#lib/i18n/id.js';
+	import { outboxScheduler } from '#lib/offline/device.js';
 	import { DropComposer } from '../composer.svelte';
 	import { previewOf, type DropLine } from '../schema';
 	import DropLineRow from './DropLineRow.svelte';
@@ -17,16 +17,17 @@
 
 	interface Props {
 		partnershipId: string;
-		onsaved: (drop: Drop) => void;
+		onsaved: (dropId: string) => void;
+		onqueued: () => void;
 	}
 
-	let { partnershipId, onsaved }: Props = $props();
+	let { partnershipId, onsaved, onqueued }: Props = $props();
 
 	const text = id.drops;
 	const toaster = getToaster();
 	const composer = new DropComposer({
 		client: apiClient,
-		newKey: () => crypto.randomUUID(),
+		outbox: outboxScheduler(),
 		now: () => new Date()
 	});
 	const preview = $derived(previewOf(composer.lines));
@@ -52,8 +53,11 @@
 		event.preventDefault();
 		const outcome = await composer.save();
 		if (outcome.kind === 'saved') {
-			toaster.show({ tone: 'success', message: text.saved(outcome.drop.number) });
-			onsaved(outcome.drop);
+			toaster.show({ tone: 'success', message: text.saved(outcome.document.number) });
+			onsaved(outcome.document.id);
+		} else if (outcome.kind === 'queued') {
+			toaster.show({ tone: 'info', message: id.offline.queued });
+			onqueued();
 		} else if (outcome.kind === 'failed') {
 			toaster.show({ tone: 'danger', message: outcome.message });
 		} else {

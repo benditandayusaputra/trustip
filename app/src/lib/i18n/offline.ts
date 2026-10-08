@@ -6,6 +6,7 @@ export const offline = {
 		ribbon: 'Anda sedang luring. Yang tampil adalah data terakhir yang tersimpan di perangkat.',
 		staleRibbon:
 			'Server belum terjangkau. Yang tampil adalah data terakhir yang tersimpan di perangkat.',
-		storedAt: (when: string) => `Data terakhir: ${when}.`
+		storedAt: (when: string) => `Data terakhir: ${when}.`,
+		queued: 'Tersimpan di perangkat, menunggu sinyal.'
 	}
 };

@@ -1,10 +1,12 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import { getAgreement } from '#lib/api/agreements.js';
-import { getDrop, listDrops, recordDrop, type Drop } from '#lib/api/drops.js';
+import { getDrop, listDrops } from '#lib/api/drops.js';
 import { listPartnerCatalog } from '#lib/api/partnerships.js';
 import { addDays } from '#lib/domain/dates.js';
 import { businessDateOf } from '#lib/i18n/format.js';
+import type { EntryDraft, QueuedDropLine, SentDocument } from '#lib/offline/outbox.js';
+import type { SubmitResult } from '#lib/offline/sync.js';
 import { emptyFilter } from './history.svelte';
 import {
 	defaultExpiry,
@@ -20,11 +22,18 @@ import {
 } from './schema';
 
 export type SaveOutcome =
-	{ kind: 'saved'; drop: Drop } | { kind: 'invalid' } | { kind: 'failed'; message: string };
+	| { kind: 'saved'; document: SentDocument }
+	| { kind: 'queued' }
+	| { kind: 'invalid' }
+	| { kind: 'failed'; message: string };
+
+interface OutboxSubmitter {
+	submit: (draft: EntryDraft) => Promise<SubmitResult>;
+}
 
 interface ComposerDeps {
 	client: () => ApiClient;
-	newKey: () => string;
+	outbox: OutboxSubmitter;
 	now: () => Date;
 }
 
@@ -38,12 +47,10 @@ export class DropComposer {
 	busy = $state(false);
 	#partnershipId = '';
 	#agreementVersion = 0;
-	#key: string;
 	readonly #deps: ComposerDeps;
 
 	constructor(deps: ComposerDeps) {
 		this.#deps = deps;
-		this.#key = deps.newKey();
 		this.dropDate = this.today;
 	}
 
@@ -109,14 +116,29 @@ export class DropComposer {
 		const sent = filledLines(this.lines);
 		this.busy = true;
 		try {
-			const drop = await recordDrop(this.#deps.client(), this.#request(), this.#key);
-			this.#key = this.#deps.newKey();
-			return { kind: 'saved', drop };
+			return this.#outcomeOf(await this.#deps.outbox.submit(this.#draft(sent)), sent);
 		} catch (error) {
-			return this.#explain(error, sent);
+			return { kind: 'failed', message: error instanceof Error ? error.message : '' };
 		} finally {
 			this.busy = false;
 		}
+	}
+
+	#outcomeOf(result: SubmitResult, sent: DropLine[]): SaveOutcome {
+		if (result.kind === 'rejected') {
+			return this.#explain(result.error, sent);
+		}
+		return result.kind === 'sent' ? { kind: 'saved', document: result.document } : result;
+	}
+
+	#draft(sent: DropLine[]): EntryDraft {
+		return {
+			kind: 'DROP',
+			partnershipId: this.#partnershipId,
+			partnerName: this.consignorName,
+			request: this.#request(),
+			lines: sent.map(queuedLineOf)
+		};
 	}
 
 	#request() {
@@ -131,7 +153,6 @@ export class DropComposer {
 
 	#explain(error: unknown, sent: DropLine[]): SaveOutcome {
 		if (error instanceof ApiError && error.code === 'AGREEMENT_CHANGED') {
-			this.#key = this.#deps.newKey();
 			void this.load(this.#partnershipId);
 		}
 		if (!(error instanceof ApiError) || error.fields.length === 0) {
@@ -142,4 +163,15 @@ export class DropComposer {
 		);
 		return { kind: 'invalid' };
 	}
+}
+
+function queuedLineOf(line: DropLine): QueuedDropLine {
+	return {
+		productId: line.productId,
+		name: line.name,
+		unit: line.unit,
+		qty: line.qty,
+		expiryDate: line.expiryDate,
+		terms: { ...line.terms }
+	};
 }

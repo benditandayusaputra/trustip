@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import type { Drop } from '#lib/api/drops.js';
 	import DropForm from '#lib/features/drops/components/DropForm.svelte';
 	import PartnerChooser from '#lib/features/drops/components/PartnerChooser.svelte';
 	import { id } from '#lib/i18n/id.js';
@@ -20,7 +19,11 @@
 		<PartnerChooser hrefOf={(partnerId: string) => `/app/titipan/baru?mitra=${partnerId}`} />
 	{:else}
 		{#key partnershipId}
-			<DropForm {partnershipId} onsaved={(drop: Drop) => void goto(`/app/titipan/${drop.id}`)} />
+			<DropForm
+				{partnershipId}
+				onsaved={(dropId: string) => void goto(`/app/titipan/${dropId}`)}
+				onqueued={() => void goto('/app/titipan')}
+			/>
 		{/key}
 	{/if}
 </section>

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import type { Count } from '#lib/api/counts.js';
 	import CountForm from '#lib/features/counts/components/CountForm.svelte';
 	import PartnerChooser from '#lib/features/drops/components/PartnerChooser.svelte';
 	import { id } from '#lib/i18n/id.js';
@@ -23,7 +22,8 @@
 			<CountForm
 				{partnershipId}
 				dropHref="/app/titipan/baru?mitra={partnershipId}"
-				onsaved={(count: Count) => void goto(`/app/hitung/${count.id}`)}
+				onsaved={(countId: string) => void goto(`/app/hitung/${countId}`)}
+				onqueued={() => void goto('/app/hitung')}
 			/>
 		{/key}
 	{/if}

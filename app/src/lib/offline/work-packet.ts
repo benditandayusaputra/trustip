@@ -6,14 +6,27 @@ import { listPartnerCatalog, listPartnerships } from '#lib/api/partnerships.js';
 
 const activeAgreement = 0;
 
-export async function refreshWorkPackets(client: ApiClient): Promise<number> {
+export type PacketRefresh =
+	| { kind: 'refreshed'; partnerships: number }
+	| { kind: 'notAStore' }
+	| { kind: 'failed'; message: string };
+
+export async function refreshWorkPackets(client: ApiClient): Promise<PacketRefresh> {
+	try {
+		return await fetchWorkPackets(client);
+	} catch (error) {
+		return { kind: 'failed', message: error instanceof Error ? error.message : '' };
+	}
+}
+
+async function fetchWorkPackets(client: ApiClient): Promise<PacketRefresh> {
 	const account = await getAccount(client);
 	if (account.membership?.organization_type !== 'STORE') {
-		return 0;
+		return { kind: 'notAStore' };
 	}
 	const partnershipIds = await listActivePartnerships(client);
 	await Promise.all(partnershipIds.map((partnershipId) => fetchWorkPacket(client, partnershipId)));
-	return partnershipIds.length;
+	return { kind: 'refreshed', partnerships: partnershipIds.length };
 }
 
 async function listActivePartnerships(client: ApiClient): Promise<string[]> {

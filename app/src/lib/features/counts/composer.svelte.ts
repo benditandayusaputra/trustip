@@ -1,14 +1,11 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
-import {
-	getCountSheet,
-	recordCount,
-	type Count,
-	type CountOccasion,
-	type CountSheet
-} from '#lib/api/counts.js';
+import { getCountSheet, type CountOccasion, type CountSheet } from '#lib/api/counts.js';
 import { businessDateOf } from '#lib/i18n/format.js';
 import { id } from '#lib/i18n/id.js';
+import type { EntryDraft, OutboxEntry, SentDocument } from '#lib/offline/outbox.js';
+import type { SubmitResult } from '#lib/offline/sync.js';
+import { withQueuedDrops } from './queued';
 import {
 	allSold,
 	earliestCountDate,
@@ -26,11 +23,19 @@ import {
 const reloadCodes = new Set(['STOCK_CHANGED', 'AGREEMENT_CHANGED']);
 
 export type SaveOutcome =
-	{ kind: 'saved'; count: Count } | { kind: 'invalid' } | { kind: 'failed'; message: string };
+	| { kind: 'saved'; document: SentDocument }
+	| { kind: 'queued' }
+	| { kind: 'invalid' }
+	| { kind: 'failed'; message: string };
+
+interface OutboxPort {
+	submit: (draft: EntryDraft) => Promise<SubmitResult>;
+	waiting: () => Promise<OutboxEntry[]>;
+}
 
 interface ComposerDeps {
 	client: () => ApiClient;
-	newKey: () => string;
+	outbox: OutboxPort;
 	now: () => Date;
 }
 
@@ -48,12 +53,10 @@ export class CountComposer {
 	failure = $state('');
 	busy = $state(false);
 	#partnershipId = '';
-	#key: string;
 	readonly #deps: ComposerDeps;
 
 	constructor(deps: ComposerDeps) {
 		this.#deps = deps;
-		this.#key = deps.newKey();
 		this.countedOn = this.today;
 	}
 
@@ -69,7 +72,11 @@ export class CountComposer {
 		this.#partnershipId = partnershipId;
 		this.status = 'loading';
 		try {
-			this.sheet = await getCountSheet(this.#deps.client(), partnershipId);
+			const [sheet, waiting] = await Promise.all([
+				getCountSheet(this.#deps.client(), partnershipId),
+				this.#deps.outbox.waiting()
+			]);
+			this.sheet = withQueuedDrops(sheet, waiting);
 			this.lines = linesOf(this.sheet);
 			this.status = 'ready';
 		} catch (error) {
@@ -97,16 +104,27 @@ export class CountComposer {
 		if (Object.keys(this.errors).length > 0 || !this.sheet) {
 			return { kind: 'invalid' };
 		}
+		const draft: EntryDraft = {
+			kind: 'COUNT',
+			partnershipId: this.#partnershipId,
+			partnerName: this.sheet.consignor.name,
+			request: this.#request(this.sheet)
+		};
 		this.busy = true;
 		try {
-			const count = await recordCount(this.#deps.client(), this.#request(this.sheet), this.#key);
-			this.#key = this.#deps.newKey();
-			return { kind: 'saved', count };
+			return this.#outcomeOf(await this.#deps.outbox.submit(draft));
 		} catch (error) {
-			return this.#explain(error);
+			return { kind: 'failed', message: error instanceof Error ? error.message : '' };
 		} finally {
 			this.busy = false;
 		}
+	}
+
+	#outcomeOf(result: SubmitResult): SaveOutcome {
+		if (result.kind === 'rejected') {
+			return this.#explain(result.error);
+		}
+		return result.kind === 'sent' ? { kind: 'saved', document: result.document } : result;
 	}
 
 	#request(sheet: CountSheet) {
@@ -123,7 +141,6 @@ export class CountComposer {
 
 	#explain(error: unknown): SaveOutcome {
 		if (error instanceof ApiError && reloadCodes.has(error.code)) {
-			this.#key = this.#deps.newKey();
 			void this.load(this.#partnershipId);
 			const message = error.code === 'STOCK_CHANGED' ? id.counts.stockChanged : error.message;
 			return { kind: 'failed', message };

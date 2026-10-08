@@ -1,6 +1,11 @@
+import type { OutboxEntry } from './outbox';
+import type { OutboxStorage } from './sync';
+
 const databaseName = 'trustip';
-const databaseVersion = 1;
+const databaseVersion = 2;
 const readsStore = 'reads';
+const outboxName = 'outbox';
+const userIndex = 'userId';
 
 let opening: Promise<IDBDatabase> | undefined;
 
@@ -18,9 +23,18 @@ function settle<T>(request: IDBRequest<T>): Promise<T> {
 function openDatabase(): Promise<IDBDatabase> {
 	const request = indexedDB.open(databaseName, databaseVersion);
 	request.addEventListener('upgradeneeded', () => {
-		request.result.createObjectStore(readsStore);
+		createStores(request.result);
 	});
 	return settle(request);
+}
+
+function createStores(connection: IDBDatabase): void {
+	if (!connection.objectStoreNames.contains(readsStore)) {
+		connection.createObjectStore(readsStore);
+	}
+	if (!connection.objectStoreNames.contains(outboxName)) {
+		connection.createObjectStore(outboxName, { keyPath: 'id' }).createIndex(userIndex, userIndex);
+	}
 }
 
 function database(): Promise<IDBDatabase> {
@@ -55,5 +69,32 @@ export const cacheStore = {
 	},
 	async clear(): Promise<void> {
 		await run(readsStore, 'readwrite', (store) => store.clear());
+	}
+};
+
+function plainCopy(entry: OutboxEntry): OutboxEntry {
+	return JSON.parse(JSON.stringify(entry)) as OutboxEntry;
+}
+
+export const outboxStore: OutboxStorage = {
+	async put(entry) {
+		await run(outboxName, 'readwrite', (store) => store.put(plainCopy(entry)));
+	},
+	get(id) {
+		return run(
+			outboxName,
+			'readonly',
+			(store) => store.get(id) as IDBRequest<OutboxEntry | undefined>
+		);
+	},
+	listFor(userId) {
+		return run(
+			outboxName,
+			'readonly',
+			(store) => store.index(userIndex).getAll(userId) as IDBRequest<OutboxEntry[]>
+		);
+	},
+	async remove(id) {
+		await run(outboxName, 'readwrite', (store) => store.delete(id));
 	}
 };

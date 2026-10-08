@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Toaster from '#lib/components/ui/Toaster.svelte';
 	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
-	import type { Drop } from '#lib/api/drops.js';
 	import DropForm from '#lib/features/drops/components/DropForm.svelte';
 	import DropHistoryList from '#lib/features/drops/components/DropHistoryList.svelte';
 	import DropView from '#lib/features/drops/components/DropView.svelte';
@@ -11,21 +10,23 @@
 		view: 'form' | 'detail' | 'choose' | 'history';
 		targetId?: string;
 		viewerOrganizationId?: string;
-		ondone?: (drop: Drop) => void;
+		ondone?: (documentId: string) => void;
+		onqueued?: () => void;
 	}
 
 	let {
 		view,
 		targetId = '',
 		viewerOrganizationId = '',
-		ondone = () => undefined
+		ondone = () => undefined,
+		onqueued = () => undefined
 	}: Props = $props();
 
 	setToaster(new ToastQueue());
 </script>
 
 {#if view === 'form'}
-	<DropForm partnershipId={targetId} onsaved={ondone} />
+	<DropForm partnershipId={targetId} onsaved={ondone} {onqueued} />
 {:else if view === 'detail'}
 	<DropView dropId={targetId} {viewerOrganizationId} />
 {:else if view === 'history'}
