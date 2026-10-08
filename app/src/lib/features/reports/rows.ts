@@ -1,4 +1,4 @@
-import type { SalesReport } from '#lib/api/reports.js';
+import type { DailyRecap, SalesReport, SettlementReport } from '#lib/api/reports.js';
 import { formatBasisPoints, formatInteger, formatRupiah } from '#lib/i18n/format.js';
 import { id } from '#lib/i18n/id.js';
 
@@ -46,4 +46,59 @@ export function summaryCards(summary: Figures, isStore: boolean): SummaryCard[] 
 		{ label: text.returnedUnits, value: cells.returned },
 		{ label: text.returnedPercent, value: cells.returnedPercent }
 	];
+}
+
+export interface RecapCells extends Record<string, string> {
+	key: string;
+	name: string;
+	received: string;
+	sold: string;
+	returned: string;
+	gross: string;
+	storeShare: string;
+	consignorShare: string;
+	paid: string;
+}
+
+type RecapRow = DailyRecap['total'];
+
+export function recapCells(row: RecapRow): RecapCells {
+	return {
+		key: row.partner_id,
+		name: row.name,
+		received: formatInteger(row.received_qty),
+		sold: formatInteger(row.sold_qty),
+		returned: formatInteger(row.returned_qty),
+		gross: formatRupiah(row.split.gross),
+		storeShare: formatRupiah(row.split.store_share),
+		consignorShare: formatRupiah(row.split.consignor_share),
+		paid: formatRupiah(row.paid)
+	};
+}
+
+export interface SettlementCells extends Record<string, string> {
+	key: string;
+	name: string;
+	issued: string;
+	paid: string;
+	unpaid: string;
+	overdue: string;
+}
+
+type SettlementRow = SettlementReport['total'];
+type Tally = SettlementRow['issued'];
+
+function tallyText(tally: Tally): string {
+	return id.reports.tally(formatInteger(tally.count), formatRupiah(tally.amount));
+}
+
+export function settlementCells(row: SettlementRow): SettlementCells {
+	return {
+		key: row.partner_id,
+		name: row.name,
+		issued: tallyText(row.issued),
+		paid: tallyText(row.paid),
+		unpaid: tallyText(row.unpaid),
+		overdue: tallyText(row.overdue)
+	};
 }

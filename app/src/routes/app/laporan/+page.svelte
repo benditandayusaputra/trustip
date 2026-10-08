@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
-	import SalesReportView from '#lib/features/reports/components/SalesReportView.svelte';
+	import ReportsPage from '#lib/features/reports/components/ReportsPage.svelte';
 	import { id } from '#lib/i18n/id.js';
 
 	const session = getAccountSession();
@@ -14,8 +14,8 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.reports.salesTitle}</h1>
+	<h1 class="text-xl font-semibold text-text">{id.reports.title}</h1>
 	{#key organizationType}
-		<SalesReportView {organizationType} />
+		<ReportsPage {organizationType} />
 	{/key}
 </section>

@@ -29,6 +29,21 @@ export const reports = {
 		rowLabel: 'Kelompok',
 		loadFailed: 'Laporan tidak bisa dimuat.',
 		empty: 'Belum ada penjualan pada rentang ini.',
-		toCounts: 'Lihat Hitung Sisa'
+		toCounts: 'Lihat Hitung Sisa',
+		tabsLabel: 'Jenis laporan',
+		tabs: { sales: 'Penjualan', daily: 'Rekap harian', settlements: 'Setoran' },
+		date: 'Tanggal',
+		consignor: 'Penitip',
+		partner: 'Mitra',
+		receivedUnits: 'Barang masuk',
+		paid: 'Sudah dibayar',
+		dailyEmpty: 'Belum ada titipan atau hitungan pada tanggal ini.',
+		issued: 'Terbit',
+		settled: 'Lunas',
+		unpaid: 'Belum lunas',
+		overdue: 'Lewat tempo',
+		tally: (count: string, amount: string) => `${count} · ${amount}`,
+		settlementsEmpty: 'Belum ada Setoran yang terbit pada rentang ini.',
+		toSettlements: 'Lihat Setoran'
 	}
 };

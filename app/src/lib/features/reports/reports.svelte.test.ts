@@ -22,13 +22,42 @@ function report(groupBy: string) {
 	};
 }
 
+function recapRow(name: string, paid: number) {
+	return { partner_id: name, name, ...figures, paid };
+}
+
+const tally = (count: number, amount: number) => ({ count, amount });
+
+function dataFor(path: string): unknown {
+	const url = new URL(path, 'https://trustip.test');
+	if (url.pathname.endsWith('/daily')) {
+		const rows = [
+			recapRow('Roti Pak Anton', 31500),
+			recapRow('Keripik Bu Ani', 0),
+			recapRow('Sambal Roa', 0)
+		];
+		return { date: '2026-11-20', total: recapRow('', 31500), rows };
+	}
+	if (url.pathname.endsWith('/settlements')) {
+		const row = {
+			partner_id: 'a',
+			name: 'Warung Bu Sri',
+			issued: tally(2, 45500),
+			paid: tally(1, 31500),
+			unpaid: tally(1, 14000),
+			overdue: tally(1, 14000)
+		};
+		return { from: '2026-11-01', to: '2026-11-20', total: row, rows: [row] };
+	}
+	return report(url.searchParams.get('group_by') ?? 'PARTNER');
+}
+
 function serve() {
 	const requested: string[] = [];
 	vi.stubGlobal('fetch', (path: string) => {
 		requested.push(path);
-		const groupBy = new URL(path, 'https://trustip.test').searchParams.get('group_by') ?? 'PARTNER';
 		return Promise.resolve(
-			Response.json({ code: 'OK', message: '', data: report(groupBy), meta: { request_id: 'r' } })
+			Response.json({ code: 'OK', message: '', data: dataFor(path), meta: { request_id: 'r' } })
 		);
 	});
 	return requested;
@@ -68,5 +97,31 @@ describe('Sales report', () => {
 			);
 		});
 		await expect.element(page.getByText('Hak penitip').first()).toBeVisible();
+	});
+
+	it('FR-RPT-01 shows the daily recap with one row per consignor', async () => {
+		vi.useFakeTimers({ now: new Date('2026-11-20T05:00:00Z'), toFake: ['Date'] });
+		const requested = serve();
+		const { container } = await render(ReportsHarness, {});
+
+		await userEvent.click(page.getByRole('tab', { name: 'Rekap harian' }));
+
+		await expect.element(page.getByText('Keripik Bu Ani').last()).toBeVisible();
+		await expect.element(page.getByText('Sudah dibayar').first()).toBeVisible();
+		expect(requested).toContain('/api/v1/reports/daily?date=2026-11-20');
+		await expectAccessible(container);
+	});
+
+	it('FR-RPT-06 shows issued, paid, unpaid and overdue settlements', async () => {
+		vi.useFakeTimers({ now: new Date('2026-11-20T05:00:00Z'), toFake: ['Date'] });
+		const requested = serve();
+		await render(ReportsHarness, { organizationType: 'CONSIGNOR' });
+
+		await expect.element(page.getByRole('tab', { name: 'Rekap harian' })).not.toBeInTheDocument();
+		await userEvent.click(page.getByRole('tab', { name: 'Setoran' }));
+
+		await expect.element(page.getByText('2 · Rp45.500').first()).toBeVisible();
+		await expect.element(page.getByText('Lewat tempo').first()).toBeVisible();
+		expect(requested).toContain('/api/v1/reports/settlements?from=2026-11-01&to=2026-11-20');
 	});
 });

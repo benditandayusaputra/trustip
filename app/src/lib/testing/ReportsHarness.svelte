@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SalesReportView from '#lib/features/reports/components/SalesReportView.svelte';
+	import ReportsPage from '#lib/features/reports/components/ReportsPage.svelte';
 
 	interface Props {
 		organizationType?: 'STORE' | 'CONSIGNOR';
@@ -8,4 +8,4 @@
 	let { organizationType = 'STORE' }: Props = $props();
 </script>
 
-<SalesReportView {organizationType} />
+<ReportsPage {organizationType} />
