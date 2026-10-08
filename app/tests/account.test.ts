@@ -25,7 +25,7 @@ async function expectTokensHiddenFromScripts(page: Page): Promise<void> {
 	});
 }
 
-test('FR-AUTH-04 FR-AUTH-06 a consignor on a phone reaches an empty dashboard', async ({
+test('FR-AUTH-04 FR-AUTH-06 a new business reaches its dashboard and settings', async ({
 	page
 }, testInfo) => {
 	const email = `e2e-${testInfo.project.name}-${String(Date.now())}@contoh.id`;
@@ -49,7 +49,7 @@ test('FR-AUTH-04 FR-AUTH-06 a consignor on a phone reaches an empty dashboard', 
 	await expect(greeting).toBeVisible();
 	await expectTokensHiddenFromScripts(page);
 
-	await page.getByRole('link', { name: 'Lengkapi profil usaha' }).click();
+	await page.goto('/app/pengaturan');
 	await expect(page.getByLabel('Nama usaha')).toHaveValue(business.name);
 	await page.getByLabel('Nama usaha').fill(`${business.name} Jaya`);
 	await page.getByRole('button', { name: 'Simpan profil', exact: true }).click();
