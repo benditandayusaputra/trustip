@@ -6,6 +6,7 @@ import { organization } from './organization';
 import { partnerships } from './partnerships';
 import { products } from './products';
 import { proposals } from './proposals';
+import { reports } from './reports';
 import { settlements } from './settlements';
 import { stock } from './stock';
 
@@ -19,6 +20,7 @@ export const id = {
 	...partnerships,
 	...products,
 	...proposals,
+	...reports,
 	...settlements,
 	...stock,
 	layout: {
