@@ -23,6 +23,7 @@ const (
 	FieldTooMany           FieldCode = "TOO_MANY"
 	FieldTaken             FieldCode = "TAKEN"
 	FieldExceedsRetail     FieldCode = "EXCEEDS_RETAIL_PRICE"
+	FieldCountExceedsStock FieldCode = "COUNT_EXCEEDS_STOCK"
 )
 
 type Param struct {
@@ -50,6 +51,7 @@ func fieldMessages() map[FieldCode]string {
 		FieldTooMany:           "Maksimal {max} pilihan.",
 		FieldTaken:             "Sudah dipakai. Pilih yang lain.",
 		FieldExceedsRetail:     "Harga setor tidak boleh melebihi harga jual.",
+		FieldCountExceedsStock: "Sisa melebihi stok tercatat ({n}). Catat dulu titipan masuk yang belum dicatat.",
 	}
 }
 

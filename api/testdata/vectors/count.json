@@ -1,0 +1,287 @@
+{
+  "description": "Count vectors shared by api and app. Per product: sold = recorded stock - counted, kept = counted - returned, sold units leave the batches first-expiry first-out, returned units leave the batches that remain the same way, and money is split per sale allocation with the terms copied to that batch (02-SPESIFIKASI-FITUR section 12, BR-CNT-01, BR-CNT-02, BR-CNT-08, BR-CNT-09, BR-STL-04).",
+  "counts": [
+    {
+      "name": "section 12 example, roti manis 20 recorded, 2 left and returned as unsold",
+      "lines": [
+        {
+          "product_id": "roti",
+          "batches": [
+            {
+              "id": "roti-1",
+              "expiry_date": "2026-11-12",
+              "received_at": "2026-11-10T01:00:00Z",
+              "balance": 20,
+              "terms": { "model": "FIXED_DEPOSIT", "retail_price": 2000, "commission_bps": 0, "deposit_price": 1750 }
+            }
+          ],
+          "counted_qty": 2,
+          "returned_qty": 2,
+          "return_reason": "UNSOLD"
+        }
+      ],
+      "result": {
+        "lines": [
+          {
+            "product_id": "roti",
+            "recorded_qty": 20,
+            "sold_qty": 18,
+            "returned_qty": 2,
+            "kept_qty": 0,
+            "return_reason": "UNSOLD",
+            "sales": [{ "batch_id": "roti-1", "qty": 18, "split": { "gross": 36000, "store_share": 4500, "consignor_share": 31500 } }],
+            "returns": [{ "batch_id": "roti-1", "qty": 2 }],
+            "split": { "gross": 36000, "store_share": 4500, "consignor_share": 31500 }
+          }
+        ],
+        "sold_qty": 18,
+        "returned_qty": 2,
+        "split": { "gross": 36000, "store_share": 4500, "consignor_share": 31500 }
+      }
+    },
+    {
+      "name": "counted equals the stock, nothing sold and the line is still kept",
+      "lines": [
+        {
+          "product_id": "roti",
+          "batches": [
+            {
+              "id": "roti-1",
+              "expiry_date": "2026-11-12",
+              "received_at": "2026-11-10T01:00:00Z",
+              "balance": 20,
+              "terms": { "model": "FIXED_DEPOSIT", "retail_price": 2000, "commission_bps": 0, "deposit_price": 1750 }
+            }
+          ],
+          "counted_qty": 20,
+          "returned_qty": 0,
+          "return_reason": ""
+        }
+      ],
+      "result": {
+        "lines": [
+          {
+            "product_id": "roti",
+            "recorded_qty": 20,
+            "sold_qty": 0,
+            "returned_qty": 0,
+            "kept_qty": 20,
+            "return_reason": "",
+            "sales": [],
+            "returns": [],
+            "split": { "gross": 0, "store_share": 0, "consignor_share": 0 }
+          }
+        ],
+        "sold_qty": 0,
+        "returned_qty": 0,
+        "split": { "gross": 0, "store_share": 0, "consignor_share": 0 }
+      }
+    },
+    {
+      "name": "part returned from the batches left after the sale, each batch priced with its own terms",
+      "lines": [
+        {
+          "product_id": "keripik",
+          "batches": [
+            {
+              "id": "B2",
+              "expiry_date": "2026-11-20",
+              "received_at": "2026-11-05T01:00:00Z",
+              "balance": 12,
+              "terms": { "model": "COMMISSION", "retail_price": 15000, "commission_bps": 1750, "deposit_price": 0 }
+            },
+            {
+              "id": "B1",
+              "expiry_date": "2026-11-10",
+              "received_at": "2026-11-01T01:00:00Z",
+              "balance": 5,
+              "terms": { "model": "COMMISSION", "retail_price": 15000, "commission_bps": 2000, "deposit_price": 0 }
+            }
+          ],
+          "counted_qty": 9,
+          "returned_qty": 4,
+          "return_reason": "NEAR_EXPIRY"
+        }
+      ],
+      "result": {
+        "lines": [
+          {
+            "product_id": "keripik",
+            "recorded_qty": 17,
+            "sold_qty": 8,
+            "returned_qty": 4,
+            "kept_qty": 5,
+            "return_reason": "NEAR_EXPIRY",
+            "sales": [
+              { "batch_id": "B1", "qty": 5, "split": { "gross": 75000, "store_share": 15000, "consignor_share": 60000 } },
+              { "batch_id": "B2", "qty": 3, "split": { "gross": 45000, "store_share": 7875, "consignor_share": 37125 } }
+            ],
+            "returns": [{ "batch_id": "B2", "qty": 4 }],
+            "split": { "gross": 120000, "store_share": 22875, "consignor_share": 97125 }
+          }
+        ],
+        "sold_qty": 8,
+        "returned_qty": 4,
+        "split": { "gross": 120000, "store_share": 22875, "consignor_share": 97125 }
+      }
+    },
+    {
+      "name": "sales over three batches round half up per allocation, not on the total",
+      "lines": [
+        {
+          "product_id": "kue",
+          "batches": [
+            {
+              "id": "k1",
+              "expiry_date": "2026-12-01",
+              "received_at": "2026-11-01T01:00:00Z",
+              "balance": 1,
+              "terms": { "model": "COMMISSION", "retail_price": 22500, "commission_bps": 1750, "deposit_price": 0 }
+            },
+            {
+              "id": "k2",
+              "expiry_date": "2026-12-02",
+              "received_at": "2026-11-02T01:00:00Z",
+              "balance": 1,
+              "terms": { "model": "COMMISSION", "retail_price": 22500, "commission_bps": 1750, "deposit_price": 0 }
+            },
+            {
+              "id": "k3",
+              "expiry_date": "2026-12-03",
+              "received_at": "2026-11-03T01:00:00Z",
+              "balance": 1,
+              "terms": { "model": "COMMISSION", "retail_price": 22500, "commission_bps": 1750, "deposit_price": 0 }
+            }
+          ],
+          "counted_qty": 0,
+          "returned_qty": 0,
+          "return_reason": ""
+        }
+      ],
+      "result": {
+        "lines": [
+          {
+            "product_id": "kue",
+            "recorded_qty": 3,
+            "sold_qty": 3,
+            "returned_qty": 0,
+            "kept_qty": 0,
+            "return_reason": "",
+            "sales": [
+              { "batch_id": "k1", "qty": 1, "split": { "gross": 22500, "store_share": 3938, "consignor_share": 18562 } },
+              { "batch_id": "k2", "qty": 1, "split": { "gross": 22500, "store_share": 3938, "consignor_share": 18562 } },
+              { "batch_id": "k3", "qty": 1, "split": { "gross": 22500, "store_share": 3938, "consignor_share": 18562 } }
+            ],
+            "returns": [],
+            "split": { "gross": 67500, "store_share": 11814, "consignor_share": 55686 }
+          }
+        ],
+        "sold_qty": 3,
+        "returned_qty": 0,
+        "split": { "gross": 67500, "store_share": 11814, "consignor_share": 55686 }
+      }
+    },
+    {
+      "name": "two products add their lines and leave returned units out of the money",
+      "lines": [
+        {
+          "product_id": "roti",
+          "batches": [
+            {
+              "id": "roti-1",
+              "expiry_date": "2026-11-12",
+              "received_at": "2026-11-10T01:00:00Z",
+              "balance": 20,
+              "terms": { "model": "FIXED_DEPOSIT", "retail_price": 2000, "commission_bps": 0, "deposit_price": 1750 }
+            }
+          ],
+          "counted_qty": 2,
+          "returned_qty": 2,
+          "return_reason": "UNSOLD"
+        },
+        {
+          "product_id": "sambal",
+          "batches": [
+            {
+              "id": "sambal-1",
+              "expiry_date": null,
+              "received_at": "2026-11-01T01:00:00Z",
+              "balance": 12,
+              "terms": { "model": "FIXED_DEPOSIT", "retail_price": 35000, "commission_bps": 0, "deposit_price": 28000 }
+            }
+          ],
+          "counted_qty": 2,
+          "returned_qty": 1,
+          "return_reason": "DAMAGED"
+        }
+      ],
+      "result": {
+        "lines": [
+          {
+            "product_id": "roti",
+            "recorded_qty": 20,
+            "sold_qty": 18,
+            "returned_qty": 2,
+            "kept_qty": 0,
+            "return_reason": "UNSOLD",
+            "sales": [{ "batch_id": "roti-1", "qty": 18, "split": { "gross": 36000, "store_share": 4500, "consignor_share": 31500 } }],
+            "returns": [{ "batch_id": "roti-1", "qty": 2 }],
+            "split": { "gross": 36000, "store_share": 4500, "consignor_share": 31500 }
+          },
+          {
+            "product_id": "sambal",
+            "recorded_qty": 12,
+            "sold_qty": 10,
+            "returned_qty": 1,
+            "kept_qty": 1,
+            "return_reason": "DAMAGED",
+            "sales": [{ "batch_id": "sambal-1", "qty": 10, "split": { "gross": 350000, "store_share": 70000, "consignor_share": 280000 } }],
+            "returns": [{ "batch_id": "sambal-1", "qty": 1 }],
+            "split": { "gross": 350000, "store_share": 70000, "consignor_share": 280000 }
+          }
+        ],
+        "sold_qty": 28,
+        "returned_qty": 3,
+        "split": { "gross": 386000, "store_share": 74500, "consignor_share": 311500 }
+      }
+    }
+  ],
+  "rejections": [
+    {
+      "name": "BR-CNT-01 counted above the recorded stock",
+      "line": { "recorded_qty": 20, "counted_qty": 21, "returned_qty": 0, "return_reason": "" },
+      "field": "lines[0].counted_qty",
+      "code": "COUNT_EXCEEDS_STOCK"
+    },
+    {
+      "name": "BR-CNT-01 negative counted",
+      "line": { "recorded_qty": 20, "counted_qty": -1, "returned_qty": 0, "return_reason": "" },
+      "field": "lines[0].counted_qty",
+      "code": "OUT_OF_RANGE"
+    },
+    {
+      "name": "BR-CNT-02 returned above the counted",
+      "line": { "recorded_qty": 20, "counted_qty": 2, "returned_qty": 3, "return_reason": "UNSOLD" },
+      "field": "lines[0].returned_qty",
+      "code": "OUT_OF_RANGE"
+    },
+    {
+      "name": "BR-CNT-02 negative returned",
+      "line": { "recorded_qty": 20, "counted_qty": 2, "returned_qty": -1, "return_reason": "" },
+      "field": "lines[0].returned_qty",
+      "code": "OUT_OF_RANGE"
+    },
+    {
+      "name": "BR-CNT-02 returned without a reason",
+      "line": { "recorded_qty": 20, "counted_qty": 2, "returned_qty": 1, "return_reason": "" },
+      "field": "lines[0].return_reason",
+      "code": "REQUIRED"
+    },
+    {
+      "name": "BR-CNT-02 unknown reason",
+      "line": { "recorded_qty": 20, "counted_qty": 2, "returned_qty": 1, "return_reason": "LOST" },
+      "field": "lines[0].return_reason",
+      "code": "UNKNOWN_CHOICE"
+    }
+  ]
+}
