@@ -2,6 +2,7 @@ import { page, userEvent } from 'vitest/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import DashboardHarness from '#lib/testing/DashboardHarness.svelte';
+import type { Dashboard } from '#lib/api/insights.js';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 
 const storeId = '0192f0c4-0000-7000-8000-000000000401';
@@ -11,7 +12,7 @@ const tally = (count: number, amount: number) => ({ count, amount });
 const split = { gross: 36000, store_share: 4500, consignor_share: 31500 };
 const figures = { sold_qty: 18, returned_qty: 2, received_qty: 20, returned_bps: 1000, split };
 
-const dashboard = {
+const dashboard: Dashboard = {
 	figures: {
 		active_partners: 2,
 		stock_units: 42,
@@ -62,10 +63,12 @@ function salesReport(groupBy: string) {
 	};
 }
 
+let served = dashboard;
+
 function dataFor(path: string): unknown {
 	const url = new URL(path, 'https://trustip.test');
 	if (url.pathname === '/api/v1/dashboard') {
-		return dashboard;
+		return served;
 	}
 	if (url.pathname === '/api/v1/insights') {
 		return [overdueInsight];
@@ -88,6 +91,7 @@ function serve(status = 200) {
 }
 
 afterEach(() => {
+	served = dashboard;
 	vi.unstubAllGlobals();
 });
 
@@ -140,5 +144,45 @@ describe('Consignor dashboard', () => {
 		await render(DashboardHarness, {});
 
 		await expect.element(page.getByText('Dasbor tidak bisa dimuat.')).toBeVisible();
+	});
+});
+
+describe('Store dashboard', () => {
+	const storeBoard: Dashboard = {
+		...dashboard,
+		figures: { ...dashboard.figures, due_soon: tally(1, 14000) },
+		tasks: { ...dashboard.tasks, drops_to_confirm: 0, payments_rejected: 1 },
+		quick_count: [
+			{ partnership_id: partnershipId, counterpart_name: 'Roti Pak Anton', stock_units: 12 }
+		]
+	};
+
+	it('FR-CNT-11 lists partners not counted today with a Hitung button', async () => {
+		served = storeBoard;
+		serve();
+		const { container } = await render(DashboardHarness, { side: 'STORE' });
+
+		await expect.element(page.getByText('Roti Pak Anton')).toBeVisible();
+		await expect.element(page.getByText('12 unit tercatat')).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: 'Hitung Roti Pak Anton' }))
+			.toHaveAttribute('href', `/app/hitung/baru?mitra=${partnershipId}`);
+		await expect.element(page.getByText('1 jatuh tempo 3 hari lagi, Rp14.000')).toBeVisible();
+		await expect.element(page.getByText('Rp4.500', { exact: true })).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: '2 Setoran belum dibayar' }))
+			.toHaveAttribute('href', '/app/setoran');
+		await expect.element(page.getByRole('link', { name: '1 pembayaran ditolak' })).toBeVisible();
+		await expect.element(page.getByText('1. Roti Sobek (ROT-1)')).toBeVisible();
+		await expectAccessible(container);
+	});
+
+	it('FR-CNT-11 says everyone is counted when no partner is waiting', async () => {
+		serve();
+		await render(DashboardHarness, { side: 'STORE' });
+
+		await expect
+			.element(page.getByText('Semua mitra berstok sudah dihitung hari ini.'))
+			.toBeVisible();
 	});
 });

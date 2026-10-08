@@ -9,40 +9,56 @@ import type { TaskLink } from './components/TaskList.svelte';
 const maxRankedRows = 5;
 const text = id.dashboard;
 
-type Tasks = Dashboard['tasks'];
-
 interface TaskSpec {
-	count: (tasks: Tasks) => number;
+	count: (board: Dashboard) => number;
 	label: (count: number) => string;
 	href: string;
 }
 
 export const consignorTasks: TaskSpec[] = [
 	{
-		count: (tasks) => tasks.drops_to_confirm,
+		count: (board) => board.tasks.drops_to_confirm,
 		label: text.tasks.dropsToConfirm,
 		href: '/app/titipan'
 	},
 	{
-		count: (tasks) => tasks.counts_to_confirm,
+		count: (board) => board.tasks.counts_to_confirm,
 		label: text.tasks.countsToConfirm,
 		href: '/app/hitung'
 	},
 	{
-		count: (tasks) => tasks.payments_to_review,
+		count: (board) => board.tasks.payments_to_review,
 		label: text.tasks.paymentsToReview,
 		href: '/app/setoran'
 	},
 	{
-		count: (tasks) => tasks.proposals_awaiting,
+		count: (board) => board.tasks.proposals_awaiting,
 		label: text.tasks.proposalsAwaiting,
 		href: '/app/ajuan'
 	}
 ];
 
-export function taskLinksOf(tasks: Tasks, specs: TaskSpec[]): TaskLink[] {
+export const storeTasks: TaskSpec[] = [
+	{
+		count: (board) => board.figures.unpaid.count,
+		label: text.tasks.unpaidSettlements,
+		href: '/app/setoran'
+	},
+	{
+		count: (board) => board.tasks.payments_rejected,
+		label: text.tasks.paymentsRejected,
+		href: '/app/setoran'
+	},
+	{
+		count: (board) => board.tasks.proposals_awaiting,
+		label: text.tasks.proposalsAwaiting,
+		href: '/app/ajuan'
+	}
+];
+
+export function taskLinksOf(board: Dashboard, specs: TaskSpec[]): TaskLink[] {
 	return specs
-		.map((spec) => ({ count: spec.count(tasks), label: spec.label, href: spec.href }))
+		.map((spec) => ({ count: spec.count(board), label: spec.label, href: spec.href }))
 		.filter((task) => task.count > 0)
 		.map((task) => ({ label: task.label(task.count), href: task.href }));
 }

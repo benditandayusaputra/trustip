@@ -66,7 +66,7 @@
 	</div>
 	<div class="grid gap-6 lg:grid-cols-12">
 		<div class="flex flex-col gap-6 lg:col-span-4 lg:col-start-9 lg:row-start-1">
-			<TaskList tasks={taskLinksOf(board.dashboard.tasks, consignorTasks)} />
+			<TaskList tasks={taskLinksOf(board.dashboard, consignorTasks)} />
 			<InsightList insights={board.insights} />
 		</div>
 		<div class="flex flex-col gap-4 lg:col-span-8 lg:row-start-1">
