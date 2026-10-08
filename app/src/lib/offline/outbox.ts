@@ -34,6 +34,7 @@ interface EntryBase {
 	partnershipId: string;
 	partnerName: string;
 	recordedAt: string;
+	revisedAt?: string;
 	savedOffline: boolean;
 	userId: string;
 	organizationId: string;

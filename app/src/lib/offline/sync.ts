@@ -99,6 +99,7 @@ export class OutboxSync {
 			...entry,
 			...draft,
 			revision: entry.revision + 1,
+			revisedAt: this.#deps.now().toISOString(),
 			idempotencyKey: this.#deps.newKey(),
 			status: 'PENDING',
 			problem: null
@@ -162,7 +163,7 @@ export class OutboxSync {
 
 	async #post(entry: OutboxEntry): Promise<SentDocument> {
 		const delivery = {
-			client_recorded_at: entry.recordedAt,
+			client_recorded_at: entry.revisedAt ?? entry.recordedAt,
 			recorded_offline: entry.savedOffline || entry.attempts > 0
 		};
 		const client = this.#deps.client();

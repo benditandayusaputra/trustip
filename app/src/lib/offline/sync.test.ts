@@ -234,6 +234,27 @@ describe('OutboxSync (FR-PWA-06)', () => {
 		});
 	});
 
+	it('BR-CNT-06 R-OFF-06 sends a corrected entry at the time of the correction without moving it in the queue', async () => {
+		const calls: Call[] = [];
+		const { sync, store } = engine(
+			server(
+				{
+					...me,
+					'POST /api/v1/counts': [() => ok({ id: 'c1', number: 'HS-202611-0001' }, 201)]
+				},
+				calls
+			)
+		);
+		const id = await sync.enqueue(countDraft('p1'));
+		const recordedAt = store.entries.get(id)?.recordedAt;
+
+		await sync.revise(id, countDraft('p1'));
+		await sync.flush();
+
+		expect(store.entries.get(id)?.recordedAt).toBe(recordedAt);
+		expect(calls[0]?.body.client_recorded_at).toBe('2026-11-10T02:00:01.000Z');
+	});
+
 	it('hands a refusal on the first send back to the form and forgets the entry', async () => {
 		const { sync, store } = engine(
 			server({ ...me, 'POST /api/v1/drops': [() => failure(422, 'VALIDATION_FAILED')] }, [])
