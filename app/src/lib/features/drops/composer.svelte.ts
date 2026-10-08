@@ -81,6 +81,12 @@ export class DropComposer {
 		}
 	}
 
+	updateLine(productId: string, changes: Partial<DropLine>): void {
+		this.lines = this.lines.map((line) =>
+			line.productId === productId ? { ...line, ...changes } : line
+		);
+	}
+
 	async save(): Promise<SaveOutcome> {
 		this.errors = validateDrop(this.lines, this.dropDate);
 		if (Object.keys(this.errors).length > 0) {

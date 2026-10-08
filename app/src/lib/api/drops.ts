@@ -17,3 +17,11 @@ export function recordDrop(
 export function getDrop(client: ApiClient, dropId: string): Promise<Drop> {
 	return client.get<Drop>(`${dropsPath}/${encodeURIComponent(dropId)}`);
 }
+
+export function confirmDrop(client: ApiClient, dropId: string): Promise<Drop> {
+	return client.send<Drop>(`${dropsPath}/${encodeURIComponent(dropId)}/confirm`);
+}
+
+export function cancelDrop(client: ApiClient, dropId: string): Promise<Drop> {
+	return client.send<Drop>(`${dropsPath}/${encodeURIComponent(dropId)}/cancel`);
+}

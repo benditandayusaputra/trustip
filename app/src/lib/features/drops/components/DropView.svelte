@@ -9,12 +9,14 @@
 	import { id } from '#lib/i18n/id.js';
 	import { DropRecord } from '../record.svelte';
 	import { itemRows, statusToneOf } from '../rows';
+	import DropActions from './DropActions.svelte';
 
 	interface Props {
 		dropId: string;
+		viewerOrganizationId: string;
 	}
 
-	let { dropId }: Props = $props();
+	let { dropId, viewerOrganizationId }: Props = $props();
 
 	const text = id.drops;
 	const record = new DropRecord(apiClient);
@@ -51,6 +53,12 @@
 		<dt class="text-text-muted">{text.recordedBy}</dt>
 		<dd>{drop.recorded_by_name}</dd>
 	</dl>
+	{#if drop.cancellation}
+		<p class="text-sm text-text">
+			{text.cancelledBy(drop.cancellation.by_name, formatDateTime(drop.cancellation.at))}
+		</p>
+	{/if}
+	<DropActions {record} {viewerOrganizationId} />
 	{#if drop.confirmation}
 		<p class="text-sm text-text">
 			{drop.confirmation.is_automatic

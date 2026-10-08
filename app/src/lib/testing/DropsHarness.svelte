@@ -9,10 +9,16 @@
 	interface Props {
 		view: 'form' | 'detail' | 'choose';
 		targetId?: string;
+		viewerOrganizationId?: string;
 		ondone?: (drop: Drop) => void;
 	}
 
-	let { view, targetId = '', ondone = () => undefined }: Props = $props();
+	let {
+		view,
+		targetId = '',
+		viewerOrganizationId = '',
+		ondone = () => undefined
+	}: Props = $props();
 
 	setToaster(new ToastQueue());
 </script>
@@ -20,7 +26,7 @@
 {#if view === 'form'}
 	<DropForm partnershipId={targetId} onsaved={ondone} />
 {:else if view === 'detail'}
-	<DropView dropId={targetId} />
+	<DropView dropId={targetId} {viewerOrganizationId} />
 {:else}
 	<PartnerChooser hrefOf={(partnerId: string) => `/app/titipan/baru?mitra=${partnerId}`} />
 {/if}

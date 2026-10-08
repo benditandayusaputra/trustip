@@ -37,6 +37,19 @@ export const drops = {
 		product: 'Produk',
 		batch: 'Batch',
 		noExpiry: 'Tanpa tanggal',
+		cancelledBy: (name: string, date: string) => `Dibatalkan oleh ${name} pada ${date}.`,
+		confirm: 'Sesuai',
+		confirmTitle: 'Nyatakan titipan ini sesuai?',
+		confirmBody:
+			'Jumlah dan tanggal kedaluwarsa dianggap benar. Setelah ini titipan tidak bisa dibatalkan toko.',
+		confirmed: 'Titipan dinyatakan sesuai.',
+		cancel: 'Batalkan titipan',
+		cancelTitle: 'Batalkan titipan ini?',
+		cancelBody:
+			'Stok dari titipan ini ditarik kembali. Pembatalan tercatat dan tidak bisa diulang.',
+		cancelHint: (time: string) => `Bisa dibatalkan sampai ${time}.`,
+		cancelled: 'Titipan dibatalkan dan stoknya ditarik kembali.',
+		keep: 'Kembali',
 		recordDrop: 'Catat titipan',
 		another: 'Catat titipan lain'
 	}

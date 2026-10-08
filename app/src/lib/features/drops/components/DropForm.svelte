@@ -11,7 +11,7 @@
 	import type { Drop } from '#lib/api/drops.js';
 	import { id } from '#lib/i18n/id.js';
 	import { DropComposer } from '../composer.svelte';
-	import { previewOf } from '../schema';
+	import { previewOf, type DropLine } from '../schema';
 	import DropLineRow from './DropLineRow.svelte';
 	import DropPreview from './DropPreview.svelte';
 
@@ -76,7 +76,14 @@
 			}}
 		/>
 		{#each composer.lines as line (line.productId)}
-			<DropLineRow {line} dropDate={composer.dropDate} errors={composer.errors} />
+			<DropLineRow
+				{line}
+				dropDate={composer.dropDate}
+				errors={composer.errors}
+				onchange={(changes: Partial<DropLine>) => {
+					composer.updateLine(line.productId, changes);
+				}}
+			/>
 		{/each}
 		{#if composer.errors.items}
 			<p class="text-sm text-danger" role="alert">{composer.errors.items}</p>

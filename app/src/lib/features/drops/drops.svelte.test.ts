@@ -43,6 +43,8 @@ const drop = {
 	consignor: agreement.consignor,
 	recorded_by_name: 'Sri',
 	confirmation: null,
+	cancellation: null,
+	cancel_deadline: '2999-01-01T00:00:00Z',
 	items: [
 		{
 			id: '0192f0c4-0000-7000-8000-000000000801',
@@ -224,5 +226,73 @@ describe('Drop detail', () => {
 		await expect.element(page.getByText('Menunggu konfirmasi')).toBeVisible();
 		await expect.element(page.getByText('Segel sah')).toBeVisible();
 		await expectAccessible(container);
+	});
+});
+
+describe('Drop decisions', () => {
+	const consignorId = drop.consignor.id;
+	const storeId = drop.store.id;
+
+	it('FR-DRP-06 lets the consignor confirm after a dialog that names the effect', async () => {
+		serve({
+			[`GET /api/v1/drops/${dropId}`]: () => envelope(drop),
+			[`POST /api/v1/drops/${dropId}/confirm`]: () =>
+				envelope({
+					...drop,
+					status: 'CONFIRMED',
+					confirmation: { by_name: 'Anton', at: '2026-11-10T03:00:00Z', is_automatic: false }
+				})
+		});
+		const { container } = await render(DropsHarness, {
+			view: 'detail',
+			targetId: dropId,
+			viewerOrganizationId: consignorId
+		});
+
+		await userEvent.click(page.getByRole('button', { name: 'Sesuai' }));
+		await expect.element(page.getByText('Nyatakan titipan ini sesuai?')).toBeVisible();
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('dialog').getByRole('button', { name: 'Sesuai' }));
+
+		await expect.element(page.getByText('Titipan dinyatakan sesuai.')).toBeVisible();
+		await expect.element(page.getByText(/Dinyatakan sesuai oleh Anton/u)).toBeVisible();
+		await expect
+			.element(page.getByRole('button', { name: 'Batalkan titipan' }))
+			.not.toBeInTheDocument();
+	});
+
+	it('FR-DRP-10 shows the store a cancel button only before the deadline', async () => {
+		serve({
+			[`GET /api/v1/drops/${dropId}`]: () =>
+				envelope({ ...drop, cancel_deadline: '2000-01-01T00:00:00Z' })
+		});
+		await render(DropsHarness, { view: 'detail', targetId: dropId, viewerOrganizationId: storeId });
+
+		await expect.element(page.getByText('Menunggu konfirmasi')).toBeVisible();
+		await expect
+			.element(page.getByRole('button', { name: 'Batalkan titipan' }))
+			.not.toBeInTheDocument();
+		await expect.element(page.getByRole('button', { name: 'Sesuai' })).not.toBeInTheDocument();
+	});
+
+	it('FR-DRP-10 cancels within the window and shows who cancelled', async () => {
+		serve({
+			[`GET /api/v1/drops/${dropId}`]: () => envelope(drop),
+			[`POST /api/v1/drops/${dropId}/cancel`]: () =>
+				envelope({
+					...drop,
+					status: 'CANCELLED',
+					cancellation: { by_name: 'Sri', at: '2026-11-10T02:10:00Z' }
+				})
+		});
+		await render(DropsHarness, { view: 'detail', targetId: dropId, viewerOrganizationId: storeId });
+
+		await userEvent.click(page.getByRole('button', { name: 'Batalkan titipan' }));
+		await userEvent.click(
+			page.getByRole('dialog').getByRole('button', { name: 'Batalkan titipan' })
+		);
+
+		await expect.element(page.getByText('Dibatalkan', { exact: true })).toBeVisible();
+		await expect.element(page.getByText(/Dibatalkan oleh Sri/u)).toBeVisible();
 	});
 });
