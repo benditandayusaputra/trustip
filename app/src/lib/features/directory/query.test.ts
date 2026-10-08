@@ -23,8 +23,8 @@ describe('store directory query', () => {
 		const address = storeSearchParams(query);
 
 		expect(address.toString()).toBe(
-			'origin=CITY&city_code=33.74&radius_km=25&sort=BEST_MATCH&store_type=CANTEEN' +
-				'&without_halal=true&q=kopi&category_id=a&category_id=b'
+			'origin=CITY&city_code=33.74&radius_km=25&sort=BEST_MATCH&q=kopi' +
+				'&store_type=CANTEEN&without_halal=true&category_id=a&category_id=b'
 		);
 		expect(storeQueryFrom(address)).toEqual(query);
 	});

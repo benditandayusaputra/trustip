@@ -4,7 +4,8 @@
 	import type { DirectoryStoreCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatDistance } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
-	import { reasonText } from '../reasons';
+	import MatchReasons from './MatchReasons.svelte';
+	import MatchSummary from './MatchSummary.svelte';
 
 	interface Props {
 		card: DirectoryStoreCard;
@@ -16,7 +17,6 @@
 	const storeTypes = id.storeProfile.storeTypes;
 	const minimum = $derived(card.terms.commission_min_bps);
 	const maximum = $derived(card.terms.commission_max_bps);
-	const label = $derived(card.match?.label ? text.labels[card.match.label] : undefined);
 	const reputation = $derived(
 		card.reputation.on_time_bps === null
 			? text.newcomer
@@ -50,15 +50,7 @@
 			</p>
 		</div>
 		{#if card.match}
-			<p class="flex shrink-0 flex-col items-end gap-1">
-				<span
-					class="text-2xl font-mono font-bold text-accent"
-					aria-label={text.score(card.match.score)}>{card.match.score}</span
-				>
-				{#if label}
-					<Badge tone="info" {label} />
-				{/if}
-			</p>
+			<MatchSummary match={card.match} />
 		{/if}
 	</header>
 	<div class="flex flex-wrap gap-2">
@@ -78,11 +70,7 @@
 		{/if}
 		<p>{reputation}</p>
 	</div>
-	{#if card.match && card.match.reasons.length > 0}
-		<ul class="flex flex-wrap gap-2 text-sm text-text">
-			{#each card.match.reasons as reason (reason.code)}
-				<li class="rounded-pill bg-surface-hover px-2 py-1">{reasonText(reason)}</li>
-			{/each}
-		</ul>
+	{#if card.match}
+		<MatchReasons reasons={card.match.reasons} />
 	{/if}
 </article>

@@ -14,6 +14,9 @@ const formatters: Record<MatchReason['code'], (reason: MatchReason) => string> =
 	ACTIVE_RECENTLY: () => text.activeRecently
 };
 
-export function reasonText(reason: MatchReason): string {
-	return formatters[reason.code](reason);
+export function reasonText(reason: MatchReason, isApproximate = false): string {
+	const formatted = formatters[reason.code](reason);
+	return isApproximate && reason.code === 'DISTANCE'
+		? id.consignorDirectory.approximate(formatted)
+		: formatted;
 }

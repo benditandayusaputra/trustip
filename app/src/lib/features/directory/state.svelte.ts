@@ -1,12 +1,8 @@
 import type { ApiClient } from '#lib/api/client.js';
-import {
-	listDirectoryStores,
-	type DirectorySearch,
-	type DirectoryStoreCard
-} from '#lib/api/directory.js';
+import { listDirectory, type DirectoryPath, type DirectorySearch } from '#lib/api/directory.js';
 
-export class StoreDirectory {
-	items = $state<DirectoryStoreCard[]>([]);
+export class DirectoryList<T> {
+	items = $state<T[]>([]);
 	search = $state<DirectorySearch | null>(null);
 	status = $state<'loading' | 'ready' | 'failed'>('loading');
 	failure = $state('');
@@ -15,9 +11,11 @@ export class StoreDirectory {
 	#query = '';
 	#generation = 0;
 	readonly #client: () => ApiClient;
+	readonly #path: DirectoryPath;
 
-	constructor(client: () => ApiClient) {
+	constructor(client: () => ApiClient, path: DirectoryPath) {
 		this.#client = client;
+		this.#path = path;
 	}
 
 	async load(query: string): Promise<void> {
@@ -25,7 +23,11 @@ export class StoreDirectory {
 		const generation = ++this.#generation;
 		this.status = 'loading';
 		try {
-			const page = await listDirectoryStores(this.#client(), this.#query, null);
+			const page = await listDirectory<T>(this.#client(), {
+				path: this.#path,
+				query: this.#query,
+				cursor: null
+			});
 			if (generation !== this.#generation) {
 				return;
 			}
@@ -47,7 +49,11 @@ export class StoreDirectory {
 		}
 		this.busy = true;
 		try {
-			const page = await listDirectoryStores(this.#client(), this.#query, this.nextCursor);
+			const page = await listDirectory<T>(this.#client(), {
+				path: this.#path,
+				query: this.#query,
+				cursor: this.nextCursor
+			});
 			this.items = [...this.items, ...page.items];
 			this.nextCursor = page.nextCursor;
 		} finally {

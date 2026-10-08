@@ -61,5 +61,43 @@ export const directory = {
 		},
 		self: 'Usaha Anda',
 		partner: 'Sudah bermitra'
+	},
+	consignorDirectory: {
+		title: 'Cari penitip',
+		tabsLabel: 'Tampilkan',
+		tabs: { produk: 'Produk', penitip: 'Penitip' },
+		filters: 'Saring penitip dan produk',
+		search: 'Cari nama usaha, produk, atau deskripsi',
+		category: 'Kategori produk',
+		anyCategory: 'Semua kategori',
+		priceRange: 'Harga jual saran',
+		priceRanges: {
+			any: 'Semua harga',
+			under5k: 'Di bawah Rp5.000',
+			from5kTo15k: 'Rp5.000 sampai Rp15.000',
+			from15kTo50k: 'Rp15.000 sampai Rp50.000',
+			over50k: 'Di atas Rp50.000'
+		},
+		shelfLife: 'Masa simpan minimal',
+		shelfLives: { any: 'Semua', '3': '3 hari', '7': '7 hari', '14': '14 hari', '30': '30 hari' },
+		hasPermit: 'Punya izin edar',
+		hasHalal: 'Punya sertifikat halal',
+		canSample: 'Bisa kirim sampel',
+		deliversToMe: 'Jangkauan antar mencakup toko saya',
+		productsEmpty: 'Belum ada produk yang cocok dengan saringan ini.',
+		consignorsEmpty: 'Belum ada penitip yang cocok dengan saringan ini.',
+		productsFailed: 'Daftar produk tidak bisa dimuat.',
+		consignorsFailed: 'Daftar penitip tidak bisa dimuat.',
+		approximate: (distance: string) => `± ${distance}`,
+		productCount: (count: number) => `${String(count)} produk`,
+		deliveryRadius: (radiusKm: number) => `Antar sampai ${String(radiusKm)} km`,
+		partners: (count: number) => `${String(count)} toko mitra`,
+		newcomer: 'Baru',
+		permit: 'Izin edar',
+		halal: 'Halal',
+		sample: 'Bisa kirim sampel',
+		declared: 'Legalitas dinyatakan oleh pemilik usaha',
+		shelfLifeDays: (days: number) => `Tahan ${String(days)} hari`,
+		madeBy: (name: string) => `oleh ${name}`
 	}
 };
