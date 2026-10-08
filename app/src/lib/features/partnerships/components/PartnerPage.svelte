@@ -6,9 +6,12 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { apiClient } from '#lib/api/client.js';
+	import type { Partnership } from '#lib/api/partnerships.js';
 	import { id } from '#lib/i18n/id.js';
 	import { PartnerRecord } from '../state.svelte';
 	import PartnerCatalog from './PartnerCatalog.svelte';
+	import PartnerEnding from './PartnerEnding.svelte';
+	import PublicListingToggle from './PublicListingToggle.svelte';
 	import PartnerSummary from './PartnerSummary.svelte';
 
 	interface Props {
@@ -49,6 +52,10 @@
 	$effect(() => {
 		void record.load(partnershipId);
 	});
+
+	function replacePartnership(changed: Partnership) {
+		record.replace(changed);
+	}
 </script>
 
 {#if record.status === 'loading'}
@@ -71,7 +78,15 @@
 	<Tabs label={text.tabsLabel} {tabs} bind:selected>
 		{#snippet panel(key: string)}
 			{#if key === 'summary'}
-				<PartnerSummary {partnership} />
+				<div class="flex flex-col gap-6">
+					<PartnerSummary {partnership} />
+					{#if canAmend && partnership.status === 'ACTIVE'}
+						{#if !isConsignor}
+							<PublicListingToggle {partnership} onchanged={replacePartnership} />
+						{/if}
+						<PartnerEnding {partnership} onchanged={replacePartnership} />
+					{/if}
+				</div>
 			{:else if key === 'agreement'}
 				{@const isAmendable = canAmend && partnership.status === 'ACTIVE'}
 				<div class="flex flex-col gap-6">

@@ -29,6 +29,22 @@ export const partnerships = {
 		area: 'Wilayah',
 		catalog: 'Katalog mitra',
 		notAgreed: 'Belum ada di Kesepakatan',
-		stoppedItem: 'Dihentikan di Kesepakatan'
+		stoppedItem: 'Dihentikan di Kesepakatan',
+		balance: (units: string, amount: string) => `Stok ${units} unit · belum lunas ${amount}`,
+		showOnPublic: 'Tampilkan toko saya sebagai tempat membeli produk mitra ini',
+		showOnPublicHint: 'Pembeli bisa melihat toko Anda di halaman produk mitra.',
+		listingSaved: 'Pilihan tampil disimpan.',
+		end: 'Akhiri kemitraan',
+		endIntro:
+			'Kemitraan bisa diakhiri bila stok sudah kembali, semua dokumen sudah sesuai, dan Setoran lunas.',
+		blockers: 'Yang masih menghalangi',
+		noBlockers: 'Tidak ada penghalang. Kemitraan bisa diakhiri.',
+		blockersFailed: 'Penghalang tidak bisa dimuat.',
+		endTitle: 'Akhiri kemitraan ini?',
+		endBody:
+			'Setoran untuk penjualan yang belum disetorkan akan terbit lebih dulu. Kemitraan tetap bisa dibaca.',
+		endReason: 'Alasan (boleh kosong)',
+		ended: 'Kemitraan berakhir.',
+		keep: 'Kembali'
 	}
 };

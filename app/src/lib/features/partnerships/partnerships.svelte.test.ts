@@ -15,7 +15,9 @@ const summary = {
 		id: '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c',
 		name: 'Roti Pak Anton',
 		type: 'CONSIGNOR'
-	}
+	},
+	stock_qty: 12,
+	unpaid_amount: 14000
 };
 
 const partnership = {
@@ -23,6 +25,8 @@ const partnership = {
 	status: 'ACTIVE',
 	started_at: '2026-10-19T09:00:00Z',
 	ended_at: null,
+	show_on_public: false,
+	end_reason: '',
 	counterpart: {
 		...summary.counterpart,
 		slug: 'roti-pak-anton',
@@ -60,10 +64,11 @@ function list(data: unknown[]): Response {
 
 function serve(routes: Record<string, () => Response>) {
 	const calls: string[] = [];
-	vi.stubGlobal('fetch', (path: string) => {
-		calls.push(path);
+	vi.stubGlobal('fetch', (path: string, init: RequestInit = {}) => {
+		const method = init.method ?? 'GET';
+		calls.push(method === 'GET' ? path : `${method} ${path}`);
 		return Promise.resolve(
-			routes[path]?.() ??
+			(routes[`${init.method ?? 'GET'} ${path}`] ?? routes[path])?.() ??
 				Response.json(
 					{ code: 'NOT_FOUND', message: 'x', meta: { request_id: 'r' } },
 					{ status: 404 }
@@ -152,5 +157,83 @@ describe('Partner agreement actions', () => {
 				'href',
 				`/app/mitra/${partnershipId}/perubahan?tambah=0192f0c4-0000-7000-8000-000000000107`
 			);
+	});
+});
+
+function envelope(data: unknown): Response {
+	return Response.json({ code: 'OK', message: '', data, meta: { request_id: 'r' } });
+}
+
+const partnerPath = `/api/v1/partnerships/${partnershipId}`;
+
+describe('Ending a partnership', () => {
+	it('FR-PRT-01 shows the stock and unpaid balance of each partner', async () => {
+		serve({ '/api/v1/partnerships?status=ACTIVE': () => list([summary]) });
+		await render(PartnersHarness, { view: 'list' });
+
+		await expect.element(page.getByText('Stok 12 unit · belum lunas Rp14.000')).toBeVisible();
+	});
+
+	it('BR-PRT-02 lists the blockers with links to their documents', async () => {
+		serve({
+			[partnerPath]: () => envelope(partnership),
+			[`${partnerPath}/catalog`]: () => list([]),
+			[`${partnerPath}/blockers`]: () =>
+				list([
+					{
+						kind: 'UNPAID_SETTLEMENT',
+						document_id: '0192f0c4-0000-7000-8000-000000000701',
+						document_number: 'ST-202611-0001',
+						qty: 0,
+						amount: 14000,
+						description: 'Setoran ST-202611-0001 belum lunas'
+					}
+				])
+		});
+		const { container } = await render(PartnersHarness, { view: 'page', partnershipId });
+
+		await expect
+			.element(page.getByRole('link', { name: 'Setoran ST-202611-0001 belum lunas' }))
+			.toHaveAttribute('href', '/app/setoran/0192f0c4-0000-7000-8000-000000000701');
+		await expectAccessible(container);
+	});
+
+	it('FR-PRT-04 ends the partnership after the owner confirms', async () => {
+		const calls = serve({
+			[partnerPath]: () => envelope(partnership),
+			[`${partnerPath}/catalog`]: () => list([]),
+			[`${partnerPath}/blockers`]: () => list([]),
+			[`POST ${partnerPath}/end`]: () =>
+				envelope({ ...partnership, status: 'ENDED', ended_at: '2026-11-20T03:00:00Z' })
+		});
+		await render(PartnersHarness, { view: 'page', partnershipId });
+
+		await userEvent.click(page.getByRole('button', { name: 'Akhiri kemitraan' }));
+		await userEvent.click(
+			page.getByRole('dialog').getByRole('button', { name: 'Akhiri kemitraan' })
+		);
+
+		await expect.element(page.getByText('Kemitraan berakhir.')).toBeVisible();
+		expect(calls).toContain(`POST ${partnerPath}/end`);
+	});
+
+	it('FR-PRT-03 lets the store choose to be shown as a place to buy', async () => {
+		const calls = serve({
+			[partnerPath]: () => envelope(partnership),
+			[`${partnerPath}/catalog`]: () => list([]),
+			[`${partnerPath}/blockers`]: () => list([]),
+			[`PATCH ${partnerPath}/public-listing`]: () =>
+				envelope({ ...partnership, show_on_public: true })
+		});
+		await render(PartnersHarness, { view: 'page', partnershipId, isConsignor: false });
+
+		await userEvent.click(
+			page.getByRole('switch', {
+				name: 'Tampilkan toko saya sebagai tempat membeli produk mitra ini'
+			})
+		);
+
+		await expect.element(page.getByText('Pilihan tampil disimpan.')).toBeVisible();
+		expect(calls).toContain(`PATCH ${partnerPath}/public-listing`);
 	});
 });

@@ -87,4 +87,8 @@ export class PartnerRecord {
 			this.status = 'failed';
 		}
 	}
+
+	replace(partnership: Partnership): void {
+		this.partnership = partnership;
+	}
 }

@@ -7,7 +7,7 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import { formatDate } from '#lib/i18n/format.js';
+	import { formatDate, formatInteger, formatRupiah } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
 	import { PartnerList, type PartnerFilter } from '../state.svelte';
 
@@ -46,6 +46,12 @@
 								<span class="text-sm text-text-muted">
 									{text.types[partner.counterpart.type]} · {text.since(
 										formatDate(partner.started_at)
+									)}
+								</span>
+								<span class="font-mono text-sm text-text tabular-nums">
+									{text.balance(
+										formatInteger(partner.stock_qty),
+										formatRupiah(partner.unpaid_amount)
 									)}
 								</span>
 							</span>
