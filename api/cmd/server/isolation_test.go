@@ -95,6 +95,12 @@ func isolationCases() map[string]isolationCase {
 		"POST /api/v1/proposals/:id/decline": func(w isolationWorld) exchange {
 			return w.storeStranger.postJSON("/api/v1/proposals/"+w.consignor.proposalID+"/decline", `{"reason":"x"}`)
 		},
+		"POST /api/v1/proposals/:id/counter": func(w isolationWorld) exchange {
+			return w.storeStranger.postJSON("/api/v1/proposals/"+w.consignor.proposalID+"/counter", invitationBody(""))
+		},
+		"GET /api/v1/proposals/:id/revisions": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/proposals/" + w.consignor.proposalID + "/revisions")
+		},
 		"POST /api/v1/proposals/:id/withdraw": func(w isolationWorld) exchange {
 			return w.consignorStranger.post("/api/v1/proposals/" + w.consignor.proposalID + "/withdraw")
 		},

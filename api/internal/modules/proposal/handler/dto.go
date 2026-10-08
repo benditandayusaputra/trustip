@@ -137,20 +137,24 @@ func toProposalResponse(proposal domain.Proposal) proposalResponse {
 	}
 }
 
+func toItemResponse(item domain.Item) itemResponse {
+	perUnit := item.Terms.PerUnit()
+	return itemResponse{
+		ProductID: item.ProductID, ProductName: item.ProductName, SKU: item.SKU, Unit: item.Unit,
+		Action: string(item.Action), PricingModel: string(item.Terms.Model),
+		RetailPrice: item.Terms.RetailPrice.Int64(), CommissionBPS: item.Terms.CommissionBPS,
+		DepositPrice: item.Terms.DepositPrice.Int64(),
+		PerUnit: splitResponse{
+			Gross: perUnit.Gross.Int64(), StoreShare: perUnit.StoreShare.Int64(),
+			ConsignorShare: perUnit.ConsignorShare.Int64(),
+		},
+	}
+}
+
 func toRevisionResponse(revision domain.Revision) revisionResponse {
 	items := make([]itemResponse, 0, len(revision.Items))
 	for _, item := range revision.Items {
-		perUnit := item.Terms.PerUnit()
-		items = append(items, itemResponse{
-			ProductID: item.ProductID, ProductName: item.ProductName, SKU: item.SKU, Unit: item.Unit,
-			Action: string(item.Action), PricingModel: string(item.Terms.Model),
-			RetailPrice: item.Terms.RetailPrice.Int64(), CommissionBPS: item.Terms.CommissionBPS,
-			DepositPrice: item.Terms.DepositPrice.Int64(),
-			PerUnit: splitResponse{
-				Gross: perUnit.Gross.Int64(), StoreShare: perUnit.StoreShare.Int64(),
-				ConsignorShare: perUnit.ConsignorShare.Int64(),
-			},
-		})
+		items = append(items, toItemResponse(item))
 	}
 	terms := revision.Terms
 	return revisionResponse{

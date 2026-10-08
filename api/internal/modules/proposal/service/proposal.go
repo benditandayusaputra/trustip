@@ -15,6 +15,7 @@ import (
 type ProposalDeps struct {
 	Proposals ProposalStore
 	Direct    DirectProposals
+	Bargains  Bargaining
 	Audit     AuditTrail
 	Tx        Transactor
 	Clock     Clock

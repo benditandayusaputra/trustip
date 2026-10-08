@@ -1791,6 +1791,84 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/proposals/{id}/counter:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: counterProposal
+      tags: [proposal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationRequest"
+      responses:
+        "200":
+          description: Revisi tawaran tersimpan, giliran pindah ke pihak lawan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/proposals/{id}/revisions:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listProposalRevisions
+      tags: [proposal]
+      responses:
+        "200":
+          description: Semua revisi Ajuan berurutan, masing-masing dengan perubahan terhadap revisi sebelumnya
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProposalRevisionListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/proposals:
     get:
       operationId: listProposals
@@ -6589,3 +6667,78 @@ components:
           $ref: "#/components/schemas/DirectoryContact"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    ProposalChangedItem:
+      type: object
+      additionalProperties: false
+      required: [product_id, product_name, sku, unit, action, pricing_model, retail_price, commission_bps,
+        deposit_price, per_unit, change]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        action:
+          type: string
+          enum: [ADD, UPDATE, STOP]
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        retail_price:
+          type: integer
+        commission_bps:
+          type: integer
+        deposit_price:
+          type: integer
+        per_unit:
+          $ref: "#/components/schemas/Split"
+        change:
+          type: string
+          enum: [ADDED, CHANGED, KEPT, REMOVED]
+    ProposalRevisionRecord:
+      type: object
+      additionalProperties: false
+      required: [revision_no, author_org_id, author_name, terms, term_changes, message, items, created_at]
+      properties:
+        revision_no:
+          type: integer
+          minimum: 1
+        author_org_id:
+          type: string
+          format: uuid
+        author_name:
+          type: string
+        terms:
+          $ref: "#/components/schemas/GeneralTerms"
+        term_changes:
+          type: array
+          items:
+            type: string
+            enum: [settlement_schedule, payment_terms_days, count_rhythm, notes]
+        message:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalChangedItem"
+        created_at:
+          type: string
+          format: date-time
+    ProposalRevisionListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalRevisionRecord"
+        meta:
+          $ref: "#/components/schemas/ListMeta"

@@ -101,6 +101,39 @@ func (q *Queries) ConsumeProposalQuota(ctx context.Context, arg ConsumeProposalQ
 	return err
 }
 
+const counterProposal = `-- name: CounterProposal :execrows
+UPDATE proposals
+SET current_revision_no = $1::bigint,
+    awaiting_org_id = $2::uuid,
+    expires_at = $3::timestamptz,
+    updated_at = $4::timestamptz
+WHERE id = $5::uuid AND status = 'OPEN' AND current_revision_no = $6::bigint
+`
+
+type CounterProposalParams struct {
+	RevisionNo    int64
+	AwaitingOrgID string
+	ExpiresAt     time.Time
+	CounteredAt   time.Time
+	ID            string
+	PreviousNo    int64
+}
+
+func (q *Queries) CounterProposal(ctx context.Context, arg CounterProposalParams) (int64, error) {
+	result, err := q.db.Exec(ctx, counterProposal,
+		arg.RevisionNo,
+		arg.AwaitingOrgID,
+		arg.ExpiresAt,
+		arg.CounteredAt,
+		arg.ID,
+		arg.PreviousNo,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const createProposal = `-- name: CreateProposal :exec
 INSERT INTO proposals (
     id, number, kind, consignor_org_id, store_org_id, from_org_id, awaiting_org_id, partnership_id, invite_code,
@@ -467,6 +500,128 @@ func (q *Queries) ListProposalItems(ctx context.Context, revisionID string) ([]L
 			&i.RetailPrice,
 			&i.CommissionBps,
 			&i.DepositPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProposalRevisionItems = `-- name: ListProposalRevisionItems :many
+SELECT
+    i.revision_id, i.product_id, pr.name AS product_name, pr.sku, pr.unit, i.action, i.pricing_model,
+    i.retail_price, i.commission_bps, i.deposit_price
+FROM proposal_items AS i
+JOIN proposal_revisions AS r ON r.id = i.revision_id
+JOIN proposals AS p ON p.id = r.proposal_id
+JOIN products AS pr ON pr.id = i.product_id
+WHERE r.proposal_id = $1::uuid
+    AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+ORDER BY r.revision_no, pr.name, pr.id
+`
+
+type ListProposalRevisionItemsParams struct {
+	ID             string
+	OrganizationID string
+}
+
+type ListProposalRevisionItemsRow struct {
+	RevisionID    string
+	ProductID     string
+	ProductName   string
+	Sku           string
+	Unit          string
+	Action        string
+	PricingModel  string
+	RetailPrice   int64
+	CommissionBps int32
+	DepositPrice  int64
+}
+
+func (q *Queries) ListProposalRevisionItems(ctx context.Context, arg ListProposalRevisionItemsParams) ([]ListProposalRevisionItemsRow, error) {
+	rows, err := q.db.Query(ctx, listProposalRevisionItems, arg.ID, arg.OrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListProposalRevisionItemsRow{}
+	for rows.Next() {
+		var i ListProposalRevisionItemsRow
+		if err := rows.Scan(
+			&i.RevisionID,
+			&i.ProductID,
+			&i.ProductName,
+			&i.Sku,
+			&i.Unit,
+			&i.Action,
+			&i.PricingModel,
+			&i.RetailPrice,
+			&i.CommissionBps,
+			&i.DepositPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProposalRevisions = `-- name: ListProposalRevisions :many
+SELECT
+    r.id, r.revision_no, r.author_org_id, r.author_user_id, r.settlement_schedule, r.payment_terms_days,
+    r.count_rhythm, r.notes, r.message, r.created_at
+FROM proposal_revisions AS r
+JOIN proposals AS p ON p.id = r.proposal_id
+WHERE r.proposal_id = $1::uuid
+    AND (p.consignor_org_id = $2::uuid OR p.store_org_id = $2::uuid)
+ORDER BY r.revision_no
+`
+
+type ListProposalRevisionsParams struct {
+	ID             string
+	OrganizationID string
+}
+
+type ListProposalRevisionsRow struct {
+	ID                 string
+	RevisionNo         int32
+	AuthorOrgID        string
+	AuthorUserID       string
+	SettlementSchedule string
+	PaymentTermsDays   int32
+	CountRhythm        string
+	Notes              string
+	Message            string
+	CreatedAt          time.Time
+}
+
+func (q *Queries) ListProposalRevisions(ctx context.Context, arg ListProposalRevisionsParams) ([]ListProposalRevisionsRow, error) {
+	rows, err := q.db.Query(ctx, listProposalRevisions, arg.ID, arg.OrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListProposalRevisionsRow{}
+	for rows.Next() {
+		var i ListProposalRevisionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RevisionNo,
+			&i.AuthorOrgID,
+			&i.AuthorUserID,
+			&i.SettlementSchedule,
+			&i.PaymentTermsDays,
+			&i.CountRhythm,
+			&i.Notes,
+			&i.Message,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

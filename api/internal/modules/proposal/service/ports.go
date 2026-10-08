@@ -37,6 +37,11 @@ type DirectProposals interface {
 	GetDirectParties(ctx context.Context, pair domain.DirectPair) (domain.DirectParties, error)
 }
 
+type Bargaining interface {
+	SaveCounter(ctx context.Context, offer domain.Counteroffer) error
+	ListRevisions(ctx context.Context, key domain.ProposalKey) ([]domain.Revision, error)
+}
+
 type AgreementKeeper interface {
 	Found(ctx context.Context, founding domain.Founding) (string, error)
 	Amend(ctx context.Context, founding domain.Founding) (int, error)

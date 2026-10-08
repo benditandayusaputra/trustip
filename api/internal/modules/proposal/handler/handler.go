@@ -24,6 +24,8 @@ const (
 	acceptPath      = proposalPath + "/accept"
 	declinePath     = proposalPath + "/decline"
 	withdrawPath    = proposalPath + "/withdraw"
+	counterPath     = proposalPath + "/counter"
+	revisionsPath   = proposalPath + "/revisions"
 	amendmentsPath  = "/partnerships/:id/amendments"
 )
 
@@ -67,6 +69,8 @@ type Deps struct {
 	Withdraw     ProposalByKey
 	List         Lister
 	Amend        AmendmentSender
+	Counter      Counterer
+	Revisions    RevisionLister
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
 }
@@ -83,6 +87,8 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Post(declinePath, deps.Authenticate, writeLimit, decline(deps.Decline))
 	api.Post(withdrawPath, deps.Authenticate, writeLimit, byID(deps.Withdraw))
 	api.Post(amendmentsPath, deps.Authenticate, writeLimit, amend(deps.Amend))
+	api.Post(counterPath, deps.Authenticate, writeLimit, counter(deps.Counter))
+	api.Get(revisionsPath, deps.Authenticate, revisions(deps.Revisions))
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {

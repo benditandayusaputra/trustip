@@ -158,3 +158,33 @@ SELECT
 FROM organizations AS sender
 JOIN organizations AS target ON target.id = @target_id::uuid
 WHERE sender.id = @sender_id::uuid AND target.status = 'ACTIVE' AND target.is_listed;
+
+-- name: CounterProposal :execrows
+UPDATE proposals
+SET current_revision_no = @revision_no::bigint,
+    awaiting_org_id = @awaiting_org_id::uuid,
+    expires_at = @expires_at::timestamptz,
+    updated_at = @countered_at::timestamptz
+WHERE id = @id::uuid AND status = 'OPEN' AND current_revision_no = @previous_no::bigint;
+
+-- name: ListProposalRevisions :many
+SELECT
+    r.id, r.revision_no, r.author_org_id, r.author_user_id, r.settlement_schedule, r.payment_terms_days,
+    r.count_rhythm, r.notes, r.message, r.created_at
+FROM proposal_revisions AS r
+JOIN proposals AS p ON p.id = r.proposal_id
+WHERE r.proposal_id = @id::uuid
+    AND (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organization_id::uuid)
+ORDER BY r.revision_no;
+
+-- name: ListProposalRevisionItems :many
+SELECT
+    i.revision_id, i.product_id, pr.name AS product_name, pr.sku, pr.unit, i.action, i.pricing_model,
+    i.retail_price, i.commission_bps, i.deposit_price
+FROM proposal_items AS i
+JOIN proposal_revisions AS r ON r.id = i.revision_id
+JOIN proposals AS p ON p.id = r.proposal_id
+JOIN products AS pr ON pr.id = i.product_id
+WHERE r.proposal_id = @id::uuid
+    AND (p.consignor_org_id = @organization_id::uuid OR p.store_org_id = @organization_id::uuid)
+ORDER BY r.revision_no, pr.name, pr.id;

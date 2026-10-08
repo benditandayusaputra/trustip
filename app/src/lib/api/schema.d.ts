@@ -694,6 +694,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/proposals/{id}/counter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["counterProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/proposals/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["listProposalRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/proposals": {
         parameters: {
             query?: never;
@@ -2606,6 +2642,40 @@ export interface components {
             data: components["schemas"]["DirectoryContact"];
             meta: components["schemas"]["ResponseMeta"];
         };
+        ProposalChangedItem: {
+            /** Format: uuid */
+            product_id: string;
+            product_name: string;
+            sku: string;
+            unit: string;
+            /** @enum {string} */
+            action: "ADD" | "UPDATE" | "STOP";
+            pricing_model: components["schemas"]["PricingModel"];
+            retail_price: number;
+            commission_bps: number;
+            deposit_price: number;
+            per_unit: components["schemas"]["Split"];
+            /** @enum {string} */
+            change: "ADDED" | "CHANGED" | "KEPT" | "REMOVED";
+        };
+        ProposalRevisionRecord: {
+            revision_no: number;
+            /** Format: uuid */
+            author_org_id: string;
+            author_name: string;
+            terms: components["schemas"]["GeneralTerms"];
+            term_changes: ("settlement_schedule" | "payment_terms_days" | "count_rhythm" | "notes")[];
+            message: string;
+            items: components["schemas"]["ProposalChangedItem"][];
+            /** Format: date-time */
+            created_at: string;
+        };
+        ProposalRevisionListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["ProposalRevisionRecord"][];
+            meta: components["schemas"]["ListMeta"];
+        };
     };
     responses: {
         /** @description Permintaan tidak terbaca atau memuat isian tak dikenal */
@@ -4144,6 +4214,72 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    counterProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationRequest"];
+            };
+        };
+        responses: {
+            /** @description Revisi tawaran tersimpan, giliran pindah ke pihak lawan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listProposalRevisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Semua revisi Ajuan berurutan, masing-masing dengan perubahan terhadap revisi sebelumnya */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalRevisionListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];

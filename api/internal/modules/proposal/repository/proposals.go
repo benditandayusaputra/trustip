@@ -57,34 +57,46 @@ func (r *Proposals) Open(ctx context.Context, opening domain.Opening) error {
 	if err != nil {
 		return fmt.Errorf("create proposal %s: %w", opening.IDs.ProposalID, err)
 	}
-	if err := createRevision(writeCtx, queries, opening); err != nil {
-		return err
-	}
-	return addItems(writeCtx, queries, opening)
+	return saveRevision(writeCtx, queries, revisionRow{
+		id: opening.IDs.RevisionID, proposalID: opening.IDs.ProposalID, no: firstRevision,
+		authorOrgID: opening.Sender.OrganizationID, authorUserID: opening.Sender.UserID,
+		consignorID: opening.ConsignorID, draft: opening.Draft, at: opening.At,
+	})
 }
 
-func createRevision(ctx context.Context, queries *sqlc.Queries, invitation domain.Opening) error {
-	terms := invitation.Draft.Terms
+type revisionRow struct {
+	id           string
+	proposalID   string
+	no           int
+	authorOrgID  string
+	authorUserID string
+	consignorID  string
+	draft        domain.RevisionDraft
+	at           time.Time
+}
+
+func saveRevision(ctx context.Context, queries *sqlc.Queries, revision revisionRow) error {
+	terms := revision.draft.Terms
 	err := queries.CreateProposalRevision(ctx, sqlc.CreateProposalRevisionParams{
-		ID: invitation.IDs.RevisionID, ProposalID: invitation.IDs.ProposalID, RevisionNo: firstRevision,
-		AuthorOrgID: invitation.Sender.OrganizationID, AuthorUserID: invitation.Sender.UserID,
+		ID: revision.id, ProposalID: revision.proposalID, RevisionNo: int64(revision.no),
+		AuthorOrgID: revision.authorOrgID, AuthorUserID: revision.authorUserID,
 		SettlementSchedule: string(terms.Schedule), PaymentTermsDays: int64(terms.PaymentTermsDays),
-		CountRhythm: string(terms.Rhythm), Notes: terms.Notes, Message: invitation.Draft.Message,
-		CreatedAt: invitation.At,
+		CountRhythm: string(terms.Rhythm), Notes: terms.Notes, Message: revision.draft.Message,
+		CreatedAt: revision.at,
 	})
 	if err != nil {
-		return fmt.Errorf("create revision of %s: %w", invitation.IDs.ProposalID, err)
+		return fmt.Errorf("create revision of %s: %w", revision.proposalID, err)
 	}
-	return nil
+	return addItems(ctx, queries, revision)
 }
 
-func addItems(ctx context.Context, queries *sqlc.Queries, invitation domain.Opening) error {
-	items := invitation.Draft.Items
+func addItems(ctx context.Context, queries *sqlc.Queries, revision revisionRow) error {
+	items := revision.draft.Items
 	if len(items) == 0 {
 		return nil
 	}
 	params := sqlc.AddProposalItemsParams{
-		RevisionID: invitation.IDs.RevisionID, ConsignorOrgID: invitation.ConsignorID,
+		RevisionID: revision.id, ConsignorOrgID: revision.consignorID,
 	}
 	for _, item := range items {
 		params.ProductIds = append(params.ProductIds, item.ProductID)
@@ -96,7 +108,7 @@ func addItems(ctx context.Context, queries *sqlc.Queries, invitation domain.Open
 	}
 	added, err := queries.AddProposalItems(ctx, params)
 	if err != nil {
-		return fmt.Errorf("add items to %s: %w", invitation.IDs.RevisionID, err)
+		return fmt.Errorf("add items to %s: %w", revision.id, err)
 	}
 	if added != int64(len(items)) {
 		return domain.ErrUnknownProduct
