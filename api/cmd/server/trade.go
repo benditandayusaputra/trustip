@@ -23,6 +23,8 @@ import (
 	stockhandler "github.com/benditandayusaputra/trustip/api/internal/modules/stock/handler"
 	stockrepository "github.com/benditandayusaputra/trustip/api/internal/modules/stock/repository"
 	stockservice "github.com/benditandayusaputra/trustip/api/internal/modules/stock/service"
+	trustrepository "github.com/benditandayusaputra/trustip/api/internal/modules/trust/repository"
+	trustservice "github.com/benditandayusaputra/trustip/api/internal/modules/trust/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
@@ -40,6 +42,7 @@ type tradeComponents struct {
 	ending       partnershipservice.EndDeps
 	reports      *reportrepository.Reports
 	insights     insightComponents
+	listings     trustservice.ReportStore
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
@@ -62,6 +65,7 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		settlements:  settlements,
 		ending:       buildEndingDeps(pool, endingParts{clock: clock, seals: seals, settlements: settlements}),
 		reports:      reportrepository.NewReports(pool),
+		listings:     trustrepository.NewReports(pool),
 		insights: insightComponents{
 			histories: insightrepository.NewHistories(pool), dashboards: insightrepository.NewDashboards(pool),
 		},

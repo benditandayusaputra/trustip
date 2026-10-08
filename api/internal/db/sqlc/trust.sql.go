@@ -77,6 +77,64 @@ func (q *Queries) ListReputationFacts(ctx context.Context, arg ListReputationFac
 	return items, nil
 }
 
+const saveListingReport = `-- name: SaveListingReport :one
+INSERT INTO listing_reports (
+    id, reporter_user_id, reporter_org_id, target_type, target_id, reason, note, created_at, updated_at
+)
+SELECT
+    $1::uuid, $2::uuid, $3::uuid, $4::text, $5::uuid,
+    $6::text, $7::text, $8::timestamptz, $8::timestamptz
+WHERE CASE $4::text
+    WHEN 'ORGANIZATION' THEN EXISTS (
+        SELECT 1 FROM organizations AS o WHERE o.id = $5::uuid AND o.id <> $3::uuid
+    )
+    WHEN 'PRODUCT' THEN EXISTS (
+        SELECT 1 FROM products AS p
+        WHERE p.id = $5::uuid AND p.consignor_org_id <> $3::uuid AND NOT p.is_archived
+    )
+    WHEN 'NEED' THEN EXISTS (
+        SELECT 1 FROM needs AS n WHERE n.id = $5::uuid AND n.store_org_id <> $3::uuid
+    )
+    ELSE false
+END
+ON CONFLICT (reporter_user_id, target_type, target_id) WHERE status = 'OPEN' DO UPDATE SET
+    reason = EXCLUDED.reason, note = EXCLUDED.note, updated_at = EXCLUDED.updated_at
+RETURNING id, status, created_at
+`
+
+type SaveListingReportParams struct {
+	ID             string
+	ReporterUserID string
+	ReporterOrgID  string
+	TargetType     string
+	TargetID       string
+	Reason         string
+	Note           string
+	ReportedAt     time.Time
+}
+
+type SaveListingReportRow struct {
+	ID        string
+	Status    string
+	CreatedAt time.Time
+}
+
+func (q *Queries) SaveListingReport(ctx context.Context, arg SaveListingReportParams) (SaveListingReportRow, error) {
+	row := q.db.QueryRow(ctx, saveListingReport,
+		arg.ID,
+		arg.ReporterUserID,
+		arg.ReporterOrgID,
+		arg.TargetType,
+		arg.TargetID,
+		arg.Reason,
+		arg.Note,
+		arg.ReportedAt,
+	)
+	var i SaveListingReportRow
+	err := row.Scan(&i.ID, &i.Status, &i.CreatedAt)
+	return i, err
+}
+
 const saveOrgStats = `-- name: SaveOrgStats :execrows
 INSERT INTO org_stats (
     organization_id, active_partner_count, on_time_payment_bps, settlements_counted, product_count, computed_at
@@ -111,6 +169,25 @@ func (q *Queries) SaveOrgStats(ctx context.Context, arg SaveOrgStatsParams) (int
 		arg.ProductCounts,
 		arg.ComputedAt,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const setOrganizationStatus = `-- name: SetOrganizationStatus :execrows
+UPDATE organizations SET status = $1::text, updated_at = $2::timestamptz
+WHERE id = $3::uuid
+`
+
+type SetOrganizationStatusParams struct {
+	Status    string
+	UpdatedAt time.Time
+	ID        string
+}
+
+func (q *Queries) SetOrganizationStatus(ctx context.Context, arg SetOrganizationStatusParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setOrganizationStatus, arg.Status, arg.UpdatedAt, arg.ID)
 	if err != nil {
 		return 0, err
 	}

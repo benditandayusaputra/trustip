@@ -22,7 +22,7 @@ const (
 func (r *Proposals) ConsumeQuota(ctx context.Context, key domain.QuotaKey) error {
 	writeCtx, cancel := database.WriteContext(ctx)
 	defer cancel()
-	err := sqlc.New(r.pool.Querier(ctx)).ConsumeProposalQuota(writeCtx, sqlc.ConsumeProposalQuotaParams{
+	consumed, err := sqlc.New(r.pool.Querier(ctx)).ConsumeProposalQuota(writeCtx, sqlc.ConsumeProposalQuotaParams{
 		OrganizationID: key.OrganizationID, Day: key.Day,
 	})
 	if database.IsCheckViolation(err, dailyLimitConstraint) {
@@ -30,6 +30,9 @@ func (r *Proposals) ConsumeQuota(ctx context.Context, key domain.QuotaKey) error
 	}
 	if err != nil {
 		return fmt.Errorf("consume proposal quota of %s: %w", key.OrganizationID, err)
+	}
+	if consumed == 0 {
+		return domain.ErrSenderSuspended
 	}
 	return nil
 }

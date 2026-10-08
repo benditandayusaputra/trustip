@@ -101,6 +101,7 @@ func (f *fakeProposals) HasActivePartnership(context.Context, domain.Pair) (bool
 
 type fakeDirect struct {
 	exhausted bool
+	suspended bool
 	parties   domain.DirectParties
 	consumed  []domain.QuotaKey
 }
@@ -108,6 +109,9 @@ type fakeDirect struct {
 func (f *fakeDirect) ConsumeQuota(_ context.Context, key domain.QuotaKey) error {
 	if f.exhausted {
 		return domain.ErrQuotaExhausted
+	}
+	if f.suspended {
+		return domain.ErrSenderSuspended
 	}
 	f.consumed = append(f.consumed, key)
 	return nil

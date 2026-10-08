@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
 	import ConsignorDirectoryView from '#lib/features/directory/components/ConsignorDirectoryView.svelte';
 	import {
 		consignorAddress,
@@ -19,6 +20,8 @@
 		query = next;
 		onaddress(consignorAddress(next).toString());
 	}
+
+	setToaster(new ToastQueue());
 </script>
 
 <ConsignorDirectoryView {query} onchange={show}>

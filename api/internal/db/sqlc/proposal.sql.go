@@ -85,20 +85,25 @@ func (q *Queries) ClaimInvitation(ctx context.Context, arg ClaimInvitationParams
 	return result.RowsAffected(), nil
 }
 
-const consumeProposalQuota = `-- name: ConsumeProposalQuota :exec
+const consumeProposalQuota = `-- name: ConsumeProposalQuota :execrows
 INSERT INTO proposal_quotas (organization_id, day, sent)
-VALUES ($1::uuid, ($2::text)::date, 1)
+SELECT o.id, ($1::text)::date, 1
+FROM organizations AS o
+WHERE o.id = $2::uuid AND o.status = 'ACTIVE'
 ON CONFLICT (organization_id, day) DO UPDATE SET sent = proposal_quotas.sent + 1
 `
 
 type ConsumeProposalQuotaParams struct {
-	OrganizationID string
 	Day            string
+	OrganizationID string
 }
 
-func (q *Queries) ConsumeProposalQuota(ctx context.Context, arg ConsumeProposalQuotaParams) error {
-	_, err := q.db.Exec(ctx, consumeProposalQuota, arg.OrganizationID, arg.Day)
-	return err
+func (q *Queries) ConsumeProposalQuota(ctx context.Context, arg ConsumeProposalQuotaParams) (int64, error) {
+	result, err := q.db.Exec(ctx, consumeProposalQuota, arg.Day, arg.OrganizationID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const counterProposal = `-- name: CounterProposal :execrows

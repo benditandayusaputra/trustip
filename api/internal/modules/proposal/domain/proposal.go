@@ -14,6 +14,7 @@ var (
 	ErrAlreadyDecided  = errors.New("proposal was decided or revised meanwhile")
 	ErrAlreadyPartners = errors.New("the pair already has an active partnership")
 	ErrQuotaExhausted  = errors.New("the daily proposal quota is used up")
+	ErrSenderSuspended = errors.New("the sending organization is suspended")
 )
 
 type Party struct {

@@ -1259,6 +1259,44 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/listing-reports:
+    post:
+      operationId: reportListing
+      tags: [trust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListingReportRequest"
+      responses:
+        "201":
+          description: Laporan tersimpan untuk ditindak tim. Laporan ulang atas sasaran yang sama memperbarui laporan terbuka
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListingReportResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/needs:
     get:
       operationId: listNeeds
@@ -3897,6 +3935,7 @@ components:
         - PROPOSAL_COOLDOWN
         - NEED_LIMIT_REACHED
         - NEED_NOT_OPEN
+        - ORGANIZATION_SUSPENDED
         - NOT_YOUR_TURN
         - PROPOSAL_ALREADY_DECIDED
         - PARTNERSHIP_NOT_ACTIVE
@@ -5861,6 +5900,45 @@ components:
           type: string
         data:
           $ref: "#/components/schemas/Dashboard"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListingReportRequest:
+      type: object
+      additionalProperties: false
+      required: [target_type, target_id, reason, note]
+      properties:
+        target_type:
+          type: string
+          enum: [ORGANIZATION, PRODUCT, NEED]
+        target_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          enum: [MISLEADING, PROHIBITED_GOODS, OFFENSIVE, SPAM, OTHER]
+        note:
+          type: string
+          maxLength: 500
+    ListingReportResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required: [id, status]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [OPEN, RESOLVED, DISMISSED]
         meta:
           $ref: "#/components/schemas/ResponseMeta"
     DropSuggestion:

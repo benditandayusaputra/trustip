@@ -17,6 +17,7 @@ import (
 	insighthandler "github.com/benditandayusaputra/trustip/api/internal/modules/insight/handler"
 	notificationhandler "github.com/benditandayusaputra/trustip/api/internal/modules/notification/handler"
 	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
+	trusthandler "github.com/benditandayusaputra/trustip/api/internal/modules/trust/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
@@ -170,6 +171,7 @@ func mountMarket(api fiber.Router, deps serverDeps, routes tradeRoutes) {
 	})
 	insighthandler.Mount(api, insightDeps(deps.trade.insights, newDirectoryCandidates(deps.directory, deps.clock),
 		routes))
+	trusthandler.Mount(api, trustDeps(deps.trade.listings, routes))
 }
 
 func publicRoutes() []httpserver.PublicRoute {

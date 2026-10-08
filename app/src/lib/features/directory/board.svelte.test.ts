@@ -82,7 +82,9 @@ describe('Need board', () => {
 		serve({ [boardPath]: () => list([need]) });
 		await render(NeedBoardHarness, { canRespond: false });
 
-		await expect.element(page.getByText('Butuh camilan kemasan kecil')).toBeVisible();
+		await expect
+			.element(page.getByRole('heading', { name: 'Butuh camilan kemasan kecil', exact: true }))
+			.toBeVisible();
 		await expect
 			.element(page.getByRole('link', { name: 'Tanggapi dengan Ajuan' }))
 			.not.toBeInTheDocument();

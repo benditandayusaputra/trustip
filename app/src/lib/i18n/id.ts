@@ -4,6 +4,7 @@ import { dashboard } from './dashboard';
 import { directory } from './directory';
 import { drops } from './drops';
 import { legal } from './legal';
+import { listingReport } from './listing-report';
 import { needs } from './needs';
 import { offline } from './offline';
 import { organization } from './organization';
@@ -22,6 +23,7 @@ export const id = {
 	...dashboard,
 	...directory,
 	...drops,
+	...listingReport,
 	...needs,
 	...offline,
 	...organization,

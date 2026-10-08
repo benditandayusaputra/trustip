@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
 	import StoreDirectoryView from '#lib/features/directory/components/StoreDirectoryView.svelte';
 	import {
 		storeQueryFrom,
@@ -19,6 +20,8 @@
 		query = next;
 		onaddress(storeSearchParams(next).toString());
 	}
+
+	setToaster(new ToastQueue());
 </script>
 
 <StoreDirectoryView {query} onchange={show}>

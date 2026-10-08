@@ -136,9 +136,11 @@ UPDATE proposals
 SET status = 'EXPIRED', updated_at = @now::timestamptz
 WHERE status = 'OPEN' AND expires_at <= @now::timestamptz;
 
--- name: ConsumeProposalQuota :exec
+-- name: ConsumeProposalQuota :execrows
 INSERT INTO proposal_quotas (organization_id, day, sent)
-VALUES (@organization_id::uuid, (@day::text)::date, 1)
+SELECT o.id, (@day::text)::date, 1
+FROM organizations AS o
+WHERE o.id = @organization_id::uuid AND o.status = 'ACTIVE'
 ON CONFLICT (organization_id, day) DO UPDATE SET sent = proposal_quotas.sent + 1;
 
 -- name: GetDirectParties :one

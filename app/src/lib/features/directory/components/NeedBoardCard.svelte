@@ -3,6 +3,7 @@
 	import type { NeedBoardCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatDate, formatDistance, formatRupiah } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
+	import ReportListing from './ReportListing.svelte';
 
 	interface Props {
 		card: NeedBoardCard;
@@ -58,5 +59,8 @@
 			class="inline-flex min-h-11 items-center self-start rounded-control bg-accent px-4 font-semibold text-on-accent"
 			>{text.respond}</a
 		>
+	{/if}
+	{#if !card.is_own}
+		<ReportListing target={{ target_type: 'NEED', target_id: card.id }} name={card.title} />
 	{/if}
 </article>

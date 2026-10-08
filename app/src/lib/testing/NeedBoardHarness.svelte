@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
 	import NeedBoardView from '#lib/features/directory/components/NeedBoardView.svelte';
 	import {
 		boardQueryFrom,
@@ -19,6 +20,8 @@
 		query = next;
 		onaddress(boardSearchParams(next).toString());
 	}
+
+	setToaster(new ToastQueue());
 </script>
 
 <NeedBoardView {query} {canRespond} onchange={show}>

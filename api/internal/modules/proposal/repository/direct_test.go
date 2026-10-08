@@ -66,3 +66,18 @@ func TestGetDirectParties_BRPRP06_RemembersTheLastDecline(t *testing.T) {
 		t.Fatalf("parties = %+v, err = %v", parties, err)
 	}
 }
+
+func TestConsumeQuota_BRAUTHZ06_SuspendedOrganizationCannotSend(t *testing.T) {
+	scene := newWorld(t)
+	_, err := scene.queries.SetOrganizationStatus(t.Context(), sqlc.SetOrganizationStatusParams{
+		ID: consignorID, Status: "SUSPENDED", UpdatedAt: base(),
+	})
+	scene.must(err)
+
+	suspended := scene.proposals.ConsumeQuota(t.Context(), domain.QuotaKeyOf(consignorID, base()))
+	active := scene.proposals.ConsumeQuota(t.Context(), domain.QuotaKeyOf(storeID, base()))
+
+	if !errors.Is(suspended, domain.ErrSenderSuspended) || active != nil {
+		t.Fatalf("suspended = %v, active = %v", suspended, active)
+	}
+}

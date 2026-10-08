@@ -124,3 +124,14 @@ func TestSendInvitation_BRPRP06_InvitationsUseTheSameDailyQuota(t *testing.T) {
 func t0() context.Context {
 	return context.Background()
 }
+
+func TestSendProposal_BRAUTHZ06_SuspendedOrganizationCannotSend(t *testing.T) {
+	world := newDirectScene()
+	world.direct.suspended = true
+
+	err := propose(world, owner(consignorID, actor.Consignor))
+
+	if apperror.From(err).Code() != apperror.CodeOrganizationSuspended || len(world.announcer.notices) != 0 {
+		t.Fatalf("err = %v, notices = %d", err, len(world.announcer.notices))
+	}
+}

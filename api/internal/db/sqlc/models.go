@@ -190,6 +190,21 @@ type File struct {
 	CreatedAt      time.Time
 }
 
+type ListingReport struct {
+	ID             string
+	ReporterUserID string
+	ReporterOrgID  string
+	TargetType     string
+	TargetID       string
+	Reason         string
+	Note           string
+	Status         string
+	ResolvedBy     pgtype.UUID
+	ResolvedAt     pgtype.Timestamptz
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type Membership struct {
 	ID                string
 	OrganizationID    string

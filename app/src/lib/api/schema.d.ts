@@ -482,6 +482,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/listing-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reportListing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/needs": {
         parameters: {
             query?: never;
@@ -1449,7 +1465,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "PROPOSAL_LIMIT_REACHED" | "PROPOSAL_COOLDOWN" | "NEED_LIMIT_REACHED" | "NEED_NOT_OPEN" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "DOCUMENT_NOT_PENDING" | "CANCEL_WINDOW_PASSED" | "DROP_ALREADY_COUNTED" | "STOCK_CHANGED" | "SETTLEMENT_ALREADY_PAID" | "PAYMENT_PENDING" | "PARTNERSHIP_HAS_BLOCKERS" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "PROPOSAL_LIMIT_REACHED" | "PROPOSAL_COOLDOWN" | "NEED_LIMIT_REACHED" | "NEED_NOT_OPEN" | "ORGANIZATION_SUSPENDED" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "DOCUMENT_NOT_PENDING" | "CANCEL_WINDOW_PASSED" | "DROP_ALREADY_COUNTED" | "STOCK_CHANGED" | "SETTLEMENT_ALREADY_PAID" | "PAYMENT_PENDING" | "PARTNERSHIP_HAS_BLOCKERS" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -2273,6 +2289,26 @@ export interface components {
             code: components["schemas"]["SuccessCode"];
             message: string;
             data: components["schemas"]["Dashboard"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        ListingReportRequest: {
+            /** @enum {string} */
+            target_type: "ORGANIZATION" | "PRODUCT" | "NEED";
+            /** Format: uuid */
+            target_id: string;
+            /** @enum {string} */
+            reason: "MISLEADING" | "PROHIBITED_GOODS" | "OFFENSIVE" | "SPAM" | "OTHER";
+            note: string;
+        };
+        ListingReportResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                status: "OPEN" | "RESOLVED" | "DISMISSED";
+            };
             meta: components["schemas"]["ResponseMeta"];
         };
         DropSuggestion: {
@@ -4119,6 +4155,40 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    reportListing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Laporan tersimpan untuk ditindak tim. Laporan ulang atas sasaran yang sama memperbarui laporan terbuka */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];

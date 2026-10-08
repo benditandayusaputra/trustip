@@ -39,3 +39,31 @@ ON CONFLICT (organization_id) DO UPDATE SET
     settlements_counted = EXCLUDED.settlements_counted,
     product_count = EXCLUDED.product_count,
     computed_at = EXCLUDED.computed_at;
+
+-- name: SaveListingReport :one
+INSERT INTO listing_reports (
+    id, reporter_user_id, reporter_org_id, target_type, target_id, reason, note, created_at, updated_at
+)
+SELECT
+    @id::uuid, @reporter_user_id::uuid, @reporter_org_id::uuid, @target_type::text, @target_id::uuid,
+    @reason::text, @note::text, @reported_at::timestamptz, @reported_at::timestamptz
+WHERE CASE @target_type::text
+    WHEN 'ORGANIZATION' THEN EXISTS (
+        SELECT 1 FROM organizations AS o WHERE o.id = @target_id::uuid AND o.id <> @reporter_org_id::uuid
+    )
+    WHEN 'PRODUCT' THEN EXISTS (
+        SELECT 1 FROM products AS p
+        WHERE p.id = @target_id::uuid AND p.consignor_org_id <> @reporter_org_id::uuid AND NOT p.is_archived
+    )
+    WHEN 'NEED' THEN EXISTS (
+        SELECT 1 FROM needs AS n WHERE n.id = @target_id::uuid AND n.store_org_id <> @reporter_org_id::uuid
+    )
+    ELSE false
+END
+ON CONFLICT (reporter_user_id, target_type, target_id) WHERE status = 'OPEN' DO UPDATE SET
+    reason = EXCLUDED.reason, note = EXCLUDED.note, updated_at = EXCLUDED.updated_at
+RETURNING id, status, created_at;
+
+-- name: SetOrganizationStatus :execrows
+UPDATE organizations SET status = @status::text, updated_at = @updated_at::timestamptz
+WHERE id = @id::uuid;

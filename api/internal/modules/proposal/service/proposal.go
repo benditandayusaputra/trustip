@@ -61,6 +61,9 @@ func consumeQuota(ctx context.Context, direct DirectProposals, organizationID st
 	if errors.Is(err, domain.ErrQuotaExhausted) {
 		return apperror.New(apperror.CodeProposalLimitReached)
 	}
+	if errors.Is(err, domain.ErrSenderSuspended) {
+		return apperror.New(apperror.CodeOrganizationSuspended)
+	}
 	if err != nil {
 		return fmt.Errorf("consume proposal quota: %w", err)
 	}
