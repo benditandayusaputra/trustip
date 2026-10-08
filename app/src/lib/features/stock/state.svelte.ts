@@ -1,4 +1,5 @@
 import type { ApiClient } from '#lib/api/client.js';
+import { listDropSuggestions, type DropSuggestion } from '#lib/api/insights.js';
 import {
 	getPartnershipStock,
 	getStockCard,
@@ -39,6 +40,7 @@ export class StockHoldings {
 
 export class PartnershipStock {
 	products = $state<ProductStock[]>([]);
+	suggestions = $state<DropSuggestion[]>([]);
 	status = $state<LoadStatus>('loading');
 	failure = $state('');
 	readonly #client: () => ApiClient;
@@ -50,13 +52,26 @@ export class PartnershipStock {
 	async load(partnershipId: string): Promise<void> {
 		this.status = 'loading';
 		try {
-			this.products = await getPartnershipStock(this.#client(), partnershipId);
+			const [products, suggestions] = await Promise.all([
+				getPartnershipStock(this.#client(), partnershipId),
+				listDropSuggestions(this.#client(), partnershipId).catch(() => [])
+			]);
+			this.products = products;
+			this.suggestions = suggestions;
 			this.status = 'ready';
 		} catch (error) {
 			this.failure = failureOf(error);
 			this.status = 'failed';
 		}
 	}
+}
+
+export function suggestedQtyOf(
+	suggestions: DropSuggestion[],
+	productId: string
+): number | undefined {
+	const found = suggestions.find((suggestion) => suggestion.product_id === productId);
+	return found?.has_enough_data === true ? found.suggested_qty : undefined;
 }
 
 export class StockCardRecord {

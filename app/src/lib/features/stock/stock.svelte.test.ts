@@ -87,11 +87,14 @@ describe('Stock', () => {
 							}
 						]
 					}
-				])
+				]),
+			[`GET /api/v1/partnerships/${partnershipId}/drop-suggestions`]: () =>
+				list([{ product_id: breadId, suggested_qty: 19, has_enough_data: true }])
 		});
 		const { container } = await render(StockHarness, { view: 'partner', partnershipId });
 
 		await expect.element(page.getByText('17 pcs')).toBeVisible();
+		await expect.element(page.getByText('Saran titip: 19 pcs.')).toBeVisible();
 		await expect.element(page.getByText('9 hari').first()).toBeInTheDocument();
 		await expect
 			.element(page.getByRole('link', { name: 'Kartu stok Roti Manis' }))

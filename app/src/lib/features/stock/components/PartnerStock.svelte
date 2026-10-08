@@ -10,7 +10,7 @@
 	import { formatInteger } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
 	import { batchRows, flagToneOf } from '../rows';
-	import { PartnershipStock } from '../state.svelte';
+	import { PartnershipStock, suggestedQtyOf } from '../state.svelte';
 
 	interface Props {
 		partnershipId: string;
@@ -48,6 +48,7 @@
 	</EmptyState>
 {:else}
 	{#each stock.products as product (product.product_id)}
+		{@const suggestedQty = suggestedQtyOf(stock.suggestions, product.product_id)}
 		<Card title={product.product_name}>
 			<div class="flex flex-wrap items-center gap-2">
 				<p class="font-mono text-lg font-semibold text-text tabular-nums">
@@ -55,6 +56,11 @@
 				</p>
 				<Badge tone={flagToneOf(product.flag)} label={text.flags[product.flag]} />
 			</div>
+			<p class="text-sm text-text-muted">
+				{suggestedQty === undefined
+					? id.drops.notEnoughData
+					: id.drops.suggestedQty(suggestedQty, product.unit)}
+			</p>
 			<ResponsiveTable
 				caption={text.batches(product.product_name)}
 				{columns}

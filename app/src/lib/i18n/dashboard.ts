@@ -71,7 +71,7 @@ export const dashboard = {
 			COUNT_WITH_RETURNS: 'Hitung dan kembalikan',
 			COUNT: 'Hitung Sisa',
 			REMIND_STORE: 'Ingatkan toko',
-			VIEW_DROP_SUGGESTION: 'Lihat stok mitra',
+			VIEW_DROP_SUGGESTION: 'Lihat saran jumlah titip',
 			ASK_RESTOCK: 'Minta kirim',
 			REMIND_PAYMENT: 'Ingatkan bayar',
 			RECORD_PAYMENT: 'Catat bayar',
