@@ -9,8 +9,11 @@
 	import { id } from '#lib/i18n/id.js';
 	import { partyName } from '../links';
 	import { ProposalRecord } from '../record.svelte';
+	import { RevisionTrail } from '../trail.svelte';
+	import CounterForm from './CounterForm.svelte';
 	import InvitationShare from './InvitationShare.svelte';
 	import ProposalActions from './ProposalActions.svelte';
+	import RevisionHistory from './RevisionHistory.svelte';
 
 	interface Props {
 		proposalId: string;
@@ -21,6 +24,8 @@
 
 	const text = id.proposals;
 	const record = new ProposalRecord(apiClient);
+	const trail = new RevisionTrail(apiClient);
+	let isCountering = $state(false);
 	interface Column {
 		key: keyof ReturnType<typeof rowsOf>[number];
 		label: string;
@@ -31,12 +36,20 @@
 		{ key: 'model', label: text.model },
 		{ key: 'retail', label: text.retailPrice, numeric: true },
 		{ key: 'consignor', label: text.perUnitConsignor, numeric: true },
-		{ key: 'store', label: text.perUnitStore, numeric: true }
+		{ key: 'store', label: text.perUnitStore, numeric: true },
+		{ key: 'change', label: text.change }
 	];
 
 	$effect(() => {
 		void record.load(proposalId);
+		void trail.load(proposalId);
 	});
+
+	function countered(proposal: Proposal) {
+		record.proposal = proposal;
+		isCountering = false;
+		void trail.load(proposal.id);
+	}
 
 	function rowsOf(proposal: Proposal) {
 		return proposal.revision.items.map((item) => ({
@@ -48,8 +61,14 @@
 					: text.models.FIXED_DEPOSIT,
 			retail: formatRupiah(item.retail_price),
 			consignor: formatRupiah(item.per_unit.consignor_share),
-			store: formatRupiah(item.per_unit.store_share)
+			store: formatRupiah(item.per_unit.store_share),
+			change: changeLabel(item.product_id)
 		}));
+	}
+
+	function changeLabel(productId: string): string {
+		const change = trail.changeOf(productId);
+		return change ? text.changes[change] : '';
 	}
 
 	function awaitingText(proposal: Proposal): string {
@@ -80,7 +99,16 @@
 			{record}
 			canDecide={proposal.awaiting_org_id === viewerOrganizationId}
 			canWithdraw={proposal.revision.author_org_id === viewerOrganizationId}
+			oncounter={() => (isCountering = true)}
 		/>
+		{#if isCountering}
+			<CounterForm
+				{proposal}
+				counterpartName={partyName(proposal, proposal.revision.author_org_id)}
+				oncountered={countered}
+				oncancel={() => (isCountering = false)}
+			/>
+		{/if}
 	{:else if proposal.status === 'DECLINED' && proposal.decision_reason}
 		<p class="text-base text-text">{text.declineReason(proposal.decision_reason)}</p>
 	{:else if proposal.partnership_id}
@@ -109,11 +137,17 @@
 	{#if proposal.revision.items.length > 0}
 		<ResponsiveTable caption={text.products} {columns} rows={rowsOf(proposal)} rowKey="id" />
 	{/if}
+	{#if trail.removed.length > 0}
+		<p class="text-sm text-text-muted">
+			{text.itemsRemoved(trail.removed.map((item) => item.product_name).join(', '))}
+		</p>
+	{/if}
 	{#if proposal.revision.message}
 		<blockquote class="border-l-4 border-l-border-strong pl-4 text-base text-text">
 			{proposal.revision.message}
 		</blockquote>
 	{/if}
+	<RevisionHistory records={trail.records} />
 	{#if proposal.invite_code && proposal.awaiting_org_id === null && proposal.from_org_id === viewerOrganizationId}
 		<InvitationShare {proposal} inviteCode={proposal.invite_code} />
 	{/if}

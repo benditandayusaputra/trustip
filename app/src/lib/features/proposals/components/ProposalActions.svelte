@@ -10,9 +10,10 @@
 		record: ProposalRecord;
 		canDecide: boolean;
 		canWithdraw: boolean;
+		oncounter: () => void;
 	}
 
-	let { record, canDecide, canWithdraw }: Props = $props();
+	let { record, canDecide, canWithdraw, oncounter }: Props = $props();
 
 	type Choice = 'accept' | 'decline' | 'withdraw';
 
@@ -46,6 +47,7 @@
 <div class="flex flex-wrap gap-2">
 	{#if canDecide}
 		<Button onclick={() => (choice = 'accept')}>{text.accept}</Button>
+		<Button variant="secondary" onclick={oncounter}>{text.counter}</Button>
 		<Button variant="danger" onclick={() => (choice = 'decline')}>{text.decline}</Button>
 	{/if}
 	{#if canWithdraw}

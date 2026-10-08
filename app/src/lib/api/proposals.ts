@@ -81,3 +81,20 @@ export function sendAmendment(
 		request
 	);
 }
+
+export type ProposalRevisionRecord = components['schemas']['ProposalRevisionRecord'];
+
+export function counterProposal(
+	client: ApiClient,
+	proposalId: string,
+	request: InvitationRequest
+): Promise<Proposal> {
+	return client.send<Proposal>(`${proposalPath(proposalId)}/counter`, request);
+}
+
+export async function listRevisions(
+	client: ApiClient,
+	proposalId: string
+): Promise<ProposalRevisionRecord[]> {
+	return (await client.list<ProposalRevisionRecord>(`${proposalPath(proposalId)}/revisions`)).items;
+}

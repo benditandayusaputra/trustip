@@ -449,3 +449,85 @@ describe('Direct proposal', () => {
 			.toBeVisible();
 	});
 });
+
+describe('Bargaining', () => {
+	const claimed = {
+		...proposal,
+		store: { id: storeId, name: 'Warung Bu Sri' },
+		awaiting_org_id: storeId
+	};
+	const revisionList = (records: unknown[]) => () =>
+		Response.json({
+			code: 'OK',
+			message: '',
+			data: records,
+			meta: { request_id: 'r', next_cursor: null, has_more: false }
+		});
+	const firstRecord = {
+		...claimed.revision,
+		author_name: 'Roti Pak Anton',
+		term_changes: [],
+		items: claimed.revision.items.map((item) => ({ ...item, change: 'ADDED' }))
+	};
+	const counteredProposal = {
+		...claimed,
+		awaiting_org_id: consignorId,
+		revision: {
+			...claimed.revision,
+			revision_no: 2,
+			author_org_id: storeId,
+			items: [{ ...claimed.revision.items[0], deposit_price: 1700 }]
+		}
+	};
+	const secondRecord = {
+		...counteredProposal.revision,
+		author_name: 'Warung Bu Sri',
+		term_changes: ['payment_terms_days'],
+		items: counteredProposal.revision.items.map((item) => ({ ...item, change: 'CHANGED' }))
+	};
+
+	it('FR-PRP-04 the store counters the deposit price and the turn moves back', async () => {
+		const sent = serve({
+			[`GET /api/v1/proposals/${proposalId}`]: () => envelope(claimed),
+			[`GET /api/v1/proposals/${proposalId}/revisions`]: revisionList([firstRecord]),
+			[`POST /api/v1/proposals/${proposalId}/counter`]: () => envelope(counteredProposal)
+		});
+		const { container } = await render(ProposalsHarness, {
+			view: 'detail',
+			proposalId,
+			viewerOrganizationId: storeId
+		});
+
+		await userEvent.click(page.getByRole('button', { name: 'Tawar' }));
+		await expectAccessible(container);
+		const deposit = page.getByRole('textbox', { name: 'Harga setor' });
+		await userEvent.clear(deposit);
+		await userEvent.type(deposit, '1700');
+		await userEvent.click(page.getByRole('button', { name: 'Kirim tawaran' }));
+
+		await expect.element(page.getByText('Tawaran terkirim.')).toBeVisible();
+		expect(sent[`POST /api/v1/proposals/${proposalId}/counter`]).toMatchObject({
+			items: [{ product_id: bread.id, action: 'ADD', deposit_price: 1700 }]
+		});
+		await expect.element(page.getByText('Menunggu tanggapan dari Roti Pak Anton.')).toBeVisible();
+	});
+
+	it('FR-PRP-04 marks the rows that changed and lists the history', async () => {
+		serve({
+			[`GET /api/v1/proposals/${proposalId}`]: () => envelope(counteredProposal),
+			[`GET /api/v1/proposals/${proposalId}/revisions`]: revisionList([firstRecord, secondRecord])
+		});
+		await render(ProposalsHarness, {
+			view: 'detail',
+			proposalId,
+			viewerOrganizationId: consignorId
+		});
+
+		await expect.element(page.getByText('Berubah').last()).toBeVisible();
+		await expect
+			.element(page.getByRole('heading', { name: 'Riwayat tawar-menawar' }))
+			.toBeVisible();
+		await expect.element(page.getByText('Syarat berubah: tempo bayar')).toBeVisible();
+		await expect.element(page.getByText('Ajuan awal')).toBeVisible();
+	});
+});

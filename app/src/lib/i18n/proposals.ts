@@ -1,5 +1,29 @@
 export const proposals = {
 	proposals: {
+		counter: 'Tawar',
+		counterTitle: 'Kirim tawaran',
+		counterIntro: (name: string) =>
+			`Ubah harga, model, atau syarat. Setelah terkirim, giliran pindah ke ${name}.`,
+		counterSend: 'Kirim tawaran',
+		countered: 'Tawaran terkirim.',
+		counterCancel: 'Batal menawar',
+		removeItem: (name: string) => `Hapus ${name} dari tawaran`,
+		change: 'Perubahan',
+		changes: { ADDED: 'Baru', CHANGED: 'Berubah', KEPT: 'Tetap', REMOVED: 'Dihapus' },
+		history: 'Riwayat tawar-menawar',
+		revisionBy: (revisionNo: number, name: string, when: string) =>
+			`Revisi ${String(revisionNo)} oleh ${name} · ${when}`,
+		termNames: {
+			settlement_schedule: 'jadwal setor',
+			payment_terms_days: 'tempo bayar',
+			count_rhythm: 'irama hitung',
+			notes: 'catatan'
+		},
+		termsChanged: (names: string) => `Syarat berubah: ${names}`,
+		itemsChanged: (names: string) => `Produk berubah: ${names}`,
+		itemsAdded: (names: string) => `Produk baru: ${names}`,
+		itemsRemoved: (names: string) => `Produk dihapus: ${names}`,
+		firstRevision: 'Ajuan awal',
 		directTitle: (name: string) => `Ajukan kerja sama ke ${name}`,
 		directIntro:
 			'Atur produk dan syaratnya. Pihak lawan bisa menerima, menawar, atau menolak dalam 14 hari.',
