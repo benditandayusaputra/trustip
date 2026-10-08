@@ -2,7 +2,7 @@ import { devices, expect, test, type Browser, type Page } from '@playwright/test
 import { networkTimeoutMs, onboard, registerThenSignIn, uniqueEmail } from './session';
 
 const appOrigin = 'http://localhost:5173';
-const flowTimeoutMs = 180_000;
+const flowTimeoutMs = 300_000;
 const partnerPagePattern = /\/app\/mitra\/[0-9a-f-]{36}$/u;
 
 async function openAs(browser: Browser, device: string): Promise<Page> {
@@ -64,7 +64,40 @@ async function agreementSeenOn(page: Page): Promise<string> {
 	return (await page.getByText(/\/V1 · Versi 1/u).textContent()) ?? '';
 }
 
-test('FR-PRP-07 BR-PRP-03 FR-AGR-01 two businesses partner through an invitation link and see the same sealed agreement', async ({
+async function storeRecordsTwentyLoaves(page: Page): Promise<void> {
+	await page.getByRole('link', { name: 'Catat titipan' }).first().click();
+	await page.getByRole('textbox', { name: /^Jumlah/u }).fill('20');
+	await page.keyboard.press('Tab');
+	await expect(page.getByText('Rp35.000')).toBeVisible();
+	await page.getByRole('button', { name: 'Simpan Titipan Masuk' }).click();
+	await page.waitForURL(/\/app\/titipan\/[0-9a-f-]{36}$/u, { timeout: networkTimeoutMs });
+	await expect(page.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
+}
+
+async function storeCountsTwoLeftAndReturned(page: Page, partnerPage: string): Promise<string> {
+	await page.goto(partnerPage);
+	await page.getByRole('link', { name: 'Hitung sisa' }).click();
+	await page.getByRole('textbox', { name: /^Sisa fisik/u }).fill('2');
+	await page.keyboard.press('Tab');
+	await page.getByRole('textbox', { name: /^Dikembalikan/u }).fill('2');
+	await page.keyboard.press('Tab');
+	await page.getByRole('combobox', { name: 'Alasan pengembalian' }).selectOption('UNSOLD');
+	await page.getByRole('button', { name: 'Simpan Hitung Sisa' }).click();
+	await page.waitForURL(/\/app\/hitung\/[0-9a-f-]{36}$/u, { timeout: networkTimeoutMs });
+	await expect(page.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
+	return page.url();
+}
+
+async function expectRecap(page: Page): Promise<void> {
+	for (const amount of ['Rp36.000', 'Rp4.500', 'Rp31.500']) {
+		await expect(page.getByText(amount).filter({ visible: true }).first()).toBeVisible();
+	}
+	await expect(
+		page.getByText('18', { exact: true }).filter({ visible: true }).first()
+	).toBeVisible();
+}
+
+test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 two businesses partner, then 20 loaves are dropped, 2 left and returned, and the recap is confirmed', async ({
 	browser
 }) => {
 	test.setTimeout(flowTimeoutMs);
@@ -83,4 +116,16 @@ test('FR-PRP-07 BR-PRP-03 FR-AGR-01 two businesses partner through an invitation
 
 	expect(partnerPage).toMatch(partnerPagePattern);
 	expect(seenByConsignor).toBe(seenByStore);
+
+	await store.goto(partnerPage);
+	await storeRecordsTwentyLoaves(store);
+	const recapPage = await storeCountsTwoLeftAndReturned(store, partnerPage);
+	await expectRecap(store);
+	await consignor.goto(new URL(recapPage).pathname);
+	await expectRecap(consignor);
+	await consignor.getByRole('button', { name: 'Sesuai' }).click();
+	await consignor.getByRole('dialog').getByRole('button', { name: 'Sesuai' }).click();
+	await expect(consignor.getByText('Hitung Sisa dinyatakan sesuai.')).toBeVisible({
+		timeout: networkTimeoutMs
+	});
 });
