@@ -570,6 +570,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/directory/needs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listNeedBoard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/products": {
         parameters: {
             query?: never;
@@ -2614,6 +2630,7 @@ export interface components {
             logo_url: string | null;
             distance_m: number | null;
             accepted_categories: components["schemas"]["DirectoryCategory"][];
+            open_need_category_ids: string[];
             terms: components["schemas"]["DirectoryStoreTerms"];
             reputation: components["schemas"]["StoreReputation"];
             is_self: boolean;
@@ -2712,6 +2729,8 @@ export interface components {
         DirectProposalRequest: {
             /** Format: uuid */
             target_organization_id: string;
+            /** Format: uuid */
+            need_id?: string | null;
             terms: components["schemas"]["GeneralTerms"];
             items: components["schemas"]["ProposalItemRequest"][];
             message: string;
@@ -2845,6 +2864,38 @@ export interface components {
             message: string;
             data: components["schemas"]["Need"][];
             meta: components["schemas"]["ListMeta"];
+        };
+        NeedBoardCard: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            description: string;
+            category: components["schemas"]["DirectoryCategory"];
+            est_qty_per_week: number | null;
+            max_retail_price: number | null;
+            /** @enum {string|null} */
+            preferred_model: "FIXED_DEPOSIT" | "COMMISSION" | null;
+            offered_commission_bps: number | null;
+            /** Format: date-time */
+            expires_at: string;
+            /** Format: date-time */
+            created_at: string;
+            store: {
+                /** Format: uuid */
+                id: string;
+                slug: string;
+                name: string;
+                city_name: string;
+                store_type: components["schemas"]["StoreType"] | null;
+            };
+            distance_m: number | null;
+            is_own: boolean;
+        };
+        NeedBoardResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["NeedBoardCard"][];
+            meta: components["schemas"]["DirectoryListMeta"];
         };
     };
     responses: {
@@ -3785,6 +3836,7 @@ export interface operations {
                 max_commission_bps?: number;
                 without_permit?: boolean;
                 without_halal?: boolean;
+                has_open_need?: boolean;
                 q?: string;
                 cursor?: string;
                 limit?: number;
@@ -4121,6 +4173,44 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listNeedBoard: {
+        parameters: {
+            query?: {
+                origin?: "ORGANIZATION" | "HERE" | "CITY";
+                lat?: number;
+                lng?: number;
+                city_code?: string;
+                radius_km?: "2" | "5" | "10" | "25" | "all";
+                sort?: "NEAREST" | "NEWEST";
+                category_id?: string[];
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kebutuhan terbuka dari toko di Cari Mitra, terdekat lebih dulu */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedBoardResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];

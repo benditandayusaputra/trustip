@@ -137,7 +137,7 @@ func propose(sender DirectSender) fiber.Handler {
 			return err
 		}
 		proposal, err := sender.Execute(c.Context(), signedIn, service.DirectCommand{
-			TargetID: request.TargetOrganizationID, Input: input,
+			TargetID: request.TargetOrganizationID, NeedID: request.needID(), Input: input,
 		})
 		if err != nil {
 			return fmt.Errorf("send proposal: %w", err)

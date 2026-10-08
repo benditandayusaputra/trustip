@@ -962,6 +962,10 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: has_open_need
+          in: query
+          schema:
+            type: boolean
         - name: q
           in: query
           schema:
@@ -1477,6 +1481,83 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/directory/needs:
+    get:
+      operationId: listNeedBoard
+      tags: [directory]
+      parameters:
+        - name: origin
+          in: query
+          schema:
+            type: string
+            enum: [ORGANIZATION, HERE, CITY]
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+        - name: city_code
+          in: query
+          schema:
+            type: string
+        - name: radius_km
+          in: query
+          schema:
+            type: string
+            enum: ["2", "5", "10", "25", all]
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [NEAREST, NEWEST]
+        - name: category_id
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 80
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Kebutuhan terbuka dari toko di Cari Mitra, terdekat lebih dulu
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NeedBoardResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "422":
           $ref: "#/components/responses/Unprocessable"
         "429":
@@ -6600,8 +6681,8 @@ components:
     DirectoryStoreCard:
       type: object
       additionalProperties: false
-      required: [id, slug, name, city_name, district, store_type, logo_url, distance_m, accepted_categories, terms,
-        reputation, is_self, is_partner, match]
+      required: [id, slug, name, city_name, district, store_type, logo_url, distance_m, accepted_categories,
+        open_need_category_ids, terms, reputation, is_self, is_partner, match]
       properties:
         id:
           type: string
@@ -6628,6 +6709,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DirectoryCategory"
+        open_need_category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         terms:
           $ref: "#/components/schemas/DirectoryStoreTerms"
         reputation:
@@ -6859,6 +6945,10 @@ components:
         target_organization_id:
           type: string
           format: uuid
+        need_id:
+          type: string
+          format: uuid
+          nullable: true
         terms:
           $ref: "#/components/schemas/GeneralTerms"
         items:
@@ -7157,3 +7247,75 @@ components:
             $ref: "#/components/schemas/Need"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    NeedBoardCard:
+      type: object
+      additionalProperties: false
+      required: [id, title, description, category, est_qty_per_week, max_retail_price, preferred_model,
+        offered_commission_bps, expires_at, created_at, store, distance_m, is_own]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/DirectoryCategory"
+        est_qty_per_week:
+          type: integer
+          nullable: true
+        max_retail_price:
+          type: integer
+          nullable: true
+        preferred_model:
+          type: string
+          nullable: true
+          enum: [FIXED_DEPOSIT, COMMISSION, null]
+        offered_commission_bps:
+          type: integer
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        store:
+          type: object
+          additionalProperties: false
+          required: [id, slug, name, city_name, store_type]
+          properties:
+            id:
+              type: string
+              format: uuid
+            slug:
+              type: string
+            name:
+              type: string
+            city_name:
+              type: string
+            store_type:
+              allOf:
+                - $ref: "#/components/schemas/StoreType"
+              nullable: true
+        distance_m:
+          type: integer
+          nullable: true
+        is_own:
+          type: boolean
+    NeedBoardResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/NeedBoardCard"
+        meta:
+          $ref: "#/components/schemas/DirectoryListMeta"

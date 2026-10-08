@@ -137,12 +137,12 @@ func (q *Queries) CounterProposal(ctx context.Context, arg CounterProposalParams
 const createProposal = `-- name: CreateProposal :exec
 INSERT INTO proposals (
     id, number, kind, consignor_org_id, store_org_id, from_org_id, awaiting_org_id, partnership_id, invite_code,
-    status, current_revision_no, expires_at, created_at, updated_at
+    need_id, status, current_revision_no, expires_at, created_at, updated_at
 ) VALUES (
     $1::uuid, $2::text, $3::text, NULLIF($4::text, '')::uuid,
     NULLIF($5::text, '')::uuid, $6::uuid, NULLIF($7::text, '')::uuid,
-    NULLIF($8::text, '')::uuid, NULLIF($9::text, ''), 'OPEN', 1,
-    $10::timestamptz, $11::timestamptz, $11::timestamptz
+    NULLIF($8::text, '')::uuid, NULLIF($9::text, ''), NULLIF($10::text, '')::uuid,
+    'OPEN', 1, $11::timestamptz, $12::timestamptz, $12::timestamptz
 )
 `
 
@@ -156,6 +156,7 @@ type CreateProposalParams struct {
 	AwaitingOrgID  string
 	PartnershipID  string
 	InviteCode     string
+	NeedID         string
 	ExpiresAt      time.Time
 	CreatedAt      time.Time
 }
@@ -171,6 +172,7 @@ func (q *Queries) CreateProposal(ctx context.Context, arg CreateProposalParams) 
 		arg.AwaitingOrgID,
 		arg.PartnershipID,
 		arg.InviteCode,
+		arg.NeedID,
 		arg.ExpiresAt,
 		arg.CreatedAt,
 	)
@@ -283,14 +285,19 @@ SELECT
         WHERE pa.status = 'ACTIVE'
             AND ((pa.consignor_org_id = sender.id AND pa.store_org_id = target.id)
                 OR (pa.consignor_org_id = target.id AND pa.store_org_id = sender.id))
-    )::boolean AS are_partners
+    )::boolean AS are_partners,
+    COALESCE(need.store_org_id::text, '')::text AS need_store_org_id,
+    COALESCE(need.status, '')::text AS need_status,
+    COALESCE(need.expires_at, '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS need_expires_at
 FROM organizations AS sender
 JOIN organizations AS target ON target.id = $1::uuid
-WHERE sender.id = $2::uuid AND target.status = 'ACTIVE' AND target.is_listed
+LEFT JOIN needs AS need ON need.id = NULLIF($2::text, '')::uuid
+WHERE sender.id = $3::uuid AND target.status = 'ACTIVE' AND target.is_listed
 `
 
 type GetDirectPartiesParams struct {
 	TargetID string
+	NeedID   string
 	SenderID string
 }
 
@@ -301,10 +308,13 @@ type GetDirectPartiesRow struct {
 	TargetType     string
 	LastDeclinedAt time.Time
 	ArePartners    bool
+	NeedStoreOrgID string
+	NeedStatus     string
+	NeedExpiresAt  time.Time
 }
 
 func (q *Queries) GetDirectParties(ctx context.Context, arg GetDirectPartiesParams) (GetDirectPartiesRow, error) {
-	row := q.db.QueryRow(ctx, getDirectParties, arg.TargetID, arg.SenderID)
+	row := q.db.QueryRow(ctx, getDirectParties, arg.TargetID, arg.NeedID, arg.SenderID)
 	var i GetDirectPartiesRow
 	err := row.Scan(
 		&i.SenderName,
@@ -313,6 +323,9 @@ func (q *Queries) GetDirectParties(ctx context.Context, arg GetDirectPartiesPara
 		&i.TargetType,
 		&i.LastDeclinedAt,
 		&i.ArePartners,
+		&i.NeedStoreOrgID,
+		&i.NeedStatus,
+		&i.NeedExpiresAt,
 	)
 	return i, err
 }

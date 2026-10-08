@@ -64,6 +64,7 @@ const locatedBody = `"location":{"latitude":-7.0546,"longitude":110.4386}`
 
 type consignorDirectoryScene struct {
 	store       *browser
+	consignor   *browser
 	consignorID string
 	productID   string
 }
@@ -73,7 +74,9 @@ func listedConsignorScene(t *testing.T) consignorDirectoryScene {
 	consignor := databaseBrowser(t)
 	founded := consignor.postOrganization(strings.Replace(consignorOnboarding(), `"location":null`, locatedBody, 1))
 	consignor.post("/api/v1/sessions/refresh")
-	scene := consignorDirectoryScene{consignorID: quotedAfter(string(founded.body), `"id":"`)}
+	scene := consignorDirectoryScene{
+		consignor: consignor, consignorID: quotedAfter(string(founded.body), `"id":"`),
+	}
 	product := consignor.postJSON(productsPath, productBody(""))
 	scene.productID = quotedAfter(string(product.body), `"id":"`)
 	consignor.patch(productsPath+"/"+scene.productID+"/seeking", `{"is_seeking_stores":true}`)

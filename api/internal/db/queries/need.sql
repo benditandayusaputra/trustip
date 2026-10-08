@@ -71,3 +71,22 @@ ORDER BY p.created_at DESC, p.id DESC;
 UPDATE needs
 SET status = 'EXPIRED', updated_at = @now::timestamptz
 WHERE status = 'OPEN' AND expires_at <= @now::timestamptz;
+
+-- name: ListConsignorsNearNeed :many
+SELECT o.id, ST_Distance(o.location_public, store.location, false)::float8 AS distance_meters
+FROM organizations AS store
+JOIN organizations AS o ON o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.location_public IS NOT NULL
+WHERE store.id = @store_org_id::uuid AND store.location IS NOT NULL
+    AND ST_DWithin(o.location_public, store.location, @radius_meters::float8, false)
+    AND EXISTS (
+        SELECT 1 FROM products AS p
+        WHERE p.consignor_org_id = o.id AND p.category_id = @category_id::uuid AND NOT p.is_archived
+    )
+ORDER BY distance_meters, o.id;
+
+-- name: ClaimExpiringNeeds :many
+UPDATE needs
+SET reminded_at = @now::timestamptz
+WHERE status = 'OPEN' AND reminded_at IS NULL AND expires_at > @now::timestamptz
+    AND expires_at <= @remind_until::timestamptz
+RETURNING id, store_org_id, title;

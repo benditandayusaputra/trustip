@@ -50,7 +50,8 @@ func (r *Directory) GetViewer(ctx context.Context, key domain.ViewerKey) (domain
 			Categories: categoriesOf(row.CategoryIds, row.CategoryNames),
 		},
 		Store: domain.StoreFacts{
-			StoreType: row.StoreType, AcceptedCategoryIDs: row.AcceptedCategoryIds, NeedCategoryIDs: []string{},
+			StoreType: row.StoreType, AcceptedCategoryIDs: row.AcceptedCategoryIds,
+			NeedCategoryIDs: row.NeedCategoryIds,
 		},
 	}, nil
 }
@@ -66,7 +67,7 @@ func (r *Directory) CountStoresWithin(ctx context.Context, query domain.StoreQue
 			CategoryIds:  nonNull(filters.CategoryIDs),
 			PricingModel: filters.PricingModel, HasMaxCommission: filters.HasMaxCommission,
 			MaxCommissionBps: int64(filters.MaxCommissionBPS), WithoutPermit: filters.WithoutPermit,
-			WithoutHalal: filters.WithoutHalal, Query: filters.Text,
+			WithoutHalal: filters.WithoutHalal, HasOpenNeed: filters.HasOpenNeed, Query: filters.Text,
 		})
 	if err != nil {
 		return nil, fmt.Errorf("count directory stores: %w", err)
@@ -114,7 +115,8 @@ func storeListParams(query domain.StoreQuery) sqlc.ListDirectoryStoresParams {
 		RadiusMeters: float64(query.RadiusKm * metersPerKm), StoreType: filters.StoreType,
 		CategoryIds: nonNull(filters.CategoryIDs), PricingModel: filters.PricingModel,
 		HasMaxCommission: filters.HasMaxCommission, MaxCommissionBps: int64(filters.MaxCommissionBPS),
-		WithoutPermit: filters.WithoutPermit, WithoutHalal: filters.WithoutHalal, Query: filters.Text,
+		WithoutPermit: filters.WithoutPermit, WithoutHalal: filters.WithoutHalal, HasOpenNeed: filters.HasOpenNeed,
+		Query:     filters.Text,
 		SortOrder: string(query.Sort), RatedFrom: ratedFromSettlements,
 	}
 }
@@ -124,6 +126,7 @@ func toStoreCard(row sqlc.ListDirectoryStoresRow) domain.StoreCard {
 		ID: row.ID, Slug: row.Slug, Name: row.Name, CityName: row.CityName, District: row.District,
 		StoreType: row.StoreType, LogoStorageKey: row.LogoStorageKey,
 		AcceptedCategories: categoriesOf(row.AcceptedCategoryIds, row.AcceptedCategoryNames),
+		NeedCategoryIDs:    row.NeedCategoryIds,
 		Terms: domain.StoreTerms{
 			AcceptsFixedDeposit: row.AcceptsFixedDeposit, AcceptsCommission: row.AcceptsCommission,
 			Commission: domain.CommissionRange{

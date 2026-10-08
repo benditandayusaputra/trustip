@@ -11,6 +11,7 @@ type Opening struct {
 	StoreID       string
 	AwaitingID    string
 	PartnershipID string
+	NeedID        string
 	SenderName    string
 	Draft         RevisionDraft
 	At            time.Time

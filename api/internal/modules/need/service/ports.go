@@ -21,6 +21,15 @@ type NeedReader interface {
 	ListResponses(ctx context.Context, key domain.NeedKey) ([]domain.Response, error)
 }
 
+type Interest interface {
+	ListInterested(ctx context.Context, need domain.Need) ([]domain.Interested, error)
+	ClaimExpiring(ctx context.Context, window domain.ReminderWindow) ([]domain.Expiring, error)
+}
+
+type Announcer interface {
+	Announce(ctx context.Context, notice domain.Notice) error
+}
+
 type AuditTrail interface {
 	Record(ctx context.Context, entry audit.Entry) error
 }
@@ -38,10 +47,12 @@ type IDGenerator interface {
 }
 
 type Deps struct {
-	Writer NeedWriter
-	Reader NeedReader
-	Audit  AuditTrail
-	Tx     Transactor
-	Clock  Clock
-	IDs    IDGenerator
+	Writer    NeedWriter
+	Reader    NeedReader
+	Interest  Interest
+	Announcer Announcer
+	Audit     AuditTrail
+	Tx        Transactor
+	Clock     Clock
+	IDs       IDGenerator
 }

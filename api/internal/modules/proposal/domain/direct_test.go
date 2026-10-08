@@ -95,3 +95,49 @@ func TestQuotaKeyOf_BRPRP06_CountsPerJakartaDay(t *testing.T) {
 		t.Fatalf("key = %+v", key)
 	}
 }
+
+func needParams(need NeedRef) DirectParams {
+	params := directParams()
+	params.Need = need
+	return params
+}
+
+func TestPropose_FRNED05_ConsignorAnswersAnOpenNeedOfTheStore(t *testing.T) {
+	draft, _ := NewRevisionDraft(validInput())
+
+	opening, err := draft.Propose(needParams(NeedRef{
+		ID: "n1", StoreID: storeID, IsOpen: true, ExpiresAt: sentAt().Add(time.Hour),
+	}))
+
+	if err != nil || opening.NeedID != "n1" {
+		t.Fatalf("opening = %+v, err = %v", opening, err)
+	}
+}
+
+func TestPropose_FRNED05_ClosedOrExpiredNeedIsAlreadyClosed(t *testing.T) {
+	draft, _ := NewRevisionDraft(validInput())
+	closed := NeedRef{ID: "n1", StoreID: storeID, IsOpen: false, ExpiresAt: sentAt().Add(time.Hour)}
+	expired := NeedRef{ID: "n1", StoreID: storeID, IsOpen: true, ExpiresAt: sentAt()}
+
+	_, closedErr := draft.Propose(needParams(closed))
+	_, expiredErr := draft.Propose(needParams(expired))
+
+	appErr := apperror.From(closedErr)
+	if appErr.Code() != apperror.CodeNeedNotOpen || appErr.Message() != "Kebutuhan ini sudah ditutup." ||
+		apperror.From(expiredErr).Code() != apperror.CodeNeedNotOpen {
+		t.Fatalf("closed = %v, expired = %v", closedErr, expiredErr)
+	}
+}
+
+func TestPropose_FRNED05_NeedOfAnotherStoreIsAFieldError(t *testing.T) {
+	draft, _ := NewRevisionDraft(validInput())
+
+	_, err := draft.Propose(needParams(NeedRef{
+		ID: "n1", StoreID: otherStore, IsOpen: true,
+		ExpiresAt: sentAt().Add(time.Hour),
+	}))
+
+	if fieldCodes(t, err)["need_id"] != "UNKNOWN_CHOICE" {
+		t.Fatalf("err = %v", err)
+	}
+}

@@ -15,6 +15,7 @@ import (
 
 type DirectCommand struct {
 	TargetID string
+	NeedID   string
 	Input    domain.RevisionInput
 }
 
@@ -48,7 +49,8 @@ func (uc *SendProposal) Execute(ctx context.Context, signedIn actor.Actor, cmd D
 	}
 	var proposal domain.Proposal
 	err = uc.deps.Tx.WithinTx(ctx, func(ctx context.Context) error {
-		if err := uc.open(ctx, draft, params, cmd.TargetID); err != nil {
+		pair := domain.DirectPair{TargetID: cmd.TargetID, NeedID: cmd.NeedID}
+		if err := uc.open(ctx, draft, params, pair); err != nil {
 			return err
 		}
 		proposal, err = finishProposalEvent(ctx, uc.deps, proposalEvent{
@@ -63,9 +65,9 @@ func (uc *SendProposal) Execute(ctx context.Context, signedIn actor.Actor, cmd D
 }
 
 func (uc *SendProposal) open(
-	ctx context.Context, draft domain.RevisionDraft, params domain.DirectParams, targetID string,
+	ctx context.Context, draft domain.RevisionDraft, params domain.DirectParams, pair domain.DirectPair,
 ) error {
-	params, err := uc.withParties(ctx, params, targetID)
+	params, err := uc.withParties(ctx, params, pair)
 	if err != nil {
 		return err
 	}
@@ -90,11 +92,10 @@ func (uc *SendProposal) open(
 }
 
 func (uc *SendProposal) withParties(
-	ctx context.Context, params domain.DirectParams, targetID string,
+	ctx context.Context, params domain.DirectParams, pair domain.DirectPair,
 ) (domain.DirectParams, error) {
-	parties, err := uc.deps.Direct.GetDirectParties(ctx, domain.DirectPair{
-		SenderID: params.Sender.OrganizationID, TargetID: targetID,
-	})
+	pair.SenderID = params.Sender.OrganizationID
+	parties, err := uc.deps.Direct.GetDirectParties(ctx, pair)
 	if err != nil {
 		return domain.DirectParams{}, fmt.Errorf("read proposal parties: %w", err)
 	}
@@ -103,6 +104,7 @@ func (uc *SendProposal) withParties(
 			WithParam(organizationParam, parties.Target.Name)
 	}
 	params.SenderName, params.Target, params.LastDeclinedAt = parties.SenderName, parties.Target, parties.LastDeclinedAt
+	params.Need = parties.Need
 	params.Sequence, err = uc.deps.Proposals.NextNumber(ctx, domain.SequenceKey{
 		OrganizationID: params.Sender.OrganizationID, Prefix: domain.NumberPrefix, Period: period.MonthKey(params.At),
 	})

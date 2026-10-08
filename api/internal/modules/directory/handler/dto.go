@@ -45,6 +45,7 @@ type storeCardResponse struct {
 	LogoURL            *string                 `json:"logo_url"`
 	DistanceM          *int                    `json:"distance_m"`
 	AcceptedCategories []categoryResponse      `json:"accepted_categories"`
+	OpenNeedCategories []string                `json:"open_need_category_ids"`
 	Terms              storeTermsResponse      `json:"terms"`
 	Reputation         storeReputationResponse `json:"reputation"`
 	IsSelf             bool                    `json:"is_self"`
@@ -74,7 +75,8 @@ func (p presenter) storeCard(card domain.StoreCard) storeCardResponse {
 	response := storeCardResponse{
 		ID: card.ID, Slug: card.Slug, Name: card.Name, CityName: card.CityName, District: card.District,
 		StoreType: optionalText(card.StoreType), AcceptedCategories: categoriesOf(card.AcceptedCategories),
-		Terms: termsOf(card.Terms), Reputation: reputationOf(card.Reputation), IsSelf: card.IsSelf,
+		OpenNeedCategories: append([]string{}, card.NeedCategoryIDs...),
+		Terms:              termsOf(card.Terms), Reputation: reputationOf(card.Reputation), IsSelf: card.IsSelf,
 		IsPartner: card.IsPartner,
 	}
 	response.LogoURL = p.fileURL(card.LogoStorageKey)

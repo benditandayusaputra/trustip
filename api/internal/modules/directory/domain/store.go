@@ -21,6 +21,7 @@ type StoreSearchForm struct {
 	MaxCommissionBPS         string
 	WithoutPermitRequirement bool
 	WithoutHalalRequirement  bool
+	HasOpenNeed              bool
 }
 
 type StoreFilters struct {
@@ -31,6 +32,7 @@ type StoreFilters struct {
 	MaxCommissionBPS int
 	WithoutPermit    bool
 	WithoutHalal     bool
+	HasOpenNeed      bool
 	Text             string
 }
 
@@ -54,7 +56,8 @@ func NewStoreSearch(form StoreSearchForm) (StoreSearch, error) {
 	return StoreSearch{Search: search, Filters: StoreFilters{
 		StoreType: form.StoreType, CategoryIDs: search.CategoryIDs, PricingModel: form.PricingModel,
 		HasMaxCommission: commission.IsGiven, MaxCommissionBPS: commission.Value,
-		WithoutPermit: form.WithoutPermitRequirement, WithoutHalal: form.WithoutHalalRequirement, Text: search.Text,
+		WithoutPermit: form.WithoutPermitRequirement, WithoutHalal: form.WithoutHalalRequirement,
+		HasOpenNeed: form.HasOpenNeed, Text: search.Text,
 	}}, nil
 }
 
@@ -88,6 +91,7 @@ type StoreCard struct {
 	LogoStorageKey     string
 	Distance           Distance
 	AcceptedCategories []Category
+	NeedCategoryIDs    []string
 	Terms              StoreTerms
 	Reputation         StoreReputation
 	LastActiveAt       time.Time
@@ -122,7 +126,7 @@ func (v Viewer) MatchStore(card StoreCard, now time.Time) StoreCard {
 	card.Match = ScoreMatch(MatchFacts{
 		Distance: card.Distance, DeliveryRadiusKm: v.Consignor.DeliveryRadiusKm,
 		ConsignorCategories: v.Consignor.Categories, AcceptedCategoryIDs: card.acceptedCategoryIDs(),
-		NeedCategoryIDs: []string{}, PreferredStoreTypes: v.Consignor.PreferredStoreTypes,
+		NeedCategoryIDs: card.NeedCategoryIDs, PreferredStoreTypes: v.Consignor.PreferredStoreTypes,
 		StoreType: card.StoreType, Reputation: card.Reputation, LastActiveAt: card.LastActiveAt, Now: now,
 	})
 	card.HasMatch = true

@@ -12,6 +12,45 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const claimExpiringNeeds = `-- name: ClaimExpiringNeeds :many
+UPDATE needs
+SET reminded_at = $1::timestamptz
+WHERE status = 'OPEN' AND reminded_at IS NULL AND expires_at > $1::timestamptz
+    AND expires_at <= $2::timestamptz
+RETURNING id, store_org_id, title
+`
+
+type ClaimExpiringNeedsParams struct {
+	Now         time.Time
+	RemindUntil time.Time
+}
+
+type ClaimExpiringNeedsRow struct {
+	ID         string
+	StoreOrgID string
+	Title      string
+}
+
+func (q *Queries) ClaimExpiringNeeds(ctx context.Context, arg ClaimExpiringNeedsParams) ([]ClaimExpiringNeedsRow, error) {
+	rows, err := q.db.Query(ctx, claimExpiringNeeds, arg.Now, arg.RemindUntil)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ClaimExpiringNeedsRow{}
+	for rows.Next() {
+		var i ClaimExpiringNeedsRow
+		if err := rows.Scan(&i.ID, &i.StoreOrgID, &i.Title); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createNeed = `-- name: CreateNeed :execrows
 INSERT INTO needs (
     id, store_org_id, title, category_id, description, est_qty_per_week, max_retail_price, preferred_model,
@@ -132,6 +171,50 @@ func (q *Queries) GetNeed(ctx context.Context, arg GetNeedParams) (GetNeedRow, e
 		&i.ResponseCount,
 	)
 	return i, err
+}
+
+const listConsignorsNearNeed = `-- name: ListConsignorsNearNeed :many
+SELECT o.id, ST_Distance(o.location_public, store.location, false)::float8 AS distance_meters
+FROM organizations AS store
+JOIN organizations AS o ON o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.location_public IS NOT NULL
+WHERE store.id = $1::uuid AND store.location IS NOT NULL
+    AND ST_DWithin(o.location_public, store.location, $2::float8, false)
+    AND EXISTS (
+        SELECT 1 FROM products AS p
+        WHERE p.consignor_org_id = o.id AND p.category_id = $3::uuid AND NOT p.is_archived
+    )
+ORDER BY distance_meters, o.id
+`
+
+type ListConsignorsNearNeedParams struct {
+	StoreOrgID   string
+	RadiusMeters float64
+	CategoryID   string
+}
+
+type ListConsignorsNearNeedRow struct {
+	ID             string
+	DistanceMeters float64
+}
+
+func (q *Queries) ListConsignorsNearNeed(ctx context.Context, arg ListConsignorsNearNeedParams) ([]ListConsignorsNearNeedRow, error) {
+	rows, err := q.db.Query(ctx, listConsignorsNearNeed, arg.StoreOrgID, arg.RadiusMeters, arg.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListConsignorsNearNeedRow{}
+	for rows.Next() {
+		var i ListConsignorsNearNeedRow
+		if err := rows.Scan(&i.ID, &i.DistanceMeters); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listNeedResponses = `-- name: ListNeedResponses :many

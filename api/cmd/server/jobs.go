@@ -18,6 +18,7 @@ import (
 	proposalrepository "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/repository"
 	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/scheduler"
 )
@@ -25,6 +26,7 @@ import (
 const (
 	dailyMinute      = 5
 	settlementMinute = 10
+	reminderHour     = 6
 )
 
 type jobRunners struct {
@@ -33,6 +35,7 @@ type jobRunners struct {
 	expire      *proposalservice.ExpireProposals
 	settlements *settlementservice.IssueDueSettlements
 	needs       *needservice.ExpireNeeds
+	reminders   *needservice.RemindExpiringNeeds
 }
 
 func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
@@ -42,6 +45,7 @@ func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
 		expire:      proposalservice.NewExpireProposals(proposalrepository.NewProposals(pool)),
 		settlements: settlementservice.NewIssueDueSettlements(trade.settlements),
 		needs:       needservice.NewExpireNeeds(needrepository.NewNeeds(pool)),
+		reminders:   needservice.NewRemindExpiringNeeds(buildNeedDeps(pool, clock.System{})),
 	}
 }
 
@@ -56,7 +60,15 @@ func scheduledJobs(runners jobRunners) []scheduler.Job {
 			Name: "monthly-settlements", Minute: settlementMinute, Days: scheduler.FirstOfMonth,
 			Work: runners.issue(terms.ScheduleMonthly),
 		},
+		{Name: "need-reminders", Hour: reminderHour, Days: scheduler.EveryDay, Work: runners.remind},
 	}
+}
+
+func (r jobRunners) remind(ctx context.Context, now time.Time) error {
+	if _, err := r.reminders.Execute(ctx, now); err != nil {
+		return fmt.Errorf("remind expiring needs: %w", err)
+	}
+	return nil
 }
 
 func (r jobRunners) daily(ctx context.Context, now time.Time) error {

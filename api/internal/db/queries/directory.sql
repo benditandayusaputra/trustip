@@ -26,6 +26,10 @@ SELECT
     ARRAY(
         SELECT sac.category_id::text FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id
     )::text[] AS accepted_category_ids,
+    ARRAY(
+        SELECT DISTINCT n.category_id::text FROM needs AS n
+        WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+    )::text[] AS need_category_ids,
     (city.code IS NOT NULL)::boolean AS has_city,
     COALESCE(ST_Y(city.centroid::geometry), 0)::float8 AS city_latitude,
     COALESCE(ST_X(city.centroid::geometry), 0)::float8 AS city_longitude
@@ -59,6 +63,13 @@ WITH origin AS (
         AND (NOT @has_max_commission::boolean OR sp.commission_min_bps <= @max_commission_bps::bigint)
         AND (NOT @without_permit::boolean OR NOT sp.requires_distribution_permit)
         AND (NOT @without_halal::boolean OR NOT sp.requires_halal)
+        AND (
+            NOT @has_open_need::boolean
+            OR EXISTS (
+                SELECT 1 FROM needs AS n
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+            )
+        )
         AND (
             @query::text = ''
             OR o.name ILIKE '%' || replace(replace(replace(@query::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
@@ -101,6 +112,10 @@ WITH origin AS (
             SELECT c.name FROM store_accepted_categories AS sac JOIN categories AS c ON c.id = sac.category_id
             WHERE sac.organization_id = o.id ORDER BY c.sort_order
         )::text[] AS accepted_category_names,
+        ARRAY(
+            SELECT DISTINCT n.category_id::text FROM needs AS n
+            WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+        )::text[] AS need_category_ids,
         (o.id = @viewer_id::uuid)::boolean AS is_self,
         EXISTS (
             SELECT 1 FROM partnerships AS pa
@@ -133,6 +148,13 @@ WITH origin AS (
         AND (NOT @without_permit::boolean OR NOT sp.requires_distribution_permit)
         AND (NOT @without_halal::boolean OR NOT sp.requires_halal)
         AND (
+            NOT @has_open_need::boolean
+            OR EXISTS (
+                SELECT 1 FROM needs AS n
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+            )
+        )
+        AND (
             @query::text = ''
             OR o.name ILIKE '%' || replace(replace(replace(@query::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
             OR o.description ILIKE '%' || replace(replace(replace(@query::text, '\', '\\'), '%', '\%'), '_', '\_')
@@ -145,7 +167,7 @@ WITH origin AS (
         listed.commission_min_bps, listed.commission_max_bps, listed.requires_distribution_permit,
         listed.requires_halal, listed.requires_sample, listed.logo_storage_key, listed.settlements_counted,
         listed.on_time_payment_bps, listed.distance_meters, listed.accepted_category_ids,
-        listed.accepted_category_names, listed.is_self, listed.is_partner,
+        listed.accepted_category_names, listed.need_category_ids, listed.is_self, listed.is_partner,
         CASE @sort_order::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
         CASE @sort_order::text
             WHEN 'NEAREST' THEN listed.distance_meters
@@ -160,7 +182,7 @@ SELECT
     id, slug, name, city_name, district, created_at, last_active_at, store_type, accepts_fixed_deposit,
     accepts_commission, commission_min_bps, commission_max_bps, requires_distribution_permit, requires_halal,
     requires_sample, logo_storage_key, settlements_counted, on_time_payment_bps, distance_meters,
-    accepted_category_ids, accepted_category_names, is_self, is_partner, sort_text, sort_number
+    accepted_category_ids, accepted_category_names, need_category_ids, is_self, is_partner, sort_text, sort_number
 FROM ranked
 WHERE @from_start::boolean OR (sort_text, sort_number, id) > (@after_text::text, @after_number::float8, @after_id::uuid)
 ORDER BY sort_text, sort_number, id
@@ -170,3 +192,84 @@ LIMIT @row_limit::bigint;
 SELECT o.id, o.name, o.type, o.city_name, o.whatsapp
 FROM organizations AS o
 WHERE o.id = @id::uuid AND o.status = 'ACTIVE' AND o.is_listed;
+
+-- name: CountDirectoryNeedsByRadius :many
+WITH origin AS (
+    SELECT ST_SetSRID(ST_MakePoint(@origin_longitude::float8, @origin_latitude::float8), 4326)::geography AS point
+), filtered AS (
+    SELECT o.location_public
+    FROM needs AS n
+    JOIN organizations AS o ON o.id = n.store_org_id
+    WHERE n.status = 'OPEN' AND n.expires_at > @now::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
+        AND (cardinality(@category_ids::uuid[]) = 0 OR n.category_id = ANY (@category_ids::uuid[]))
+        AND (
+            @query::text = ''
+            OR n.title ILIKE '%' || replace(replace(replace(@query::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR n.description ILIKE '%' || replace(replace(replace(@query::text, '\', '\\'), '%', '\%'), '_', '\_')
+                || '%'
+        )
+)
+SELECT
+    radius.meters::float8 AS radius_meters,
+    count(filtered.location_public) FILTER (
+        WHERE ST_DWithin(filtered.location_public, origin.point, radius.meters, false)
+    )::bigint AS need_count
+FROM unnest(@radii_meters::float8[]) AS radius (meters)
+CROSS JOIN origin
+LEFT JOIN filtered ON true
+GROUP BY radius.meters
+ORDER BY radius.meters;
+
+-- name: ListDirectoryNeeds :many
+WITH origin AS (
+    SELECT ST_SetSRID(ST_MakePoint(@origin_longitude::float8, @origin_latitude::float8), 4326)::geography AS point
+), listed AS (
+    SELECT
+        n.id, n.title, n.description, n.category_id::text AS category_id, c.name AS category_name,
+        COALESCE(n.est_qty_per_week, 0)::bigint AS est_qty_per_week,
+        COALESCE(n.max_retail_price, 0)::bigint AS max_retail_price,
+        COALESCE(n.preferred_model, '')::text AS preferred_model,
+        COALESCE(n.offered_commission_bps, -1)::bigint AS offered_commission_bps,
+        n.expires_at, n.created_at, o.id AS store_id, o.slug AS store_slug, o.name AS store_name, o.city_name,
+        COALESCE(sp.store_type, '')::text AS store_type,
+        CASE WHEN @has_origin::boolean THEN ST_Distance(o.location_public, origin.point, false) ELSE -1 END::float8
+            AS distance_meters,
+        (o.id = @viewer_id::uuid)::boolean AS is_own
+    FROM needs AS n
+    JOIN categories AS c ON c.id = n.category_id
+    JOIN organizations AS o ON o.id = n.store_org_id
+    CROSS JOIN origin
+    LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
+    WHERE n.status = 'OPEN' AND n.expires_at > @now::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
+        AND (
+            NOT @within_radius::boolean
+            OR ST_DWithin(o.location_public, origin.point, @radius_meters::float8, false)
+        )
+        AND (cardinality(@category_ids::uuid[]) = 0 OR n.category_id = ANY (@category_ids::uuid[]))
+        AND (
+            @query::text = ''
+            OR n.title ILIKE '%' || replace(replace(replace(@query::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR n.description ILIKE '%' || replace(replace(replace(@query::text, '\', '\\'), '%', '\%'), '_', '\_')
+                || '%'
+        )
+), ranked AS (
+    SELECT
+        listed.id, listed.title, listed.description, listed.category_id, listed.category_name,
+        listed.est_qty_per_week, listed.max_retail_price, listed.preferred_model, listed.offered_commission_bps,
+        listed.expires_at, listed.created_at, listed.store_id, listed.store_slug, listed.store_name,
+        listed.city_name, listed.store_type, listed.distance_meters, listed.is_own,
+        CASE @sort_order::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
+        CASE @sort_order::text
+            WHEN 'NEAREST' THEN listed.distance_meters
+            ELSE -extract(epoch FROM listed.created_at)
+        END::float8 AS sort_number
+    FROM listed
+)
+SELECT
+    id, title, description, category_id, category_name, est_qty_per_week, max_retail_price, preferred_model,
+    offered_commission_bps, expires_at, created_at, store_id, store_slug, store_name, city_name, store_type,
+    distance_meters, is_own, sort_text, sort_number
+FROM ranked
+WHERE @from_start::boolean OR (sort_text, sort_number, id) > (@after_text::text, @after_number::float8, @after_id::uuid)
+ORDER BY sort_text, sort_number, id
+LIMIT @row_limit::bigint;

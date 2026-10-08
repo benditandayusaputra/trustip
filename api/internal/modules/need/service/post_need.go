@@ -43,12 +43,28 @@ func (uc *PostNeed) Execute(ctx context.Context, signedIn actor.Actor, form doma
 		need, err = finishNeedEvent(ctx, uc.deps, needEvent{
 			signedIn: signedIn, needID: needID, action: audit.NeedPosted, at: posting.At,
 		})
-		return err
+		if err != nil {
+			return err
+		}
+		return uc.tellInterested(ctx, need, signedIn.UserID)
 	})
 	if err != nil {
 		return domain.Need{}, fmt.Errorf("post need: %w", err)
 	}
 	return need, nil
+}
+
+func (uc *PostNeed) tellInterested(ctx context.Context, need domain.Need, actorUserID string) error {
+	interested, err := uc.deps.Interest.ListInterested(ctx, need)
+	if err != nil {
+		return fmt.Errorf("find interested consignors: %w", err)
+	}
+	for _, consignor := range interested {
+		if err := uc.deps.Announcer.Announce(ctx, need.PostedNotice(consignor, actorUserID)); err != nil {
+			return fmt.Errorf("announce need to %s: %w", consignor.OrganizationID, err)
+		}
+	}
+	return nil
 }
 
 func explainPostFailure(err error) error {

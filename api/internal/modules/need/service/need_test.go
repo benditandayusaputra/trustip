@@ -103,16 +103,41 @@ func (f *fakeNeeds) ListResponses(_ context.Context, _ domain.NeedKey) ([]domain
 	return []domain.Response{}, nil
 }
 
+type fakeInterest struct {
+	interested []domain.Interested
+	expiring   []domain.Expiring
+	window     domain.ReminderWindow
+}
+
+func (f *fakeInterest) ListInterested(context.Context, domain.Need) ([]domain.Interested, error) {
+	return f.interested, nil
+}
+
+func (f *fakeInterest) ClaimExpiring(_ context.Context, window domain.ReminderWindow) ([]domain.Expiring, error) {
+	f.window = window
+	return f.expiring, nil
+}
+
+type fakeAnnouncer struct{ notices []domain.Notice }
+
+func (f *fakeAnnouncer) Announce(_ context.Context, notice domain.Notice) error {
+	f.notices = append(f.notices, notice)
+	return nil
+}
+
 type scene struct {
-	needs *fakeNeeds
-	audit *fakeAudit
-	deps  service.Deps
+	needs     *fakeNeeds
+	audit     *fakeAudit
+	interest  *fakeInterest
+	announcer *fakeAnnouncer
+	deps      service.Deps
 }
 
 func newScene(at time.Time) scene {
-	needs, trail := newFakeNeeds(), &fakeAudit{}
-	return scene{needs: needs, audit: trail, deps: service.Deps{
-		Writer: needs, Reader: needs, Audit: trail, Tx: inlineTx{}, Clock: fixedClock{at: at}, IDs: fixedIDs{},
+	needs, trail, interest, announcer := newFakeNeeds(), &fakeAudit{}, &fakeInterest{}, &fakeAnnouncer{}
+	return scene{needs: needs, audit: trail, interest: interest, announcer: announcer, deps: service.Deps{
+		Writer: needs, Reader: needs, Interest: interest, Announcer: announcer, Audit: trail, Tx: inlineTx{},
+		Clock: fixedClock{at: at}, IDs: fixedIDs{},
 	}}
 }
 
@@ -240,5 +265,31 @@ func TestExpireNeeds_BRNED03_MarksExpiredNeedsAtTheGivenTime(t *testing.T) {
 
 	if err != nil || expired != 1 || !world.needs.expiredAt.Equal(postedAt()) {
 		t.Fatalf("expired = %d, err = %v", expired, err)
+	}
+}
+
+func TestPostNeed_FRNED07_NearbyConsignorsOfTheCategoryAreTold(t *testing.T) {
+	world := newScene(postedAt())
+	world.interest.interested = []domain.Interested{
+		{OrganizationID: "c1", DistanceMeters: 1200}, {OrganizationID: "c2", DistanceMeters: 9000},
+	}
+
+	_, err := post(world)
+
+	if err != nil || len(world.announcer.notices) != 2 || world.announcer.notices[1].OrganizationID != "c2" ||
+		world.announcer.notices[0].Type != "NEED_POSTED" {
+		t.Fatalf("notices = %+v, err = %v", world.announcer.notices, err)
+	}
+}
+
+func TestRemindExpiringNeeds_BRNED03_RemindsEachClaimedNeedOnce(t *testing.T) {
+	world := newScene(postedAt())
+	world.interest.expiring = []domain.Expiring{{NeedID: "n1", StoreID: storeID, Title: "Butuh roti"}}
+
+	reminded, err := service.NewRemindExpiringNeeds(world.deps).Execute(context.Background(), postedAt())
+
+	if err != nil || reminded != 1 || len(world.announcer.notices) != 1 ||
+		!world.interest.window.Until.Equal(postedAt().Add(domain.ExpiryReminderBefore)) {
+		t.Fatalf("reminded = %d, notices = %+v, err = %v", reminded, world.announcer.notices, err)
 	}
 }

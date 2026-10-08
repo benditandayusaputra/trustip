@@ -10,6 +10,75 @@ import (
 	"time"
 )
 
+const countDirectoryNeedsByRadius = `-- name: CountDirectoryNeedsByRadius :many
+WITH origin AS (
+    SELECT ST_SetSRID(ST_MakePoint($2::float8, $3::float8), 4326)::geography AS point
+), filtered AS (
+    SELECT o.location_public
+    FROM needs AS n
+    JOIN organizations AS o ON o.id = n.store_org_id
+    WHERE n.status = 'OPEN' AND n.expires_at > $4::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
+        AND (cardinality($5::uuid[]) = 0 OR n.category_id = ANY ($5::uuid[]))
+        AND (
+            $6::text = ''
+            OR n.title ILIKE '%' || replace(replace(replace($6::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR n.description ILIKE '%' || replace(replace(replace($6::text, '\', '\\'), '%', '\%'), '_', '\_')
+                || '%'
+        )
+)
+SELECT
+    radius.meters::float8 AS radius_meters,
+    count(filtered.location_public) FILTER (
+        WHERE ST_DWithin(filtered.location_public, origin.point, radius.meters, false)
+    )::bigint AS need_count
+FROM unnest($1::float8[]) AS radius (meters)
+CROSS JOIN origin
+LEFT JOIN filtered ON true
+GROUP BY radius.meters
+ORDER BY radius.meters
+`
+
+type CountDirectoryNeedsByRadiusParams struct {
+	RadiiMeters     []float64
+	OriginLongitude float64
+	OriginLatitude  float64
+	Now             time.Time
+	CategoryIds     []string
+	Query           string
+}
+
+type CountDirectoryNeedsByRadiusRow struct {
+	RadiusMeters float64
+	NeedCount    int64
+}
+
+func (q *Queries) CountDirectoryNeedsByRadius(ctx context.Context, arg CountDirectoryNeedsByRadiusParams) ([]CountDirectoryNeedsByRadiusRow, error) {
+	rows, err := q.db.Query(ctx, countDirectoryNeedsByRadius,
+		arg.RadiiMeters,
+		arg.OriginLongitude,
+		arg.OriginLatitude,
+		arg.Now,
+		arg.CategoryIds,
+		arg.Query,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CountDirectoryNeedsByRadiusRow{}
+	for rows.Next() {
+		var i CountDirectoryNeedsByRadiusRow
+		if err := rows.Scan(&i.RadiusMeters, &i.NeedCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countDirectoryStoresByRadius = `-- name: CountDirectoryStoresByRadius :many
 WITH origin AS (
     SELECT ST_SetSRID(ST_MakePoint($2::float8, $3::float8), 4326)::geography AS point
@@ -35,9 +104,16 @@ WITH origin AS (
         AND (NOT $9::boolean OR NOT sp.requires_distribution_permit)
         AND (NOT $10::boolean OR NOT sp.requires_halal)
         AND (
-            $11::text = ''
-            OR o.name ILIKE '%' || replace(replace(replace($11::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR o.description ILIKE '%' || replace(replace(replace($11::text, '\', '\\'), '%', '\%'), '_', '\_')
+            NOT $11::boolean
+            OR EXISTS (
+                SELECT 1 FROM needs AS n
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+            )
+        )
+        AND (
+            $12::text = ''
+            OR o.name ILIKE '%' || replace(replace(replace($12::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR o.description ILIKE '%' || replace(replace(replace($12::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
         )
 )
@@ -64,6 +140,7 @@ type CountDirectoryStoresByRadiusParams struct {
 	MaxCommissionBps int64
 	WithoutPermit    bool
 	WithoutHalal     bool
+	HasOpenNeed      bool
 	Query            string
 }
 
@@ -84,6 +161,7 @@ func (q *Queries) CountDirectoryStoresByRadius(ctx context.Context, arg CountDir
 		arg.MaxCommissionBps,
 		arg.WithoutPermit,
 		arg.WithoutHalal,
+		arg.HasOpenNeed,
 		arg.Query,
 	)
 	if err != nil {
@@ -159,6 +237,10 @@ SELECT
     ARRAY(
         SELECT sac.category_id::text FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id
     )::text[] AS accepted_category_ids,
+    ARRAY(
+        SELECT DISTINCT n.category_id::text FROM needs AS n
+        WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+    )::text[] AS need_category_ids,
     (city.code IS NOT NULL)::boolean AS has_city,
     COALESCE(ST_Y(city.centroid::geometry), 0)::float8 AS city_latitude,
     COALESCE(ST_X(city.centroid::geometry), 0)::float8 AS city_longitude
@@ -185,6 +267,7 @@ type GetDirectoryViewerRow struct {
 	CategoryNames       []string
 	StoreType           string
 	AcceptedCategoryIds []string
+	NeedCategoryIds     []string
 	HasCity             bool
 	CityLatitude        float64
 	CityLongitude       float64
@@ -204,11 +287,165 @@ func (q *Queries) GetDirectoryViewer(ctx context.Context, arg GetDirectoryViewer
 		&i.CategoryNames,
 		&i.StoreType,
 		&i.AcceptedCategoryIds,
+		&i.NeedCategoryIds,
 		&i.HasCity,
 		&i.CityLatitude,
 		&i.CityLongitude,
 	)
 	return i, err
+}
+
+const listDirectoryNeeds = `-- name: ListDirectoryNeeds :many
+WITH origin AS (
+    SELECT ST_SetSRID(ST_MakePoint($6::float8, $7::float8), 4326)::geography AS point
+), listed AS (
+    SELECT
+        n.id, n.title, n.description, n.category_id::text AS category_id, c.name AS category_name,
+        COALESCE(n.est_qty_per_week, 0)::bigint AS est_qty_per_week,
+        COALESCE(n.max_retail_price, 0)::bigint AS max_retail_price,
+        COALESCE(n.preferred_model, '')::text AS preferred_model,
+        COALESCE(n.offered_commission_bps, -1)::bigint AS offered_commission_bps,
+        n.expires_at, n.created_at, o.id AS store_id, o.slug AS store_slug, o.name AS store_name, o.city_name,
+        COALESCE(sp.store_type, '')::text AS store_type,
+        CASE WHEN $8::boolean THEN ST_Distance(o.location_public, origin.point, false) ELSE -1 END::float8
+            AS distance_meters,
+        (o.id = $9::uuid)::boolean AS is_own
+    FROM needs AS n
+    JOIN categories AS c ON c.id = n.category_id
+    JOIN organizations AS o ON o.id = n.store_org_id
+    CROSS JOIN origin
+    LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
+    WHERE n.status = 'OPEN' AND n.expires_at > $10::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
+        AND (
+            NOT $11::boolean
+            OR ST_DWithin(o.location_public, origin.point, $12::float8, false)
+        )
+        AND (cardinality($13::uuid[]) = 0 OR n.category_id = ANY ($13::uuid[]))
+        AND (
+            $14::text = ''
+            OR n.title ILIKE '%' || replace(replace(replace($14::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR n.description ILIKE '%' || replace(replace(replace($14::text, '\', '\\'), '%', '\%'), '_', '\_')
+                || '%'
+        )
+), ranked AS (
+    SELECT
+        listed.id, listed.title, listed.description, listed.category_id, listed.category_name,
+        listed.est_qty_per_week, listed.max_retail_price, listed.preferred_model, listed.offered_commission_bps,
+        listed.expires_at, listed.created_at, listed.store_id, listed.store_slug, listed.store_name,
+        listed.city_name, listed.store_type, listed.distance_meters, listed.is_own,
+        CASE $15::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
+        CASE $15::text
+            WHEN 'NEAREST' THEN listed.distance_meters
+            ELSE -extract(epoch FROM listed.created_at)
+        END::float8 AS sort_number
+    FROM listed
+)
+SELECT
+    id, title, description, category_id, category_name, est_qty_per_week, max_retail_price, preferred_model,
+    offered_commission_bps, expires_at, created_at, store_id, store_slug, store_name, city_name, store_type,
+    distance_meters, is_own, sort_text, sort_number
+FROM ranked
+WHERE $1::boolean OR (sort_text, sort_number, id) > ($2::text, $3::float8, $4::uuid)
+ORDER BY sort_text, sort_number, id
+LIMIT $5::bigint
+`
+
+type ListDirectoryNeedsParams struct {
+	FromStart       bool
+	AfterText       string
+	AfterNumber     float64
+	AfterID         string
+	RowLimit        int64
+	OriginLongitude float64
+	OriginLatitude  float64
+	HasOrigin       bool
+	ViewerID        string
+	Now             time.Time
+	WithinRadius    bool
+	RadiusMeters    float64
+	CategoryIds     []string
+	Query           string
+	SortOrder       string
+}
+
+type ListDirectoryNeedsRow struct {
+	ID                   string
+	Title                string
+	Description          string
+	CategoryID           string
+	CategoryName         string
+	EstQtyPerWeek        int64
+	MaxRetailPrice       int64
+	PreferredModel       string
+	OfferedCommissionBps int64
+	ExpiresAt            time.Time
+	CreatedAt            time.Time
+	StoreID              string
+	StoreSlug            string
+	StoreName            string
+	CityName             string
+	StoreType            string
+	DistanceMeters       float64
+	IsOwn                bool
+	SortText             string
+	SortNumber           float64
+}
+
+func (q *Queries) ListDirectoryNeeds(ctx context.Context, arg ListDirectoryNeedsParams) ([]ListDirectoryNeedsRow, error) {
+	rows, err := q.db.Query(ctx, listDirectoryNeeds,
+		arg.FromStart,
+		arg.AfterText,
+		arg.AfterNumber,
+		arg.AfterID,
+		arg.RowLimit,
+		arg.OriginLongitude,
+		arg.OriginLatitude,
+		arg.HasOrigin,
+		arg.ViewerID,
+		arg.Now,
+		arg.WithinRadius,
+		arg.RadiusMeters,
+		arg.CategoryIds,
+		arg.Query,
+		arg.SortOrder,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDirectoryNeedsRow{}
+	for rows.Next() {
+		var i ListDirectoryNeedsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.CategoryID,
+			&i.CategoryName,
+			&i.EstQtyPerWeek,
+			&i.MaxRetailPrice,
+			&i.PreferredModel,
+			&i.OfferedCommissionBps,
+			&i.ExpiresAt,
+			&i.CreatedAt,
+			&i.StoreID,
+			&i.StoreSlug,
+			&i.StoreName,
+			&i.CityName,
+			&i.StoreType,
+			&i.DistanceMeters,
+			&i.IsOwn,
+			&i.SortText,
+			&i.SortNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listDirectoryStores = `-- name: ListDirectoryStores :many
@@ -235,6 +472,10 @@ WITH origin AS (
             SELECT c.name FROM store_accepted_categories AS sac JOIN categories AS c ON c.id = sac.category_id
             WHERE sac.organization_id = o.id ORDER BY c.sort_order
         )::text[] AS accepted_category_names,
+        ARRAY(
+            SELECT DISTINCT n.category_id::text FROM needs AS n
+            WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+        )::text[] AS need_category_ids,
         (o.id = $9::uuid)::boolean AS is_self,
         EXISTS (
             SELECT 1 FROM partnerships AS pa
@@ -267,9 +508,16 @@ WITH origin AS (
         AND (NOT $17::boolean OR NOT sp.requires_distribution_permit)
         AND (NOT $18::boolean OR NOT sp.requires_halal)
         AND (
-            $19::text = ''
-            OR o.name ILIKE '%' || replace(replace(replace($19::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR o.description ILIKE '%' || replace(replace(replace($19::text, '\', '\\'), '%', '\%'), '_', '\_')
+            NOT $19::boolean
+            OR EXISTS (
+                SELECT 1 FROM needs AS n
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+            )
+        )
+        AND (
+            $20::text = ''
+            OR o.name ILIKE '%' || replace(replace(replace($20::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR o.description ILIKE '%' || replace(replace(replace($20::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
         )
 ), ranked AS (
@@ -279,12 +527,12 @@ WITH origin AS (
         listed.commission_min_bps, listed.commission_max_bps, listed.requires_distribution_permit,
         listed.requires_halal, listed.requires_sample, listed.logo_storage_key, listed.settlements_counted,
         listed.on_time_payment_bps, listed.distance_meters, listed.accepted_category_ids,
-        listed.accepted_category_names, listed.is_self, listed.is_partner,
-        CASE $20::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
-        CASE $20::text
+        listed.accepted_category_names, listed.need_category_ids, listed.is_self, listed.is_partner,
+        CASE $21::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
+        CASE $21::text
             WHEN 'NEAREST' THEN listed.distance_meters
             WHEN 'REPUTATION' THEN -CASE
-                WHEN listed.settlements_counted >= $21::bigint THEN listed.on_time_payment_bps ELSE -1
+                WHEN listed.settlements_counted >= $22::bigint THEN listed.on_time_payment_bps ELSE -1
             END
             ELSE -extract(epoch FROM listed.created_at)
         END::float8 AS sort_number
@@ -294,7 +542,7 @@ SELECT
     id, slug, name, city_name, district, created_at, last_active_at, store_type, accepts_fixed_deposit,
     accepts_commission, commission_min_bps, commission_max_bps, requires_distribution_permit, requires_halal,
     requires_sample, logo_storage_key, settlements_counted, on_time_payment_bps, distance_meters,
-    accepted_category_ids, accepted_category_names, is_self, is_partner, sort_text, sort_number
+    accepted_category_ids, accepted_category_names, need_category_ids, is_self, is_partner, sort_text, sort_number
 FROM ranked
 WHERE $1::boolean OR (sort_text, sort_number, id) > ($2::text, $3::float8, $4::uuid)
 ORDER BY sort_text, sort_number, id
@@ -320,6 +568,7 @@ type ListDirectoryStoresParams struct {
 	MaxCommissionBps int64
 	WithoutPermit    bool
 	WithoutHalal     bool
+	HasOpenNeed      bool
 	Query            string
 	SortOrder        string
 	RatedFrom        int64
@@ -347,6 +596,7 @@ type ListDirectoryStoresRow struct {
 	DistanceMeters             float64
 	AcceptedCategoryIds        []string
 	AcceptedCategoryNames      []string
+	NeedCategoryIds            []string
 	IsSelf                     bool
 	IsPartner                  bool
 	SortText                   string
@@ -373,6 +623,7 @@ func (q *Queries) ListDirectoryStores(ctx context.Context, arg ListDirectoryStor
 		arg.MaxCommissionBps,
 		arg.WithoutPermit,
 		arg.WithoutHalal,
+		arg.HasOpenNeed,
 		arg.Query,
 		arg.SortOrder,
 		arg.RatedFrom,
@@ -406,6 +657,7 @@ func (q *Queries) ListDirectoryStores(ctx context.Context, arg ListDirectoryStor
 			&i.DistanceMeters,
 			&i.AcceptedCategoryIds,
 			&i.AcceptedCategoryNames,
+			&i.NeedCategoryIds,
 			&i.IsSelf,
 			&i.IsPartner,
 			&i.SortText,

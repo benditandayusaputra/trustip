@@ -19,6 +19,7 @@ const (
 	consignorsPath = "/directory/consignors"
 	productsPath   = "/directory/products"
 	contactPath    = "/directory/organizations/:id"
+	boardPath      = "/directory/needs"
 	trueValue      = "true"
 )
 
@@ -31,6 +32,7 @@ type Deps struct {
 	ListStores     Lister[domain.StoreSearchForm, domain.StoreCard]
 	ListConsignors Lister[domain.ConsignorSearchForm, domain.ConsignorCard]
 	ListProducts   Lister[domain.ConsignorSearchForm, domain.ProductCard]
+	ListNeeds      Lister[domain.SearchForm, domain.NeedCard]
 	GetContact     ContactReader
 	FilesBaseURL   string
 	SearchLimiter  httpserver.RateLimiter
@@ -46,6 +48,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Get(productsPath, deps.Authenticate, searchLimit,
 		list(deps.ListProducts, consignorSearchForm, present.productCard))
 	api.Get(contactPath, deps.Authenticate, searchLimit, getContact(deps.GetContact))
+	api.Get(boardPath, deps.Authenticate, searchLimit, list(deps.ListNeeds, boardSearchForm, needCardOf))
 }
 
 type ContactReader interface {
@@ -127,12 +130,17 @@ func searchFormOf(c fiber.Ctx, text string) domain.SearchForm {
 	}
 }
 
+func boardSearchForm(_ fiber.Ctx, search domain.SearchForm) domain.SearchForm {
+	return search
+}
+
 func storeSearchForm(c fiber.Ctx, search domain.SearchForm) domain.StoreSearchForm {
 	return domain.StoreSearchForm{
 		Search: search, StoreType: c.Query("store_type"), PricingModel: c.Query("pricing_model"),
 		MaxCommissionBPS:         c.Query("max_commission_bps"),
 		WithoutPermitRequirement: c.Query("without_permit") == trueValue,
 		WithoutHalalRequirement:  c.Query("without_halal") == trueValue,
+		HasOpenNeed:              c.Query("has_open_need") == trueValue,
 	}
 }
 

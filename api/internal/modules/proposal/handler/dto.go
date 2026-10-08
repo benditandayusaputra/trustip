@@ -34,9 +34,17 @@ type invitationRequest struct {
 
 type directRequest struct {
 	TargetOrganizationID string        `json:"target_organization_id"`
+	NeedID               *string       `json:"need_id"`
 	Terms                termsBody     `json:"terms"`
 	Items                []itemRequest `json:"items"`
 	Message              string        `json:"message"`
+}
+
+func (r directRequest) needID() string {
+	if r.NeedID == nil {
+		return ""
+	}
+	return *r.NeedID
 }
 
 func (r directRequest) revision() invitationRequest {

@@ -14,7 +14,10 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 )
 
-const dailyLimitConstraint = "proposal_quotas_daily_limit"
+const (
+	dailyLimitConstraint = "proposal_quotas_daily_limit"
+	needOpenStatus       = "OPEN"
+)
 
 func (r *Proposals) ConsumeQuota(ctx context.Context, key domain.QuotaKey) error {
 	writeCtx, cancel := database.WriteContext(ctx)
@@ -35,7 +38,7 @@ func (r *Proposals) GetDirectParties(ctx context.Context, pair domain.DirectPair
 	readCtx, cancel := database.ReadContext(ctx)
 	defer cancel()
 	row, err := sqlc.New(r.pool.Querier(ctx)).GetDirectParties(readCtx, sqlc.GetDirectPartiesParams{
-		SenderID: pair.SenderID, TargetID: pair.TargetID,
+		SenderID: pair.SenderID, TargetID: pair.TargetID, NeedID: pair.NeedID,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.DirectParties{}, apperror.OutsideScope()
@@ -47,6 +50,10 @@ func (r *Proposals) GetDirectParties(ctx context.Context, pair domain.DirectPair
 		SenderName: row.SenderName,
 		Target: domain.Target{
 			OrganizationID: row.TargetID, Name: row.TargetName, Type: actor.OrganizationType(row.TargetType),
+		},
+		Need: domain.NeedRef{
+			ID: pair.NeedID, StoreID: row.NeedStoreOrgID, IsOpen: row.NeedStatus == needOpenStatus,
+			ExpiresAt: row.NeedExpiresAt,
 		},
 		LastDeclinedAt: row.LastDeclinedAt, ArePartners: row.ArePartners,
 	}, nil

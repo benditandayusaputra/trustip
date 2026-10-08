@@ -8,12 +8,12 @@ RETURNING last_value;
 -- name: CreateProposal :exec
 INSERT INTO proposals (
     id, number, kind, consignor_org_id, store_org_id, from_org_id, awaiting_org_id, partnership_id, invite_code,
-    status, current_revision_no, expires_at, created_at, updated_at
+    need_id, status, current_revision_no, expires_at, created_at, updated_at
 ) VALUES (
     @id::uuid, @number::text, @kind::text, NULLIF(@consignor_org_id::text, '')::uuid,
     NULLIF(@store_org_id::text, '')::uuid, @from_org_id::uuid, NULLIF(@awaiting_org_id::text, '')::uuid,
-    NULLIF(@partnership_id::text, '')::uuid, NULLIF(@invite_code::text, ''), 'OPEN', 1,
-    @expires_at::timestamptz, @created_at::timestamptz, @created_at::timestamptz
+    NULLIF(@partnership_id::text, '')::uuid, NULLIF(@invite_code::text, ''), NULLIF(@need_id::text, '')::uuid,
+    'OPEN', 1, @expires_at::timestamptz, @created_at::timestamptz, @created_at::timestamptz
 );
 
 -- name: CreateProposalRevision :exec
@@ -154,9 +154,13 @@ SELECT
         WHERE pa.status = 'ACTIVE'
             AND ((pa.consignor_org_id = sender.id AND pa.store_org_id = target.id)
                 OR (pa.consignor_org_id = target.id AND pa.store_org_id = sender.id))
-    )::boolean AS are_partners
+    )::boolean AS are_partners,
+    COALESCE(need.store_org_id::text, '')::text AS need_store_org_id,
+    COALESCE(need.status, '')::text AS need_status,
+    COALESCE(need.expires_at, '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS need_expires_at
 FROM organizations AS sender
 JOIN organizations AS target ON target.id = @target_id::uuid
+LEFT JOIN needs AS need ON need.id = NULLIF(@need_id::text, '')::uuid
 WHERE sender.id = @sender_id::uuid AND target.status = 'ACTIVE' AND target.is_listed;
 
 -- name: CounterProposal :execrows

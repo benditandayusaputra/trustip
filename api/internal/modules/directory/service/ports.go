@@ -23,6 +23,11 @@ type ConsignorDirectory interface {
 	ListProducts(ctx context.Context, query domain.ConsignorQuery) ([]domain.ProductCard, error)
 }
 
+type NeedBoard interface {
+	CountNeedsWithin(ctx context.Context, query domain.NeedQuery) (map[int]int, error)
+	ListNeeds(ctx context.Context, query domain.NeedQuery) ([]domain.NeedCard, error)
+}
+
 type Clock interface {
 	Now() time.Time
 }

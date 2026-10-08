@@ -49,6 +49,7 @@ func (r *Proposals) Open(ctx context.Context, opening domain.Opening) error {
 		ID: opening.IDs.ProposalID, Number: opening.Number, Kind: string(opening.Kind),
 		ConsignorOrgID: opening.ConsignorID, StoreOrgID: opening.StoreID, FromOrgID: opening.Sender.OrganizationID,
 		AwaitingOrgID: opening.AwaitingID, PartnershipID: opening.PartnershipID, InviteCode: opening.IDs.Code,
+		NeedID:    opening.NeedID,
 		ExpiresAt: opening.ExpiresAt, CreatedAt: opening.At,
 	})
 	if database.IsUniqueViolation(err, openPairConstraint) {
