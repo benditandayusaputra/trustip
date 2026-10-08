@@ -16,6 +16,7 @@ export interface Page<T> {
 	items: T[];
 	nextCursor: string | null;
 	hasMore: boolean;
+	search?: unknown;
 }
 
 export async function readEnvelope<T>(response: Response): Promise<SuccessEnvelope<T>> {
@@ -27,11 +28,12 @@ export async function readEnvelope<T>(response: Response): Promise<SuccessEnvelo
 }
 
 export function toPage<T>(envelope: SuccessEnvelope<T[]>): Page<T> {
-	const meta = envelope.meta as Partial<ListMeta>;
+	const meta = envelope.meta as Partial<ListMeta> & { search?: unknown };
 	return {
 		items: envelope.data,
 		nextCursor: meta.next_cursor ?? null,
-		hasMore: meta.has_more ?? false
+		hasMore: meta.has_more ?? false,
+		...(meta.search === undefined ? {} : { search: meta.search })
 	};
 }
 
