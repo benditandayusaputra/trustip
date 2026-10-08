@@ -3320,7 +3320,18 @@ components:
     PartnerCatalogItem:
       type: object
       additionalProperties: false
-      required: [product_id, name, sku, unit, description, net_content, category_name, photo_url, is_active, terms]
+      required:
+        - product_id
+        - name
+        - sku
+        - unit
+        - description
+        - net_content
+        - category_name
+        - photo_url
+        - shelf_life_days
+        - is_active
+        - terms
       properties:
         product_id:
           type: string
@@ -3339,6 +3350,10 @@ components:
           type: string
         photo_url:
           type: string
+          nullable: true
+        shelf_life_days:
+          type: integer
+          minimum: 1
           nullable: true
         is_active:
           type: boolean

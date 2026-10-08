@@ -12,8 +12,8 @@
 		min?: number;
 		max?: number;
 		name?: string;
-		hint?: string;
-		error?: string;
+		hint?: string | undefined;
+		error?: string | undefined;
 	}
 
 	let {

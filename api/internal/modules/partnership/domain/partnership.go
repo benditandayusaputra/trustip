@@ -98,6 +98,7 @@ type CatalogItem struct {
 	NetContent   string
 	CategoryName string
 	PhotoKey     string
+	ShelfLife    int
 	IsAgreed     bool
 	IsActive     bool
 	Terms        pricing.Terms

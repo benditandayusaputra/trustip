@@ -97,7 +97,7 @@ func (r *Partnerships) ListCatalog(ctx context.Context, key domain.Key) ([]domai
 		items = append(items, domain.CatalogItem{
 			ProductID: row.ID, Name: row.Name, SKU: row.Sku, Unit: row.Unit, Description: row.Description,
 			NetContent: row.NetContent, CategoryName: row.CategoryName, PhotoKey: row.PhotoStorageKey,
-			IsAgreed: row.IsAgreed, IsActive: row.IsActive,
+			ShelfLife: int(row.ShelfLifeDays), IsAgreed: row.IsAgreed, IsActive: row.IsActive,
 			Terms: pricing.Terms{
 				Model: pricing.Model(row.PricingModel), RetailPrice: money.Rupiah(row.RetailPrice),
 				CommissionBPS: int(row.CommissionBps), DepositPrice: money.Rupiah(row.DepositPrice),

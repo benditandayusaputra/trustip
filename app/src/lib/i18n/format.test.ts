@@ -7,6 +7,7 @@ import {
 	formatInteger,
 	formatRupiah,
 	formatBasisPoints,
+	businessDateOf,
 	parseDigits
 } from './format';
 
@@ -81,5 +82,12 @@ describe('formatBasisPoints', () => {
 describe('formatDate', () => {
 	it('shows the calendar day in Asia/Jakarta', () => {
 		expect(formatDate('2026-10-31T17:30:00Z')).toBe('1 Nov 2026');
+	});
+});
+
+describe('businessDateOf', () => {
+	it('reads the calendar day in Asia/Jakarta', () => {
+		expect(businessDateOf(new Date('2026-11-09T17:30:00Z'))).toBe('2026-11-10');
+		expect(businessDateOf(new Date('2026-11-09T16:59:00Z'))).toBe('2026-11-09');
 	});
 });

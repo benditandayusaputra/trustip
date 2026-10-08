@@ -45,6 +45,11 @@
 {:else}
 	{@const partnership = record.partnership}
 	<h1 class="text-xl font-semibold text-text">{partnership.counterpart.name}</h1>
+	{#if !isConsignor && partnership.status === 'ACTIVE'}
+		<a href="/app/titipan/baru?mitra={partnershipId}" class="font-semibold text-accent">
+			{id.drops.recordDrop}
+		</a>
+	{/if}
 	<Tabs label={text.tabsLabel} {tabs} bind:selected>
 		{#snippet panel(key: string)}
 			{#if key === 'summary'}

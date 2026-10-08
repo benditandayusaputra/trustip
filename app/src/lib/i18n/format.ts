@@ -69,3 +69,14 @@ const instantDate = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZ
 export function formatDate(instant: string): string {
 	return instantDate.format(new Date(instant));
 }
+
+const isoBusinessDate = new Intl.DateTimeFormat('en-CA', {
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
+	timeZone
+});
+
+export function businessDateOf(instant: Date): string {
+	return isoBusinessDate.format(instant);
+}

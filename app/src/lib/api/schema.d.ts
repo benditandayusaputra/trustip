@@ -1390,6 +1390,7 @@ export interface components {
             net_content: string;
             category_name: string;
             photo_url: string | null;
+            shelf_life_days: number | null;
             is_active: boolean;
             terms: {
                 pricing_model: components["schemas"]["PricingModel"];

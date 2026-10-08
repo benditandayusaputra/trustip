@@ -40,7 +40,7 @@ WHERE p.id = @id::uuid AND (p.consignor_org_id = @organization_id::uuid OR p.sto
 -- name: ListPartnerCatalog :many
 SELECT
     pr.id, pr.name, pr.sku, pr.unit, pr.description, pr.net_content, c.name AS category_name,
-    COALESCE(f.storage_key, '')::text AS photo_storage_key,
+    COALESCE(f.storage_key, '')::text AS photo_storage_key, COALESCE(pr.shelf_life_days, 0)::bigint AS shelf_life_days,
     (ai.product_id IS NOT NULL)::boolean AS is_agreed, COALESCE(ai.is_active, false)::boolean AS is_active,
     COALESCE(ai.pricing_model, '')::text AS pricing_model, COALESCE(ai.retail_price, 0)::bigint AS retail_price,
     COALESCE(ai.commission_bps, 0)::bigint AS commission_bps, COALESCE(ai.deposit_price, 0)::bigint AS deposit_price

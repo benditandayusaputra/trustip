@@ -68,6 +68,7 @@ type catalogItemResponse struct {
 	NetContent   string         `json:"net_content"`
 	CategoryName string         `json:"category_name"`
 	PhotoURL     *string        `json:"photo_url"`
+	ShelfLife    *int           `json:"shelf_life_days"`
 	IsActive     bool           `json:"is_active"`
 	Terms        *termsResponse `json:"terms"`
 }
@@ -124,11 +125,18 @@ func (f fileLinks) partnership(partnership domain.Partnership) partnershipRespon
 	}
 }
 
+func shelfLifeOf(days int) *int {
+	if days == 0 {
+		return nil
+	}
+	return &days
+}
+
 func (f fileLinks) catalogItem(item domain.CatalogItem) catalogItemResponse {
 	response := catalogItemResponse{
 		ProductID: item.ProductID, Name: item.Name, SKU: item.SKU, Unit: item.Unit, Description: item.Description,
 		NetContent: item.NetContent, CategoryName: item.CategoryName, PhotoURL: f.urlOf(item.PhotoKey),
-		IsActive: item.IsActive,
+		ShelfLife: shelfLifeOf(item.ShelfLife), IsActive: item.IsActive,
 	}
 	if !item.IsAgreed {
 		return response
