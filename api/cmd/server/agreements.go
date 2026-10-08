@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	agreementdomain "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/domain"
 	agreementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/handler"
@@ -48,27 +49,57 @@ func buildSealComponents(pool *database.Pool, keys security.ActiveKeyring) sealC
 	}
 }
 
-type agreementSealChecker struct {
+type sealEvent struct {
+	Event         string
+	ActorOrgName  string
+	ActorUserName string
+	At            time.Time
+	Code          string
+}
+
+type sealCheck struct {
+	DocumentType string
+	DocumentID   string
+	Content      map[string]any
+}
+
+type documentSealChecker struct {
 	verifier *sealservice.Verifier
+}
+
+func (c documentSealChecker) check(ctx context.Context, check sealCheck) (bool, []sealEvent, error) {
+	verdict, err := c.verifier.Check(ctx, sealdomain.Check{
+		Document: sealdomain.Document{Type: check.DocumentType, ID: check.DocumentID}, Content: check.Content,
+	})
+	if err != nil {
+		return false, nil, fmt.Errorf("check seal: %w", err)
+	}
+	events := make([]sealEvent, 0, len(verdict.Trail))
+	for _, entry := range verdict.Trail {
+		events = append(events, sealEvent{
+			Event: string(entry.Seal.Entry.Event), ActorOrgName: entry.ActorOrgName, ActorUserName: entry.ActorUserName,
+			At: entry.Seal.Entry.OccurredAt, Code: entry.Seal.Code,
+		})
+	}
+	return verdict.IsValid, events, nil
+}
+
+type agreementSealChecker struct {
+	documentSealChecker
 }
 
 func (c agreementSealChecker) Check(
 	ctx context.Context, check agreementdomain.SealCheck,
 ) (agreementdomain.SealVerdict, error) {
-	verdict, err := c.verifier.Check(ctx, sealdomain.Check{
-		Document: sealdomain.Document{Type: check.DocumentType, ID: check.DocumentID}, Content: check.Content,
-	})
+	isValid, trail, err := c.check(ctx, sealCheck(check))
 	if err != nil {
-		return agreementdomain.SealVerdict{}, fmt.Errorf("check seal: %w", err)
+		return agreementdomain.SealVerdict{}, err
 	}
-	events := make([]agreementdomain.SealEvent, 0, len(verdict.Trail))
-	for _, entry := range verdict.Trail {
-		events = append(events, agreementdomain.SealEvent{
-			Event: string(entry.Seal.Entry.Event), ActorOrgName: entry.ActorOrgName, ActorUserName: entry.ActorUserName,
-			At: entry.Seal.Entry.OccurredAt, Code: entry.Seal.Code,
-		})
+	events := make([]agreementdomain.SealEvent, 0, len(trail))
+	for _, event := range trail {
+		events = append(events, agreementdomain.SealEvent(event))
 	}
-	return agreementdomain.SealVerdict{IsValid: verdict.IsValid, Events: events}, nil
+	return agreementdomain.SealVerdict{IsValid: isValid, Events: events}, nil
 }
 
 type agreementComponents struct {
@@ -78,7 +109,8 @@ type agreementComponents struct {
 
 func buildAgreementComponents(pool *database.Pool, seals sealComponents) agreementComponents {
 	return agreementComponents{
-		reader: agreementrepository.NewAgreements(pool), checker: agreementSealChecker{verifier: seals.verifier},
+		reader:  agreementrepository.NewAgreements(pool),
+		checker: agreementSealChecker{documentSealChecker{verifier: seals.verifier}},
 	}
 }
 
@@ -91,11 +123,23 @@ func agreementDeps(components agreementComponents, routes proposalRoutes) agreem
 	}
 }
 
-type agreementSealer struct {
+type sealRequest struct {
+	PartnershipID  string
+	Event          string
+	DocumentType   string
+	DocumentID     string
+	DocumentNumber string
+	Content        map[string]any
+	ActorUserID    string
+	ActorOrgID     string
+	At             time.Time
+}
+
+type documentSealer struct {
 	recorder *sealservice.Recorder
 }
 
-func (s agreementSealer) Seal(ctx context.Context, request agreementdomain.SealRequest) error {
+func (s documentSealer) seal(ctx context.Context, request sealRequest) error {
 	_, err := s.recorder.Seal(ctx, sealdomain.Request{
 		PartnershipID: request.PartnershipID, Event: sealdomain.Event(request.Event),
 		Document: sealdomain.Document{
@@ -109,14 +153,23 @@ func (s agreementSealer) Seal(ctx context.Context, request agreementdomain.SealR
 	return nil
 }
 
+type agreementSealer struct {
+	documentSealer
+}
+
+func (s agreementSealer) Seal(ctx context.Context, request agreementdomain.SealRequest) error {
+	return s.seal(ctx, sealRequest(request))
+}
+
 type agreementKeeper struct {
 	founder *agreementservice.Founder
 }
 
 func newAgreementKeeper(pool *database.Pool, seals sealComponents) agreementKeeper {
 	return agreementKeeper{founder: agreementservice.NewFounder(agreementservice.FounderDeps{
-		Agreements: agreementrepository.NewAgreements(pool), Sealer: agreementSealer{recorder: seals.recorder},
-		IDs: idgen.UUIDv7{},
+		Agreements: agreementrepository.NewAgreements(pool),
+		Sealer:     agreementSealer{documentSealer{recorder: seals.recorder}},
+		IDs:        idgen.UUIDv7{},
 	})}
 }
 

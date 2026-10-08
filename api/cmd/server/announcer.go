@@ -28,7 +28,25 @@ func newOrganizationAnnouncer(pool *database.Pool, clock notificationservice.Clo
 	)}
 }
 
-func (a organizationAnnouncer) Announce(ctx context.Context, notice proposaldomain.Notice) error {
+type organizationNotice struct {
+	OrganizationID string
+	ActorUserID    string
+	Type           string
+	Title          string
+	Body           string
+	Link           string
+	OwnersOnly     bool
+}
+
+type proposalAnnouncer struct {
+	organizationAnnouncer
+}
+
+func (a proposalAnnouncer) Announce(ctx context.Context, notice proposaldomain.Notice) error {
+	return a.announce(ctx, organizationNotice(notice))
+}
+
+func (a organizationAnnouncer) announce(ctx context.Context, notice organizationNotice) error {
 	recipients, err := a.directory.ListRecipients(ctx, notice.OrganizationID)
 	if err != nil {
 		return fmt.Errorf("find recipients: %w", err)

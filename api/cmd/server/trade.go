@@ -30,7 +30,7 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		products: buildProductComponents(pool, clock),
 		proposals: buildProposalComponents(pool, clock, proposalCollaborators{
 			keeper: newAgreementKeeper(pool, seals), current: currentAgreements{reader: agreements.reader},
-			announcer: newOrganizationAnnouncer(pool, clock),
+			announcer: proposalAnnouncer{newOrganizationAnnouncer(pool, clock)},
 		}),
 		agreements:   agreements,
 		partnerships: partnershiprepository.NewPartnerships(pool),
