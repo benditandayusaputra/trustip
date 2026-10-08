@@ -207,6 +207,24 @@ func TestFlagOn_BRSTK04_TodayIsReadInItsOwnZone(t *testing.T) {
 	}
 }
 
+func TestDaysLeftOn_CountsCalendarDaysUntilExpiry(t *testing.T) {
+	expiry := ExpiresOn(dateOf(t, "2026-11-10"))
+
+	cases := map[string]int{"2026-11-08": 2, "2026-11-10": 0, "2026-11-12": -2}
+	for today, want := range cases {
+		got, given := expiry.DaysLeftOn(dateOf(t, today))
+		if !given || got != want {
+			t.Fatalf("days left on %s = %d, %v, want %d", today, got, given, want)
+		}
+	}
+}
+
+func TestDaysLeftOn_WithoutExpiryIsNotGiven(t *testing.T) {
+	if _, given := NoExpiry().DaysLeftOn(dateOf(t, "2026-11-10")); given {
+		t.Fatal("a batch without expiry must not report days left")
+	}
+}
+
 func BenchmarkAllocate_RPERF06_SmallAllocations(b *testing.B) {
 	november := func(day int) Expiry { return ExpiresOn(time.Date(2026, 11, day, 0, 0, 0, 0, time.UTC)) }
 	batches := []Batch{{ID: "B2", Expiry: november(20), Balance: 12}, {ID: "B1", Expiry: november(10), Balance: 5}}

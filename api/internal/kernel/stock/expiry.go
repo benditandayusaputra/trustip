@@ -58,11 +58,18 @@ func (s ShelfLife) nearExpiryThreshold() int {
 	return nearExpiryDays
 }
 
-func (e Expiry) FlagOn(today time.Time, shelfLife ShelfLife) Flag {
+func (e Expiry) DaysLeftOn(today time.Time) (int, bool) {
 	if !e.given {
+		return 0, false
+	}
+	return int(e.date.Sub(calendarDay(today)).Hours() / hoursPerDay), true
+}
+
+func (e Expiry) FlagOn(today time.Time, shelfLife ShelfLife) Flag {
+	daysLeft, given := e.DaysLeftOn(today)
+	if !given {
 		return Safe
 	}
-	daysLeft := int(e.date.Sub(calendarDay(today)).Hours() / hoursPerDay)
 	switch {
 	case daysLeft < 0:
 		return Expired
