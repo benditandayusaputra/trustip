@@ -113,8 +113,13 @@ func closeDB(t *testing.T, db *sql.DB) {
 
 func MigratedPool(t *testing.T) *database.Pool {
 	t.Helper()
+	return PoolFor(t, MigratedDatabase(t))
+}
+
+func PoolFor(t *testing.T, databaseURL string) *database.Pool {
+	t.Helper()
 	pool, err := database.Open(t.Context(), database.Options{
-		URL:    MigratedDatabase(t),
+		URL:    databaseURL,
 		Logger: logger.New(io.Discard, slog.LevelInfo),
 		Clock:  clock.System{},
 	})

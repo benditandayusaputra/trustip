@@ -1,0 +1,46 @@
+-- name: SeedListedStores :exec
+WITH area AS (
+    SELECT @longitude::float8 AS longitude, @latitude::float8 AS latitude, @spread_degrees::float8 AS spread
+), seeded AS (
+    INSERT INTO organizations (
+        id, type, name, slug, whatsapp, city_code, city_name, location, location_public, is_listed, created_at,
+        updated_at
+    )
+    SELECT
+        gen_random_uuid(), 'STORE', 'Toko Uji ' || n, 'toko-uji-' || n, '6281234567890', '33.74', 'Kota Semarang',
+        spot.point, spot.point, true, now(), now()
+    FROM generate_series(1, @store_count::integer) AS n
+    CROSS JOIN area
+    CROSS JOIN LATERAL (
+        SELECT ST_SetSRID(ST_MakePoint(
+            area.longitude + (random() - 0.5) * area.spread + 0 * n,
+            area.latitude + (random() - 0.5) * area.spread
+        ), 4326)::geography AS point
+    ) AS spot
+    RETURNING id
+)
+INSERT INTO store_profiles (organization_id, store_type, accepts_commission, commission_min_bps, commission_max_bps)
+SELECT seeded.id, 'GROCERY_STALL', true, 1000, 2000
+FROM seeded;
+
+-- name: AnalyzeOrganizations :exec
+ANALYZE organizations;
+
+-- name: ReportNearestStoresPlan :exec
+DO $$
+DECLARE
+    plan_line text;
+BEGIN
+    FOR plan_line IN
+        EXPLAIN (FORMAT TEXT)
+        SELECT o.id
+        FROM organizations AS o
+        WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
+            AND ST_DWithin(
+                o.location_public, ST_SetSRID(ST_MakePoint(110.42, -6.99), 4326)::geography, 10000, false
+            )
+    LOOP
+        RAISE NOTICE '%', plan_line;
+    END LOOP;
+END;
+$$;
