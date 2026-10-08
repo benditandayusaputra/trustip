@@ -23,10 +23,15 @@ type invitationScene struct {
 
 func newInvitationScene(t *testing.T) invitationScene {
 	t.Helper()
+	return newInvitationSceneWith(t, "WEEKLY")
+}
+
+func newInvitationSceneWith(t *testing.T, schedule string) invitationScene {
+	t.Helper()
 	consignor := consignorBrowser(t)
 	product := consignor.postJSON(productsPath, productBody(""))
 	scene := invitationScene{consignor: consignor, productID: quotedAfter(string(product.body), `"id":"`)}
-	sent := consignor.postJSON(invitationsPath, invitationBody(scene.productID))
+	sent := consignor.postJSON(invitationsPath, invitationBodyWith(scene.productID, schedule))
 	if sent.status != http.StatusCreated {
 		t.Fatalf("send = %d %s", sent.status, sent.body)
 	}

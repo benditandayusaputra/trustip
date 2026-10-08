@@ -231,3 +231,23 @@ func TestFingerprint_BRCNT07_FollowsTheRequest(t *testing.T) {
 		t.Fatalf("fingerprints = %x %x", first, second)
 	}
 }
+
+func TestCheck_BRCNT06_CountCannotLandInASettledPeriod(t *testing.T) {
+	sheet := aSheet()
+	sheet.Settled = Settled{Until: noon().Add(-time.Hour), Number: "ST-202611-0004", Given: true}
+	input := anInput()
+	input.CountedAt = noon().Add(-90 * time.Minute)
+	sheet.LastDocument = LastDocument{}
+
+	_, err := sheet.Check(input, noon())
+
+	appErr, _ := errors.AsType[*apperror.Error](err)
+	if fieldCodes(t, err)["counted_at"] != "PERIOD_ALREADY_SETTLED" ||
+		appErr.Fields()[0].Message != "Tanggal ini sudah masuk Setoran ST-202611-0004." {
+		t.Fatalf("err = %v", err)
+	}
+	input.CountedAt = noon().Add(-time.Hour)
+	if _, err := sheet.Check(input, noon()); err != nil {
+		t.Fatalf("at the settled boundary: %v", err)
+	}
+}

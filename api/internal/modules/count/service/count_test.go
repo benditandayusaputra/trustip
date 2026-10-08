@@ -128,6 +128,17 @@ func (e *events) Record(_ context.Context, entry audit.Entry) error {
 	return nil
 }
 
+type issuer struct {
+	calls []time.Time
+}
+
+func (i *issuer) IssueOnCount(
+	_ context.Context, _ string, countedAt time.Time,
+) (domain.SettlementRef, bool, error) {
+	i.calls = append(i.calls, countedAt)
+	return domain.SettlementRef{ID: "settlement", Number: "ST-202611-0001"}, true, nil
+}
+
 type inlineTx struct{}
 
 func (inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) error {
@@ -150,14 +161,15 @@ func (s *sequentialIDs) NewID() (string, error) {
 type scenario struct {
 	counts *fakeCounts
 	events *events
+	issuer *issuer
 	deps   service.Deps
 }
 
 func newScenario() scenario {
-	counts, recorded := newFakeCounts(), &events{}
-	return scenario{counts: counts, events: recorded, deps: service.Deps{
-		Counts: counts, Sealer: recorded, Seals: recorded, Announcer: recorded, Audit: recorded, Tx: inlineTx{},
-		Clock: fixedClock{}, IDs: &sequentialIDs{},
+	counts, recorded, settlements := newFakeCounts(), &events{}, &issuer{}
+	return scenario{counts: counts, events: recorded, issuer: settlements, deps: service.Deps{
+		Counts: counts, Sealer: recorded, Seals: recorded, Announcer: recorded, Audit: recorded,
+		Issuer: settlements, Tx: inlineTx{}, Clock: fixedClock{}, IDs: &sequentialIDs{},
 	}}
 }
 
@@ -234,6 +246,9 @@ func TestRecordCount_BRCNT04_SavesSealsAnnouncesAndAudits(t *testing.T) {
 		t.Fatalf("saved = %+v", saved)
 	}
 	assertCountEvents(t, run.events)
+	if len(run.issuer.calls) != 1 || !run.issuer.calls[0].Equal(saved.CountedAt) {
+		t.Fatalf("BR-CNT-04 settlement calls = %v", run.issuer.calls)
+	}
 }
 
 func assertCountEvents(t *testing.T, recorded *events) {

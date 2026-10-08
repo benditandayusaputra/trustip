@@ -15,6 +15,8 @@ import (
 	partnershipservice "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/service"
 	producthandler "github.com/benditandayusaputra/trustip/api/internal/modules/product/handler"
 	proposalhandler "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/handler"
+	settlementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/handler"
+	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
 	stockhandler "github.com/benditandayusaputra/trustip/api/internal/modules/stock/handler"
 	stockrepository "github.com/benditandayusaputra/trustip/api/internal/modules/stock/repository"
 	stockservice "github.com/benditandayusaputra/trustip/api/internal/modules/stock/service"
@@ -31,11 +33,15 @@ type tradeComponents struct {
 	drops        dropservice.Deps
 	stocks       stockservice.StockReader
 	counts       countservice.Deps
+	settlements  settlementservice.Deps
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
 	seals := buildSealComponents(pool, sealKeys)
 	agreements := buildAgreementComponents(pool, seals)
+	settlements := buildSettlementDeps(pool, clock, seals)
+	counts := buildCountDeps(pool, clock, seals)
+	counts.Issuer = countSettlementIssuer{issuer: settlementservice.NewIssuer(settlements)}
 	return tradeComponents{
 		products: buildProductComponents(pool, clock),
 		proposals: buildProposalComponents(pool, clock, proposalCollaborators{
@@ -46,7 +52,8 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		partnerships: partnershiprepository.NewPartnerships(pool),
 		drops:        buildDropDeps(pool, clock, seals),
 		stocks:       stockrepository.NewStocks(pool),
-		counts:       buildCountDeps(pool, clock, seals),
+		counts:       counts,
+		settlements:  settlements,
 	}
 }
 
@@ -78,4 +85,5 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 	drophandler.Mount(api, dropDeps(components.drops, routes))
 	stockhandler.Mount(api, stockDeps(components.stocks, routes))
 	counthandler.Mount(api, countDeps(components.counts, routes))
+	settlementhandler.Mount(api, settlementDeps(components.settlements, routes))
 }

@@ -43,7 +43,7 @@ func sectionThirteen(at time.Time) []Allocation {
 }
 
 func TestSummarize_BRSTL04_SectionThirteenExampleToTheRupiah(t *testing.T) {
-	summary := Summarize(sectionThirteen(jakarta(2026, 11, 10, 12, 0)))
+	summary := Summarize(sectionThirteen(jakarta("2026-11-10 12:00")))
 
 	want := []pricing.Split{
 		{Gross: 405000, StoreShare: 81000, ConsignorShare: 324000},
@@ -68,7 +68,7 @@ func TestSummarize_BRSTL04_SectionThirteenExampleToTheRupiah(t *testing.T) {
 func TestSummarize_FRSTL04_OneLinePerProductAndTerms(t *testing.T) {
 	bread := pricing.Terms{Model: pricing.FixedDeposit, RetailPrice: 2000, DepositPrice: 1750}
 	cheaper := pricing.Terms{Model: pricing.FixedDeposit, RetailPrice: 2000, DepositPrice: 1500}
-	at := jakarta(2026, 11, 10, 12, 0)
+	at := jakarta("2026-11-10 12:00")
 
 	summary := Summarize(allocationsOf(
 		sale{"roti", bread, 5, at}, sale{"roti", bread, 3, at}, sale{"roti", cheaper, 2, at},
@@ -89,7 +89,7 @@ func aLedger(schedule terms.Schedule, allocations []Allocation) Ledger {
 
 func TestDraftUpTo_FRSTL01_TakesEverySaleUpToTheCount(t *testing.T) {
 	bread := pricing.Terms{Model: pricing.FixedDeposit, RetailPrice: 2000, DepositPrice: 1750}
-	counted := jakarta(2026, 11, 10, 20, 15)
+	counted := jakarta("2026-11-10 20:15")
 	ledger := aLedger(terms.ScheduleOnCount, allocationsOf(
 		sale{"roti", bread, 4, counted.Add(-time.Hour)}, sale{"roti", bread, 18, counted},
 		sale{"roti", bread, 1, counted.Add(time.Second)},
@@ -105,9 +105,9 @@ func TestDraftUpTo_FRSTL01_TakesEverySaleUpToTheCount(t *testing.T) {
 
 func TestDraftUpTo_BRSTL02_StartsWhereTheLastSettlementEnded(t *testing.T) {
 	bread := pricing.Terms{Model: pricing.FixedDeposit, RetailPrice: 2000, DepositPrice: 1750}
-	counted := jakarta(2026, 11, 10, 20, 15)
+	counted := jakarta("2026-11-10 20:15")
 	ledger := aLedger(terms.ScheduleOnCount, allocationsOf(sale{"roti", bread, 4, counted}))
-	ledger.SettledUntil = jakarta(2026, 11, 9)
+	ledger.SettledUntil = jakarta("2026-11-09")
 
 	draft, hasSales := ledger.DraftUpTo(counted)
 
@@ -117,7 +117,7 @@ func TestDraftUpTo_BRSTL02_StartsWhereTheLastSettlementEnded(t *testing.T) {
 }
 
 func TestDraftUpTo_BRSTL03_NoSalesNoSettlement(t *testing.T) {
-	_, hasSales := aLedger(terms.ScheduleOnCount, nil).DraftUpTo(jakarta(2026, 11, 10, 20, 15))
+	_, hasSales := aLedger(terms.ScheduleOnCount, nil).DraftUpTo(jakarta("2026-11-10 20:15"))
 	if hasSales {
 		t.Fatal("a count without sales must not issue a settlement")
 	}
@@ -126,22 +126,22 @@ func TestDraftUpTo_BRSTL03_NoSalesNoSettlement(t *testing.T) {
 func TestDraftClosedPeriods_FRSTL02_OneDraftPerEndedWeekAndNoneForTheCurrentWeek(t *testing.T) {
 	bread := pricing.Terms{Model: pricing.FixedDeposit, RetailPrice: 2000, DepositPrice: 1750}
 	ledger := aLedger(terms.ScheduleWeekly, allocationsOf(
-		sale{"roti", bread, 3, jakarta(2026, 11, 3, 10, 0)},
-		sale{"roti", bread, 5, jakarta(2026, 11, 13, 10, 0)},
-		sale{"roti", bread, 2, jakarta(2026, 11, 15, 23, 59)},
-		sale{"roti", bread, 7, jakarta(2026, 11, 16)},
+		sale{"roti", bread, 3, jakarta("2026-11-03 10:00")},
+		sale{"roti", bread, 5, jakarta("2026-11-13 10:00")},
+		sale{"roti", bread, 2, jakarta("2026-11-15 23:59")},
+		sale{"roti", bread, 7, jakarta("2026-11-16")},
 	))
 
-	drafts, err := ledger.DraftClosedPeriods(jakarta(2026, 11, 16, 0, 10))
+	drafts, err := ledger.DraftClosedPeriods(jakarta("2026-11-16 00:10"))
 
 	if err != nil || len(drafts) != 2 {
 		t.Fatalf("drafts = %+v, err = %v", drafts, err)
 	}
 	first, second := drafts[0], drafts[1]
-	if !first.Period.Equal(Period{jakarta(2026, 11, 2), jakarta(2026, 11, 9)}) || first.Summary.Qty != 3 {
+	if !first.Period.Equal(Period{jakarta("2026-11-02"), jakarta("2026-11-09")}) || first.Summary.Qty != 3 {
 		t.Fatalf("first = %+v", first)
 	}
-	secondWeek := Period{jakarta(2026, 11, 9), jakarta(2026, 11, 16)}
+	secondWeek := Period{jakarta("2026-11-09"), jakarta("2026-11-16")}
 	if !second.Period.Equal(secondWeek) || second.Summary.Qty != 7 {
 		t.Fatalf("second = %+v", second)
 	}
@@ -149,40 +149,40 @@ func TestDraftClosedPeriods_FRSTL02_OneDraftPerEndedWeekAndNoneForTheCurrentWeek
 
 func TestDraftClosedPeriods_BRSTL02_ClipsAWeekThatAnEarlierSettlementPartlyCovered(t *testing.T) {
 	bread := pricing.Terms{Model: pricing.FixedDeposit, RetailPrice: 2000, DepositPrice: 1750}
-	ledger := aLedger(terms.ScheduleWeekly, allocationsOf(sale{"roti", bread, 5, jakarta(2026, 11, 13, 10, 0)}))
-	ledger.SettledUntil = jakarta(2026, 11, 11, 18, 0)
+	ledger := aLedger(terms.ScheduleWeekly, allocationsOf(sale{"roti", bread, 5, jakarta("2026-11-13 10:00")}))
+	ledger.SettledUntil = jakarta("2026-11-11 18:00")
 
-	drafts, err := ledger.DraftClosedPeriods(jakarta(2026, 11, 16, 0, 10))
+	drafts, err := ledger.DraftClosedPeriods(jakarta("2026-11-16 00:10"))
 
 	if err != nil || len(drafts) != 1 ||
-		!drafts[0].Period.Equal(Period{jakarta(2026, 11, 11, 18, 0), jakarta(2026, 11, 16)}) {
+		!drafts[0].Period.Equal(Period{jakarta("2026-11-11 18:00"), jakarta("2026-11-16")}) {
 		t.Fatalf("drafts = %+v, err = %v", drafts, err)
 	}
 }
 
 func TestDraftClosedPeriods_FRSTL02_MonthlyWaitsForTheMonthToEnd(t *testing.T) {
 	bread := pricing.Terms{Model: pricing.FixedDeposit, RetailPrice: 2000, DepositPrice: 1750}
-	ledger := aLedger(terms.ScheduleMonthly, allocationsOf(sale{"roti", bread, 5, jakarta(2026, 11, 30, 23, 0)}))
+	ledger := aLedger(terms.ScheduleMonthly, allocationsOf(sale{"roti", bread, 5, jakarta("2026-11-30 23:00")}))
 
-	before, beforeErr := ledger.DraftClosedPeriods(jakarta(2026, 11, 30, 23, 59))
-	after, afterErr := ledger.DraftClosedPeriods(jakarta(2026, 12, 1, 0, 10))
+	before, beforeErr := ledger.DraftClosedPeriods(jakarta("2026-11-30 23:59"))
+	after, afterErr := ledger.DraftClosedPeriods(jakarta("2026-12-01 00:10"))
 
 	if beforeErr != nil || afterErr != nil || len(before) != 0 || len(after) != 1 ||
-		!after[0].Period.Equal(Period{jakarta(2026, 11, 1), jakarta(2026, 12, 1)}) {
+		!after[0].Period.Equal(Period{jakarta("2026-11-01"), jakarta("2026-12-01")}) {
 		t.Fatalf("before = %+v, after = %+v", before, after)
 	}
 }
 
 func TestIssue_FRSTL03_NumberAndDueDateFollowTheIssueDayInJakarta(t *testing.T) {
-	draft, _ := aLedger(terms.ScheduleOnCount, sectionThirteen(jakarta(2026, 11, 30, 20, 0))).
-		DraftUpTo(jakarta(2026, 11, 30, 20, 0))
+	draft, _ := aLedger(terms.ScheduleOnCount, sectionThirteen(jakarta("2026-11-30 20:00"))).
+		DraftUpTo(jakarta("2026-11-30 20:00"))
 
 	issuedAt := time.Date(2026, 11, 30, 17, 30, 0, 0, time.UTC)
 
 	settlement := draft.Issue(Issuing{ID: "settlement-1", Sequence: 12, At: issuedAt})
 
 	if settlement.Number != "ST-202612-0012" || settlement.Status != Issued ||
-		!settlement.DueDate.Equal(jakarta(2026, 12, 8)) || len(settlement.AllocationIDs) != 4 ||
+		!settlement.DueDate.Equal(jakarta("2026-12-08")) || len(settlement.Allocations) != 4 ||
 		settlement.Summary.Split.ConsignorShare != 691187 {
 		t.Fatalf("settlement = %+v", settlement)
 	}
@@ -193,20 +193,20 @@ func late(days int, age Age) Standing {
 }
 
 func TestStandingOf_BRSTL09_OverdueIsDerivedFromTheJakartaDate(t *testing.T) {
-	due := jakarta(2026, 11, 10)
+	due := jakarta("2026-11-10")
 	cases := []struct {
 		name   string
 		status Status
 		now    time.Time
 		want   Standing
 	}{
-		{"on the due date", Issued, jakarta(2026, 11, 10, 23, 59), Standing{Age: AgeNotDue}},
-		{"one day late", Issued, jakarta(2026, 11, 11), late(1, AgeLate1To7)},
-		{"seven days late", Issued, jakarta(2026, 11, 17, 8, 0), late(7, AgeLate1To7)},
-		{"eight days late", Issued, jakarta(2026, 11, 18, 8, 0), late(8, AgeLate8To30)},
-		{"thirty days late", Issued, jakarta(2026, 12, 10, 8, 0), late(30, AgeLate8To30)},
-		{"thirty one days late", Issued, jakarta(2026, 12, 11, 8, 0), late(31, AgeLateOver30)},
-		{"paid late is not overdue", Paid, jakarta(2026, 12, 11, 8, 0), Standing{Age: AgePaid}},
+		{"on the due date", Issued, jakarta("2026-11-10 23:59"), Standing{Age: AgeNotDue}},
+		{"one day late", Issued, jakarta("2026-11-11"), late(1, AgeLate1To7)},
+		{"seven days late", Issued, jakarta("2026-11-17 08:00"), late(7, AgeLate1To7)},
+		{"eight days late", Issued, jakarta("2026-11-18 08:00"), late(8, AgeLate8To30)},
+		{"thirty days late", Issued, jakarta("2026-12-10 08:00"), late(30, AgeLate8To30)},
+		{"thirty one days late", Issued, jakarta("2026-12-11 08:00"), late(31, AgeLateOver30)},
+		{"paid late is not overdue", Paid, jakarta("2026-12-11 08:00"), Standing{Age: AgePaid}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

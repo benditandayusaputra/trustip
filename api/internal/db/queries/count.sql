@@ -171,3 +171,24 @@ WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organiza
     AND (@from_start::boolean OR (c.counted_at, c.id) < (@after_at::timestamptz, @after_id::uuid))
 ORDER BY c.counted_at DESC, c.id DESC
 LIMIT @row_limit::bigint;
+
+-- name: GetSettledUntil :one
+SELECT
+    (latest.number IS NOT NULL)::boolean AS has_settlement, COALESCE(latest.number, '')::text AS number,
+    COALESCE(latest.period_end, '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS period_end
+FROM (SELECT 1) AS anchor
+LEFT JOIN LATERAL (
+    SELECT st.number, st.period_end
+    FROM settlements AS st
+    WHERE st.partnership_id = @partnership_id::uuid
+    ORDER BY st.period_end DESC
+    LIMIT 1
+) AS latest ON true;
+
+-- name: ListCountSettlements :many
+SELECT DISTINCT st.id, st.number
+FROM sale_allocations AS a
+JOIN count_lines AS l ON l.id = a.count_line_id
+JOIN settlements AS st ON st.id = a.settlement_id
+WHERE l.count_id = @count_id::uuid
+ORDER BY st.number;

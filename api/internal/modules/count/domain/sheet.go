@@ -48,6 +48,12 @@ type LastDocument struct {
 	Given bool
 }
 
+type Settled struct {
+	Until  time.Time
+	Number string
+	Given  bool
+}
+
 type Sheet struct {
 	PartnershipID    string
 	IsActive         bool
@@ -57,6 +63,7 @@ type Sheet struct {
 	ConsignorID      string
 	ConsignorName    string
 	LastDocument     LastDocument
+	Settled          Settled
 	Products         []StockedProduct
 }
 
@@ -179,6 +186,10 @@ func (s Sheet) findTimeProblem(countedAt, now time.Time) field.Problem {
 	}
 	if s.LastDocument.Given && countedAt.Before(s.LastDocument.At.Truncate(time.Second)) {
 		return field.Invalid("counted_at", apperror.FieldBeforeLastDoc)
+	}
+	if s.Settled.Given && countedAt.Before(s.Settled.Until) {
+		return field.Invalid("counted_at", apperror.FieldPeriodSettled,
+			apperror.Param{Name: "no", Value: s.Settled.Number})
 	}
 	return field.Problem{}
 }

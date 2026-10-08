@@ -91,12 +91,16 @@ func testProposalComponents(now *clock.Manual) proposalComponents {
 }
 
 func invitationBody(productID string) string {
+	return invitationBodyWith(productID, "WEEKLY")
+}
+
+func invitationBodyWith(productID, schedule string) string {
 	items := `[]`
 	if productID != "" {
 		items = `[{"product_id":"` + productID + `","pricing_model":"FIXED_DEPOSIT","retail_price":2000,` +
 			`"commission_bps":0,"deposit_price":1750}]`
 	}
-	return `{"terms":{"settlement_schedule":"WEEKLY","payment_terms_days":7,"count_rhythm":"DAILY",` +
+	return `{"terms":{"settlement_schedule":"` + schedule + `","payment_terms_days":7,"count_rhythm":"DAILY",` +
 		`"notes":"Rak depan kasir."},"items":` + items + `,"message":"Salam kenal, Bu."}`
 }
 

@@ -40,7 +40,7 @@ type AgreementItem struct {
 type AuditLog struct {
 	ID             string
 	OrganizationID pgtype.UUID
-	ActorID        string
+	ActorID        pgtype.UUID
 	Action         string
 	EntityType     string
 	EntityID       string
@@ -353,8 +353,8 @@ type Seal struct {
 	EntityID      string
 	EntityNumber  string
 	ContentHash   []byte
-	ActorUserID   string
-	ActorOrgID    string
+	ActorUserID   pgtype.UUID
+	ActorOrgID    pgtype.UUID
 	OccurredAt    time.Time
 	PrevHash      []byte
 	EntryHash     []byte
@@ -373,6 +373,27 @@ type Session struct {
 	RotatedAt pgtype.Timestamptz
 	RevokedAt pgtype.Timestamptz
 	CreatedAt time.Time
+}
+
+type Settlement struct {
+	ID                   string
+	Number               string
+	PartnershipID        string
+	ConsignorOrgID       string
+	StoreOrgID           string
+	Schedule             string
+	PeriodStart          time.Time
+	PeriodEnd            time.Time
+	Status               string
+	SoldQty              int32
+	GrossAmount          int64
+	StoreShareAmount     int64
+	ConsignorShareAmount int64
+	DueDate              pgtype.Date
+	IssuedAt             time.Time
+	PaidAt               pgtype.Timestamptz
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 }
 
 type StockMovement struct {

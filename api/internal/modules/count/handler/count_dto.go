@@ -57,7 +57,20 @@ type countResponse struct {
 	SoldQty         int                   `json:"sold_qty"`
 	ReturnedQty     int                   `json:"returned_qty"`
 	Split           splitResponse         `json:"split"`
+	Settlement      *settlementRef        `json:"settlement"`
 	Seal            sealResponse          `json:"seal"`
+}
+
+type settlementRef struct {
+	ID     string `json:"id"`
+	Number string `json:"number"`
+}
+
+func toSettlementRef(ref domain.SettlementRef) *settlementRef {
+	if ref.ID == "" {
+		return nil
+	}
+	return &settlementRef{ID: ref.ID, Number: ref.Number}
 }
 
 func toCountResponse(sealed domain.SealedView) countResponse {
@@ -70,7 +83,7 @@ func toCountResponse(sealed domain.SealedView) countResponse {
 		Consignor:      partyResponse{ID: view.ConsignorID, Name: view.ConsignorName},
 		RecordedByName: view.RecordedByName, Confirmation: toConfirmation(view), Lines: toLines(view),
 		SoldQty: view.SoldQty, ReturnedQty: view.ReturnedQty, Split: toSplit(view.Split),
-		Seal: toSealResponse(sealed.Seal),
+		Settlement: toSettlementRef(view.Settlement), Seal: toSealResponse(sealed.Seal),
 	}
 }
 

@@ -27,6 +27,7 @@ const (
 	DropCancelled           Action = "DROP_CANCELLED"
 	CountRecorded           Action = "COUNT_RECORDED"
 	CountConfirmed          Action = "COUNT_CONFIRMED"
+	SettlementIssued        Action = "SETTLEMENT_ISSUED"
 )
 
 type EntityType string
@@ -38,6 +39,7 @@ const (
 	ProposalEntity     EntityType = "PROPOSAL"
 	DropEntity         EntityType = "DROP"
 	CountEntity        EntityType = "COUNT"
+	SettlementEntity   EntityType = "SETTLEMENT"
 )
 
 type Entry struct {

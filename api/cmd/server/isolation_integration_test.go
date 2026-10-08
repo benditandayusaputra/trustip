@@ -34,7 +34,7 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	world.consignor.notificationID = consignorOwner.receiveNotification()
 	product := consignorOwner.postJSON(productsPath, productBody(""))
 	world.consignor.productID = quotedAfter(string(product.body), `"id":"`)
-	sent := consignorOwner.postJSON(invitationsPath, invitationBody(world.consignor.productID))
+	sent := consignorOwner.postJSON(invitationsPath, invitationBodyWith(world.consignor.productID, "ON_COUNT"))
 	world.consignor.inviteCode = quotedAfter(string(sent.body), `"invite_code":"`)
 	world.consignor.proposalID = quotedAfter(string(sent.body), `"id":"`)
 	storeOwner.post(invitationsPath + "/" + world.consignor.inviteCode + "/claim")
@@ -46,6 +46,10 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	counted := storeOwner.recordCount(countBody(world.consignor.partnershipID, world.consignor.productID,
 		countLine{recorded: 20, counted: 19}))
 	world.consignor.countID = quotedAfter(string(counted.body), `"id":"`)
+	world.consignor.settlementID = quotedAfter(string(counted.body), `"settlement":{"id":"`)
+	if world.consignor.settlementID == "" {
+		t.Fatalf("counted = %s", counted.body)
+	}
 	world.storeStranger = storeOwner.anotherUserOnTheSameServer("tini@contoh.id")
 	world.storeStranger.found(strings.Replace(onboarding(semarangCityCode), "Warung Bu Tini", "Toko Lain", 1), "LOGO")
 	world.consignorStranger = storeOwner.anotherUserOnTheSameServer("ani@contoh.id")

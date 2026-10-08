@@ -63,6 +63,9 @@ func (r *Counts) GetSheet(ctx context.Context, key domain.SheetKey) (domain.Shee
 	if sheet.LastDocument, err = lastDocument(readCtx, queries, key.PartnershipID); err != nil {
 		return domain.Sheet{}, err
 	}
+	if sheet.Settled, err = settled(readCtx, queries, key.PartnershipID); err != nil {
+		return domain.Sheet{}, err
+	}
 	sheet.Products, err = stockedProducts(readCtx, queries, key.PartnershipID)
 	return sheet, err
 }
@@ -73,6 +76,14 @@ func lastDocument(ctx context.Context, queries *sqlc.Queries, partnershipID stri
 		return domain.LastDocument{}, fmt.Errorf("find last document of %s: %w", partnershipID, err)
 	}
 	return domain.LastDocument{At: row.LastAt, Given: row.HasDocument}, nil
+}
+
+func settled(ctx context.Context, queries *sqlc.Queries, partnershipID string) (domain.Settled, error) {
+	row, err := queries.GetSettledUntil(ctx, partnershipID)
+	if err != nil {
+		return domain.Settled{}, fmt.Errorf("find settled period of %s: %w", partnershipID, err)
+	}
+	return domain.Settled{Until: row.PeriodEnd, Number: row.Number, Given: row.HasSettlement}, nil
 }
 
 func stockedProducts(

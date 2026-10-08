@@ -48,6 +48,11 @@ type LineProduct struct {
 	Unit string
 }
 
+type SettlementRef struct {
+	ID     string
+	Number string
+}
+
 type View struct {
 	Count
 	StoreName       string
@@ -58,6 +63,7 @@ type View struct {
 	IsConfirmed     bool
 	AutoConfirmed   bool
 	RecordedOffline bool
+	Settlement      SettlementRef
 	Products        map[string]LineProduct
 }
 

@@ -110,6 +110,9 @@ func (uc *RecordCount) save(ctx context.Context, count domain.Count, storeName s
 	if err := uc.deps.Sealer.Seal(ctx, count.SealRequest()); err != nil {
 		return fmt.Errorf("seal count %s: %w", count.Number, err)
 	}
+	if _, _, err := uc.deps.Issuer.IssueOnCount(ctx, count.PartnershipID, count.CountedAt); err != nil {
+		return fmt.Errorf("issue settlement for count %s: %w", count.Number, err)
+	}
 	if err := uc.deps.Announcer.Announce(ctx, count.Notice(storeName)); err != nil {
 		return fmt.Errorf("announce count %s: %w", count.Number, err)
 	}

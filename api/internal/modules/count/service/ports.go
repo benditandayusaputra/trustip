@@ -52,6 +52,10 @@ type AuditTrail interface {
 	Record(ctx context.Context, entry audit.Entry) error
 }
 
+type SettlementIssuer interface {
+	IssueOnCount(ctx context.Context, partnershipID string, countedAt time.Time) (domain.SettlementRef, bool, error)
+}
+
 type Transactor interface {
 	WithinTx(ctx context.Context, work func(context.Context) error) error
 }
@@ -70,6 +74,7 @@ type Deps struct {
 	Seals     SealChecker
 	Announcer Announcer
 	Audit     AuditTrail
+	Issuer    SettlementIssuer
 	Tx        Transactor
 	Clock     Clock
 	IDs       IDGenerator

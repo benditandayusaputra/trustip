@@ -381,6 +381,33 @@ func (q *Queries) GetLastDocumentAt(ctx context.Context, partnershipID string) (
 	return i, err
 }
 
+const getSettledUntil = `-- name: GetSettledUntil :one
+SELECT
+    (latest.number IS NOT NULL)::boolean AS has_settlement, COALESCE(latest.number, '')::text AS number,
+    COALESCE(latest.period_end, '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS period_end
+FROM (SELECT 1) AS anchor
+LEFT JOIN LATERAL (
+    SELECT st.number, st.period_end
+    FROM settlements AS st
+    WHERE st.partnership_id = $1::uuid
+    ORDER BY st.period_end DESC
+    LIMIT 1
+) AS latest ON true
+`
+
+type GetSettledUntilRow struct {
+	HasSettlement bool
+	Number        string
+	PeriodEnd     time.Time
+}
+
+func (q *Queries) GetSettledUntil(ctx context.Context, partnershipID string) (GetSettledUntilRow, error) {
+	row := q.db.QueryRow(ctx, getSettledUntil, partnershipID)
+	var i GetSettledUntilRow
+	err := row.Scan(&i.HasSettlement, &i.Number, &i.PeriodEnd)
+	return i, err
+}
+
 const listCountBatches = `-- name: ListCountBatches :many
 SELECT
     b.drop_item_id, b.product_id, pr.name AS product_name, pr.sku, pr.unit,
@@ -569,6 +596,40 @@ func (q *Queries) ListCountSales(ctx context.Context, countID string) ([]ListCou
 			&i.StoreShareAmount,
 			&i.ConsignorShareAmount,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCountSettlements = `-- name: ListCountSettlements :many
+SELECT DISTINCT st.id, st.number
+FROM sale_allocations AS a
+JOIN count_lines AS l ON l.id = a.count_line_id
+JOIN settlements AS st ON st.id = a.settlement_id
+WHERE l.count_id = $1::uuid
+ORDER BY st.number
+`
+
+type ListCountSettlementsRow struct {
+	ID     string
+	Number string
+}
+
+func (q *Queries) ListCountSettlements(ctx context.Context, countID string) ([]ListCountSettlementsRow, error) {
+	rows, err := q.db.Query(ctx, listCountSettlements, countID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCountSettlementsRow{}
+	for rows.Next() {
+		var i ListCountSettlementsRow
+		if err := rows.Scan(&i.ID, &i.Number); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

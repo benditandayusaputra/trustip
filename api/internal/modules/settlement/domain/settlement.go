@@ -31,7 +31,7 @@ type Settlement struct {
 	Period        Period
 	Status        Status
 	Summary       Summary
-	AllocationIDs []string
+	Allocations   []Allocation
 	DueDate       time.Time
 	IssuedAt      time.Time
 }
@@ -47,14 +47,10 @@ func Number(at time.Time, sequence int) string {
 }
 
 func (d Draft) Issue(issuing Issuing) Settlement {
-	allocationIDs := make([]string, 0, len(d.Allocations))
-	for _, allocation := range d.Allocations {
-		allocationIDs = append(allocationIDs, allocation.ID)
-	}
 	return Settlement{
 		ID: issuing.ID, Number: Number(issuing.At, issuing.Sequence), PartnershipID: d.PartnershipID,
 		ConsignorID: d.ConsignorID, StoreID: d.StoreID, Schedule: d.Schedule, Period: d.Period, Status: Issued,
-		Summary: d.Summary, AllocationIDs: allocationIDs,
+		Summary: d.Summary, Allocations: d.Allocations,
 		DueDate: startOfDay(issuing.At).AddDate(0, 0, d.PaymentTermsDays), IssuedAt: issuing.At,
 	}
 }

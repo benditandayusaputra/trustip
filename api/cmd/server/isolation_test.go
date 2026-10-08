@@ -27,6 +27,7 @@ type organizationFixture struct {
 	partnershipID  string
 	dropID         string
 	countID        string
+	settlementID   string
 }
 
 type isolationCase func(world isolationWorld) exchange
@@ -126,6 +127,12 @@ func isolationCases() map[string]isolationCase {
 		},
 		"POST /api/v1/counts/:id/confirm": func(w isolationWorld) exchange {
 			return w.consignorStranger.post("/api/v1/counts/" + w.consignor.countID + "/confirm")
+		},
+		"GET /api/v1/settlements/:id": func(w isolationWorld) exchange {
+			return w.storeStranger.get("/api/v1/settlements/" + w.consignor.settlementID)
+		},
+		"GET /api/v1/partnerships/:id/running-sales": func(w isolationWorld) exchange {
+			return w.consignorStranger.get("/api/v1/partnerships/" + w.consignor.partnershipID + "/running-sales")
 		},
 		"POST /api/v1/drops/:id/confirm": func(w isolationWorld) exchange {
 			return w.consignorStranger.post(dropsPath + "/" + w.consignor.dropID + "/confirm")

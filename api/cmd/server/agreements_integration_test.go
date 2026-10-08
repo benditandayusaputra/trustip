@@ -9,7 +9,12 @@ import (
 
 func acceptedScene(t *testing.T) (invitationScene, string) {
 	t.Helper()
-	scene := newInvitationScene(t)
+	return acceptedSceneWith(t, "WEEKLY")
+}
+
+func acceptedSceneWith(t *testing.T, schedule string) (invitationScene, string) {
+	t.Helper()
+	scene := newInvitationSceneWith(t, schedule)
 	scene.claimAsStore(t)
 	accepted := scene.store.post("/api/v1/proposals/" + scene.proposalID + "/accept")
 	partnershipID := quotedAfter(string(accepted.body), `"partnership_id":"`)

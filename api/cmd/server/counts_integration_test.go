@@ -24,9 +24,14 @@ const (
 
 func (b *browser) recordCount(body string) exchange {
 	b.t.Helper()
+	return b.recordCountWithKey(body, countKey)
+}
+
+func (b *browser) recordCountWithKey(body, key string) exchange {
+	b.t.Helper()
 	req := httptest.NewRequestWithContext(b.t.Context(), http.MethodPost, countsPath, strings.NewReader(body))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	req.Header.Set("Idempotency-Key", countKey)
+	req.Header.Set("Idempotency-Key", key)
 	b.attachCookies(req)
 	fromApp(req)
 	b.visits++

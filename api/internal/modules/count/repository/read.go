@@ -31,6 +31,13 @@ func (r *Counts) GetCount(ctx context.Context, key domain.CountKey) (domain.View
 	if err := withLines(readCtx, queries, &view); err != nil {
 		return domain.View{}, err
 	}
+	settlements, err := queries.ListCountSettlements(readCtx, view.ID)
+	if err != nil {
+		return domain.View{}, fmt.Errorf("find settlement of count %s: %w", view.ID, err)
+	}
+	for _, settlement := range settlements {
+		view.Settlement = domain.SettlementRef{ID: settlement.ID, Number: settlement.Number}
+	}
 	return view, nil
 }
 

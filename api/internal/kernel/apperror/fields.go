@@ -28,6 +28,7 @@ const (
 	FieldExpiryBeforeDrop  FieldCode = "EXPIRY_BEFORE_DROP"
 	FieldInvalidDate       FieldCode = "INVALID_DATE"
 	FieldBeforeLastDoc     FieldCode = "BEFORE_LAST_DOCUMENT"
+	FieldPeriodSettled     FieldCode = "PERIOD_ALREADY_SETTLED"
 )
 
 type Param struct {
@@ -60,6 +61,7 @@ func fieldMessages() map[FieldCode]string {
 		FieldExpiryBeforeDrop:  "Tanggal kedaluwarsa tidak boleh sebelum tanggal titip.",
 		FieldInvalidDate:       "Tulis tanggal dengan format TTTT-BB-HH.",
 		FieldBeforeLastDoc:     "Waktu ini lebih awal dari dokumen terakhir dengan mitra ini.",
+		FieldPeriodSettled:     "Tanggal ini sudah masuk Setoran {no}.",
 	}
 }
 

@@ -962,6 +962,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listSettlements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settlements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getSettlement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partnerships/{id}/running-sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getRunningSales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1834,6 +1886,11 @@ export interface components {
             sold_qty: number;
             returned_qty: number;
             split: components["schemas"]["Split"];
+            settlement: {
+                /** Format: uuid */
+                id: string;
+                number: string;
+            } | null;
             seal: components["schemas"]["SealStatus"];
         };
         CountResponse: {
@@ -1899,6 +1956,112 @@ export interface components {
             message: string;
             data: components["schemas"]["CountSummary"][];
             meta: components["schemas"]["ListMeta"];
+        };
+        /** @enum {string} */
+        SettlementAge: "NOT_DUE" | "LATE_1_7" | "LATE_8_30" | "LATE_OVER_30";
+        SettlementStanding: {
+            is_overdue: boolean;
+            days_late: number;
+            /** @enum {string} */
+            age: "PAID" | "NOT_DUE" | "LATE_1_7" | "LATE_8_30" | "LATE_OVER_30";
+        };
+        SettlementPeriod: {
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            end: string;
+        };
+        SettlementLine: {
+            /** Format: uuid */
+            product_id: string;
+            product_name: string;
+            sku: string;
+            unit: string;
+            pricing_model: components["schemas"]["PricingModel"];
+            retail_price: number;
+            commission_bps: number;
+            deposit_price: number;
+            qty: number;
+            split: components["schemas"]["Split"];
+        };
+        Settlement: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            partnership_id: string;
+            /** @enum {string} */
+            status: "ISSUED" | "PAID";
+            /** @enum {string} */
+            schedule: "ON_COUNT" | "WEEKLY" | "MONTHLY";
+            period: components["schemas"]["SettlementPeriod"];
+            /** Format: date */
+            due_date: string;
+            /** Format: date-time */
+            issued_at: string;
+            /** Format: date-time */
+            paid_at: string | null;
+            standing: components["schemas"]["SettlementStanding"];
+            store: components["schemas"]["PartyRef"];
+            consignor: components["schemas"]["PartyRef"];
+            lines: components["schemas"]["SettlementLine"][];
+            sold_qty: number;
+            split: components["schemas"]["Split"];
+            counts: {
+                /** Format: uuid */
+                id: string;
+                number: string;
+                /** Format: date-time */
+                counted_at: string;
+            }[];
+            seal: components["schemas"]["SealStatus"];
+        };
+        SettlementResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Settlement"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        SettlementSummary: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            partnership_id: string;
+            /** @enum {string} */
+            status: "ISSUED" | "PAID";
+            /** @enum {string} */
+            schedule: "ON_COUNT" | "WEEKLY" | "MONTHLY";
+            period: components["schemas"]["SettlementPeriod"];
+            /** Format: date */
+            due_date: string;
+            /** Format: date-time */
+            issued_at: string;
+            sold_qty: number;
+            consignor_share: number;
+            counterpart: components["schemas"]["CounterpartRef"];
+            standing: components["schemas"]["SettlementStanding"];
+        };
+        SettlementSummaryListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["SettlementSummary"][];
+            meta: components["schemas"]["ListMeta"];
+        };
+        RunningSales: {
+            /** Format: uuid */
+            partnership_id: string;
+            has_sales: boolean;
+            /** Format: date-time */
+            since: string | null;
+            sold_qty: number;
+            split: components["schemas"]["Split"];
+        };
+        RunningSalesResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["RunningSales"];
+            meta: components["schemas"]["ResponseMeta"];
         };
     };
     responses: {
@@ -3952,6 +4115,97 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listSettlements: {
+        parameters: {
+            query?: {
+                partnership_id?: string;
+                status?: "ISSUED" | "PAID";
+                age?: components["schemas"]["SettlementAge"];
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Setoran pada kemitraan organisasi pelaku, terbaru lebih dulu, dengan umur dari jatuh tempo */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementSummaryListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getSettlement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Setoran yang sama untuk kedua pihak, dengan baris per produk, Hitung Sisa sumbernya, dan status segel */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getRunningSales: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Penjualan yang belum masuk Setoran pada kemitraan ini */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunningSalesResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

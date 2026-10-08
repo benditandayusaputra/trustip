@@ -11,6 +11,7 @@ type Ledger struct {
 	PartnershipID    string
 	ConsignorID      string
 	StoreID          string
+	StoreName        string
 	Schedule         terms.Schedule
 	PaymentTermsDays int
 	SettledUntil     time.Time

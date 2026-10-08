@@ -13,7 +13,7 @@ import (
 const listAuditActions = `-- name: ListAuditActions :many
 SELECT action, entity_type, COALESCE(organization_id::text, '')::text AS organization_id, ip
 FROM audit_logs
-WHERE actor_id = $1
+WHERE actor_id = $1::uuid
 ORDER BY created_at, id
 `
 
@@ -52,7 +52,8 @@ func (q *Queries) ListAuditActions(ctx context.Context, actorID string) ([]ListA
 const recordAudit = `-- name: RecordAudit :exec
 INSERT INTO audit_logs (id, organization_id, actor_id, action, entity_type, entity_id, metadata, ip, created_at)
 VALUES (
-    $1::uuid, NULLIF($2::text, '')::uuid, $3::uuid, $4::text, $5::text,
+    $1::uuid, NULLIF($2::text, '')::uuid, NULLIF($3::text, '')::uuid, $4::text,
+    $5::text,
     $6::uuid, $7::jsonb, $8::text, $9::timestamptz
 )
 `

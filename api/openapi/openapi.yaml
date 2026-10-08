@@ -2284,6 +2284,120 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/settlements:
+    get:
+      operationId: listSettlements
+      tags: [settlement]
+      parameters:
+        - name: partnership_id
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ISSUED, PAID]
+        - name: age
+          in: query
+          schema:
+            $ref: "#/components/schemas/SettlementAge"
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Setoran pada kemitraan organisasi pelaku, terbaru lebih dulu, dengan umur dari jatuh tempo
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementSummaryListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/settlements/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getSettlement
+      tags: [settlement]
+      responses:
+        "200":
+          description: Setoran yang sama untuk kedua pihak, dengan baris per produk, Hitung Sisa sumbernya, dan status segel
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/running-sales:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getRunningSales
+      tags: [settlement]
+      responses:
+        "200":
+          description: Penjualan yang belum masuk Setoran pada kemitraan ini
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunningSalesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -4419,6 +4533,7 @@ components:
         - sold_qty
         - returned_qty
         - split
+        - settlement
         - seal
       properties:
         id:
@@ -4474,6 +4589,18 @@ components:
           type: integer
         split:
           $ref: "#/components/schemas/Split"
+        settlement:
+          type: object
+          nullable: true
+          additionalProperties: false
+          required: [id, number]
+          properties:
+            id:
+              type: string
+              format: uuid
+            number:
+              type: string
+              pattern: "^ST-[0-9]{6}-[0-9]{4,}$"
         seal:
           $ref: "#/components/schemas/SealStatus"
     CountResponse:
@@ -4621,3 +4748,255 @@ components:
             $ref: "#/components/schemas/CountSummary"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    SettlementAge:
+      type: string
+      enum: [NOT_DUE, LATE_1_7, LATE_8_30, LATE_OVER_30]
+    SettlementStanding:
+      type: object
+      additionalProperties: false
+      required: [is_overdue, days_late, age]
+      properties:
+        is_overdue:
+          type: boolean
+        days_late:
+          type: integer
+          minimum: 0
+        age:
+          type: string
+          enum: [PAID, NOT_DUE, LATE_1_7, LATE_8_30, LATE_OVER_30]
+    SettlementPeriod:
+      type: object
+      additionalProperties: false
+      required: [start, end]
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+    SettlementLine:
+      type: object
+      additionalProperties: false
+      required:
+        - product_id
+        - product_name
+        - sku
+        - unit
+        - pricing_model
+        - retail_price
+        - commission_bps
+        - deposit_price
+        - qty
+        - split
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        retail_price:
+          type: integer
+        commission_bps:
+          type: integer
+        deposit_price:
+          type: integer
+        qty:
+          type: integer
+          minimum: 1
+        split:
+          $ref: "#/components/schemas/Split"
+    Settlement:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - partnership_id
+        - status
+        - schedule
+        - period
+        - due_date
+        - issued_at
+        - paid_at
+        - standing
+        - store
+        - consignor
+        - lines
+        - sold_qty
+        - split
+        - counts
+        - seal
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+          pattern: "^ST-[0-9]{6}-[0-9]{4,}$"
+        partnership_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ISSUED, PAID]
+        schedule:
+          type: string
+          enum: [ON_COUNT, WEEKLY, MONTHLY]
+        period:
+          $ref: "#/components/schemas/SettlementPeriod"
+        due_date:
+          type: string
+          format: date
+        issued_at:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        standing:
+          $ref: "#/components/schemas/SettlementStanding"
+        store:
+          $ref: "#/components/schemas/PartyRef"
+        consignor:
+          $ref: "#/components/schemas/PartyRef"
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettlementLine"
+        sold_qty:
+          type: integer
+          minimum: 1
+        split:
+          $ref: "#/components/schemas/Split"
+        counts:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, number, counted_at]
+            properties:
+              id:
+                type: string
+                format: uuid
+              number:
+                type: string
+              counted_at:
+                type: string
+                format: date-time
+        seal:
+          $ref: "#/components/schemas/SealStatus"
+    SettlementResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Settlement"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    SettlementSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - partnership_id
+        - status
+        - schedule
+        - period
+        - due_date
+        - issued_at
+        - sold_qty
+        - consignor_share
+        - counterpart
+        - standing
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        partnership_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ISSUED, PAID]
+        schedule:
+          type: string
+          enum: [ON_COUNT, WEEKLY, MONTHLY]
+        period:
+          $ref: "#/components/schemas/SettlementPeriod"
+        due_date:
+          type: string
+          format: date
+        issued_at:
+          type: string
+          format: date-time
+        sold_qty:
+          type: integer
+        consignor_share:
+          type: integer
+        counterpart:
+          $ref: "#/components/schemas/CounterpartRef"
+        standing:
+          $ref: "#/components/schemas/SettlementStanding"
+    SettlementSummaryListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettlementSummary"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    RunningSales:
+      type: object
+      additionalProperties: false
+      required: [partnership_id, has_sales, since, sold_qty, split]
+      properties:
+        partnership_id:
+          type: string
+          format: uuid
+        has_sales:
+          type: boolean
+        since:
+          type: string
+          format: date-time
+          nullable: true
+        sold_qty:
+          type: integer
+          minimum: 0
+        split:
+          $ref: "#/components/schemas/Split"
+    RunningSalesResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/RunningSales"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"

@@ -186,7 +186,12 @@ type dropScene struct {
 
 func recordedDrop(t *testing.T) dropScene {
 	t.Helper()
-	scene, partnershipID := acceptedScene(t)
+	return recordedDropWith(t, "WEEKLY")
+}
+
+func recordedDropWith(t *testing.T, schedule string) dropScene {
+	t.Helper()
+	scene, partnershipID := acceptedSceneWith(t, schedule)
 	recorded := scene.store.recordDrop(dropBody(partnershipID, scene.productID, 20), dropKey)
 	requireCreated(t, recorded)
 	return dropScene{
