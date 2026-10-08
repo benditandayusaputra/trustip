@@ -177,7 +177,12 @@ SELECT
     (
         SELECT count(*) FROM proposals AS pp
         WHERE pp.status = 'OPEN' AND pp.awaiting_org_id = @organization_id::uuid
-    )::bigint AS proposals_awaiting;
+    )::bigint AS proposals_awaiting,
+    (
+        SELECT count(*) FROM needs AS n
+        WHERE n.store_org_id = @organization_id::uuid AND n.status = 'OPEN'
+            AND n.expires_at <= @needs_expiring_until::timestamptz
+    )::bigint AS needs_expiring;
 
 -- name: ListUncountedPartners :many
 SELECT p.id AS partnership_id, o.name AS counterpart_name, stock.units AS stock_units
@@ -191,3 +196,12 @@ WHERE p.store_org_id = @organization_id::uuid AND p.status = 'ACTIVE' AND stock.
         SELECT 1 FROM counts AS c WHERE c.partnership_id = p.id AND c.counted_at >= @today_start::timestamptz
     )
 ORDER BY o.name, p.id;
+
+-- name: ListOpenProposalCounterparts :many
+SELECT DISTINCT
+    (CASE WHEN p.store_org_id = @organization_id::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+        AS counterpart_id
+FROM proposals AS p
+WHERE p.status = 'OPEN' AND (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+    AND p.consignor_org_id IS NOT NULL AND p.store_org_id IS NOT NULL
+ORDER BY 1;

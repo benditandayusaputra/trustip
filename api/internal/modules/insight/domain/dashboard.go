@@ -9,6 +9,7 @@ import (
 
 const (
 	dueSoonDays          = 3
+	needExpiryNotice     = 3 * 24 * time.Hour
 	confirmationWindow   = 48 * time.Hour
 	maxDashboardInsights = 5
 	businessDateLayout   = time.DateOnly
@@ -20,6 +21,7 @@ type DashboardQuery struct {
 	DueSoonUntil   string
 	TodayStart     time.Time
 	PendingSince   time.Time
+	NeedsExpiring  time.Time
 }
 
 func NewDashboardQuery(organizationID string, now time.Time) DashboardQuery {
@@ -30,6 +32,7 @@ func NewDashboardQuery(organizationID string, now time.Time) DashboardQuery {
 		DueSoonUntil:   startOfToday.AddDate(0, 0, dueSoonDays).Format(businessDateLayout),
 		TodayStart:     startOfToday,
 		PendingSince:   now.Add(-confirmationWindow),
+		NeedsExpiring:  now.Add(needExpiryNotice),
 	}
 }
 
@@ -52,6 +55,7 @@ type Tasks struct {
 	PaymentsToReview  int
 	PaymentsRejected  int
 	ProposalsAwaiting int
+	NeedsExpiring     int
 }
 
 type UncountedPartner struct {

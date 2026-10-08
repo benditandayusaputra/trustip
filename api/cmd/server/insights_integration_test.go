@@ -105,3 +105,35 @@ func TestInsights_INS01_INS07_ExpiredUncountedStockIsFlaggedForEachSide(t *testi
 		t.Fatalf("consignor = %s", consignor)
 	}
 }
+
+func TestInsights_INS10_ListedStoreBelowSeventyFiveIsNotSuggested(t *testing.T) {
+	consignor, store := listedStoreScene(t)
+
+	listed := consignor.get(directoryStoresPath)
+	got := consignor.get("/api/v1/insights")
+
+	requireCode(t, got, "OK")
+	loadContract(t).requireConforms(t, got)
+	listedBody := string(listed.body)
+	if !strings.Contains(listedBody, `"id":"`+store.id+`"`) || strings.Contains(listedBody, `"score":7`) ||
+		strings.Contains(string(got.body), `"kind":"MATCHING_PARTNER"`) {
+		t.Fatalf("listed = %s\ninsights = %s", listed.body, got.body)
+	}
+}
+
+func TestDashboard_BRNED03_StoreSeesNeedsAboutToExpire(t *testing.T) {
+	store := storeWithNeeds(t)
+	requireCreated(t, store.postJSON(needsPath, needBody("Butuh roti untuk sarapan")))
+	early := store.get("/api/v1/dashboard")
+	store.now.Advance(27*24*time.Hour + time.Hour)
+	store.post("/api/v1/sessions/refresh")
+
+	late := store.get("/api/v1/dashboard")
+
+	requireCode(t, late, "OK")
+	loadContract(t).requireConforms(t, late)
+	if !strings.Contains(string(early.body), `"needs_expiring":0`) ||
+		!strings.Contains(string(late.body), `"needs_expiring":1`) {
+		t.Fatalf("early = %s\nlate = %s", early.body, late.body)
+	}
+}

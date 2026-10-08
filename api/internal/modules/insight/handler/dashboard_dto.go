@@ -21,6 +21,7 @@ type tasksResponse struct {
 	PaymentsToReview  int `json:"payments_to_review"`
 	PaymentsRejected  int `json:"payments_rejected"`
 	ProposalsAwaiting int `json:"proposals_awaiting"`
+	NeedsExpiring     int `json:"needs_expiring"`
 }
 
 type uncountedPartnerResponse struct {
@@ -45,7 +46,7 @@ func toDashboard(dashboard domain.Dashboard) dashboardResponse {
 		Tasks: tasksResponse{
 			DropsToConfirm: tasks.DropsToConfirm, CountsToConfirm: tasks.CountsToConfirm,
 			PaymentsToReview: tasks.PaymentsToReview, PaymentsRejected: tasks.PaymentsRejected,
-			ProposalsAwaiting: tasks.ProposalsAwaiting,
+			ProposalsAwaiting: tasks.ProposalsAwaiting, NeedsExpiring: tasks.NeedsExpiring,
 		},
 		QuickCount: toUncountedPartners(dashboard.QuickCount),
 	}

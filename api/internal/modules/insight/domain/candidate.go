@@ -10,6 +10,19 @@ type Candidate struct {
 	HasOpenProposal bool
 }
 
+func MarkOpenProposals(candidates []Candidate, counterpartIDs []string) []Candidate {
+	open := make(map[string]bool, len(counterpartIDs))
+	for _, id := range counterpartIDs {
+		open[id] = true
+	}
+	marked := make([]Candidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		candidate.HasOpenProposal = candidate.HasOpenProposal || open[candidate.OrganizationID]
+		marked = append(marked, candidate)
+	}
+	return marked
+}
+
 func findMatchingPartner(candidate Candidate) []Insight {
 	if !candidate.isSuggestable() {
 		return nil

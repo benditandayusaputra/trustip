@@ -10,8 +10,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
+
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
 	filehandler "github.com/benditandayusaputra/trustip/api/internal/modules/file/handler"
+	insighthandler "github.com/benditandayusaputra/trustip/api/internal/modules/insight/handler"
 	notificationhandler "github.com/benditandayusaputra/trustip/api/internal/modules/notification/handler"
 	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
@@ -152,15 +155,21 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	notificationhandler.Mount(server.API(), notificationDeps(deps.inbox, notificationRoutes{
 		authenticate: authenticate, writeLimiter: writeLimiter, securityLog: securityLog,
 	}))
-	mountTrade(server.API(), deps.trade, tradeRoutes{
+	mountMarket(server.API(), deps, tradeRoutes{
 		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
 		securityLog: securityLog, clock: deps.clock,
 	})
-	mountDirectory(server.API(), deps.directory, directoryRoutes{
-		authenticate: authenticate, writeLimiter: writeLimiter, filesBaseURL: deps.files.publicBaseURL,
-		securityLog: securityLog, clock: deps.clock,
-	})
 	return server
+}
+
+func mountMarket(api fiber.Router, deps serverDeps, routes tradeRoutes) {
+	mountTrade(api, deps.trade, routes)
+	mountDirectory(api, deps.directory, directoryRoutes{
+		authenticate: routes.authenticate, writeLimiter: routes.writeLimiter, filesBaseURL: routes.filesBaseURL,
+		securityLog: routes.securityLog, clock: routes.clock,
+	})
+	insighthandler.Mount(api, insightDeps(deps.trade.insights, newDirectoryCandidates(deps.directory, deps.clock),
+		routes))
 }
 
 func publicRoutes() []httpserver.PublicRoute {

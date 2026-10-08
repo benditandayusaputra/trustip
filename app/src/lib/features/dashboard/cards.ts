@@ -63,10 +63,19 @@ const targets: Record<Action, (insight: Insight) => string> = {
 	REMIND_PAYMENT: settlementPage,
 	RECORD_PAYMENT: settlementPage,
 	REMIND_COUNT: partnerPage,
-	OPEN_PROFILE: ({ subject }) => `/app/organisasi/${subject.organization_id ?? ''}`
+	OPEN_PROFILE: ({ subject }) => `?q=${encodeURIComponent(subject.organization_name)}`
 };
 
-export function cardOf(insight: Insight, index: number): InsightCard {
+const searchPages: Record<Side, string> = { CONSIGNOR: '/cari/toko', STORE: '/cari/penitip' };
+
+export type Side = 'CONSIGNOR' | 'STORE';
+
+function hrefOf(insight: Insight, side: Side): string {
+	const target = targets[insight.action](insight);
+	return insight.action === 'OPEN_PROFILE' ? searchPages[side] + target : target;
+}
+
+export function cardOf(insight: Insight, index: number, side: Side): InsightCard {
 	return {
 		key: `${insight.kind}-${String(index)}`,
 		tone: tones[insight.level],
@@ -74,6 +83,6 @@ export function cardOf(insight: Insight, index: number): InsightCard {
 		title: titles[insight.kind](insight),
 		body: bodies[insight.kind](insight),
 		actionLabel: text.actions[insight.action],
-		href: targets[insight.action](insight)
+		href: hrefOf(insight, side)
 	};
 }

@@ -9,6 +9,7 @@
 	import { DashboardState, SalesOverview } from '../state.svelte';
 	import { rankedByGross, storeTasks, taskLinksOf } from '../views';
 	import InsightList from './InsightList.svelte';
+	import OpportunityList from './OpportunityList.svelte';
 	import QuickCountList from './QuickCountList.svelte';
 	import RankingList from './RankingList.svelte';
 	import TaskList from './TaskList.svelte';
@@ -60,10 +61,11 @@
 			{:else}
 				<p class="text-sm text-text-muted">{text.ownerOnly}</p>
 			{/if}
+			<OpportunityList side="STORE" />
 		</div>
 		<div class="flex flex-col gap-6 lg:col-span-4">
 			<TaskList tasks={taskLinksOf(board.dashboard, storeTasks)} />
-			<InsightList insights={board.insights} />
+			<InsightList insights={board.insights} side="STORE" />
 		</div>
 	</div>
 {/if}

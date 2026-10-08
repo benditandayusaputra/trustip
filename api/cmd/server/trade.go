@@ -10,7 +10,6 @@ import (
 	countservice "github.com/benditandayusaputra/trustip/api/internal/modules/count/service"
 	drophandler "github.com/benditandayusaputra/trustip/api/internal/modules/drop/handler"
 	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
-	insighthandler "github.com/benditandayusaputra/trustip/api/internal/modules/insight/handler"
 	insightrepository "github.com/benditandayusaputra/trustip/api/internal/modules/insight/repository"
 	partnershiphandler "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/handler"
 	partnershiprepository "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/repository"
@@ -93,5 +92,4 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 	counthandler.Mount(api, countDeps(components.counts, routes))
 	settlementhandler.Mount(api, settlementDeps(components.settlements, routes))
 	reporthandler.Mount(api, reportDeps(components.reports, routes))
-	insighthandler.Mount(api, insightDeps(components.insights, routes))
 }

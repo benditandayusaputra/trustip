@@ -4,15 +4,16 @@
 	import { edgeTone } from '#lib/components/ui/tone.js';
 	import type { Insight } from '#lib/api/insights.js';
 	import { id } from '#lib/i18n/id.js';
-	import { cardOf } from '../cards';
+	import { cardOf, type Side } from '../cards';
 
 	interface Props {
 		insights: Insight[];
+		side: Side;
 	}
 
-	let { insights }: Props = $props();
+	let { insights, side }: Props = $props();
 
-	const cards = $derived(insights.map(cardOf));
+	const cards = $derived(insights.map((insight, index) => cardOf(insight, index, side)));
 </script>
 
 <Card title={id.dashboard.insightsTitle}>

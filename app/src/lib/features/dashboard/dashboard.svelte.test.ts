@@ -25,7 +25,8 @@ const dashboard: Dashboard = {
 		counts_to_confirm: 0,
 		payments_to_review: 2,
 		payments_rejected: 0,
-		proposals_awaiting: 0
+		proposals_awaiting: 0,
+		needs_expiring: 0
 	},
 	quick_count: []
 };
@@ -65,8 +66,35 @@ function salesReport(groupBy: string) {
 
 let served = dashboard;
 
+const needId = '0192f0c4-0000-7000-8000-000000000a01';
+const candidate = (name: string) => ({
+	id: '0192f0c4-0000-7000-8000-000000000b01',
+	name,
+	is_partner: false,
+	is_self: false,
+	match: { score: 82, label: 'VERY_GOOD', reasons: [] }
+});
+const directoryData: Record<string, unknown[]> = {
+	'/api/v1/directory/needs': [
+		{
+			id: needId,
+			title: 'Butuh roti sarapan',
+			store: { id: storeId, name: 'Kantin Sehat' },
+			distance_m: 1200,
+			is_own: false
+		}
+	],
+	'/api/v1/directory/stores': [candidate('Kantin Sehat')],
+	'/api/v1/directory/consignors': [candidate('Keripik Bu Ani')],
+	'/api/v1/needs': [{ id: needId, title: 'Butuh roti sarapan', response_count: 2 }]
+};
+
 function dataFor(path: string): unknown {
 	const url = new URL(path, 'https://trustip.test');
+	const listed = directoryData[url.pathname];
+	if (listed) {
+		return listed;
+	}
 	if (url.pathname === '/api/v1/dashboard') {
 		return served;
 	}
@@ -113,6 +141,12 @@ describe('Consignor dashboard', () => {
 			.toHaveAttribute('href', `/app/setoran/${settlementId}`);
 		await expect.element(page.getByText('1. Warung Bu Tini')).toBeVisible();
 		await expect.element(page.getByText('chart all')).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: /Butuh roti sarapan/u }))
+			.toHaveAttribute('href', `/app/ajuan/baru?sasaran=${storeId}&kebutuhan=${needId}`);
+		await expect
+			.element(page.getByRole('link', { name: /Kantin Sehat Skor kecocokan 82/u }))
+			.toHaveAttribute('href', '/cari/toko?q=Kantin+Sehat');
 		await expectAccessible(container);
 	});
 
@@ -174,6 +208,10 @@ describe('Store dashboard', () => {
 			.toHaveAttribute('href', '/app/setoran');
 		await expect.element(page.getByRole('link', { name: '1 pembayaran ditolak' })).toBeVisible();
 		await expect.element(page.getByText('1. Roti Sobek (ROT-1)')).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: /Butuh roti sarapan 2 tanggapan/u }))
+			.toHaveAttribute('href', `/app/kebutuhan/${needId}`);
+		await expect.element(page.getByRole('link', { name: /Keripik Bu Ani/u })).toBeVisible();
 		await expectAccessible(container);
 	});
 

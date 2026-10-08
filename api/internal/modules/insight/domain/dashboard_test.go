@@ -28,6 +28,14 @@ func TestNewDashboardQuery_BRDRP08_PendingMeansReceivedWithinFortyEightHours(t *
 	}
 }
 
+func TestNewDashboardQuery_BRNED03_NeedsExpiringWithinThreeDays(t *testing.T) {
+	now := today()
+
+	if got := NewDashboardQuery("org-1", now).NeedsExpiring; !got.Equal(now.Add(72 * time.Hour)) {
+		t.Fatalf("needs expiring until = %s, want 3 days after now", got)
+	}
+}
+
 func TestTop_DSH_KeepsAtMostFiveInsights(t *testing.T) {
 	insights := make([]Insight, 7)
 

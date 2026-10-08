@@ -65,7 +65,7 @@ func (r *Dashboards) ReadDashboard(ctx context.Context, query domain.DashboardQu
 	queries := sqlc.New(r.pool.Querier(ctx))
 	figures, err := queries.GetDashboardFigures(readCtx, sqlc.GetDashboardFiguresParams{
 		OrganizationID: query.OrganizationID, Today: query.Today, DueSoonUntil: query.DueSoonUntil,
-		PendingSince: query.PendingSince,
+		PendingSince: query.PendingSince, NeedsExpiringUntil: query.NeedsExpiring,
 	})
 	if err != nil {
 		return domain.Dashboard{}, fmt.Errorf("read dashboard figures of %s: %w", query.OrganizationID, err)
@@ -94,7 +94,7 @@ func tasksOf(row sqlc.GetDashboardFiguresRow) domain.Tasks {
 	return domain.Tasks{
 		DropsToConfirm: int(row.DropsToConfirm), CountsToConfirm: int(row.CountsToConfirm),
 		PaymentsToReview: int(row.PaymentsToReview), PaymentsRejected: int(row.PaymentsRejected),
-		ProposalsAwaiting: int(row.ProposalsAwaiting),
+		ProposalsAwaiting: int(row.ProposalsAwaiting), NeedsExpiring: int(row.NeedsExpiring),
 	}
 }
 
@@ -106,4 +106,14 @@ func quickCountOf(rows []sqlc.ListUncountedPartnersRow) []domain.UncountedPartne
 		})
 	}
 	return partners
+}
+
+func (r *Dashboards) ListOpenProposalCounterparts(ctx context.Context, organizationID string) ([]string, error) {
+	readCtx, cancel := database.ReadContext(ctx)
+	defer cancel()
+	counterparts, err := sqlc.New(r.pool.Querier(ctx)).ListOpenProposalCounterparts(readCtx, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("list open proposal counterparts of %s: %w", organizationID, err)
+	}
+	return counterparts, nil
 }

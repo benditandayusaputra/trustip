@@ -12,15 +12,21 @@ import (
 type DashboardReader interface {
 	ReadSnapshot(ctx context.Context, query domain.SnapshotQuery) (domain.Snapshot, error)
 	ReadDashboard(ctx context.Context, query domain.DashboardQuery) (domain.Dashboard, error)
+	ListOpenProposalCounterparts(ctx context.Context, organizationID string) ([]string, error)
+}
+
+type CandidateFinder interface {
+	FindCandidates(ctx context.Context, signedIn actor.Actor) ([]domain.Candidate, error)
 }
 
 type ListInsights struct {
 	dashboards DashboardReader
+	candidates CandidateFinder
 	clock      Clock
 }
 
-func NewListInsights(dashboards DashboardReader, clock Clock) *ListInsights {
-	return &ListInsights{dashboards: dashboards, clock: clock}
+func NewListInsights(dashboards DashboardReader, candidates CandidateFinder, clock Clock) *ListInsights {
+	return &ListInsights{dashboards: dashboards, candidates: candidates, clock: clock}
 }
 
 func (uc *ListInsights) Execute(ctx context.Context, signedIn actor.Actor) ([]domain.Insight, error) {
@@ -33,7 +39,23 @@ func (uc *ListInsights) Execute(ctx context.Context, signedIn actor.Actor) ([]do
 		return nil, fmt.Errorf("read insight snapshot: %w", err)
 	}
 	snapshot.Side = signedIn.Membership.OrganizationType
+	snapshot.Candidates, err = uc.findCandidates(ctx, signedIn)
+	if err != nil {
+		return nil, err
+	}
 	return domain.Top(domain.Generate(snapshot, now)), nil
+}
+
+func (uc *ListInsights) findCandidates(ctx context.Context, signedIn actor.Actor) ([]domain.Candidate, error) {
+	candidates, err := uc.candidates.FindCandidates(ctx, signedIn)
+	if err != nil {
+		return nil, fmt.Errorf("find matching partners: %w", err)
+	}
+	engaged, err := uc.dashboards.ListOpenProposalCounterparts(ctx, signedIn.Membership.OrganizationID)
+	if err != nil {
+		return nil, fmt.Errorf("list open proposal counterparts: %w", err)
+	}
+	return domain.MarkOpenProposals(candidates, engaged), nil
 }
 
 type GetDashboard struct {

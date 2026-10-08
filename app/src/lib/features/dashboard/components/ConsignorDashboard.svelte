@@ -18,6 +18,7 @@
 		taskLinksOf
 	} from '../views';
 	import InsightList from './InsightList.svelte';
+	import OpportunityList from './OpportunityList.svelte';
 	import RankingList from './RankingList.svelte';
 	import TaskList from './TaskList.svelte';
 
@@ -67,7 +68,7 @@
 	<div class="grid gap-6 lg:grid-cols-12">
 		<div class="flex flex-col gap-6 lg:col-span-4 lg:col-start-9 lg:row-start-1">
 			<TaskList tasks={taskLinksOf(board.dashboard, consignorTasks)} />
-			<InsightList insights={board.insights} />
+			<InsightList insights={board.insights} side="CONSIGNOR" />
 		</div>
 		<div class="flex flex-col gap-4 lg:col-span-8 lg:row-start-1">
 			{#if isOwner}
@@ -84,10 +85,11 @@
 			{/if}
 		</div>
 	</div>
-	{#if isOwner}
-		<div class="grid gap-6 md:grid-cols-2">
+	<div class="grid gap-6 md:grid-cols-2">
+		{#if isOwner}
 			<RankingList title={text.rankingStores} rows={rankedByGross(sales.byPartner)} />
 			<RankingList title={text.rankingProducts} rows={rankedByGross(sales.byProduct)} />
-		</div>
-	{/if}
+		{/if}
+		<OpportunityList side="CONSIGNOR" />
+	</div>
 {/if}

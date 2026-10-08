@@ -233,3 +233,14 @@ func TestGenerate_OrdersByLevelThenAffectedRupiah(t *testing.T) {
 		}
 	}
 }
+
+func TestMarkOpenProposals_INS10_FlagsCandidatesAlreadyInAnOpenProposal(t *testing.T) {
+	other := aCandidate(80)
+	other.OrganizationID = "org-7"
+
+	got := MarkOpenProposals([]Candidate{aCandidate(80), other}, []string{"org-9"})
+
+	if !got[0].HasOpenProposal || got[1].HasOpenProposal {
+		t.Fatalf("candidates = %+v, want only org-9 flagged", got)
+	}
+}

@@ -2256,6 +2256,7 @@ export interface components {
             payments_to_review: number;
             payments_rejected: number;
             proposals_awaiting: number;
+            needs_expiring: number;
         };
         UncountedPartner: {
             /** Format: uuid */

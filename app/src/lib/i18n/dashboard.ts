@@ -27,7 +27,8 @@ export const dashboard = {
 			paymentsToReview: (count: number) => `${String(count)} pembayaran menunggu konfirmasi`,
 			unpaidSettlements: (count: number) => `${String(count)} Setoran belum dibayar`,
 			paymentsRejected: (count: number) => `${String(count)} pembayaran ditolak`,
-			proposalsAwaiting: (count: number) => `${String(count)} Ajuan menunggu giliran Anda`
+			proposalsAwaiting: (count: number) => `${String(count)} Ajuan menunggu giliran Anda`,
+			needsExpiring: (count: number) => `${String(count)} Kebutuhan habis masa tayang 3 hari lagi`
 		},
 		chartFilter: 'Saring grafik',
 		allSales: 'Semua penjualan',
@@ -41,7 +42,15 @@ export const dashboard = {
 		quickCountEmpty: 'Semua mitra berstok sudah dihitung hari ini.',
 		quickCountRow: (count: number) => `${units(count, 'unit')} tercatat`,
 		count: 'Hitung',
-		ownerOnly: 'Angka penjualan hanya tampil untuk pemilik usaha.'
+		ownerOnly: 'Angka penjualan hanya tampil untuk pemilik usaha.',
+		opportunitiesTitle: 'Peluang',
+		opportunitiesEmpty:
+			'Belum ada peluang baru. Lengkapi lokasi dan kategori agar saran lebih tepat.',
+		opportunitiesFailed: 'Peluang tidak bisa dimuat.',
+		nearbyNeed: (store: string, distance: string) =>
+			distance === '' ? `Kebutuhan ${store}` : `Kebutuhan ${store}, ${distance}`,
+		suggestedPartner: (score: number) => `Skor kecocokan ${String(score)} dari 100`,
+		needResponses: (count: number) => `${String(count)} tanggapan`
 	},
 	insights: {
 		titles: {

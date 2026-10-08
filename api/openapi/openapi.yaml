@@ -5803,7 +5803,8 @@ components:
     DashboardTasks:
       type: object
       additionalProperties: false
-      required: [drops_to_confirm, counts_to_confirm, payments_to_review, payments_rejected, proposals_awaiting]
+      required: [drops_to_confirm, counts_to_confirm, payments_to_review, payments_rejected, proposals_awaiting,
+        needs_expiring]
       properties:
         drops_to_confirm:
           type: integer
@@ -5818,6 +5819,9 @@ components:
           type: integer
           minimum: 0
         proposals_awaiting:
+          type: integer
+          minimum: 0
+        needs_expiring:
           type: integer
           minimum: 0
     UncountedPartner:

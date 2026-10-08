@@ -87,14 +87,20 @@ SELECT
     (
         SELECT count(*) FROM proposals AS pp
         WHERE pp.status = 'OPEN' AND pp.awaiting_org_id = $3::uuid
-    )::bigint AS proposals_awaiting
+    )::bigint AS proposals_awaiting,
+    (
+        SELECT count(*) FROM needs AS n
+        WHERE n.store_org_id = $3::uuid AND n.status = 'OPEN'
+            AND n.expires_at <= $5::timestamptz
+    )::bigint AS needs_expiring
 `
 
 type GetDashboardFiguresParams struct {
-	Today          string
-	DueSoonUntil   string
-	OrganizationID string
-	PendingSince   time.Time
+	Today              string
+	DueSoonUntil       string
+	OrganizationID     string
+	PendingSince       time.Time
+	NeedsExpiringUntil time.Time
 }
 
 type GetDashboardFiguresRow struct {
@@ -111,6 +117,7 @@ type GetDashboardFiguresRow struct {
 	PaymentsToReview  int64
 	PaymentsRejected  int64
 	ProposalsAwaiting int64
+	NeedsExpiring     int64
 }
 
 func (q *Queries) GetDashboardFigures(ctx context.Context, arg GetDashboardFiguresParams) (GetDashboardFiguresRow, error) {
@@ -119,6 +126,7 @@ func (q *Queries) GetDashboardFigures(ctx context.Context, arg GetDashboardFigur
 		arg.DueSoonUntil,
 		arg.OrganizationID,
 		arg.PendingSince,
+		arg.NeedsExpiringUntil,
 	)
 	var i GetDashboardFiguresRow
 	err := row.Scan(
@@ -135,6 +143,7 @@ func (q *Queries) GetDashboardFigures(ctx context.Context, arg GetDashboardFigur
 		&i.PaymentsToReview,
 		&i.PaymentsRejected,
 		&i.ProposalsAwaiting,
+		&i.NeedsExpiring,
 	)
 	return i, err
 }
@@ -320,6 +329,36 @@ func (q *Queries) ListInsightStock(ctx context.Context, arg ListInsightStockPara
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOpenProposalCounterparts = `-- name: ListOpenProposalCounterparts :many
+SELECT DISTINCT
+    (CASE WHEN p.store_org_id = $1::uuid THEN p.consignor_org_id ELSE p.store_org_id END)::text
+        AS counterpart_id
+FROM proposals AS p
+WHERE p.status = 'OPEN' AND (p.store_org_id = $1::uuid OR p.consignor_org_id = $1::uuid)
+    AND p.consignor_org_id IS NOT NULL AND p.store_org_id IS NOT NULL
+ORDER BY 1
+`
+
+func (q *Queries) ListOpenProposalCounterparts(ctx context.Context, organizationID string) ([]string, error) {
+	rows, err := q.db.Query(ctx, listOpenProposalCounterparts, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var counterpart_id string
+		if err := rows.Scan(&counterpart_id); err != nil {
+			return nil, err
+		}
+		items = append(items, counterpart_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
