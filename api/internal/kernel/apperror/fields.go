@@ -27,6 +27,7 @@ const (
 	FieldNotInAgreement    FieldCode = "PRODUCT_NOT_IN_AGREEMENT"
 	FieldExpiryBeforeDrop  FieldCode = "EXPIRY_BEFORE_DROP"
 	FieldInvalidDate       FieldCode = "INVALID_DATE"
+	FieldBeforeLastDoc     FieldCode = "BEFORE_LAST_DOCUMENT"
 )
 
 type Param struct {
@@ -58,6 +59,7 @@ func fieldMessages() map[FieldCode]string {
 		FieldNotInAgreement:    "Produk ini belum ada di kesepakatan. Usulkan dulu lewat Ajuan.",
 		FieldExpiryBeforeDrop:  "Tanggal kedaluwarsa tidak boleh sebelum tanggal titip.",
 		FieldInvalidDate:       "Tulis tanggal dengan format TTTT-BB-HH.",
+		FieldBeforeLastDoc:     "Waktu ini lebih awal dari dokumen terakhir dengan mitra ini.",
 	}
 }
 

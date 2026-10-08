@@ -2073,6 +2073,127 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/counts:
+    post:
+      operationId: recordCount
+      tags: [count]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CountRequest"
+      responses:
+        "201":
+          description: Hitung Sisa tercatat dengan rekap omzet, untung toko, dan harus setor, atau dokumen semula untuk kunci yang sama
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            Location:
+              $ref: "#/components/headers/Location"
+            Idempotent-Replay:
+              $ref: "#/components/headers/IdempotentReplay"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/counts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getCount
+      tags: [count]
+      responses:
+        "200":
+          description: Rekap Hitung Sisa yang sama untuk kedua pihak, dengan status segel yang dihitung ulang
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/partnerships/{id}/count-sheet:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getCountSheet
+      tags: [count]
+      responses:
+        "200":
+          description: Stok tercatat per produk dan batch beserta syaratnya untuk mengisi Hitung Sisa
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountSheetResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -2216,6 +2337,7 @@ components:
         - DOCUMENT_NOT_PENDING
         - CANCEL_WINDOW_PASSED
         - DROP_ALREADY_COUNTED
+        - STOCK_CHANGED
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -4099,5 +4221,259 @@ components:
           type: string
         data:
           $ref: "#/components/schemas/StockCard"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    CountLineRequest:
+      type: object
+      additionalProperties: false
+      required: [product_id, recorded_qty, counted_qty, returned_qty]
+      properties:
+        product_id:
+          type: string
+        recorded_qty:
+          type: integer
+        counted_qty:
+          type: integer
+        returned_qty:
+          type: integer
+        return_reason:
+          type: string
+          nullable: true
+          enum: [UNSOLD, EXPIRED, NEAR_EXPIRY, DAMAGED, RECALL, OTHER, null]
+    CountOccasion:
+      type: string
+      enum: [STORE_CLOSING, PICKUP, BEFORE_DROP, OTHER]
+    CountRequest:
+      type: object
+      additionalProperties: false
+      required: [partnership_id, agreement_version, occasion, lines]
+      properties:
+        partnership_id:
+          type: string
+        agreement_version:
+          type: integer
+        counted_at:
+          type: string
+          nullable: true
+        occasion:
+          $ref: "#/components/schemas/CountOccasion"
+        note:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountLineRequest"
+    CountLine:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - product_id
+        - product_name
+        - sku
+        - unit
+        - recorded_qty
+        - counted_qty
+        - sold_qty
+        - returned_qty
+        - kept_qty
+        - return_reason
+        - split
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        recorded_qty:
+          type: integer
+        counted_qty:
+          type: integer
+        sold_qty:
+          type: integer
+        returned_qty:
+          type: integer
+        kept_qty:
+          type: integer
+        return_reason:
+          type: string
+          nullable: true
+          enum: [UNSOLD, EXPIRED, NEAR_EXPIRY, DAMAGED, RECALL, OTHER, null]
+        split:
+          $ref: "#/components/schemas/Split"
+    Count:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - partnership_id
+        - status
+        - occasion
+        - note
+        - counted_at
+        - received_at
+        - recorded_offline
+        - store
+        - consignor
+        - recorded_by_name
+        - confirmation
+        - lines
+        - sold_qty
+        - returned_qty
+        - split
+        - seal
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+          pattern: "^HS-[0-9]{6}-[0-9]{4,}$"
+        partnership_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [RECORDED, CONFIRMED]
+        occasion:
+          $ref: "#/components/schemas/CountOccasion"
+        note:
+          type: string
+        counted_at:
+          type: string
+          format: date-time
+        received_at:
+          type: string
+          format: date-time
+        recorded_offline:
+          type: boolean
+        store:
+          $ref: "#/components/schemas/PartyRef"
+        consignor:
+          $ref: "#/components/schemas/PartyRef"
+        recorded_by_name:
+          type: string
+        confirmation:
+          type: object
+          nullable: true
+          additionalProperties: false
+          required: [by_name, at, is_automatic]
+          properties:
+            by_name:
+              type: string
+            at:
+              type: string
+              format: date-time
+            is_automatic:
+              type: boolean
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountLine"
+        sold_qty:
+          type: integer
+        returned_qty:
+          type: integer
+        split:
+          $ref: "#/components/schemas/Split"
+        seal:
+          $ref: "#/components/schemas/SealStatus"
+    CountResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Count"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    CountSheetBatch:
+      type: object
+      additionalProperties: false
+      required: [id, expiry_date, received_at, balance, terms]
+      properties:
+        id:
+          type: string
+          format: uuid
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        received_at:
+          type: string
+          format: date-time
+        balance:
+          type: integer
+          minimum: 1
+        terms:
+          $ref: "#/components/schemas/TermsSnapshot"
+    CountSheetProduct:
+      type: object
+      additionalProperties: false
+      required: [product_id, product_name, sku, unit, recorded_qty, batches]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        recorded_qty:
+          type: integer
+          minimum: 1
+        batches:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountSheetBatch"
+    CountSheet:
+      type: object
+      additionalProperties: false
+      required: [partnership_id, is_active, agreement_version, store, consignor, last_document_at, products]
+      properties:
+        partnership_id:
+          type: string
+          format: uuid
+        is_active:
+          type: boolean
+        agreement_version:
+          type: integer
+        store:
+          $ref: "#/components/schemas/PartyRef"
+        consignor:
+          $ref: "#/components/schemas/PartyRef"
+        last_document_at:
+          type: string
+          format: date-time
+          nullable: true
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountSheetProduct"
+    CountSheetResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/CountSheet"
         meta:
           $ref: "#/components/schemas/ResponseMeta"

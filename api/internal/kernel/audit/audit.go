@@ -25,6 +25,7 @@ const (
 	DropRecorded            Action = "DROP_RECORDED"
 	DropConfirmed           Action = "DROP_CONFIRMED"
 	DropCancelled           Action = "DROP_CANCELLED"
+	CountRecorded           Action = "COUNT_RECORDED"
 )
 
 type EntityType string
@@ -35,6 +36,7 @@ const (
 	ProductEntity      EntityType = "PRODUCT"
 	ProposalEntity     EntityType = "PROPOSAL"
 	DropEntity         EntityType = "DROP"
+	CountEntity        EntityType = "COUNT"
 )
 
 type Entry struct {

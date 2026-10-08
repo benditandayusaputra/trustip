@@ -6,6 +6,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	agreementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/agreement/handler"
+	counthandler "github.com/benditandayusaputra/trustip/api/internal/modules/count/handler"
+	countservice "github.com/benditandayusaputra/trustip/api/internal/modules/count/service"
 	drophandler "github.com/benditandayusaputra/trustip/api/internal/modules/drop/handler"
 	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
 	partnershiphandler "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/handler"
@@ -28,6 +30,7 @@ type tradeComponents struct {
 	partnerships partnershipservice.PartnershipReader
 	drops        dropservice.Deps
 	stocks       stockservice.StockReader
+	counts       countservice.Deps
 }
 
 func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
@@ -43,6 +46,7 @@ func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys secur
 		partnerships: partnershiprepository.NewPartnerships(pool),
 		drops:        buildDropDeps(pool, clock, seals),
 		stocks:       stockrepository.NewStocks(pool),
+		counts:       buildCountDeps(pool, clock, seals),
 	}
 }
 
@@ -73,4 +77,5 @@ func mountTrade(api fiber.Router, components tradeComponents, routes tradeRoutes
 	})
 	drophandler.Mount(api, dropDeps(components.drops, routes))
 	stockhandler.Mount(api, stockDeps(components.stocks, routes))
+	counthandler.Mount(api, countDeps(components.counts, routes))
 }

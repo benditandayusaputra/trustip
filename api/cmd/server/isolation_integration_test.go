@@ -43,6 +43,9 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	recorded := storeOwner.recordDrop(
 		dropBody(world.consignor.partnershipID, world.consignor.productID, 20), dropKey)
 	world.consignor.dropID = quotedAfter(string(recorded.body), `"id":"`)
+	counted := storeOwner.recordCount(countBody(world.consignor.partnershipID, world.consignor.productID,
+		countLine{recorded: 20, counted: 19}))
+	world.consignor.countID = quotedAfter(string(counted.body), `"id":"`)
 	world.storeStranger = storeOwner.anotherUserOnTheSameServer("tini@contoh.id")
 	world.storeStranger.found(strings.Replace(onboarding(semarangCityCode), "Warung Bu Tini", "Toko Lain", 1), "LOGO")
 	world.consignorStranger = storeOwner.anotherUserOnTheSameServer("ani@contoh.id")

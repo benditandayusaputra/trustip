@@ -336,3 +336,16 @@ func TestFingerprint_BRDRP07_SameRequestSameFingerprint(t *testing.T) {
 		t.Fatalf("fingerprints = %x %x %x", first, second, third)
 	}
 }
+
+func TestCheck_BRDRP06_DropMayNotPrecedeTheLastCount(t *testing.T) {
+	setting := aSetting()
+	setting.LastCount = LastCount{At: nineInTheMorning(), Given: true}
+	input := anInput()
+	input.OccurredAt = nineInTheMorning().Add(-time.Minute)
+
+	_, err := setting.Check(input, nineInTheMorning())
+
+	if fieldCodes(t, err)["occurred_at"] != "BEFORE_LAST_DOCUMENT" {
+		t.Fatalf("codes = %v", fieldCodes(t, err))
+	}
+}

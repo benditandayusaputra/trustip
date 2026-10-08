@@ -892,12 +892,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recordCount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/counts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partnerships/{id}/count-sheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getCountSheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "DOCUMENT_NOT_PENDING" | "CANCEL_WINDOW_PASSED" | "DROP_ALREADY_COUNTED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "DOCUMENT_NOT_PENDING" | "CANCEL_WINDOW_PASSED" | "DROP_ALREADY_COUNTED" | "STOCK_CHANGED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -1699,6 +1751,113 @@ export interface components {
             code: components["schemas"]["SuccessCode"];
             message: string;
             data: components["schemas"]["StockCard"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        CountLineRequest: {
+            product_id: string;
+            recorded_qty: number;
+            counted_qty: number;
+            returned_qty: number;
+            /** @enum {string|null} */
+            return_reason?: "UNSOLD" | "EXPIRED" | "NEAR_EXPIRY" | "DAMAGED" | "RECALL" | "OTHER" | null;
+        };
+        /** @enum {string} */
+        CountOccasion: "STORE_CLOSING" | "PICKUP" | "BEFORE_DROP" | "OTHER";
+        CountRequest: {
+            partnership_id: string;
+            agreement_version: number;
+            counted_at?: string | null;
+            occasion: components["schemas"]["CountOccasion"];
+            note?: string;
+            lines: components["schemas"]["CountLineRequest"][];
+        };
+        CountLine: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            product_id: string;
+            product_name: string;
+            sku: string;
+            unit: string;
+            recorded_qty: number;
+            counted_qty: number;
+            sold_qty: number;
+            returned_qty: number;
+            kept_qty: number;
+            /** @enum {string|null} */
+            return_reason: "UNSOLD" | "EXPIRED" | "NEAR_EXPIRY" | "DAMAGED" | "RECALL" | "OTHER" | null;
+            split: components["schemas"]["Split"];
+        };
+        Count: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            partnership_id: string;
+            /** @enum {string} */
+            status: "RECORDED" | "CONFIRMED";
+            occasion: components["schemas"]["CountOccasion"];
+            note: string;
+            /** Format: date-time */
+            counted_at: string;
+            /** Format: date-time */
+            received_at: string;
+            recorded_offline: boolean;
+            store: components["schemas"]["PartyRef"];
+            consignor: components["schemas"]["PartyRef"];
+            recorded_by_name: string;
+            confirmation: {
+                by_name: string;
+                /** Format: date-time */
+                at: string;
+                is_automatic: boolean;
+            } | null;
+            lines: components["schemas"]["CountLine"][];
+            sold_qty: number;
+            returned_qty: number;
+            split: components["schemas"]["Split"];
+            seal: components["schemas"]["SealStatus"];
+        };
+        CountResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["Count"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        CountSheetBatch: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            expiry_date: string | null;
+            /** Format: date-time */
+            received_at: string;
+            balance: number;
+            terms: components["schemas"]["TermsSnapshot"];
+        };
+        CountSheetProduct: {
+            /** Format: uuid */
+            product_id: string;
+            product_name: string;
+            sku: string;
+            unit: string;
+            recorded_qty: number;
+            batches: components["schemas"]["CountSheetBatch"][];
+        };
+        CountSheet: {
+            /** Format: uuid */
+            partnership_id: string;
+            is_active: boolean;
+            agreement_version: number;
+            store: components["schemas"]["PartyRef"];
+            consignor: components["schemas"]["PartyRef"];
+            /** Format: date-time */
+            last_document_at: string | null;
+            products: components["schemas"]["CountSheetProduct"][];
+        };
+        CountSheetResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["CountSheet"];
             meta: components["schemas"]["ResponseMeta"];
         };
     };
@@ -3587,6 +3746,106 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    recordCount: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CountRequest"];
+            };
+        };
+        responses: {
+            /** @description Hitung Sisa tercatat dengan rekap omzet, untung toko, dan harus setor, atau dokumen semula untuk kunci yang sama */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    Location: components["headers"]["Location"];
+                    "Idempotent-Replay": components["headers"]["IdempotentReplay"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rekap Hitung Sisa yang sama untuk kedua pihak, dengan status segel yang dihitung ulang */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getCountSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Stok tercatat per produk dan batch beserta syaratnya untuk mengisi Hitung Sisa */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountSheetResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

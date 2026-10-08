@@ -350,6 +350,26 @@ func (q *Queries) GetDropPartnership(ctx context.Context, arg GetDropPartnership
 	return i, err
 }
 
+const getLastCountAt = `-- name: GetLastCountAt :one
+SELECT
+    (max(counted_at) IS NOT NULL)::boolean AS has_count,
+    COALESCE(max(counted_at), '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS last_at
+FROM counts
+WHERE partnership_id = $1::uuid
+`
+
+type GetLastCountAtRow struct {
+	HasCount bool
+	LastAt   time.Time
+}
+
+func (q *Queries) GetLastCountAt(ctx context.Context, partnershipID string) (GetLastCountAtRow, error) {
+	row := q.db.QueryRow(ctx, getLastCountAt, partnershipID)
+	var i GetLastCountAtRow
+	err := row.Scan(&i.HasCount, &i.LastAt)
+	return i, err
+}
+
 const listDropItems = `-- name: ListDropItems :many
 SELECT
     i.id, i.product_id, pr.name AS product_name, pr.sku, pr.unit, i.batch_code,

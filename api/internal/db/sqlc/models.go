@@ -87,6 +87,46 @@ type ConsignorProfile struct {
 	UpdatedAt            time.Time
 }
 
+type Count struct {
+	ID                   string
+	Number               string
+	PartnershipID        string
+	StoreOrgID           string
+	Occasion             string
+	CountedAt            time.Time
+	Status               string
+	Note                 string
+	SoldQty              int32
+	ReturnedQty          int32
+	GrossAmount          int64
+	StoreShareAmount     int64
+	ConsignorShareAmount int64
+	RecordedBy           string
+	ConfirmedBy          pgtype.UUID
+	ConfirmedAt          pgtype.Timestamptz
+	AutoConfirmed        bool
+	IdempotencyKey       string
+	RequestFingerprint   []byte
+	ClientRecordedAt     time.Time
+	ReceivedAt           time.Time
+	RecordedOffline      bool
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+}
+
+type CountLine struct {
+	ID           string
+	CountID      string
+	LineNo       int32
+	ProductID    string
+	RecordedQty  int32
+	CountedQty   int32
+	SoldQty      int32
+	ReturnedQty  int32
+	KeptQty      int32
+	ReturnReason string
+}
+
 type DocumentSequence struct {
 	OrganizationID string
 	Prefix         string
@@ -280,6 +320,27 @@ type ProposalRevision struct {
 	Notes              string
 	Message            string
 	CreatedAt          time.Time
+}
+
+type ReturnAllocation struct {
+	ID          string
+	CountLineID string
+	DropItemID  string
+	Qty         int32
+}
+
+type SaleAllocation struct {
+	ID                   string
+	CountLineID          string
+	DropItemID           string
+	PartnershipID        string
+	ProductID            string
+	Qty                  int32
+	GrossAmount          int64
+	StoreShareAmount     int64
+	ConsignorShareAmount int64
+	OccurredAt           time.Time
+	SettlementID         pgtype.UUID
 }
 
 type Seal struct {

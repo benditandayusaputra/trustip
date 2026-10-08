@@ -153,3 +153,10 @@ WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organiza
     AND (@from_start::boolean OR (d.occurred_at, d.id) < (@after_at::timestamptz, @after_id::uuid))
 ORDER BY d.occurred_at DESC, d.id DESC
 LIMIT @row_limit::bigint;
+
+-- name: GetLastCountAt :one
+SELECT
+    (max(counted_at) IS NOT NULL)::boolean AS has_count,
+    COALESCE(max(counted_at), '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS last_at
+FROM counts
+WHERE partnership_id = @partnership_id::uuid;

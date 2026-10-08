@@ -59,6 +59,11 @@ func (r *Drops) GetSetting(ctx context.Context, key domain.SettingKey) (domain.S
 	if !setting.IsActive {
 		return setting, nil
 	}
+	lastCount, err := queries.GetLastCountAt(readCtx, key.PartnershipID)
+	if err != nil {
+		return domain.Setting{}, fmt.Errorf("find last count of %s: %w", key.PartnershipID, err)
+	}
+	setting.LastCount = domain.LastCount{At: lastCount.LastAt, Given: lastCount.HasCount}
 	return withProducts(readCtx, queries, setting)
 }
 

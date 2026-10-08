@@ -36,6 +36,7 @@ const (
 	CodeDocumentNotPending   Code = "DOCUMENT_NOT_PENDING"
 	CodeCancelWindowPassed   Code = "CANCEL_WINDOW_PASSED"
 	CodeDropAlreadyCounted   Code = "DROP_ALREADY_COUNTED"
+	CodeStockChanged         Code = "STOCK_CHANGED"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -65,6 +66,7 @@ func catalog() map[Code]entry {
 	entries := requestEntries()
 	maps.Copy(entries, accessEntries())
 	maps.Copy(entries, outcomeEntries())
+	maps.Copy(entries, documentEntries())
 	return entries
 }
 
@@ -132,16 +134,6 @@ func outcomeEntries() map[Code]entry {
 		CodeNotYourTurn:          {KindConflict, http.StatusConflict, "Menunggu tanggapan dari {organisasi}."},
 		CodeProposalDecided:      {KindConflict, http.StatusConflict, "Ajuan ini sudah diputuskan."},
 		CodePartnershipNotActive: {KindConflict, http.StatusConflict, "Kemitraan ini sudah tidak aktif."},
-		CodeAgreementChanged: {
-			KindConflict, http.StatusConflict, "Kesepakatan sudah berubah ke versi {n}. Tinjau lagi catatan ini.",
-		},
-		CodeDocumentNotPending: {KindConflict, http.StatusConflict, "Dokumen ini sudah tidak menunggu tanggapan."},
-		CodeCancelWindowPassed: {
-			KindConflict, http.StatusConflict, "Batas 15 menit untuk membatalkan titipan ini sudah lewat.",
-		},
-		CodeDropAlreadyCounted: {
-			KindConflict, http.StatusConflict, "Titipan ini sudah masuk Hitung Sisa sehingga tidak bisa dibatalkan.",
-		},
 		CodeProposalAlreadyOpen: {
 			KindConflict, http.StatusConflict, "Masih ada Ajuan yang terbuka dengan {organisasi}.",
 		},
@@ -160,6 +152,24 @@ func outcomeEntries() map[Code]entry {
 		CodeInternal: {
 			KindInternal, http.StatusInternalServerError,
 			"Terjadi kesalahan di sistem. Kode: {request_id}.",
+		},
+	}
+}
+
+func documentEntries() map[Code]entry {
+	return map[Code]entry{
+		CodeAgreementChanged: {
+			KindConflict, http.StatusConflict, "Kesepakatan sudah berubah ke versi {n}. Tinjau lagi catatan ini.",
+		},
+		CodeDocumentNotPending: {KindConflict, http.StatusConflict, "Dokumen ini sudah tidak menunggu tanggapan."},
+		CodeStockChanged: {
+			KindConflict, http.StatusConflict, "Stok baru saja berubah. Muat ulang lalu hitung lagi.",
+		},
+		CodeCancelWindowPassed: {
+			KindConflict, http.StatusConflict, "Batas 15 menit untuk membatalkan titipan ini sudah lewat.",
+		},
+		CodeDropAlreadyCounted: {
+			KindConflict, http.StatusConflict, "Titipan ini sudah masuk Hitung Sisa sehingga tidak bisa dibatalkan.",
 		},
 	}
 }

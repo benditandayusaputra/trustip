@@ -58,7 +58,13 @@ type AgreedProduct struct {
 	Terms     pricing.Terms
 }
 
+type LastCount struct {
+	At    time.Time
+	Given bool
+}
+
 type Setting struct {
+	LastCount        LastCount
 	PartnershipID    string
 	IsActive         bool
 	AgreementID      string
@@ -84,7 +90,7 @@ func (s Setting) Check(input RecordInput, now time.Time) (Draft, error) {
 			WithParam("n", strconv.Itoa(s.AgreementVersion))
 	}
 	occurredAt := input.OccurredAt.Truncate(time.Second)
-	problems := field.Collect(findItemCountProblem(len(input.Items)), findDateProblem(occurredAt, now))
+	problems := field.Collect(findItemCountProblem(len(input.Items)), s.findDateProblem(occurredAt, now))
 	items := make([]Item, 0, len(input.Items))
 	for index, itemInput := range input.Items {
 		item, itemProblems := s.checkItem(fmt.Sprintf("items[%d]", index), itemInput, occurredAt)
@@ -107,10 +113,13 @@ func findItemCountProblem(count int) field.Problem {
 	return field.Problem{}
 }
 
-func findDateProblem(occurredAt, now time.Time) field.Problem {
+func (s Setting) findDateProblem(occurredAt, now time.Time) field.Problem {
 	earliest := startOfDay(now).AddDate(0, 0, -maxDaysBack)
 	if occurredAt.Before(earliest) || occurredAt.After(now.Add(futureTolerance)) {
 		return field.Invalid("occurred_at", apperror.FieldOutOfRange)
+	}
+	if s.LastCount.Given && occurredAt.Before(s.LastCount.At.Truncate(time.Second)) {
+		return field.Invalid("occurred_at", apperror.FieldBeforeLastDoc)
 	}
 	return field.Problem{}
 }
