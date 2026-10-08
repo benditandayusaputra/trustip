@@ -11,6 +11,7 @@ FR-PWA-04 meminta daftar dan dokumen yang terakhir dibuka tetap terbaca saat lur
 3. Saat jawaban datang dari salinan, keadaan `Freshness` mencatat waktu salinan tertua yang sedang tampil. Pita luring di area `/app` muncul bila perangkat luring atau bila ada data dari salinan, dan menyebut waktunya. Jawaban berikutnya yang sampai ke server menghapus tanda itu.
 4. Simpanan baca dihapus saat keluar dari perangkat ini, saat keluar dari semua perangkat, dan saat masuk berhasil, supaya data pengguna sebelumnya tidak terbaca pengguna berikutnya.
 5. Service worker tetap tidak menyimpan jawaban API. Ia hanya menyimpan halaman `/app` yang pernah dibuka, per versi app, supaya app bisa dibuka ulang tanpa sinyal. Halaman itu tidak memuat data pengguna karena area `/app` dirender di klien.
+6. Paket kerja (R-OFF-01) adalah jawaban Kesepakatan aktif, katalog mitra, dan lembar Hitung Sisa tiap kemitraan aktif yang diambil lebih awal lewat `apiClient`, sehingga tersimpan di simpanan baca bersama waktunya. Paket diambil untuk anggota toko saat area `/app` terbuka dalam keadaan daring dan setiap kali perangkat kembali daring. Formulir Titipan Masuk dan Hitung Sisa membaca salinan yang sama tanpa jalur kode terpisah.
 
 ## Akibat
 
