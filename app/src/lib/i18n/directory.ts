@@ -52,6 +52,8 @@ export const directory = {
 		commissionRange: (minimum: string, maximum: string) => `Komisi ${minimum} sampai ${maximum}`,
 		newcomer: 'Baru',
 		onTime: (percent: string) => `Bayar tepat waktu ${percent}`,
+		activePartners: (count: number) => `${String(count)} mitra aktif`,
+		joined: (date: string) => `Bergabung ${date}`,
 		labels: { VERY_GOOD: 'Sangat cocok', GOOD: 'Cocok' },
 		score: (score: number) => `Skor kecocokan ${String(score)}`,
 		reasons: {

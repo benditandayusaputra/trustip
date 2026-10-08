@@ -16,6 +16,7 @@ type Reputation interface {
 type StoreReputation struct {
 	DueSettlements int
 	OnTimeBPS      int
+	ActivePartners int
 }
 
 func (r StoreReputation) IsNew() bool {

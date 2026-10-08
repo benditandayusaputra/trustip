@@ -102,6 +102,7 @@ WITH origin AS (
         COALESCE(f.storage_key, '')::text AS logo_storage_key,
         COALESCE(st.settlements_counted, 0)::bigint AS settlements_counted,
         COALESCE(st.on_time_payment_bps, 0)::bigint AS on_time_payment_bps,
+        COALESCE(st.active_partner_count, 0)::bigint AS active_partner_count,
         CASE WHEN @has_origin::boolean THEN ST_Distance(o.location_public, origin.point, false) ELSE -1 END::float8
             AS distance_meters,
         ARRAY(
@@ -166,8 +167,9 @@ WITH origin AS (
         listed.last_active_at, listed.store_type, listed.accepts_fixed_deposit, listed.accepts_commission,
         listed.commission_min_bps, listed.commission_max_bps, listed.requires_distribution_permit,
         listed.requires_halal, listed.requires_sample, listed.logo_storage_key, listed.settlements_counted,
-        listed.on_time_payment_bps, listed.distance_meters, listed.accepted_category_ids,
-        listed.accepted_category_names, listed.need_category_ids, listed.is_self, listed.is_partner,
+        listed.on_time_payment_bps, listed.active_partner_count, listed.distance_meters,
+        listed.accepted_category_ids, listed.accepted_category_names, listed.need_category_ids, listed.is_self,
+        listed.is_partner,
         CASE @sort_order::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
         CASE @sort_order::text
             WHEN 'NEAREST' THEN listed.distance_meters
@@ -181,8 +183,9 @@ WITH origin AS (
 SELECT
     id, slug, name, city_name, district, created_at, last_active_at, store_type, accepts_fixed_deposit,
     accepts_commission, commission_min_bps, commission_max_bps, requires_distribution_permit, requires_halal,
-    requires_sample, logo_storage_key, settlements_counted, on_time_payment_bps, distance_meters,
-    accepted_category_ids, accepted_category_names, need_category_ids, is_self, is_partner, sort_text, sort_number
+    requires_sample, logo_storage_key, settlements_counted, on_time_payment_bps, active_partner_count,
+    distance_meters, accepted_category_ids, accepted_category_names, need_category_ids, is_self, is_partner,
+    sort_text, sort_number
 FROM ranked
 WHERE @from_start::boolean OR (sort_text, sort_number, id) > (@after_text::text, @after_number::float8, @after_id::uuid)
 ORDER BY sort_text, sort_number, id

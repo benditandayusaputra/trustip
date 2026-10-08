@@ -18,6 +18,8 @@ import (
 	proposalrepository "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/repository"
 	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
+	trustrepository "github.com/benditandayusaputra/trustip/api/internal/modules/trust/repository"
+	trustservice "github.com/benditandayusaputra/trustip/api/internal/modules/trust/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/scheduler"
@@ -25,6 +27,7 @@ import (
 
 const (
 	dailyMinute      = 5
+	reputationMinute = 15
 	settlementMinute = 10
 	reminderHour     = 6
 )
@@ -36,6 +39,7 @@ type jobRunners struct {
 	settlements *settlementservice.IssueDueSettlements
 	needs       *needservice.ExpireNeeds
 	reminders   *needservice.RemindExpiringNeeds
+	reputation  *trustservice.RefreshReputation
 }
 
 func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
@@ -46,6 +50,7 @@ func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
 		settlements: settlementservice.NewIssueDueSettlements(trade.settlements),
 		needs:       needservice.NewExpireNeeds(needrepository.NewNeeds(pool)),
 		reminders:   needservice.NewRemindExpiringNeeds(buildNeedDeps(pool, clock.System{})),
+		reputation:  trustservice.NewRefreshReputation(trustrepository.NewReputation(pool)),
 	}
 }
 
@@ -61,6 +66,7 @@ func scheduledJobs(runners jobRunners) []scheduler.Job {
 			Work: runners.issue(terms.ScheduleMonthly),
 		},
 		{Name: "need-reminders", Hour: reminderHour, Days: scheduler.EveryDay, Work: runners.remind},
+		{Name: "reputation-summary", Minute: reputationMinute, Days: scheduler.EveryDay, Work: runners.summarize},
 	}
 }
 
@@ -77,6 +83,13 @@ func (r jobRunners) daily(ctx context.Context, now time.Time) error {
 	_, proposalErr := r.expire.Execute(ctx, now)
 	_, needErr := r.needs.Execute(ctx, now)
 	return errors.Join(dropErr, countErr, proposalErr, needErr)
+}
+
+func (r jobRunners) summarize(ctx context.Context, now time.Time) error {
+	if _, err := r.reputation.Execute(ctx, now); err != nil {
+		return fmt.Errorf("summarize reputation: %w", err)
+	}
+	return nil
 }
 
 func (r jobRunners) issue(schedule terms.Schedule) scheduler.Work {

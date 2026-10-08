@@ -6940,13 +6940,16 @@ components:
     StoreReputation:
       type: object
       additionalProperties: false
-      required: [is_new, on_time_bps]
+      required: [is_new, on_time_bps, active_partners]
       properties:
         is_new:
           type: boolean
         on_time_bps:
           type: integer
           nullable: true
+        active_partners:
+          type: integer
+          minimum: 0
     DirectoryStoreTerms:
       type: object
       additionalProperties: false
@@ -6973,8 +6976,11 @@ components:
       type: object
       additionalProperties: false
       required: [id, slug, name, city_name, district, store_type, logo_url, distance_m, accepted_categories,
-        open_need_category_ids, terms, reputation, is_self, is_partner, match]
+        open_need_category_ids, terms, reputation, joined_on, is_self, is_partner, match]
       properties:
+        joined_on:
+          type: string
+          format: date
         id:
           type: string
           format: uuid
@@ -7110,9 +7116,12 @@ components:
     DirectoryConsignorCard:
       type: object
       additionalProperties: false
-      required: [id, slug, name, city_name, district, logo_url, distance_m, categories, product_count, traits,
-        is_self, is_partner, match]
+      required: [id, slug, name, city_name, district, logo_url, distance_m, categories, product_count, joined_on,
+        traits, is_self, is_partner, match]
       properties:
+        joined_on:
+          type: string
+          format: date
         id:
           type: string
           format: uuid

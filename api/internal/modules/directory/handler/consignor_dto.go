@@ -29,6 +29,7 @@ type consignorCardResponse struct {
 	DistanceM    *int                    `json:"distance_m"`
 	Categories   []categoryResponse      `json:"categories"`
 	ProductCount int                     `json:"product_count"`
+	JoinedOn     string                  `json:"joined_on"`
 	Traits       consignorTraitsResponse `json:"traits"`
 	IsSelf       bool                    `json:"is_self"`
 	IsPartner    bool                    `json:"is_partner"`
@@ -63,7 +64,8 @@ func (p presenter) consignorCard(card domain.ConsignorCard) consignorCardRespons
 	return consignorCardResponse{
 		ID: card.ID, Slug: card.Slug, Name: card.Name, CityName: card.CityName, District: card.District,
 		LogoURL: p.fileURL(card.LogoStorageKey), DistanceM: distanceOf(card.Distance),
-		Categories: categoriesOf(card.Categories), ProductCount: card.ProductCount, Traits: traitsOf(card.Traits),
+		Categories: categoriesOf(card.Categories), ProductCount: card.ProductCount,
+		JoinedOn: businessDate(card.CreatedAt), Traits: traitsOf(card.Traits),
 		IsSelf: card.IsSelf, IsPartner: card.IsPartner, Match: optionalMatch(card),
 	}
 }

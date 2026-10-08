@@ -2,7 +2,7 @@
 	import Store from '@lucide/svelte/icons/store';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { DirectoryStoreCard } from '#lib/api/directory.js';
-	import { formatBasisPoints, formatDistance } from '#lib/i18n/format.js';
+	import { formatBasisPoints, formatBusinessDate, formatDistance } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
 	import ContactActions from './ContactActions.svelte';
 	import MatchReasons from './MatchReasons.svelte';
@@ -72,7 +72,8 @@
 		{#if minimum !== null && maximum !== null}
 			<p>{text.commissionRange(formatBasisPoints(minimum), formatBasisPoints(maximum))}</p>
 		{/if}
-		<p>{reputation}</p>
+		<p>{reputation} · {text.activePartners(card.reputation.active_partners)}</p>
+		<p>{text.joined(formatBusinessDate(card.joined_on))}</p>
 	</div>
 	{#if card.match}
 		<MatchReasons reasons={card.match.reasons} />

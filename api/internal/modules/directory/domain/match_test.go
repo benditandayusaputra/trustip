@@ -88,7 +88,7 @@ func (c matchCase) reputation() Reputation {
 	if c.ConsignorReputation != nil {
 		return ConsignorReputation(*c.ConsignorReputation)
 	}
-	return StoreReputation(*c.StoreReputation)
+	return StoreReputation{DueSettlements: c.StoreReputation.DueSettlements, OnTimeBPS: c.StoreReputation.OnTimeBPS}
 }
 
 func (c matchCase) wantReasons() []Reason {

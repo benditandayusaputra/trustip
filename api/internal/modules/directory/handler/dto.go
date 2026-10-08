@@ -1,6 +1,11 @@
 package handler
 
-import "github.com/benditandayusaputra/trustip/api/internal/modules/directory/domain"
+import (
+	"time"
+
+	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
+	"github.com/benditandayusaputra/trustip/api/internal/modules/directory/domain"
+)
 
 type categoryResponse struct {
 	ID   string `json:"id"`
@@ -18,8 +23,9 @@ type storeTermsResponse struct {
 }
 
 type storeReputationResponse struct {
-	IsNew     bool `json:"is_new"`
-	OnTimeBPS *int `json:"on_time_bps"`
+	IsNew          bool `json:"is_new"`
+	OnTimeBPS      *int `json:"on_time_bps"`
+	ActivePartners int  `json:"active_partners"`
 }
 
 type reasonResponse struct {
@@ -48,6 +54,7 @@ type storeCardResponse struct {
 	OpenNeedCategories []string                `json:"open_need_category_ids"`
 	Terms              storeTermsResponse      `json:"terms"`
 	Reputation         storeReputationResponse `json:"reputation"`
+	JoinedOn           string                  `json:"joined_on"`
 	IsSelf             bool                    `json:"is_self"`
 	IsPartner          bool                    `json:"is_partner"`
 	Match              *matchResponse          `json:"match"`
@@ -77,7 +84,7 @@ func (p presenter) storeCard(card domain.StoreCard) storeCardResponse {
 		StoreType: optionalText(card.StoreType), AcceptedCategories: categoriesOf(card.AcceptedCategories),
 		OpenNeedCategories: append([]string{}, card.NeedCategoryIDs...),
 		Terms:              termsOf(card.Terms), Reputation: reputationOf(card.Reputation), IsSelf: card.IsSelf,
-		IsPartner: card.IsPartner,
+		IsPartner: card.IsPartner, JoinedOn: businessDate(card.CreatedAt),
 	}
 	response.LogoURL = p.fileURL(card.LogoStorageKey)
 	response.DistanceM = distanceOf(card.Distance)
@@ -133,10 +140,15 @@ func termsOf(terms domain.StoreTerms) storeTermsResponse {
 }
 
 func reputationOf(reputation domain.StoreReputation) storeReputationResponse {
-	if reputation.IsNew() {
-		return storeReputationResponse{IsNew: true}
+	response := storeReputationResponse{IsNew: reputation.IsNew(), ActivePartners: reputation.ActivePartners}
+	if !response.IsNew {
+		response.OnTimeBPS = &reputation.OnTimeBPS
 	}
-	return storeReputationResponse{OnTimeBPS: &reputation.OnTimeBPS}
+	return response
+}
+
+func businessDate(at time.Time) string {
+	return at.In(period.Jakarta()).Format(time.DateOnly)
 }
 
 func matchOf(match domain.Match) *matchResponse {

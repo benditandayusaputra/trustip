@@ -138,6 +138,7 @@ func toStoreCard(row sqlc.ListDirectoryStoresRow) domain.StoreCard {
 		},
 		Reputation: domain.StoreReputation{
 			DueSettlements: int(row.SettlementsCounted), OnTimeBPS: int(row.OnTimePaymentBps),
+			ActivePartners: int(row.ActivePartnerCount),
 		},
 		LastActiveAt: row.LastActiveAt, CreatedAt: row.CreatedAt, IsSelf: row.IsSelf, IsPartner: row.IsPartner,
 		Position: domain.Position{Text: row.SortText, Number: row.SortNumber, ID: row.ID},

@@ -2743,6 +2743,7 @@ export interface components {
         StoreReputation: {
             is_new: boolean;
             on_time_bps: number | null;
+            active_partners: number;
         };
         DirectoryStoreTerms: {
             accepts_fixed_deposit: boolean;
@@ -2754,6 +2755,8 @@ export interface components {
             requires_sample: boolean;
         };
         DirectoryStoreCard: {
+            /** Format: date */
+            joined_on: string;
             /** Format: uuid */
             id: string;
             slug: string;
@@ -2810,6 +2813,8 @@ export interface components {
             };
         };
         DirectoryConsignorCard: {
+            /** Format: date */
+            joined_on: string;
             /** Format: uuid */
             id: string;
             slug: string;

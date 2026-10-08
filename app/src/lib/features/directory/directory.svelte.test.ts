@@ -26,7 +26,8 @@ const canteen = {
 		requires_halal: false,
 		requires_sample: false
 	},
-	reputation: { is_new: false, on_time_bps: 9600 },
+	reputation: { is_new: false, on_time_bps: 9600, active_partners: 4 },
+	joined_on: '2026-08-01',
 	is_self: false,
 	is_partner: true,
 	match: {
@@ -90,7 +91,10 @@ describe('Store directory', () => {
 
 		await expect.element(page.getByRole('heading', { name: 'Kantin Kampus' })).toBeVisible();
 		await expect.element(page.getByText('Sangat cocok')).toBeVisible();
-		await expect.element(page.getByText('Bayar tepat waktu 96%').first()).toBeVisible();
+		await expect
+			.element(page.getByText('Bayar tepat waktu 96% · 4 mitra aktif').first())
+			.toBeVisible();
+		await expect.element(page.getByText('Bergabung 1 Agu 2026').first()).toBeVisible();
 		await expect.element(page.getByText('Terima Kue kering dan camilan')).toBeVisible();
 		await expect.element(page.getByText('Sudah bermitra')).toBeVisible();
 		await expect.element(page.getByText('Kebutuhan terbuka', { exact: true })).toBeVisible();

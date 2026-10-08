@@ -2,7 +2,7 @@
 	import ChefHat from '@lucide/svelte/icons/chef-hat';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { DirectoryConsignorCard } from '#lib/api/directory.js';
-	import { formatDistance } from '#lib/i18n/format.js';
+	import { formatBusinessDate, formatDistance } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
 	import ConsignorTraits from './ConsignorTraits.svelte';
 	import ContactActions from './ContactActions.svelte';
@@ -41,6 +41,9 @@
 					· <span class="font-mono">{text.approximate(formatDistance(card.distance_m))}</span>
 				{/if}
 				· {card.district ? `${card.district}, ` : ''}{card.city_name}
+			</p>
+			<p class="text-sm text-text-muted">
+				{id.directory.joined(formatBusinessDate(card.joined_on))}
 			</p>
 		</div>
 		{#if card.match}

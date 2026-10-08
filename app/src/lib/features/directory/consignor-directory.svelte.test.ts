@@ -41,6 +41,7 @@ const bakery = {
 	distance_m: 2000,
 	categories: [{ id: 'c1', name: 'Roti dan kue basah' }],
 	product_count: 2,
+	joined_on: '2026-08-01',
 	traits,
 	is_self: false,
 	is_partner: false,
