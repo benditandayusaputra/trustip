@@ -4,6 +4,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
+	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { canCancel, canConfirm, type DropChoice, type DropRecord } from '../record.svelte';
 
 	interface Props {
@@ -29,6 +30,9 @@
 	async function decide(chosen: DropChoice) {
 		const failure = await record.decide(chosen);
 		choice = undefined;
+		if (failure === undefined) {
+			noteCompletedAction();
+		}
 		toaster.show(
 			failure === undefined
 				? { tone: 'success', message: done[chosen] }

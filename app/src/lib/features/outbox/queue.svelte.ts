@@ -1,6 +1,6 @@
 import type { Tone } from '#lib/components/ui/tone.js';
 import { id } from '#lib/i18n/id.js';
-import { isWaiting, type OutboxEntry } from '#lib/offline/outbox.js';
+import { isOld, isWaiting, type OutboxEntry } from '#lib/offline/outbox.js';
 import type { FlushResult } from '#lib/offline/sync.js';
 
 interface QueueDeps {
@@ -42,6 +42,10 @@ export class OutboxQueue {
 
 	constructor(deps: QueueDeps) {
 		this.#deps = deps;
+	}
+
+	oldCount(now: Date): number {
+		return this.entries.filter((entry) => isOld(entry, now)).length;
 	}
 
 	get waitingCount(): number {

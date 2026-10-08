@@ -23,6 +23,7 @@
 	});
 	let discarding = $state<OutboxEntry>();
 	let confirming = $state(false);
+	const oldCount = $derived(queue.oldCount(new Date()));
 
 	$effect(() => {
 		void queue.load();
@@ -49,6 +50,9 @@
 	<Button busy={queue.sending} onclick={() => void sendNow()}>{text.sendNow}</Button>
 	<p class="text-sm text-text-muted">{text.iosNote}</p>
 </div>
+{#if oldCount > 0}
+	<Alert title={text.oldWarning(oldCount)}>{text.iosNote}</Alert>
+{/if}
 {#if queue.status === 'loading'}
 	<Skeleton />
 {:else if queue.status === 'failed'}

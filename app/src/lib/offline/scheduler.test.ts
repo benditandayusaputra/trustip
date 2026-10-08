@@ -15,16 +15,18 @@ function schedulerWith(results: FlushResult[]) {
 	const sync = fakeSync(results);
 	const timers: { task: () => void; delayMs: number }[] = [];
 	const afterSent = vi.fn();
+	const keepStorage = vi.fn();
 	const scheduler = new OutboxScheduler({
 		sync: sync as unknown as OutboxSync,
 		afterSent,
+		keepStorage,
 		timers: {
 			set: (task, delayMs) => timers.push({ task, delayMs }),
 			clear: vi.fn()
 		},
 		random: () => 0.5
 	});
-	return { scheduler, sync, timers, afterSent };
+	return { scheduler, sync, timers, afterSent, keepStorage };
 }
 
 const draft = { kind: 'COUNT' } as EntryDraft;
@@ -47,10 +49,11 @@ describe('OutboxScheduler (R-OFF-05)', () => {
 	});
 
 	it('R-OFF-02 saves a form to the queue first and then sends at once', async () => {
-		const { scheduler, sync } = schedulerWith([]);
+		const { scheduler, sync, keepStorage } = schedulerWith([]);
 
 		await expect(scheduler.submit(draft)).resolves.toEqual({ kind: 'queued' });
 
+		expect(keepStorage).toHaveBeenCalledOnce();
 		expect(sync.enqueue).toHaveBeenCalledWith(draft);
 		expect(sync.flush).toHaveBeenCalledOnce();
 		expect(sync.resultOf).toHaveBeenCalledWith('entry-1');

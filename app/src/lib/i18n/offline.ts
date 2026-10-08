@@ -12,10 +12,20 @@ export const offline = {
 		bothTimes: (recordedAt: string, receivedAt: string) =>
 			`Dicatat ${recordedAt} · Terkirim ${receivedAt}`
 	},
+	install: {
+		title: 'Pasang Trustip',
+		body: 'Pasang Trustip di layar utama supaya bisa dibuka cepat dan tetap mencatat tanpa sinyal.',
+		iosHint:
+			'Pasang Trustip di iPhone: ketuk tombol Bagikan di Safari, lalu pilih Tambahkan ke Layar Utama.',
+		install: 'Pasang',
+		later: 'Nanti'
+	},
 	outbox: {
 		title: 'Antrean',
 		intro:
 			'Titipan Masuk dan Hitung Sisa yang disimpan tanpa sinyal menunggu di sini, lalu terkirim sendiri saat sinyal kembali.',
+		oldWarning: (count: number) =>
+			`${String(count)} catatan sudah menunggu lebih dari 24 jam. Sambungkan internet lalu tekan Kirim sekarang.`,
 		iosNote:
 			'Di iPhone, catatan terkirim saat app dibuka kembali karena iPhone tidak mengirim di latar belakang.',
 		badge: (count: number) => `Antrean, ${String(count)} catatan menunggu`,

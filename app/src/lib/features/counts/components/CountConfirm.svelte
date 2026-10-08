@@ -3,6 +3,7 @@
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { id } from '#lib/i18n/id.js';
+	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { canConfirm, type CountRecord } from '../record.svelte';
 
 	interface Props {
@@ -19,6 +20,9 @@
 	async function confirm() {
 		const failure = await record.confirm();
 		open = false;
+		if (failure === undefined) {
+			noteCompletedAction();
+		}
 		toaster.show(
 			failure === undefined
 				? { tone: 'success', message: text.confirmed }

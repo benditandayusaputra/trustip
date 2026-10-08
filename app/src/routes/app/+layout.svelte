@@ -6,6 +6,7 @@
 	import NotificationBell from '#lib/features/notifications/components/NotificationBell.svelte';
 	import OfflineKeeper from '#lib/features/outbox/components/OfflineKeeper.svelte';
 	import OutboxBadge from '#lib/features/outbox/components/OutboxBadge.svelte';
+	import InstallPrompt from '#lib/features/system/InstallPrompt.svelte';
 	import OfflineRibbon from '#lib/features/system/OfflineRibbon.svelte';
 	import type { LayoutProps } from './$types';
 
@@ -15,6 +16,7 @@
 </script>
 
 <OfflineRibbon />
+<InstallPrompt />
 <AccountGate
 	placement="member"
 	onsignedout={() => {

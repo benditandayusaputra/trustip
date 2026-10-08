@@ -9,6 +9,7 @@ interface Timers {
 export interface SchedulerDeps {
 	sync: OutboxSync;
 	afterSent: () => void;
+	keepStorage: () => void;
 	timers: Timers;
 	random: () => number;
 }
@@ -24,7 +25,11 @@ export class OutboxScheduler {
 	async submit(draft: EntryDraft): Promise<SubmitResult> {
 		const id = await this.#deps.sync.enqueue(draft);
 		await this.run();
-		return this.#deps.sync.resultOf(id);
+		const result = await this.#deps.sync.resultOf(id);
+		if (result.kind === 'queued') {
+			this.#deps.keepStorage();
+		}
+		return result;
 	}
 
 	async resubmit(entryId: string, draft: EntryDraft): Promise<SubmitResult> {

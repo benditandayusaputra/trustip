@@ -12,6 +12,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { CountOccasion } from '#lib/api/counts.js';
 	import { id } from '#lib/i18n/id.js';
+	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { findOwnEntry, outboxScheduler, waitingEntries } from '#lib/offline/device.js';
 	import { CountComposer } from '../composer.svelte';
 	import { maxNoteLength, previewOf, type InputMode, type withChanges } from '../schema';
@@ -57,6 +58,9 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const outcome = await composer.save();
+		if (outcome.kind === 'saved' || outcome.kind === 'queued') {
+			noteCompletedAction();
+		}
 		if (outcome.kind === 'saved') {
 			toaster.show({ tone: 'success', message: text.saved(outcome.document.number) });
 			onsaved(outcome.document.id);

@@ -9,6 +9,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import { id } from '#lib/i18n/id.js';
+	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { findOwnEntry, outboxScheduler } from '#lib/offline/device.js';
 	import { DropComposer } from '../composer.svelte';
 	import { previewOf, type DropLine } from '../schema';
@@ -59,6 +60,9 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const outcome = await composer.save();
+		if (outcome.kind === 'saved' || outcome.kind === 'queued') {
+			noteCompletedAction();
+		}
 		if (outcome.kind === 'saved') {
 			toaster.show({ tone: 'success', message: text.saved(outcome.document.number) });
 			onsaved(outcome.document.id);

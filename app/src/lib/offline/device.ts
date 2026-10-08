@@ -31,6 +31,7 @@ export function outboxScheduler(): OutboxScheduler {
 			announce: announceOutboxChange
 		}),
 		afterSent: () => void refreshWorkPackets(apiClient()),
+		keepStorage: () => void navigator.storage.persist(),
 		timers: {
 			set: (task, delayMs) => window.setTimeout(task, delayMs),
 			clear: (handle) => {

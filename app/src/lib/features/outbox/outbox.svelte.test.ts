@@ -155,3 +155,18 @@ describe('Review screen (R-OFF-09)', () => {
 		await expectAccessible(container);
 	});
 });
+
+describe('Old entries (R-OFF-15)', () => {
+	it('warns loudly about an entry waiting more than 24 hours', async () => {
+		serve(me);
+		await outboxStore.put(
+			aQueuedDrop({ recordedAt: new Date(Date.now() - 25 * 3_600_000).toISOString() })
+		);
+
+		await render(OutboxHarness);
+
+		await expect
+			.element(page.getByText(/1 catatan sudah menunggu lebih dari 24 jam/u))
+			.toBeVisible();
+	});
+});
