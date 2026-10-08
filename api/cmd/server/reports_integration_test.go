@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 const salesReportPath = "/api/v1/reports/sales?from=2026-10-19&to=2026-10-19"
@@ -37,4 +38,36 @@ func TestSalesReport_BRRPT04_RangeLongerThan366DaysIsRefused(t *testing.T) {
 
 	requireCode(t, got, "VALIDATION_FAILED")
 	loadContract(t).requireConforms(t, got)
+}
+
+func TestDailyRecap_FRRPT01_StoreSeesEachConsignorAndWhatIsAlreadyPaid(t *testing.T) {
+	scene := issuedSettlement(t)
+	scene.consignor.post(settlementsPath + "/" + scene.settlementID + "/mark-paid")
+
+	recap := scene.store.get("/api/v1/reports/daily")
+	fromConsignor := scene.consignor.get("/api/v1/reports/daily")
+
+	requireCode(t, recap, "OK")
+	loadContract(t).requireConforms(t, recap)
+	if !strings.Contains(string(recap.body), `"date":"2026-10-19"`) ||
+		!strings.Contains(string(recap.body), `"received_qty":20`) ||
+		!strings.Contains(string(recap.body), `"consignor_share":31500},"paid":31500`) {
+		t.Fatalf("recap = %s", recap.body)
+	}
+	requireCode(t, fromConsignor, "FORBIDDEN")
+}
+
+func TestSettlementReport_FRRPT06_CountsIssuedPaidUnpaidAndOverdue(t *testing.T) {
+	scene := issuedSettlement(t)
+	scene.store.now.Advance(10 * 24 * time.Hour)
+	scene.consignor.post("/api/v1/sessions/refresh")
+
+	report := scene.consignor.get("/api/v1/reports/settlements?from=2026-10-01&to=2026-10-31")
+
+	requireCode(t, report, "OK")
+	loadContract(t).requireConforms(t, report)
+	if !strings.Contains(string(report.body), `"issued":{"count":1,"amount":31500},"paid":{"count":0,"amount":0},`+
+		`"unpaid":{"count":1,"amount":31500},"overdue":{"count":1,"amount":31500}`) {
+		t.Fatalf("report = %s", report.body)
+	}
 }

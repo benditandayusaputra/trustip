@@ -10,6 +10,91 @@ import (
 	"time"
 )
 
+const dailyRecap = `-- name: DailyRecap :many
+WITH scoped AS (
+    SELECT p.id, p.consignor_org_id
+    FROM partnerships AS p
+    WHERE p.store_org_id = $1::uuid
+), facts AS (
+    SELECT
+        a.partnership_id, a.qty::bigint AS sold_qty, a.gross_amount, a.store_share_amount,
+        a.consignor_share_amount, 0::bigint AS returned_qty, 0::bigint AS received_qty,
+        (CASE WHEN st.status = 'PAID' THEN a.consignor_share_amount ELSE 0 END)::bigint AS paid_amount
+    FROM sale_allocations AS a
+    LEFT JOIN settlements AS st ON st.id = a.settlement_id
+    WHERE a.partnership_id IN (SELECT s.id FROM scoped AS s)
+        AND a.occurred_at >= $2::timestamptz AND a.occurred_at < $3::timestamptz
+    UNION ALL
+    SELECT
+        m.partnership_id, 0::bigint, 0::bigint, 0::bigint, 0::bigint,
+        (CASE WHEN m.type = 'RETURN' THEN -m.qty ELSE 0 END)::bigint,
+        (CASE WHEN m.source_type = 'DROP' THEN m.qty ELSE 0 END)::bigint, 0::bigint
+    FROM stock_movements AS m
+    WHERE m.partnership_id IN (SELECT s.id FROM scoped AS s) AND m.type IN ('RETURN', 'RECEIVE', 'ADJUSTMENT')
+        AND m.occurred_at >= $2::timestamptz AND m.occurred_at < $3::timestamptz
+)
+SELECT
+    o.id::text AS partner_id, o.name,
+    COALESCE(SUM(f.sold_qty), 0)::bigint AS sold_qty, COALESCE(SUM(f.gross_amount), 0)::bigint AS gross_amount,
+    COALESCE(SUM(f.store_share_amount), 0)::bigint AS store_share_amount,
+    COALESCE(SUM(f.consignor_share_amount), 0)::bigint AS consignor_share_amount,
+    COALESCE(SUM(f.returned_qty), 0)::bigint AS returned_qty, COALESCE(SUM(f.received_qty), 0)::bigint AS received_qty,
+    COALESCE(SUM(f.paid_amount), 0)::bigint AS paid_amount
+FROM facts AS f
+JOIN scoped AS s ON s.id = f.partnership_id
+JOIN organizations AS o ON o.id = s.consignor_org_id
+GROUP BY o.id, o.name
+ORDER BY o.name, o.id
+`
+
+type DailyRecapParams struct {
+	StoreOrgID string
+	FromAt     time.Time
+	ToAt       time.Time
+}
+
+type DailyRecapRow struct {
+	PartnerID            string
+	Name                 string
+	SoldQty              int64
+	GrossAmount          int64
+	StoreShareAmount     int64
+	ConsignorShareAmount int64
+	ReturnedQty          int64
+	ReceivedQty          int64
+	PaidAmount           int64
+}
+
+func (q *Queries) DailyRecap(ctx context.Context, arg DailyRecapParams) ([]DailyRecapRow, error) {
+	rows, err := q.db.Query(ctx, dailyRecap, arg.StoreOrgID, arg.FromAt, arg.ToAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DailyRecapRow{}
+	for rows.Next() {
+		var i DailyRecapRow
+		if err := rows.Scan(
+			&i.PartnerID,
+			&i.Name,
+			&i.SoldQty,
+			&i.GrossAmount,
+			&i.StoreShareAmount,
+			&i.ConsignorShareAmount,
+			&i.ReturnedQty,
+			&i.ReceivedQty,
+			&i.PaidAmount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const salesByDay = `-- name: SalesByDay :many
 WITH scoped AS (
     SELECT p.id, p.consignor_org_id, p.store_org_id
@@ -238,6 +323,84 @@ func (q *Queries) SalesByProduct(ctx context.Context, arg SalesByProductParams) 
 			&i.ConsignorShareAmount,
 			&i.ReturnedQty,
 			&i.ReceivedQty,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const settlementReport = `-- name: SettlementReport :many
+SELECT
+    o.id::text AS partner_id, o.name,
+    COUNT(*)::bigint AS issued_count, COALESCE(SUM(st.consignor_share_amount), 0)::bigint AS issued_amount,
+    COUNT(*) FILTER (WHERE st.status = 'PAID')::bigint AS paid_count,
+    COALESCE(SUM(st.consignor_share_amount) FILTER (WHERE st.status = 'PAID'), 0)::bigint AS paid_amount,
+    COUNT(*) FILTER (WHERE st.status = 'ISSUED')::bigint AS unpaid_count,
+    COALESCE(SUM(st.consignor_share_amount) FILTER (WHERE st.status = 'ISSUED'), 0)::bigint AS unpaid_amount,
+    COUNT(*) FILTER (WHERE st.status = 'ISSUED' AND st.due_date < CAST($1::text AS date))::bigint
+        AS overdue_count,
+    COALESCE(SUM(st.consignor_share_amount) FILTER (
+        WHERE st.status = 'ISSUED' AND st.due_date < CAST($1::text AS date)
+    ), 0)::bigint AS overdue_amount
+FROM settlements AS st
+JOIN organizations AS o
+    ON o.id = CASE WHEN st.store_org_id = $2::uuid THEN st.consignor_org_id ELSE st.store_org_id END
+WHERE (st.store_org_id = $2::uuid OR st.consignor_org_id = $2::uuid)
+    AND st.issued_at >= $3::timestamptz AND st.issued_at < $4::timestamptz
+GROUP BY o.id, o.name
+ORDER BY o.name, o.id
+`
+
+type SettlementReportParams struct {
+	Today          string
+	OrganizationID string
+	FromAt         time.Time
+	ToAt           time.Time
+}
+
+type SettlementReportRow struct {
+	PartnerID     string
+	Name          string
+	IssuedCount   int64
+	IssuedAmount  int64
+	PaidCount     int64
+	PaidAmount    int64
+	UnpaidCount   int64
+	UnpaidAmount  int64
+	OverdueCount  int64
+	OverdueAmount int64
+}
+
+func (q *Queries) SettlementReport(ctx context.Context, arg SettlementReportParams) ([]SettlementReportRow, error) {
+	rows, err := q.db.Query(ctx, settlementReport,
+		arg.Today,
+		arg.OrganizationID,
+		arg.FromAt,
+		arg.ToAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SettlementReportRow{}
+	for rows.Next() {
+		var i SettlementReportRow
+		if err := rows.Scan(
+			&i.PartnerID,
+			&i.Name,
+			&i.IssuedCount,
+			&i.IssuedAmount,
+			&i.PaidCount,
+			&i.PaidAmount,
+			&i.UnpaidCount,
+			&i.UnpaidAmount,
+			&i.OverdueCount,
+			&i.OverdueAmount,
 		); err != nil {
 			return nil, err
 		}

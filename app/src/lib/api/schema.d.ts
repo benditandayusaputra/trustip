@@ -1156,6 +1156,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDailyRecap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSettlementReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2292,6 +2324,52 @@ export interface components {
             code: components["schemas"]["SuccessCode"];
             message: string;
             data: components["schemas"]["SalesReport"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        DailyRecapRow: {
+            partner_id: string;
+            name: string;
+            sold_qty: number;
+            returned_qty: number;
+            received_qty: number;
+            returned_bps: number;
+            split: components["schemas"]["Split"];
+            paid: number;
+        };
+        DailyRecapResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: {
+                /** Format: date */
+                date: string;
+                total: components["schemas"]["DailyRecapRow"];
+                rows: components["schemas"]["DailyRecapRow"][];
+            };
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        SettlementTally: {
+            count: number;
+            amount: number;
+        };
+        SettlementReportRow: {
+            partner_id: string;
+            name: string;
+            issued: components["schemas"]["SettlementTally"];
+            paid: components["schemas"]["SettlementTally"];
+            unpaid: components["schemas"]["SettlementTally"];
+            overdue: components["schemas"]["SettlementTally"];
+        };
+        SettlementReportResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+                total: components["schemas"]["SettlementReportRow"];
+                rows: components["schemas"]["SettlementReportRow"][];
+            };
             meta: components["schemas"]["ResponseMeta"];
         };
     };
@@ -4734,6 +4812,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SalesReportResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getDailyRecap: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rekap harian toko per penitip untuk satu tanggal Asia/Jakarta, bawaan hari ini */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyRecapResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getSettlementReport: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Setoran yang terbit pada rentang per mitra, dengan yang lunas, belum lunas, dan lewat tempo */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementReportResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

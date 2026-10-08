@@ -12,6 +12,9 @@ FR-RPT-02 sampai 04 dan BR-RPT-01 sampai 04 meminta laporan penjualan untuk OWNE
 4. Tiga pengelompokan dipetakan ke tiga kueri bernama (R-SEC-58). Pengelompokan per hari mengisi setiap tanggal di rentang, termasuk yang tanpa penjualan, supaya grafik harian tidak bolong.
 5. Lingkup data mengikuti pihak pelaku pada kemitraan: toko melihat semua titipan di tokonya dan penitip hanya produknya sendiri di tiap toko (BR-RPT-02). Hanya OWNER (`VIEW_REPORTS`).
 
+6. Rekap harian (FR-RPT-01) hanya untuk OWNER toko, satu tanggal Asia/Jakarta dengan bawaan hari ini, satu baris per penitip. "Sudah dibayar" adalah hak penitip dari penjualan hari itu yang Setorannya sudah `PAID`.
+7. Laporan Setoran (FR-RPT-06) menghitung Setoran yang terbit pada rentang per mitra: jumlah dan nilai yang terbit, lunas, belum lunas, dan lewat tempo. Lewat tempo memakai tanggal hari ini di Asia/Jakarta, sama dengan status turunan di ADR 0021.
+
 ## Akibat
 
-- Rekap harian toko dan laporan Setoran di 7.7 memakai definisi angka yang sama.
+- Rekap harian, laporan Setoran, grafik, dan ekspor CSV memakai definisi angka yang sama.

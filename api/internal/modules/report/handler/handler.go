@@ -22,10 +22,14 @@ type SalesReader interface {
 type Deps struct {
 	Authenticate fiber.Handler
 	Sales        SalesReader
+	Daily        RecapReader
+	Settlements  SettlementReader
 }
 
 func Mount(api fiber.Router, deps Deps) {
 	api.Get(salesPath, deps.Authenticate, sales(deps.Sales))
+	api.Get(dailyPath, deps.Authenticate, daily(deps.Daily))
+	api.Get(settlementsPath, deps.Authenticate, settlementReport(deps.Settlements))
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {

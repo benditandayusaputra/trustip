@@ -10,5 +10,7 @@ func reportDeps(reports *reportrepository.Reports, routes tradeRoutes) reporthan
 	return reporthandler.Deps{
 		Authenticate: routes.authenticate,
 		Sales:        reportservice.NewGetSalesReport(reports),
+		Daily:        reportservice.NewGetDailyRecap(reports, routes.clock),
+		Settlements:  reportservice.NewGetSettlementReport(reports, routes.clock),
 	}
 }
