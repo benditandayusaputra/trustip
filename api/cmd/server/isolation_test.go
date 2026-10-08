@@ -110,6 +110,12 @@ func isolationCases() map[string]isolationCase {
 		"GET /api/v1/drops/:id": func(w isolationWorld) exchange {
 			return w.storeStranger.get(dropsPath + "/" + w.consignor.dropID)
 		},
+		"POST /api/v1/drops/:id/confirm": func(w isolationWorld) exchange {
+			return w.consignorStranger.post(dropsPath + "/" + w.consignor.dropID + "/confirm")
+		},
+		"POST /api/v1/drops/:id/cancel": func(w isolationWorld) exchange {
+			return w.storeStranger.post(dropsPath + "/" + w.consignor.dropID + "/cancel")
+		},
 		"POST /api/v1/partnerships/:id/amendments": func(w isolationWorld) exchange {
 			return w.consignorStranger.postJSON("/api/v1/partnerships/"+w.consignor.partnershipID+"/amendments",
 				invitationBody(""))

@@ -41,7 +41,10 @@ type dropAnnouncer struct {
 }
 
 func (a dropAnnouncer) Announce(ctx context.Context, notice dropdomain.Notice) error {
-	return a.announce(ctx, organizationNotice(notice))
+	return a.announceTo(ctx, organizationNotice{
+		OrganizationID: notice.OrganizationID, ActorUserID: notice.ActorUserID, Type: notice.Type,
+		Title: notice.Title, Body: notice.Body, Link: notice.Link, OwnersOnly: notice.OwnersOnly,
+	}, notice.RecipientUserID)
 }
 
 func buildDropDeps(pool *database.Pool, clock serverClock, seals sealComponents) dropservice.Deps {
@@ -62,6 +65,8 @@ func dropDeps(deps dropservice.Deps, routes tradeRoutes) drophandler.Deps {
 		Authenticate: routes.authenticate,
 		Record:       dropservice.NewRecordDrop(deps),
 		Get:          dropservice.NewGetDrop(deps),
+		Confirm:      dropservice.NewConfirmDrop(deps),
+		Cancel:       dropservice.NewCancelDrop(deps),
 		Clock:        routes.clock,
 		WriteLimiter: routes.writeLimiter,
 		SecurityLog:  routes.securityLog,

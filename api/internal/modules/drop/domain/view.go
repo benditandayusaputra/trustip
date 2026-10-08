@@ -7,7 +7,10 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/period"
 )
 
-var ErrDuplicateKey = errors.New("a drop with this idempotency key already exists")
+var (
+	ErrDuplicateKey = errors.New("a drop with this idempotency key already exists")
+	ErrNotPending   = errors.New("the drop is no longer waiting for a response")
+)
 
 type SequenceKey struct {
 	OrganizationID string
@@ -55,6 +58,8 @@ type View struct {
 	ConfirmedAt     time.Time
 	IsConfirmed     bool
 	AutoConfirmed   bool
+	CancelledByName string
+	CancelledAt     time.Time
 	RecordedOffline bool
 	ItemViews       []ItemView
 }

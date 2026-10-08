@@ -70,7 +70,8 @@ SELECT
     d.recorded_offline, d.recorded_by, ru.full_name AS recorded_by_name,
     COALESCE(cu.full_name, '')::text AS confirmed_by_name,
     COALESCE(d.confirmed_at, d.received_at)::timestamptz AS confirmed_at, (d.confirmed_at IS NOT NULL)::boolean AS
-    is_confirmed, d.auto_confirmed
+    is_confirmed, d.auto_confirmed, COALESCE(xu.full_name, '')::text AS cancelled_by_name,
+    COALESCE(d.cancelled_at, d.received_at)::timestamptz AS cancelled_at
 FROM drops AS d
 JOIN partnerships AS p ON p.id = d.partnership_id
 JOIN agreements AS a ON a.id = d.agreement_id
@@ -78,6 +79,7 @@ JOIN organizations AS s ON s.id = d.store_org_id
 JOIN organizations AS c ON c.id = p.consignor_org_id
 JOIN users AS ru ON ru.id = d.recorded_by
 LEFT JOIN users AS cu ON cu.id = d.confirmed_by
+LEFT JOIN users AS xu ON xu.id = d.cancelled_by
 WHERE d.id = @id::uuid AND (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid);
 
 -- name: ListDropItems :many
@@ -94,3 +96,28 @@ ORDER BY i.line_no;
 SELECT COALESCE(sum(qty), 0)::bigint AS balance
 FROM stock_movements
 WHERE partnership_id = @partnership_id::uuid AND product_id = @product_id::uuid;
+
+-- name: LockDrop :one
+SELECT d.id
+FROM drops AS d
+JOIN partnerships AS p ON p.id = d.partnership_id
+WHERE d.id = @id::uuid AND (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
+FOR UPDATE OF d, p;
+
+-- name: CountDropOutflows :one
+SELECT count(*)::bigint AS outflows
+FROM stock_movements AS m
+JOIN drop_items AS i ON i.id = m.drop_item_id
+WHERE i.drop_id = @drop_id::uuid AND m.type <> 'RECEIVE';
+
+-- name: ConfirmDrop :execrows
+UPDATE drops
+SET status = 'CONFIRMED', confirmed_by = @confirmed_by::uuid, confirmed_at = @confirmed_at::timestamptz,
+    auto_confirmed = false, updated_at = @confirmed_at::timestamptz
+WHERE id = @id::uuid AND status = 'RECORDED';
+
+-- name: CancelDrop :execrows
+UPDATE drops
+SET status = 'CANCELLED', cancelled_by = @cancelled_by::uuid, cancelled_at = @cancelled_at::timestamptz,
+    updated_at = @cancelled_at::timestamptz
+WHERE id = @id::uuid AND status = 'RECORDED';

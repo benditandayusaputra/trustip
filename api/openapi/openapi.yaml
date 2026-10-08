@@ -1826,6 +1826,86 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/drops/{id}/confirm:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: confirmDrop
+      tags: [drop]
+      responses:
+        "200":
+          description: Penitip menyatakan Titipan Masuk sesuai
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/drops/{id}/cancel:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: cancelDrop
+      tags: [drop]
+      responses:
+        "200":
+          description: Toko membatalkan Titipan Masuk dalam 15 menit dan stoknya ditarik kembali
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
   headers:
     RequestId:
@@ -1966,6 +2046,9 @@ components:
         - PARTNERSHIP_NOT_ACTIVE
         - AGREEMENT_CHANGED
         - IDEMPOTENCY_KEY_REUSED
+        - DOCUMENT_NOT_PENDING
+        - CANCEL_WINDOW_PASSED
+        - DROP_ALREADY_COUNTED
         - RATE_LIMITED
         - ACCOUNT_LOCKED
         - SERVICE_UNAVAILABLE
@@ -3542,6 +3625,8 @@ components:
         - consignor
         - recorded_by_name
         - confirmation
+        - cancellation
+        - cancel_deadline
         - items
         - total_qty
         - value_if_sold
@@ -3588,6 +3673,20 @@ components:
               format: date-time
             is_automatic:
               type: boolean
+        cancellation:
+          type: object
+          nullable: true
+          additionalProperties: false
+          required: [by_name, at]
+          properties:
+            by_name:
+              type: string
+            at:
+              type: string
+              format: date-time
+        cancel_deadline:
+          type: string
+          format: date-time
         items:
           type: array
           items:

@@ -105,6 +105,8 @@ type Drop struct {
 	RecordedOffline    bool
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+	CancelledBy        pgtype.UUID
+	CancelledAt        pgtype.Timestamptz
 }
 
 type DropItem struct {

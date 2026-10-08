@@ -19,6 +19,8 @@ import (
 const (
 	dropsPath            = "/drops"
 	dropPath             = dropsPath + "/:id"
+	confirmPath          = dropPath + "/confirm"
+	cancelPath           = dropPath + "/cancel"
 	idempotencyKeyHeader = "Idempotency-Key"
 	replayHeader         = "Idempotent-Replay"
 )
@@ -45,6 +47,8 @@ type Deps struct {
 	Authenticate fiber.Handler
 	Record       Recorder
 	Get          Reader
+	Confirm      Reader
+	Cancel       Reader
 	Clock        Clock
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
@@ -53,7 +57,9 @@ type Deps struct {
 func Mount(api fiber.Router, deps Deps) {
 	writeLimit := httpserver.RateLimit(deps.WriteLimiter, httpserver.BySignedInUser, deps.SecurityLog)
 	api.Post(dropsPath, deps.Authenticate, writeLimit, record(deps))
-	api.Get(dropPath, deps.Authenticate, read(deps))
+	api.Get(dropPath, deps.Authenticate, byID(deps.Get, deps.SecurityLog))
+	api.Post(confirmPath, deps.Authenticate, writeLimit, byID(deps.Confirm, deps.SecurityLog))
+	api.Post(cancelPath, deps.Authenticate, writeLimit, byID(deps.Cancel, deps.SecurityLog))
 }
 
 func signedInActor(c fiber.Ctx) (actor.Actor, error) {
@@ -99,7 +105,7 @@ func record(deps Deps) fiber.Handler {
 	}
 }
 
-func read(deps Deps) fiber.Handler {
+func byID(reader Reader, securityLog *slog.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		signedIn, err := signedInActor(c)
 		if err != nil {
@@ -109,11 +115,11 @@ func read(deps Deps) fiber.Handler {
 		if err != nil {
 			return fmt.Errorf("read drop id: %w", err)
 		}
-		sealed, err := deps.Get.Execute(c.Context(), signedIn, dropID)
+		sealed, err := reader.Execute(c.Context(), signedIn, dropID)
 		if err != nil {
-			return fmt.Errorf("read drop: %w", err)
+			return fmt.Errorf("act on drop: %w", err)
 		}
-		reportInvalidSeal(c, deps.SecurityLog, sealed)
+		reportInvalidSeal(c, securityLog, sealed)
 		return httpserver.Respond(c, httpserver.Reply{Data: toDropResponse(sealed)})
 	}
 }

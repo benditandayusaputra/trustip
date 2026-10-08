@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -175,4 +176,87 @@ func TestRecordDrop_RRES06_MissingIdempotencyKeyIsMalformed(t *testing.T) {
 
 	requireCode(t, got, "MALFORMED_REQUEST")
 	loadContract(t).requireConforms(t, got)
+}
+
+type dropScene struct {
+	invitationScene
+	partnershipID string
+	path          string
+}
+
+func recordedDrop(t *testing.T) dropScene {
+	t.Helper()
+	scene, partnershipID := acceptedScene(t)
+	recorded := scene.store.recordDrop(dropBody(partnershipID, scene.productID, 20), dropKey)
+	requireCreated(t, recorded)
+	return dropScene{
+		invitationScene: scene, partnershipID: partnershipID,
+		path: dropsPath + "/" + quotedAfter(string(recorded.body), `"id":"`),
+	}
+}
+
+func TestConfirmDrop_FRDRP06_ConsignorConfirmsAndTheRecorderIsTold(t *testing.T) {
+	scene := recordedDrop(t)
+	path := scene.path
+
+	confirmed := scene.consignor.post(path + "/confirm")
+	again := scene.consignor.post(path + "/confirm")
+
+	requireCode(t, confirmed, "OK")
+	loadContract(t).requireConforms(t, confirmed)
+	if !strings.Contains(string(confirmed.body), `"status":"CONFIRMED"`) ||
+		!strings.Contains(string(confirmed.body), `"event_type":"DROP_CONFIRMED"`) ||
+		!strings.Contains(string(confirmed.body), `"is_valid":true`) {
+		t.Fatalf("confirmed = %s", confirmed.body)
+	}
+	requireCode(t, again, "DOCUMENT_NOT_PENDING")
+	inbox := scene.store.get("/api/v1/notifications")
+	if !strings.Contains(string(inbox.body), "menyatakan TM-202610-0001 sesuai.") {
+		t.Fatalf("inbox = %s", inbox.body)
+	}
+}
+
+func TestCancelDrop_FRDRP10_StoreCancelsWithinFifteenMinutesAndTheStockGoesBack(t *testing.T) {
+	scene := recordedDrop(t)
+	partnershipID, path := scene.partnershipID, scene.path
+
+	cancelled := scene.store.post(path + "/cancel")
+
+	requireCode(t, cancelled, "OK")
+	loadContract(t).requireConforms(t, cancelled)
+	if !strings.Contains(string(cancelled.body), `"status":"CANCELLED"`) ||
+		!strings.Contains(string(cancelled.body), `"event_type":"DROP_CANCELLED"`) {
+		t.Fatalf("cancelled = %s", cancelled.body)
+	}
+	if got := productStock(t, scene.invitationScene, partnershipID); got != 0 {
+		t.Fatalf("stock = %d, want 0", got)
+	}
+	requireCode(t, scene.consignor.post(path+"/confirm"), "DOCUMENT_NOT_PENDING")
+}
+
+func TestCancelDrop_FRDRP10_SixteenMinutesLaterIsTooLate(t *testing.T) {
+	scene := recordedDrop(t)
+	path := scene.path
+	scene.store.now.Advance(16 * time.Minute)
+	scene.store.post("/api/v1/sessions/refresh")
+
+	got := scene.store.post(path + "/cancel")
+
+	requireCode(t, got, "CANCEL_WINDOW_PASSED")
+	loadContract(t).requireConforms(t, got)
+}
+
+func TestGetDrop_BRDRP08_UnansweredDropReadsAsConfirmedAfterFortyEightHours(t *testing.T) {
+	scene := recordedDrop(t)
+	path := scene.path
+	scene.consignor.now.Advance(48 * time.Hour)
+	scene.consignor.post("/api/v1/sessions/refresh")
+
+	got := scene.consignor.get(path)
+
+	requireCode(t, got, "OK")
+	if !strings.Contains(string(got.body), `"status":"CONFIRMED"`) ||
+		!strings.Contains(string(got.body), `"is_automatic":true`) {
+		t.Fatalf("got = %s", got.body)
+	}
 }

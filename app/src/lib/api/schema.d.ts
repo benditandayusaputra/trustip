@@ -803,12 +803,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/drops/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmDrop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drops/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancelDrop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
+        ErrorCode: "VALIDATION_FAILED" | "UNKNOWN_FIELD" | "MALFORMED_REQUEST" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "UNAUTHENTICATED" | "SESSION_EXPIRED" | "SESSION_REVOKED" | "LOGIN_FAILED" | "EDGE_SIGNATURE_INVALID" | "FORBIDDEN" | "CROSS_SITE_REJECTED" | "NOT_FOUND" | "CAPTCHA_FAILED" | "ORGANIZATION_EXISTS" | "PROFILE_INCOMPLETE" | "INVITE_WRONG_ORG_TYPE" | "PROPOSAL_EXPIRED" | "PROPOSAL_ALREADY_OPEN" | "ALREADY_PARTNERS" | "NOT_YOUR_TURN" | "PROPOSAL_ALREADY_DECIDED" | "PARTNERSHIP_NOT_ACTIVE" | "AGREEMENT_CHANGED" | "IDEMPOTENCY_KEY_REUSED" | "DOCUMENT_NOT_PENDING" | "CANCEL_WINDOW_PASSED" | "DROP_ALREADY_COUNTED" | "RATE_LIMITED" | "ACCOUNT_LOCKED" | "SERVICE_UNAVAILABLE" | "INTERNAL";
         ResponseMeta: {
             request_id: string;
         };
@@ -1490,6 +1526,13 @@ export interface components {
                 at: string;
                 is_automatic: boolean;
             } | null;
+            cancellation: {
+                by_name: string;
+                /** Format: date-time */
+                at: string;
+            } | null;
+            /** Format: date-time */
+            cancel_deadline: string;
             items: components["schemas"]["DropItem"][];
             total_qty: number;
             value_if_sold: components["schemas"]["Split"];
@@ -3195,6 +3238,72 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    confirmDrop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Penitip menyatakan Titipan Masuk sesuai */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DropResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    cancelDrop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Toko membatalkan Titipan Masuk dalam 15 menit dan stoknya ditarik kembali */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DropResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

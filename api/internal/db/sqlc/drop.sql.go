@@ -108,6 +108,62 @@ func (q *Queries) AddStockMovements(ctx context.Context, arg AddStockMovementsPa
 	return err
 }
 
+const cancelDrop = `-- name: CancelDrop :execrows
+UPDATE drops
+SET status = 'CANCELLED', cancelled_by = $1::uuid, cancelled_at = $2::timestamptz,
+    updated_at = $2::timestamptz
+WHERE id = $3::uuid AND status = 'RECORDED'
+`
+
+type CancelDropParams struct {
+	CancelledBy string
+	CancelledAt time.Time
+	ID          string
+}
+
+func (q *Queries) CancelDrop(ctx context.Context, arg CancelDropParams) (int64, error) {
+	result, err := q.db.Exec(ctx, cancelDrop, arg.CancelledBy, arg.CancelledAt, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const confirmDrop = `-- name: ConfirmDrop :execrows
+UPDATE drops
+SET status = 'CONFIRMED', confirmed_by = $1::uuid, confirmed_at = $2::timestamptz,
+    auto_confirmed = false, updated_at = $2::timestamptz
+WHERE id = $3::uuid AND status = 'RECORDED'
+`
+
+type ConfirmDropParams struct {
+	ConfirmedBy string
+	ConfirmedAt time.Time
+	ID          string
+}
+
+func (q *Queries) ConfirmDrop(ctx context.Context, arg ConfirmDropParams) (int64, error) {
+	result, err := q.db.Exec(ctx, confirmDrop, arg.ConfirmedBy, arg.ConfirmedAt, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const countDropOutflows = `-- name: CountDropOutflows :one
+SELECT count(*)::bigint AS outflows
+FROM stock_movements AS m
+JOIN drop_items AS i ON i.id = m.drop_item_id
+WHERE i.drop_id = $1::uuid AND m.type <> 'RECEIVE'
+`
+
+func (q *Queries) CountDropOutflows(ctx context.Context, dropID string) (int64, error) {
+	row := q.db.QueryRow(ctx, countDropOutflows, dropID)
+	var outflows int64
+	err := row.Scan(&outflows)
+	return outflows, err
+}
+
 const createDrop = `-- name: CreateDrop :execrows
 INSERT INTO drops (
     id, number, partnership_id, agreement_id, store_org_id, initiated_by, status, occurred_at, recorded_by,
@@ -183,7 +239,8 @@ SELECT
     d.recorded_offline, d.recorded_by, ru.full_name AS recorded_by_name,
     COALESCE(cu.full_name, '')::text AS confirmed_by_name,
     COALESCE(d.confirmed_at, d.received_at)::timestamptz AS confirmed_at, (d.confirmed_at IS NOT NULL)::boolean AS
-    is_confirmed, d.auto_confirmed
+    is_confirmed, d.auto_confirmed, COALESCE(xu.full_name, '')::text AS cancelled_by_name,
+    COALESCE(d.cancelled_at, d.received_at)::timestamptz AS cancelled_at
 FROM drops AS d
 JOIN partnerships AS p ON p.id = d.partnership_id
 JOIN agreements AS a ON a.id = d.agreement_id
@@ -191,6 +248,7 @@ JOIN organizations AS s ON s.id = d.store_org_id
 JOIN organizations AS c ON c.id = p.consignor_org_id
 JOIN users AS ru ON ru.id = d.recorded_by
 LEFT JOIN users AS cu ON cu.id = d.confirmed_by
+LEFT JOIN users AS xu ON xu.id = d.cancelled_by
 WHERE d.id = $1::uuid AND (p.store_org_id = $2::uuid OR p.consignor_org_id = $2::uuid)
 `
 
@@ -219,6 +277,8 @@ type GetDropRow struct {
 	ConfirmedAt      time.Time
 	IsConfirmed      bool
 	AutoConfirmed    bool
+	CancelledByName  string
+	CancelledAt      time.Time
 }
 
 func (q *Queries) GetDrop(ctx context.Context, arg GetDropParams) (GetDropRow, error) {
@@ -244,6 +304,8 @@ func (q *Queries) GetDrop(ctx context.Context, arg GetDropParams) (GetDropRow, e
 		&i.ConfirmedAt,
 		&i.IsConfirmed,
 		&i.AutoConfirmed,
+		&i.CancelledByName,
+		&i.CancelledAt,
 	)
 	return i, err
 }
@@ -389,6 +451,26 @@ func (q *Queries) ListDropProducts(ctx context.Context, agreementID string) ([]L
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockDrop = `-- name: LockDrop :one
+SELECT d.id
+FROM drops AS d
+JOIN partnerships AS p ON p.id = d.partnership_id
+WHERE d.id = $1::uuid AND (p.store_org_id = $2::uuid OR p.consignor_org_id = $2::uuid)
+FOR UPDATE OF d, p
+`
+
+type LockDropParams struct {
+	ID             string
+	OrganizationID string
+}
+
+func (q *Queries) LockDrop(ctx context.Context, arg LockDropParams) (string, error) {
+	row := q.db.QueryRow(ctx, lockDrop, arg.ID, arg.OrganizationID)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const sumProductStock = `-- name: SumProductStock :one

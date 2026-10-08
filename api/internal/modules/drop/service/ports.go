@@ -19,9 +19,16 @@ type DropReader interface {
 	GetDrop(ctx context.Context, key domain.DropKey) (domain.View, error)
 }
 
+type DropDecider interface {
+	LockDrop(ctx context.Context, key domain.DropKey) error
+	IsStockUsed(ctx context.Context, dropID string) (bool, error)
+	SaveDecision(ctx context.Context, decision domain.Decision, reversal []domain.Movement) error
+}
+
 type DropStore interface {
 	DropWriter
 	DropReader
+	DropDecider
 }
 
 type Sealer interface {

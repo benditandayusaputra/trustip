@@ -23,6 +23,8 @@ const (
 	ProposalDeclined        Action = "PROPOSAL_DECLINED"
 	ProposalWithdrawn       Action = "PROPOSAL_WITHDRAWN"
 	DropRecorded            Action = "DROP_RECORDED"
+	DropConfirmed           Action = "DROP_CONFIRMED"
+	DropCancelled           Action = "DROP_CANCELLED"
 )
 
 type EntityType string

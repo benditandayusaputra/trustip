@@ -52,7 +52,8 @@ func viewOf(row sqlc.GetDropRow) domain.View {
 		},
 		StoreName: row.StoreName, ConsignorName: row.ConsignorName, RecordedByName: row.RecordedByName,
 		ConfirmedByName: row.ConfirmedByName, ConfirmedAt: row.ConfirmedAt, IsConfirmed: row.IsConfirmed,
-		AutoConfirmed: row.AutoConfirmed, RecordedOffline: row.RecordedOffline, ItemViews: []domain.ItemView{},
+		AutoConfirmed: row.AutoConfirmed, CancelledByName: row.CancelledByName, CancelledAt: row.CancelledAt,
+		RecordedOffline: row.RecordedOffline, ItemViews: []domain.ItemView{},
 	}
 }
 

@@ -130,7 +130,7 @@ func (r *Drops) CreateDrop(ctx context.Context, drop domain.Drop) error {
 	if err := queries.AddDropItems(writeCtx, itemParams(drop)); err != nil {
 		return fmt.Errorf("add items to drop %s: %w", drop.ID, err)
 	}
-	if err := queries.AddStockMovements(writeCtx, movementParams(drop)); err != nil {
+	if err := queries.AddStockMovements(writeCtx, movementParams(drop.Movements())); err != nil {
 		return fmt.Errorf("receive stock of drop %s: %w", drop.ID, err)
 	}
 	return nil
@@ -153,12 +153,13 @@ func itemParams(drop domain.Drop) sqlc.AddDropItemsParams {
 	return params
 }
 
-func movementParams(drop domain.Drop) sqlc.AddStockMovementsParams {
+func movementParams(movements []domain.Movement) sqlc.AddStockMovementsParams {
+	first := movements[0]
 	params := sqlc.AddStockMovementsParams{
-		PartnershipID: drop.PartnershipID, OccurredAt: drop.OccurredAt, SourceType: domain.EntityType,
-		SourceID: drop.ID, SourceNumber: drop.Number, CreatedBy: drop.RecordedBy,
+		PartnershipID: first.PartnershipID, OccurredAt: first.OccurredAt, SourceType: first.SourceType,
+		SourceID: first.SourceID, SourceNumber: first.SourceNumber, CreatedBy: first.CreatedBy,
 	}
-	for _, movement := range drop.Movements() {
+	for _, movement := range movements {
 		params.Ids = append(params.Ids, movement.ID)
 		params.ProductIds = append(params.ProductIds, movement.ProductID)
 		params.DropItemIds = append(params.DropItemIds, movement.DropItemID)

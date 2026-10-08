@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	notificationdomain "github.com/benditandayusaputra/trustip/api/internal/modules/notification/domain"
 	notificationrepository "github.com/benditandayusaputra/trustip/api/internal/modules/notification/repository"
@@ -47,9 +48,18 @@ func (a proposalAnnouncer) Announce(ctx context.Context, notice proposaldomain.N
 }
 
 func (a organizationAnnouncer) announce(ctx context.Context, notice organizationNotice) error {
+	return a.announceTo(ctx, notice, "")
+}
+
+func (a organizationAnnouncer) announceTo(ctx context.Context, notice organizationNotice, userID string) error {
 	recipients, err := a.directory.ListRecipients(ctx, notice.OrganizationID)
 	if err != nil {
 		return fmt.Errorf("find recipients: %w", err)
+	}
+	if userID != "" {
+		recipients = slices.DeleteFunc(recipients, func(recipient notificationdomain.Recipient) bool {
+			return recipient.UserID != userID
+		})
 	}
 	err = a.notifier.Notify(ctx, notificationservice.Notice{
 		Draft: notificationdomain.DraftInput{

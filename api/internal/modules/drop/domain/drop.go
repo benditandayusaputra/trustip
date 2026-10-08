@@ -89,13 +89,14 @@ func (d Drop) Movements() []Movement {
 }
 
 type Notice struct {
-	OrganizationID string
-	ActorUserID    string
-	Type           string
-	Title          string
-	Body           string
-	Link           string
-	OwnersOnly     bool
+	OrganizationID  string
+	RecipientUserID string
+	ActorUserID     string
+	Type            string
+	Title           string
+	Body            string
+	Link            string
+	OwnersOnly      bool
 }
 
 func (d Drop) Notice(storeName string) Notice {

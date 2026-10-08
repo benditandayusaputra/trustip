@@ -35,6 +35,28 @@ type fakeDrops struct {
 	sequences  []domain.SequenceKey
 	duplicate  *domain.Drop
 	failCreate error
+	stockUsed  bool
+	reversals  []domain.Movement
+}
+
+func (f *fakeDrops) LockDrop(ctx context.Context, key domain.DropKey) error {
+	_, err := f.GetDrop(ctx, key)
+	return err
+}
+
+func (f *fakeDrops) IsStockUsed(context.Context, string) (bool, error) {
+	return f.stockUsed, nil
+}
+
+func (f *fakeDrops) SaveDecision(_ context.Context, decision domain.Decision, reversal []domain.Movement) error {
+	drop := f.saved[decision.DropID]
+	if drop.Status != domain.Recorded {
+		return domain.ErrNotPending
+	}
+	drop.Status = decision.Status
+	f.saved[decision.DropID] = drop
+	f.reversals = append(f.reversals, reversal...)
+	return nil
 }
 
 func newFakeDrops() *fakeDrops {
@@ -125,9 +147,9 @@ func (inlineTx) WithinTx(ctx context.Context, work func(context.Context) error) 
 	return work(ctx)
 }
 
-type fixedClock struct{ at time.Time }
+type movingClock struct{ at *time.Time }
 
-func (c fixedClock) Now() time.Time { return c.at }
+func (c movingClock) Now() time.Time { return *c.at }
 
 type sequentialIDs struct{ next int }
 
@@ -141,15 +163,26 @@ type world struct {
 	recorder *recorder
 	deps     service.Deps
 	now      time.Time
+	clock    *time.Time
 }
 
 func newWorld() world {
 	drops, events := newFakeDrops(), &recorder{}
 	now := time.Date(2026, 11, 10, 2, 0, 0, 0, time.UTC)
-	return world{drops: drops, recorder: events, now: now, deps: service.Deps{
+	current := now
+	return world{drops: drops, recorder: events, now: now, clock: &current, deps: service.Deps{
 		Drops: drops, Sealer: events, Seals: events, Announcer: events, Audit: events, Tx: inlineTx{},
-		Clock: fixedClock{at: now}, IDs: &sequentialIDs{},
+		Clock: movingClock{at: &current}, IDs: &sequentialIDs{},
 	}}
+}
+
+func (w world) recorded(t *testing.T) string {
+	t.Helper()
+	receipt, err := service.NewRecordDrop(w.deps).Execute(t.Context(), cashier(), w.command())
+	if err != nil {
+		t.Fatalf("record: %v", err)
+	}
+	return receipt.View.ID
 }
 
 func cashier() actor.Actor {

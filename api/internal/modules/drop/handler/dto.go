@@ -86,6 +86,11 @@ type confirmationResponse struct {
 	IsAutomatic bool   `json:"is_automatic"`
 }
 
+type cancellationResponse struct {
+	ByName string `json:"by_name"`
+	At     string `json:"at"`
+}
+
 type sealEventResponse struct {
 	EventType     string `json:"event_type"`
 	ActorOrgName  string `json:"actor_org_name"`
@@ -112,6 +117,8 @@ type dropResponse struct {
 	Consignor        partyResponse         `json:"consignor"`
 	RecordedByName   string                `json:"recorded_by_name"`
 	Confirmation     *confirmationResponse `json:"confirmation"`
+	Cancellation     *cancellationResponse `json:"cancellation"`
+	CancelDeadline   string                `json:"cancel_deadline"`
 	Items            []itemResponse        `json:"items"`
 	TotalQty         int                   `json:"total_qty"`
 	ValueIfSold      splitResponse         `json:"value_if_sold"`
@@ -127,6 +134,7 @@ func toDropResponse(sealed domain.SealedView) dropResponse {
 		Store:           partyResponse{ID: view.StoreID, Name: view.StoreName},
 		Consignor:       partyResponse{ID: view.ConsignorID, Name: view.ConsignorName},
 		RecordedByName:  view.RecordedByName, Confirmation: toConfirmation(view),
+		Cancellation: toCancellation(view), CancelDeadline: timestamp(view.ReceivedAt.Add(domain.CancelWindow)),
 		Items: toItems(view.ItemViews), TotalQty: view.TotalQty(), ValueIfSold: toSplit(valueIfSold(view.Items)),
 		Seal: toSealResponse(sealed.Seal),
 	}
@@ -139,6 +147,13 @@ func toConfirmation(view domain.View) *confirmationResponse {
 	return &confirmationResponse{
 		ByName: view.ConfirmedByName, At: timestamp(view.ConfirmedAt), IsAutomatic: view.AutoConfirmed,
 	}
+}
+
+func toCancellation(view domain.View) *cancellationResponse {
+	if view.Status != domain.Cancelled {
+		return nil
+	}
+	return &cancellationResponse{ByName: view.CancelledByName, At: timestamp(view.CancelledAt)}
 }
 
 func toItems(items []domain.ItemView) []itemResponse {

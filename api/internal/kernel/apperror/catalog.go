@@ -33,6 +33,9 @@ const (
 	CodePartnershipNotActive Code = "PARTNERSHIP_NOT_ACTIVE"
 	CodeAgreementChanged     Code = "AGREEMENT_CHANGED"
 	CodeIdempotencyKeyReused Code = "IDEMPOTENCY_KEY_REUSED"
+	CodeDocumentNotPending   Code = "DOCUMENT_NOT_PENDING"
+	CodeCancelWindowPassed   Code = "CANCEL_WINDOW_PASSED"
+	CodeDropAlreadyCounted   Code = "DROP_ALREADY_COUNTED"
 	CodeRateLimited          Code = "RATE_LIMITED"
 	CodeAccountLocked        Code = "ACCOUNT_LOCKED"
 	CodeServiceUnavailable   Code = "SERVICE_UNAVAILABLE"
@@ -131,6 +134,13 @@ func outcomeEntries() map[Code]entry {
 		CodePartnershipNotActive: {KindConflict, http.StatusConflict, "Kemitraan ini sudah tidak aktif."},
 		CodeAgreementChanged: {
 			KindConflict, http.StatusConflict, "Kesepakatan sudah berubah ke versi {n}. Tinjau lagi catatan ini.",
+		},
+		CodeDocumentNotPending: {KindConflict, http.StatusConflict, "Dokumen ini sudah tidak menunggu tanggapan."},
+		CodeCancelWindowPassed: {
+			KindConflict, http.StatusConflict, "Batas 15 menit untuk membatalkan titipan ini sudah lewat.",
+		},
+		CodeDropAlreadyCounted: {
+			KindConflict, http.StatusConflict, "Titipan ini sudah masuk Hitung Sisa sehingga tidak bisa dibatalkan.",
 		},
 		CodeProposalAlreadyOpen: {
 			KindConflict, http.StatusConflict, "Masih ada Ajuan yang terbuka dengan {organisasi}.",

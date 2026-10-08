@@ -12,10 +12,11 @@ import (
 type GetDrop struct {
 	drops DropReader
 	seals SealChecker
+	clock Clock
 }
 
 func NewGetDrop(deps Deps) *GetDrop {
-	return &GetDrop{drops: deps.Drops, seals: deps.Seals}
+	return &GetDrop{drops: deps.Drops, seals: deps.Seals, clock: deps.Clock}
 }
 
 func (uc *GetDrop) Execute(ctx context.Context, signedIn actor.Actor, dropID string) (domain.SealedView, error) {
@@ -36,5 +37,5 @@ func (uc *GetDrop) read(ctx context.Context, signedIn actor.Actor, dropID string
 	if err != nil {
 		return domain.SealedView{}, fmt.Errorf("check seal of drop %s: %w", dropID, err)
 	}
-	return domain.SealedView{View: view, Seal: verdict}, nil
+	return domain.SealedView{View: view.Effective(uc.clock.Now()), Seal: verdict}, nil
 }
