@@ -29,6 +29,7 @@ async function consignorWithProduct(page: Page): Promise<void> {
 async function sendInvitation(page: Page): Promise<string> {
 	await page.goto('/app/ajuan/baru');
 	await page.getByLabel(/Roti Manis Uji/u).check();
+	await page.getByLabel('Jadwal setor').selectOption('ON_COUNT');
 	await expect(page.getByText('Rp17.500')).toBeVisible();
 	await page.getByRole('button', { name: 'Buat tautan undangan' }).click();
 	const link = page.getByText(/\/undangan\/[A-Z0-9]{10}$/u);
@@ -97,7 +98,32 @@ async function expectRecap(page: Page): Promise<void> {
 	).toBeVisible();
 }
 
-test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 two businesses partner, then 20 loaves are dropped, 2 left and returned, and the recap is confirmed', async ({
+async function storePaysCash(page: Page, recapPage: string): Promise<string> {
+	await page.goto(new URL(recapPage).pathname);
+	await page.getByRole('link', { name: /^Catat bayar ST-/u }).click();
+	await page.waitForURL(/\/app\/setoran\/[0-9a-f-]{36}$/u, { timeout: networkTimeoutMs });
+	await expect(page.getByText('Rp31.500').filter({ visible: true }).first()).toBeVisible({
+		timeout: networkTimeoutMs
+	});
+	await page.getByRole('combobox', { name: 'Metode' }).selectOption('CASH');
+	await page.getByRole('button', { name: 'Simpan pembayaran' }).click();
+	await expect(page.getByText('Pembayaran tercatat. Menunggu penitip.')).toBeVisible({
+		timeout: networkTimeoutMs
+	});
+	return page.url();
+}
+
+async function consignorReceivesTheMoney(page: Page, settlementPage: string): Promise<void> {
+	await page.goto(new URL(settlementPage).pathname);
+	await page.getByRole('button', { name: 'Uang diterima' }).click();
+	await page.getByRole('dialog').getByRole('button', { name: 'Uang diterima' }).click();
+	await expect(page.getByText('Pembayaran diterima. Setoran lunas.')).toBeVisible({
+		timeout: networkTimeoutMs
+	});
+	await expect(page.getByText('Lunas', { exact: true }).first()).toBeVisible();
+}
+
+test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 FR-STL-06 two businesses partner, then 20 loaves are dropped, 2 left and returned, the recap is confirmed, and the cash payment is received', async ({
 	browser
 }) => {
 	test.setTimeout(flowTimeoutMs);
@@ -128,4 +154,6 @@ test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 two businesses partner, 
 	await expect(consignor.getByText('Hitung Sisa dinyatakan sesuai.')).toBeVisible({
 		timeout: networkTimeoutMs
 	});
+	const settlementPage = await storePaysCash(store, recapPage);
+	await consignorReceivesTheMoney(consignor, settlementPage);
 });
