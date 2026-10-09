@@ -13,7 +13,7 @@ Bagian 17 spesifikasi meminta beranda, profil toko dan penitip, halaman produk d
 5. Profil penitip menampilkan paling banyak 20 produk aktif dan lokasi publik yang sudah dibulatkan.
 6. Halaman `/`, `/t/`, `/u/`, `/p/`, dan `/kebutuhan/{id}` dirender server lewat `event.fetch` ke proxy dan memasang `Cache-Control: public, s-maxage=60, stale-while-revalidate=300`. Jawaban API sendiri tetap `no-store`.
 7. Rute daftar direktori dan Papan Kebutuhan memakai autentikasi opsional: tanpa cookie, permintaan berjalan sebagai pengunjung; dengan cookie yang tidak sah, tetap 401 supaya app menyegarkan sesi. Pengguna yang sudah masuk tetapi belum punya organisasi tetap ditolak. Pengunjung mendapat penonton tanpa organisasi (ID nol), titik asal kota atau lokasi sekarang, dan tanpa skor kecocokan.
-8. Halaman direktori dan Papan Kebutuhan tetap cangkang yang dirender klien. Pengunjung melihat tombol Masuk di kepala halaman, dan tombol yang butuh sesi mengarah ke halaman masuk lalu kembali.
+8. Halaman direktori dan Papan Kebutuhan dirender server sebagai cangkang tanpa data pribadi dan ikut di-cache tepi. Daftarnya diambil klien. Pengunjung melihat tombol Masuk di kepala halaman, isi halaman tidak menunggu sesi selesai dimuat, dan tombol yang butuh sesi mengarah ke halaman masuk lalu kembali. Menu akun, lonceng pemberitahuan, dialog Laporkan, dan peta dimuat saat dibutuhkan supaya JavaScript awal halaman publik tetap kecil.
 9. Gambar pratinjau tautan memakai foto produk atau logo organisasi bila ada, selain itu ikon aplikasi. Tidak ada pembangkit gambar di server.
 
 ## Akibat

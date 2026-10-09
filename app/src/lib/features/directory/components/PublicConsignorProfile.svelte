@@ -8,7 +8,7 @@
 	import DeclaredLegality from './DeclaredLegality.svelte';
 	import ProfileHeader from './ProfileHeader.svelte';
 	import PublicProductList from './PublicProductList.svelte';
-	import ReportListing from './ReportListing.svelte';
+	import LazyReportListing from './LazyReportListing.svelte';
 
 	interface Props {
 		consignor: PublicConsignor;
@@ -42,7 +42,7 @@
 	<Card title={text.legality}>
 		<DeclaredLegality legality={consignor.legality} />
 	</Card>
-	<ReportListing
+	<LazyReportListing
 		target={{ target_type: 'ORGANIZATION', target_id: consignor.id }}
 		name={consignor.name}
 	/>

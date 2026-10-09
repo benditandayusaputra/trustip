@@ -2,13 +2,13 @@
 	import Card from '#lib/components/ui/Card.svelte';
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
-	import MapView from '#lib/components/ui/MapView.svelte';
 	import type { PublicStore } from '#lib/api/public.js';
 	import { formatBasisPoints, formatBusinessDate, formatDate } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
 	import ContactActions from './ContactActions.svelte';
 	import ProfileHeader from './ProfileHeader.svelte';
-	import ReportListing from './ReportListing.svelte';
+	import LazyMap from './LazyMap.svelte';
+	import LazyReportListing from './LazyReportListing.svelte';
 	import StoreTermsList from './StoreTermsList.svelte';
 
 	interface Props {
@@ -56,11 +56,11 @@
 			</dd>
 		</dl>
 		{#if store.location}
-			<MapView
+			<LazyMap
 				center={store.location}
 				label={text.map(store.name)}
+				showLabel={text.showMap}
 				unavailableText={text.mapUnavailable}
-				onmove={() => undefined}
 			/>
 		{/if}
 	</Card>
@@ -109,5 +109,8 @@
 			</ul>
 		{/if}
 	</Card>
-	<ReportListing target={{ target_type: 'ORGANIZATION', target_id: store.id }} name={store.name} />
+	<LazyReportListing
+		target={{ target_type: 'ORGANIZATION', target_id: store.id }}
+		name={store.name}
+	/>
 </article>

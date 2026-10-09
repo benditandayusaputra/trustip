@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Flag from '@lucide/svelte/icons/flag';
+	import { onMount } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
@@ -12,9 +13,10 @@
 	interface Props {
 		target: ReportTarget;
 		name: string;
+		startOpen?: boolean;
 	}
 
-	let { target, name }: Props = $props();
+	let { target, name, startOpen = false }: Props = $props();
 
 	const text = id.listingReport;
 	const maxNoteLength = 500;
@@ -25,6 +27,10 @@
 		...Object.entries(text.reasons).map(([value, label]) => ({ value, label }))
 	];
 	let open = $state(false);
+
+	onMount(() => {
+		open = startOpen;
+	});
 
 	async function send() {
 		const outcome = await form.send(target);

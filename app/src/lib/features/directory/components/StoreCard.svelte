@@ -5,7 +5,7 @@
 	import { formatBasisPoints, formatBusinessDate, formatDistance } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
 	import ContactActions from './ContactActions.svelte';
-	import ReportListing from './ReportListing.svelte';
+	import LazyReportListing from './LazyReportListing.svelte';
 	import MatchReasons from './MatchReasons.svelte';
 	import MatchSummary from './MatchSummary.svelte';
 
@@ -83,6 +83,9 @@
 	{/if}
 	{#if !card.is_self}
 		<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
-		<ReportListing target={{ target_type: 'ORGANIZATION', target_id: card.id }} name={card.name} />
+		<LazyReportListing
+			target={{ target_type: 'ORGANIZATION', target_id: card.id }}
+			name={card.name}
+		/>
 	{/if}
 </article>

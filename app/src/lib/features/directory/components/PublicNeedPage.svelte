@@ -5,7 +5,7 @@
 	import type { PublicNeed } from '#lib/api/public.js';
 	import { formatBasisPoints, formatDate, formatRupiah } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
-	import ReportListing from './ReportListing.svelte';
+	import LazyReportListing from './LazyReportListing.svelte';
 
 	interface Props {
 		need: PublicNeed;
@@ -74,5 +74,5 @@
 		{/if}
 		<ShareButton title={need.title} url={shareUrl} />
 	</div>
-	<ReportListing target={{ target_type: 'NEED', target_id: need.id }} name={need.title} />
+	<LazyReportListing target={{ target_type: 'NEED', target_id: need.id }} name={need.title} />
 </article>

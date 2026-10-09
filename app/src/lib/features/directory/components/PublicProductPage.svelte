@@ -8,7 +8,7 @@
 	import type { GeoPosition } from '../availability.svelte';
 	import AvailableStores from './AvailableStores.svelte';
 	import DeclaredLegality from './DeclaredLegality.svelte';
-	import ReportListing from './ReportListing.svelte';
+	import LazyReportListing from './LazyReportListing.svelte';
 
 	interface Props {
 		product: PublicProduct;
@@ -40,7 +40,7 @@
 		<div class="flex flex-col gap-2">
 			<p class="text-sm text-text-muted">{product.category}</p>
 			<h1 class="text-xl font-semibold text-text">{product.name}</h1>
-			<p class="font-mono text-kpi font-bold text-accent">
+			<p class="font-mono text-xl font-bold text-accent">
 				{formatRupiah(product.suggested_retail_price)}
 			</p>
 			<p class="text-sm text-text-muted">{text.suggestedPrice(product.unit)}</p>
@@ -73,5 +73,8 @@
 		<h3 class="text-base font-semibold text-text">{text.legality}</h3>
 		<DeclaredLegality legality={maker.legality} />
 	</Card>
-	<ReportListing target={{ target_type: 'PRODUCT', target_id: product.id }} name={product.name} />
+	<LazyReportListing
+		target={{ target_type: 'PRODUCT', target_id: product.id }}
+		name={product.name}
+	/>
 </article>

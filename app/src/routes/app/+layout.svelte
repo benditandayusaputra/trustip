@@ -4,7 +4,6 @@
 	import { page } from '$app/state';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
 	import { onboardingHref, signInHref } from '#lib/features/auth/links.js';
-	import NotificationBell from '#lib/features/notifications/components/NotificationBell.svelte';
 	import OfflineKeeper from '#lib/features/outbox/components/OfflineKeeper.svelte';
 	import OutboxBadge from '#lib/features/outbox/components/OutboxBadge.svelte';
 	import InstallPrompt from '#lib/features/system/InstallPrompt.svelte';
@@ -28,7 +27,9 @@
 	{#snippet actions()}
 		<OfflineKeeper />
 		<OutboxBadge />
-		<NotificationBell streamUrl={PUBLIC_STREAM_URL} />
+		{#await import('#lib/features/notifications/components/NotificationBell.svelte') then { default: NotificationBell }}
+			<NotificationBell streamUrl={PUBLIC_STREAM_URL} />
+		{/await}
 	{/snippet}
 	{@render children()}
 </AccountGate>

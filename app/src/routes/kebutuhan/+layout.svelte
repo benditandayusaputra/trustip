@@ -4,7 +4,6 @@
 	import { page } from '$app/state';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
 	import { onboardingHref, signInHref } from '#lib/features/auth/links.js';
-	import NotificationBell from '#lib/features/notifications/components/NotificationBell.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -20,7 +19,9 @@
 	onmisplaced={() => void goto(onboardingHref(here), { replaceState: true })}
 >
 	{#snippet actions()}
-		<NotificationBell streamUrl={PUBLIC_STREAM_URL} />
+		{#await import('#lib/features/notifications/components/NotificationBell.svelte') then { default: NotificationBell }}
+			<NotificationBell streamUrl={PUBLIC_STREAM_URL} />
+		{/await}
 	{/snippet}
 	{@render children()}
 </AccountGate>

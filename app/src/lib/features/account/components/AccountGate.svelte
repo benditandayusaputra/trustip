@@ -14,7 +14,6 @@
 		setAccountSession,
 		type Placement
 	} from '../session.svelte';
-	import AccountMenu from './AccountMenu.svelte';
 
 	interface Props {
 		placement: Placement;
@@ -39,6 +38,7 @@
 			isPlacedFor(session.account, placement)
 	);
 	const isVisitor = $derived(session.status === 'signedOut' && placement === 'anyone');
+	const isOpenWhileLoading = $derived(session.status === 'loading' && placement === 'anyone');
 	const signInHref = $derived(
 		`/masuk?${new URLSearchParams({ lanjut: page.url.pathname + page.url.search }).toString()}`
 	);
@@ -73,13 +73,15 @@
 					{#if isPlaced && actions}
 						{@render actions()}
 					{/if}
-					<AccountMenu />
+					{#await import('./AccountMenu.svelte') then { default: AccountMenu }}
+						<AccountMenu />
+					{/await}
 				</div>
 			{/if}
 		</div>
 	</header>
 	<main id="konten" tabindex="-1" class="mx-auto w-full max-w-content flex-1 px-4 py-6">
-		{#if isPlaced || isVisitor}
+		{#if isPlaced || isVisitor || isOpenWhileLoading}
 			{@render children()}
 		{:else if session.status === 'failed'}
 			<Alert title={id.account.loadFailed}>

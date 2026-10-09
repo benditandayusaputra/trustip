@@ -6,7 +6,7 @@
 	import { id } from '#lib/i18n/id.js';
 	import ConsignorTraits from './ConsignorTraits.svelte';
 	import ContactActions from './ContactActions.svelte';
-	import ReportListing from './ReportListing.svelte';
+	import LazyReportListing from './LazyReportListing.svelte';
 	import MatchReasons from './MatchReasons.svelte';
 	import MatchSummary from './MatchSummary.svelte';
 
@@ -68,6 +68,6 @@
 			productId={card.id}
 			canPropose={!card.is_partner}
 		/>
-		<ReportListing target={{ target_type: 'PRODUCT', target_id: card.id }} name={card.name} />
+		<LazyReportListing target={{ target_type: 'PRODUCT', target_id: card.id }} name={card.name} />
 	{/if}
 </article>

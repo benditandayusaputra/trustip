@@ -7,6 +7,7 @@ export const publicProfile = {
 		address: 'Alamat',
 		openingHours: 'Jam buka',
 		map: (name: string) => `Peta lokasi ${name}`,
+		showMap: 'Tampilkan peta',
 		mapUnavailable: 'Peta tidak bisa dimuat. Alamat tetap tercantum di atas.',
 		photos: (name: string) => `Foto ${name}`,
 		accepts: 'Kategori yang diterima',

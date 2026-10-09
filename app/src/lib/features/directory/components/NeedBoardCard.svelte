@@ -3,7 +3,7 @@
 	import type { NeedBoardCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatDate, formatDistance, formatRupiah } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
-	import ReportListing from './ReportListing.svelte';
+	import LazyReportListing from './LazyReportListing.svelte';
 
 	interface Props {
 		card: NeedBoardCard;
@@ -63,6 +63,6 @@
 		>
 	{/if}
 	{#if !card.is_own}
-		<ReportListing target={{ target_type: 'NEED', target_id: card.id }} name={card.title} />
+		<LazyReportListing target={{ target_type: 'NEED', target_id: card.id }} name={card.title} />
 	{/if}
 </article>
