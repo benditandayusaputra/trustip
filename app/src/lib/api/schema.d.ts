@@ -656,6 +656,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/products/{slug}/{sku}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                sku: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getPublicProduct"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/directory/needs": {
         parameters: {
             query?: never;
@@ -2947,6 +2966,44 @@ export interface components {
             data: components["schemas"]["PublicConsignor"];
             meta: components["schemas"]["ResponseMeta"];
         };
+        PublicProductMaker: {
+            name: string;
+            district: string;
+            city_name: string;
+            profile_slug: string | null;
+            legality: components["schemas"]["DeclaredLegality"];
+        };
+        AvailableStore: {
+            name: string;
+            address: string;
+            district: string;
+            city_name: string;
+            profile_slug: string | null;
+            location: components["schemas"]["PublicPlace"] | null;
+            distance_m: number | null;
+        };
+        PublicProduct: {
+            /** Format: uuid */
+            id: string;
+            sku: string;
+            name: string;
+            unit: string;
+            category: string;
+            description: string;
+            composition: string;
+            net_content: string;
+            /** Format: int64 */
+            suggested_retail_price: number;
+            photo_url: string | null;
+            maker: components["schemas"]["PublicProductMaker"];
+            stores: components["schemas"]["AvailableStore"][];
+        };
+        PublicProductResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["PublicProduct"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
         DirectoryStoreCard: {
             /** Format: date */
             joined_on: string;
@@ -4644,6 +4701,38 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getPublicProduct: {
+        parameters: {
+            query?: {
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+                sku: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Halaman produk publik dan toko yang sedang menjualnya */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProductResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

@@ -6,9 +6,10 @@
 
 	interface Props {
 		products: PublicConsignor['products'];
+		consignorSlug: string;
 	}
 
-	let { products }: Props = $props();
+	let { products, consignorSlug }: Props = $props();
 </script>
 
 {#if products.length === 0}
@@ -30,7 +31,10 @@
 				{:else}
 					<Package class="aspect-square size-full text-text-muted" aria-hidden="true" />
 				{/if}
-				<span class="text-base text-text">{product.name}</span>
+				<a
+					href="/p/{encodeURIComponent(consignorSlug)}/{encodeURIComponent(product.sku)}"
+					class="text-base font-semibold text-accent">{product.name}</a
+				>
 				<span class="text-sm text-text-muted">{product.category}</span>
 				<span class="font-mono text-base text-text"
 					>{formatRupiah(product.suggested_retail_price)}</span

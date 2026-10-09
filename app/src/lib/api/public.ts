@@ -11,3 +11,26 @@ export function getPublicStore(client: ApiClient, slug: string): Promise<PublicS
 export function getPublicConsignor(client: ApiClient, slug: string): Promise<PublicConsignor> {
 	return client.get<PublicConsignor>(`/api/v1/public/consignors/${encodeURIComponent(slug)}`);
 }
+
+export type PublicProduct = components['schemas']['PublicProduct'];
+
+export interface ProductAddress {
+	slug: string;
+	sku: string;
+	near?: { latitude: number; longitude: number };
+}
+
+export function getPublicProduct(
+	client: ApiClient,
+	address: ProductAddress
+): Promise<PublicProduct> {
+	const path = `/api/v1/public/products/${encodeURIComponent(address.slug)}/${encodeURIComponent(address.sku)}`;
+	if (!address.near) {
+		return client.get<PublicProduct>(path);
+	}
+	const near = new URLSearchParams({
+		lat: String(address.near.latitude),
+		lng: String(address.near.longitude)
+	});
+	return client.get<PublicProduct>(`${path}?${near.toString()}`);
+}

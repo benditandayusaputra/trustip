@@ -47,6 +47,7 @@ export const products = {
 		seekingHint: 'Produk tampil di Cari Mitra untuk toko yang mencari pemasok.',
 		seekingOn: 'Produk ditandai sedang mencari toko.',
 		seekingOff: 'Tanda sedang mencari toko dilepas.',
+		openPublicPage: 'Lihat halaman publik produk',
 		qrTitle: 'Kode QR produk',
 		qrHint:
 			'Tempel di kemasan. Pembeli yang memindai melihat halaman produk dan toko yang menjualnya.',

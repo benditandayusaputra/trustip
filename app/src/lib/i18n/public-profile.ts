@@ -32,6 +32,16 @@ export const publicProfile = {
 		declaredNote: 'Dinyatakan oleh pemilik usaha dan belum diperiksa Trustip.',
 		storePartners: (count: number) => `${String(count)} toko mitra aktif`,
 		contact: 'Hubungi',
-		signInToContact: 'Masuk untuk melihat nomor WhatsApp'
+		signInToContact: 'Masuk untuk melihat nomor WhatsApp',
+		suggestedPrice: (unit: string) => `Harga jual saran per ${unit}`,
+		composition: 'Komposisi',
+		netContent: (content: string) => `Isi bersih ${content}`,
+		availableAt: 'Tersedia di',
+		notAvailable: 'Belum ada toko yang menampilkan produk ini sebagai tempat membeli.',
+		sortNearest: 'Urutkan dari lokasi saya',
+		locationDenied: 'Lokasi tidak bisa dibaca. Toko tetap diurutkan menurut nama.',
+		sortFailed: 'Toko terdekat tidak bisa dimuat. Coba lagi.',
+		openMap: (name: string) => `Buka ${name} di peta`,
+		maker: 'Pembuat'
 	}
 };

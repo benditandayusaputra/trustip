@@ -90,3 +90,31 @@ func TestGetConsignorProfile_ListedConsignor_ReturnsProfile(t *testing.T) {
 		t.Fatalf("profile = %+v", profile)
 	}
 }
+
+func (s *profileShelf) GetProductPage(_ context.Context, query domain.ProductPageQuery) (domain.ProductPage, error) {
+	s.asked = append(s.asked, query.SKU)
+	return domain.ProductPage{Product: domain.ProductDetail{SKU: query.SKU}}, nil
+}
+
+func TestGetProductPage_MalformedSKU_IsNotFoundWithoutLookup(t *testing.T) {
+	shelf := &profileShelf{}
+
+	_, err := service.NewGetProductPage(shelf).Execute(t.Context(),
+		domain.ProductPageForm{ConsignorSlug: "roti-mak-ijah", SKU: "rot 1"})
+
+	if !isNotFound(err) || len(shelf.asked) != 0 {
+		t.Fatalf("err = %v, asked = %v", err, shelf.asked)
+	}
+}
+
+func TestGetProductPage_FRPUB04_KnownProduct_ReturnsThePage(t *testing.T) {
+	page, err := service.NewGetProductPage(&profileShelf{}).Execute(t.Context(),
+		domain.ProductPageForm{ConsignorSlug: "roti-mak-ijah", SKU: "ROT-0001"})
+	if err != nil {
+		t.Fatalf("get page: %v", err)
+	}
+
+	if page.Product.SKU != "ROT-0001" {
+		t.Fatalf("page = %+v", page)
+	}
+}

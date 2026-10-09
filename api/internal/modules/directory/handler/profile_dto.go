@@ -27,12 +27,14 @@ type ConsignorProfileReader interface {
 type ProfileReaders struct {
 	Store     StoreProfileReader
 	Consignor ConsignorProfileReader
+	Product   ProductPageReader
 }
 
 func PublicRoutes() []httpserver.PublicRoute {
 	return []httpserver.PublicRoute{
 		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + publicStorePath},
 		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + publicConsignorPath},
+		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + publicProductPath},
 	}
 }
 
@@ -102,6 +104,7 @@ type publicConsignorResponse struct {
 func mountProfiles(api fiber.Router, profiles ProfileReaders, present presenter) {
 	api.Get(publicStorePath, getPublic(profiles.Store.Execute, present.publicStore))
 	api.Get(publicConsignorPath, getPublic(profiles.Consignor.Execute, present.publicConsignor))
+	api.Get(publicProductPath, getProductPage(profiles.Product, present))
 }
 
 func getPublic[T, R any](read func(ctx context.Context, slug string) (T, error), present func(T) R) fiber.Handler {
@@ -137,13 +140,17 @@ func (p presenter) publicConsignor(profile domain.ConsignorProfile) publicConsig
 	return publicConsignorResponse{
 		ID: profile.ID, Slug: profile.Slug, Name: profile.Name, Description: profile.Description,
 		District: profile.District, CityName: profile.CityName, Location: placeOf(profile.Location),
-		LogoURL: p.fileURL(profile.LogoStorageKey),
-		Legality: declaredLegalityResponse{
-			BusinessIDNo:         optionalText(profile.Legality.BusinessIDNo),
-			DistributionPermitNo: optionalText(profile.Legality.DistributionPermitNo),
-			HalalCertNo:          optionalText(profile.Legality.HalalCertNo),
-		},
+		LogoURL:        p.fileURL(profile.LogoStorageKey),
+		Legality:       legalityOf(profile.Legality),
 		ActivePartners: profile.ActivePartners, JoinedOn: businessDate(profile.JoinedAt), Products: products,
+	}
+}
+
+func legalityOf(legality domain.DeclaredLegality) declaredLegalityResponse {
+	return declaredLegalityResponse{
+		BusinessIDNo:         optionalText(legality.BusinessIDNo),
+		DistributionPermitNo: optionalText(legality.DistributionPermitNo),
+		HalalCertNo:          optionalText(legality.HalalCertNo),
 	}
 }
 

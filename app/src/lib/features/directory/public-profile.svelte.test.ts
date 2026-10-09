@@ -1,7 +1,7 @@
 import { page, userEvent } from 'vitest/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import type { PublicConsignor, PublicStore } from '#lib/api/public.js';
+import type { PublicConsignor, PublicProduct, PublicStore } from '#lib/api/public.js';
 import PublicProfileHarness from '#lib/testing/PublicProfileHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 
@@ -65,6 +65,38 @@ const consignor: PublicConsignor = {
 	]
 };
 
+const shop = {
+	address: 'Jl. Sirojudin 12',
+	district: 'Tembalang',
+	city_name: 'Kota Semarang',
+	profile_slug: 'warung-bu-tini',
+	location: { latitude: -7.05, longitude: 110.43 }
+};
+
+const product: PublicProduct = {
+	id: '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6b03',
+	sku: 'ROT-0001',
+	name: 'Roti Manis',
+	unit: 'pcs',
+	category: 'Roti dan kue basah',
+	description: 'Lembut.',
+	composition: 'Tepung, gula',
+	net_content: '60 g',
+	suggested_retail_price: 2000,
+	photo_url: null,
+	maker: {
+		name: 'Roti Mak Ijah',
+		district: 'Tembalang',
+		city_name: 'Kota Semarang',
+		profile_slug: null,
+		legality: consignor.legality
+	},
+	stores: [
+		{ ...shop, name: 'Kantin Kampus', distance_m: null },
+		{ ...shop, name: 'Warung Bu Tini', distance_m: null }
+	]
+};
+
 afterEach(() => {
 	vi.unstubAllGlobals();
 });
@@ -106,6 +138,53 @@ describe('Public profiles', () => {
 
 		await expect
 			.element(page.getByRole('link', { name: 'Masuk untuk melihat nomor WhatsApp' }))
+			.toBeVisible();
+	});
+
+	it('FR-PUB-04 FR-PUB-05 shows the product and re-sorts the stores from the visitor position', async () => {
+		vi.stubGlobal('fetch', (path: string) => {
+			const nearest = {
+				...product,
+				stores: [
+					{ ...shop, name: 'Warung Bu Tini', distance_m: 300 },
+					{ ...shop, name: 'Kantin Kampus', distance_m: 2500 }
+				]
+			};
+			return Promise.resolve(
+				path.includes('lat=-7.05')
+					? Response.json({ code: 'OK', message: '', data: nearest, meta: { request_id: 'r' } })
+					: Response.json({ code: 'NOT_FOUND', meta: { request_id: 'r' } }, { status: 404 })
+			);
+		});
+		const { container } = await render(PublicProfileHarness, {
+			product,
+			locate: () => Promise.resolve({ latitude: -7.05, longitude: 110.43 })
+		});
+		await expect.element(page.getByText('Tepung, gula')).toBeVisible();
+		await expectAccessible(container);
+
+		await userEvent.click(page.getByRole('button', { name: 'Urutkan dari lokasi saya' }));
+
+		await expect.element(page.getByText('300 m', { exact: false })).toBeVisible();
+		const first = page.getByRole('listitem').first();
+		await expect.element(first).toHaveTextContent(/Warung Bu Tini/u);
+	});
+
+	it('BR-PUB-01 explains when no store shows the product', async () => {
+		await render(PublicProfileHarness, { product: { ...product, stores: [] } });
+
+		await expect
+			.element(page.getByText('Belum ada toko yang menampilkan produk ini', { exact: false }))
+			.toBeVisible();
+	});
+
+	it('keeps the name order when the visitor refuses the location', async () => {
+		await render(PublicProfileHarness, { product });
+
+		await userEvent.click(page.getByRole('button', { name: 'Urutkan dari lokasi saya' }));
+
+		await expect
+			.element(page.getByText('Lokasi tidak bisa dibaca', { exact: false }))
 			.toBeVisible();
 	});
 });

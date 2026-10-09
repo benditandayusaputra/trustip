@@ -38,6 +38,7 @@ func buildDirectoryComponents(base foundation) directoryComponents {
 type directoryProfiles interface {
 	directoryservice.StoreProfiles
 	directoryservice.ConsignorProfiles
+	directoryservice.ProductPages
 }
 
 type directoryRoutes struct {
@@ -60,6 +61,7 @@ func mountDirectory(api fiber.Router, components directoryComponents, routes dir
 		Profiles: directoryhandler.ProfileReaders{
 			Store:     directoryservice.NewGetStoreProfile(components.profiles),
 			Consignor: directoryservice.NewGetConsignorProfile(components.profiles),
+			Product:   directoryservice.NewGetProductPage(components.profiles),
 		},
 		FilesBaseURL: routes.filesBaseURL,
 		SearchLimiter: ratelimit.New(ratelimit.Rule{Limit: searchesPerMinutePerIP, Window: time.Minute},

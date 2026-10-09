@@ -92,6 +92,35 @@ async function storeRecordsWhileConsignorWatches(store: Page, consignor: Page): 
 	await recorded;
 }
 
+interface ProductPageScene {
+	store: Page;
+	consignor: Page;
+	partnerPage: string;
+}
+
+async function buyerFindsTheStoreOnTheProductPage(
+	browser: Browser,
+	scene: ProductPageScene
+): Promise<void> {
+	await scene.store.goto(scene.partnerPage);
+	await scene.store
+		.getByRole('switch', { name: 'Tampilkan toko saya sebagai tempat membeli produk mitra ini' })
+		.click();
+	await expect(scene.store.getByText('Pilihan tampil disimpan.')).toBeVisible({
+		timeout: networkTimeoutMs
+	});
+	await scene.consignor.goto('/app/produk');
+	await scene.consignor.getByRole('link', { name: /Roti Manis Uji/u }).click();
+	const publicLink = scene.consignor.getByRole('link', { name: 'Lihat halaman publik produk' });
+	const publicPage = new URL((await publicLink.getAttribute('href')) ?? '').pathname;
+	const buyer = await openAs(browser, 'Pixel 7');
+	await buyer.goto(publicPage);
+	await expect(buyer.getByRole('heading', { level: 1, name: 'Roti Manis Uji' })).toBeVisible();
+	await expect(buyer.getByText('Warung Uji', { exact: true })).toBeVisible();
+	await expect(buyer.getByRole('link', { name: 'Buka Warung Uji di peta' })).toBeVisible();
+	await buyer.context().close();
+}
+
 async function storeCountsTwoLeftAndReturned(page: Page, partnerPage: string): Promise<string> {
 	await page.goto(partnerPage);
 	await page.getByRole('link', { name: 'Hitung sisa' }).click();
@@ -140,7 +169,7 @@ async function consignorReceivesTheMoney(page: Page, settlementPage: string): Pr
 	await expect(page.getByText('Lunas', { exact: true }).first()).toBeVisible();
 }
 
-test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
+test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-PUB-04 FR-PUB-05 BR-PUB-01 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
 	browser
 }) => {
 	test.setTimeout(flowTimeoutMs);
@@ -162,6 +191,7 @@ test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-CNT-05 FR-STL-06 FR-P
 
 	await store.goto(partnerPage);
 	await storeRecordsWhileConsignorWatches(store, consignor);
+	await buyerFindsTheStoreOnTheProductPage(browser, { store, consignor, partnerPage });
 	const recapPage = await storeCountsTwoLeftAndReturned(store, partnerPage);
 	await expectRecap(store);
 	await consignor.goto(new URL(recapPage).pathname);

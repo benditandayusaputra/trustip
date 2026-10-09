@@ -1632,6 +1632,50 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/public/products/{slug}/{sku}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: sku
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPublicProduct
+      tags: [public]
+      parameters:
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Halaman produk publik dan toko yang sedang menjualnya
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProductResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/directory/needs:
     get:
       operationId: listNeedBoard
@@ -7352,6 +7396,94 @@ components:
           type: string
         data:
           $ref: "#/components/schemas/PublicConsignor"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    PublicProductMaker:
+      type: object
+      additionalProperties: false
+      required: [name, district, city_name, profile_slug, legality]
+      properties:
+        name:
+          type: string
+        district:
+          type: string
+        city_name:
+          type: string
+        profile_slug:
+          type: string
+          nullable: true
+        legality:
+          $ref: "#/components/schemas/DeclaredLegality"
+    AvailableStore:
+      type: object
+      additionalProperties: false
+      required: [name, address, district, city_name, profile_slug, location, distance_m]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        district:
+          type: string
+        city_name:
+          type: string
+        profile_slug:
+          type: string
+          nullable: true
+        location:
+          allOf:
+            - $ref: "#/components/schemas/PublicPlace"
+          nullable: true
+        distance_m:
+          type: integer
+          nullable: true
+    PublicProduct:
+      type: object
+      additionalProperties: false
+      required: [id, sku, name, unit, category, description, composition, net_content, suggested_retail_price,
+        photo_url, maker, stores]
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        name:
+          type: string
+        unit:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        composition:
+          type: string
+        net_content:
+          type: string
+        suggested_retail_price:
+          type: integer
+          format: int64
+        photo_url:
+          type: string
+          nullable: true
+        maker:
+          $ref: "#/components/schemas/PublicProductMaker"
+        stores:
+          type: array
+          maxItems: 20
+          items:
+            $ref: "#/components/schemas/AvailableStore"
+    PublicProductResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/PublicProduct"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
     DirectoryStoreCard:
