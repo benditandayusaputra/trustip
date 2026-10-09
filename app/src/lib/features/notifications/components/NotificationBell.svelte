@@ -32,7 +32,7 @@
 			},
 			isVisible: () => document.visibilityState === 'visible'
 		});
-		void live.start();
+		live.start();
 		const unwatch = watchVisibility(live);
 		return () => {
 			unwatch();

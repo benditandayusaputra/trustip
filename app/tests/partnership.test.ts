@@ -80,7 +80,17 @@ async function storeRecordsTwentyLoaves(page: Page): Promise<void> {
 	await expect(page.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
 }
 
+async function consignorGoesLive(consignor: Page): Promise<void> {
+	const streamOpened = consignor.waitForResponse(
+		(response) => response.url().includes('/api/v1/stream?') && response.status() === 200,
+		{ timeout: networkTimeoutMs }
+	);
+	await consignor.reload();
+	await streamOpened;
+}
+
 async function storeRecordsWhileConsignorWatches(store: Page, consignor: Page): Promise<void> {
+	await consignorGoesLive(consignor);
 	const dropSaved = store.waitForResponse(
 		(response) => response.url().endsWith('/api/v1/drops') && response.request().method() === 'POST'
 	);

@@ -4,6 +4,7 @@ export type LiveMode = 'idle' | 'live' | 'polling' | 'paused';
 
 export const pollIntervalMs = 30_000;
 export const hiddenGraceMs = 300_000;
+export const settleBeforeConnectMs = 2000;
 
 export interface LiveDeps {
 	connect: (handlers: StreamHandlers) => Promise<() => void>;
@@ -18,12 +19,20 @@ export class LiveNotifications {
 	#closeStream: (() => void) | null = null;
 	#poll: ReturnType<typeof setInterval> | undefined;
 	#pause: ReturnType<typeof setTimeout> | undefined;
+	#settle: ReturnType<typeof setTimeout> | undefined;
 
 	constructor(deps: LiveDeps) {
 		this.#deps = deps;
 	}
 
-	async start(): Promise<void> {
+	start(): void {
+		clearTimeout(this.#settle);
+		this.#settle = setTimeout(() => {
+			void this.#connect();
+		}, settleBeforeConnectMs);
+	}
+
+	async #connect(): Promise<void> {
 		try {
 			this.#closeStream = await this.#deps.connect({
 				onnotification: this.#deps.onarrive,
@@ -50,11 +59,12 @@ export class LiveNotifications {
 		clearTimeout(this.#pause);
 		if (this.mode === 'paused' || this.mode === 'polling') {
 			void this.#deps.refresh();
-			void this.start();
+			this.start();
 		}
 	}
 
 	stop(): void {
+		clearTimeout(this.#settle);
 		clearTimeout(this.#pause);
 		this.#disconnect();
 		this.mode = 'idle';

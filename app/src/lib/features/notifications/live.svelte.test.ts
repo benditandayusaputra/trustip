@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StreamHandlers } from '#lib/api/stream.js';
-import { hiddenGraceMs, LiveNotifications, pollIntervalMs, type LiveDeps } from './live.svelte';
+import {
+	hiddenGraceMs,
+	LiveNotifications,
+	pollIntervalMs,
+	settleBeforeConnectMs,
+	type LiveDeps
+} from './live.svelte';
 
 interface Fixture {
 	live: LiveNotifications;
@@ -42,10 +48,22 @@ afterEach(() => {
 });
 
 describe('LiveNotifications', () => {
+	it('waits for the page to settle before asking for a stream ticket', async () => {
+		const { live, connect } = fixture(true);
+
+		live.start();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs - 1);
+		live.stop();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
+
+		expect(connect).not.toHaveBeenCalled();
+	});
+
 	it('FR-NTF-02 stays live while the stream is open', async () => {
 		const { live, refresh } = fixture(true);
 
-		await live.start();
+		live.start();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 		await vi.advanceTimersByTimeAsync(pollIntervalMs * 2);
 
 		expect(live.mode).toBe('live');
@@ -55,7 +73,8 @@ describe('LiveNotifications', () => {
 	it('FR-NTF-03 checks every 30 seconds while visible after the stream fails', async () => {
 		const { live, refresh } = fixture(false);
 
-		await live.start();
+		live.start();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 		await vi.advanceTimersByTimeAsync(pollIntervalMs * 2);
 
 		expect(live.mode).toBe('polling');
@@ -65,7 +84,8 @@ describe('LiveNotifications', () => {
 	it('FR-NTF-03 does not check while the tab is hidden', async () => {
 		const { live, refresh } = fixture(false, false);
 
-		await live.start();
+		live.start();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 		await vi.advanceTimersByTimeAsync(pollIntervalMs * 2);
 
 		expect(refresh).not.toHaveBeenCalled();
@@ -73,7 +93,8 @@ describe('LiveNotifications', () => {
 
 	it('FR-NTF-03 falls back to checking when an open stream drops', async () => {
 		const { live, refresh, close, handlers } = fixture(true);
-		await live.start();
+		live.start();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 
 		handlers().onfailure();
 		await vi.advanceTimersByTimeAsync(pollIntervalMs);
@@ -84,7 +105,8 @@ describe('LiveNotifications', () => {
 
 	it('BR-NTF-05 disconnects after five hidden minutes and reconnects when visible', async () => {
 		const { live, close, connect, refresh } = fixture(true);
-		await live.start();
+		live.start();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 
 		live.hide();
 		await vi.advanceTimersByTimeAsync(hiddenGraceMs);
@@ -92,7 +114,7 @@ describe('LiveNotifications', () => {
 		expect(close).toHaveBeenCalled();
 
 		live.show();
-		await vi.advanceTimersByTimeAsync(0);
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 		expect(live.mode).toBe('live');
 		expect(connect).toHaveBeenCalledTimes(2);
 		expect(refresh).toHaveBeenCalledTimes(1);
@@ -100,7 +122,8 @@ describe('LiveNotifications', () => {
 
 	it('BR-NTF-05 keeps the stream when the tab returns within five minutes', async () => {
 		const { live, close } = fixture(true);
-		await live.start();
+		live.start();
+		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 
 		live.hide();
 		await vi.advanceTimersByTimeAsync(hiddenGraceMs - 1);

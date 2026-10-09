@@ -2,10 +2,12 @@ import { defineConfig, devices } from '@playwright/test';
 
 const appOriginPort = 5173;
 const apiHealthUrl = 'http://127.0.0.1:8080/healthz';
+const workersUnderTheSharedIpLimit = 3;
 
 export default defineConfig({
 	testDir: 'tests',
 	forbidOnly: true,
+	workers: workersUnderTheSharedIpLimit,
 	webServer: [
 		{
 			command: 'cd ../api && set -a && . ./.env && set +a && go run ./cmd/server',

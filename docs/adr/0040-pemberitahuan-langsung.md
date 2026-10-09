@@ -17,4 +17,6 @@ FR-NTF-02 meminta pembaruan langsung lewat Server-Sent Events, FR-NTF-03 meminta
 ## Akibat
 
 - API harus berjalan sebagai satu proses. Bila kelak lebih dari satu, hub perlu perantara bersama dan keputusan ini ditinjau ulang.
+- App baru meminta tiket setelah halaman terbuka 2 detik, supaya perpindahan halaman yang cepat tidak menghabiskan kuota tiket 10 per menit. Pemberitahuan tetap sampai dalam 3 detik bagi halaman yang sudah terbuka.
+- Setiap muat halaman penuh yang bertahan lebih dari 2 detik menambah satu permintaan tiket dan satu aliran. Uji ujung ke ujung menjalankan semua peramban dari satu IP, sehingga jumlah worker Playwright dibatasi tiga supaya lalu lintasnya tetap di bawah batas umum 300 permintaan per menit per IP. Batas itu sendiri tidak diubah.
 - Sesi yang dicabut tidak memutus aliran yang sudah terbuka. Aliran hanya membawa ID dan jenis, dan rinciannya tetap lewat API yang memeriksa sesi.
