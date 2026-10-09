@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	authhandler "github.com/benditandayusaputra/trustip/api/internal/modules/auth/handler"
+	directoryhandler "github.com/benditandayusaputra/trustip/api/internal/modules/directory/handler"
 	filehandler "github.com/benditandayusaputra/trustip/api/internal/modules/file/handler"
 	insighthandler "github.com/benditandayusaputra/trustip/api/internal/modules/insight/handler"
 	notificationhandler "github.com/benditandayusaputra/trustip/api/internal/modules/notification/handler"
@@ -185,5 +186,6 @@ func publicRoutes() []httpserver.PublicRoute {
 	routes := append(httpserver.PublicRoutes(), authhandler.PublicRoutes()...)
 	routes = append(routes, orghandler.PublicRoutes()...)
 	routes = append(routes, httpserver.StreamPublicRoutes()...)
+	routes = append(routes, directoryhandler.PublicRoutes()...)
 	return append(routes, filehandler.PublicRoutes()...)
 }

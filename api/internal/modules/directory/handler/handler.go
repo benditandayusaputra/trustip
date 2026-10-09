@@ -34,6 +34,7 @@ type Deps struct {
 	ListProducts   Lister[domain.ConsignorSearchForm, domain.ProductCard]
 	ListNeeds      Lister[domain.SearchForm, domain.NeedCard]
 	GetContact     ContactReader
+	Profiles       ProfileReaders
 	FilesBaseURL   string
 	SearchLimiter  httpserver.RateLimiter
 	SecurityLog    *slog.Logger
@@ -49,6 +50,7 @@ func Mount(api fiber.Router, deps Deps) {
 		list(deps.ListProducts, consignorSearchForm, present.productCard))
 	api.Get(contactPath, deps.Authenticate, searchLimit, getContact(deps.GetContact))
 	api.Get(boardPath, deps.Authenticate, searchLimit, list(deps.ListNeeds, boardSearchForm, needCardOf))
+	mountProfiles(api, deps.Profiles, present)
 }
 
 type ContactReader interface {

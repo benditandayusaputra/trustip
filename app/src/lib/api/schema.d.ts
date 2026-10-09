@@ -620,6 +620,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/stores/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getPublicStore"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/consignors/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getPublicConsignor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/directory/needs": {
         parameters: {
             query?: never;
@@ -2835,6 +2871,82 @@ export interface components {
             requires_halal: boolean;
             requires_sample: boolean;
         };
+        PublicPlace: {
+            latitude: number;
+            longitude: number;
+        };
+        PublicOpenNeed: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            category: string;
+            /** Format: date-time */
+            expires_at: string;
+        };
+        PublicStore: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            store_type: components["schemas"]["StoreType"] | null;
+            description: string;
+            address: string;
+            district: string;
+            city_name: string;
+            location: components["schemas"]["PublicPlace"] | null;
+            opening_hours: string;
+            logo_url: string | null;
+            photo_urls: string[];
+            accepted_categories: components["schemas"]["DirectoryCategory"][];
+            terms: components["schemas"]["DirectoryStoreTerms"];
+            other_requirements: string;
+            reputation: components["schemas"]["StoreReputation"];
+            /** Format: date */
+            joined_on: string;
+            open_needs: components["schemas"]["PublicOpenNeed"][];
+        };
+        PublicStoreResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["PublicStore"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        DeclaredLegality: {
+            business_id_no: string | null;
+            distribution_permit_no: string | null;
+            halal_cert_no: string | null;
+        };
+        PublicProductCard: {
+            sku: string;
+            name: string;
+            unit: string;
+            category: string;
+            /** Format: int64 */
+            suggested_retail_price: number;
+            photo_url: string | null;
+        };
+        PublicConsignor: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description: string;
+            district: string;
+            city_name: string;
+            location: components["schemas"]["PublicPlace"] | null;
+            logo_url: string | null;
+            legality: components["schemas"]["DeclaredLegality"];
+            active_partners: number;
+            /** Format: date */
+            joined_on: string;
+            products: components["schemas"]["PublicProductCard"][];
+        };
+        PublicConsignorResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["PublicConsignor"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
         DirectoryStoreCard: {
             /** Format: date */
             joined_on: string;
@@ -4478,6 +4590,60 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getPublicStore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Profil publik toko, hanya kolom daftar putih */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicStoreResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getPublicConsignor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Profil publik penitip, hanya kolom daftar putih */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicConsignorResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

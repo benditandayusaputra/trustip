@@ -11,6 +11,7 @@ import { offline } from './offline';
 import { organization } from './organization';
 import { partnerships } from './partnerships';
 import { products } from './products';
+import { publicProfile } from './public-profile';
 import { proposals } from './proposals';
 import { reports } from './reports';
 import { settlements } from './settlements';
@@ -31,6 +32,7 @@ export const id = {
 	...organization,
 	...partnerships,
 	...products,
+	...publicProfile,
 	...proposals,
 	...reports,
 	...settlements,

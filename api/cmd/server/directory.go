@@ -23,6 +23,7 @@ type directoryComponents struct {
 	consignors directoryservice.ConsignorDirectory
 	contacts   directoryservice.ContactReader
 	board      directoryservice.NeedBoard
+	profiles   directoryProfiles
 	needs      needservice.Deps
 }
 
@@ -30,8 +31,13 @@ func buildDirectoryComponents(base foundation) directoryComponents {
 	directory := directoryrepository.NewDirectory(base.pool)
 	return directoryComponents{
 		viewers: directory, stores: directory, consignors: directory, contacts: directory, board: directory,
-		needs: buildNeedDeps(base),
+		profiles: directory, needs: buildNeedDeps(base),
 	}
+}
+
+type directoryProfiles interface {
+	directoryservice.StoreProfiles
+	directoryservice.ConsignorProfiles
 }
 
 type directoryRoutes struct {
@@ -51,6 +57,10 @@ func mountDirectory(api fiber.Router, components directoryComponents, routes dir
 		ListProducts: directoryservice.NewListProducts(components.viewers, components.consignors, routes.clock),
 		GetContact:   directoryservice.NewGetContact(components.contacts),
 		ListNeeds:    directoryservice.NewListNeedBoard(components.viewers, components.board, routes.clock),
+		Profiles: directoryhandler.ProfileReaders{
+			Store:     directoryservice.NewGetStoreProfile(components.profiles),
+			Consignor: directoryservice.NewGetConsignorProfile(components.profiles),
+		},
 		FilesBaseURL: routes.filesBaseURL,
 		SearchLimiter: ratelimit.New(ratelimit.Rule{Limit: searchesPerMinutePerIP, Window: time.Minute},
 			routes.clock),

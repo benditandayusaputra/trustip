@@ -37,6 +37,17 @@ async function accept(page: Page): Promise<void> {
 	});
 }
 
+async function visitorSeesStoreProfile(browser: Browser, storeName: string): Promise<void> {
+	const visitor = await openAs(browser, 'Pixel 7');
+	const response = await visitor.goto(`/t/${storeName.toLowerCase().replaceAll(' ', '-')}`);
+	expect(response?.headers()['cache-control']).toBe(
+		'public, s-maxage=60, stale-while-revalidate=300'
+	);
+	await expect(visitor.getByRole('heading', { level: 1, name: storeName })).toBeVisible();
+	await expect(visitor.getByText('Roti dan kue basah')).toBeVisible();
+	await visitor.context().close();
+}
+
 test.describe.configure({ mode: 'serial', timeout: flowTimeoutMs });
 
 let consignor: Page;
@@ -47,12 +58,13 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test(
-	'FR-DIR-01 FR-PRP-01 FR-PRP-03 FR-PRP-04 Alur A: the consignor finds a store, proposes, the store counters, and the consignor accepts',
+	'FR-DIR-01 FR-PUB-02 FR-PRP-01 FR-PRP-03 FR-PRP-04 Alur A: the consignor finds a store, proposes, the store counters, and the consignor accepts',
 	ownServer,
 	async ({ browser }) => {
 		const store = await openAs(browser, 'Desktop Chrome');
 		const storeName = `Toko Cari ${stamp()}`;
 		await listedStore(store, storeName);
+		await visitorSeesStoreProfile(browser, storeName);
 
 		await consignor.goto('/cari/toko');
 		await consignor.getByLabel('Cari nama atau deskripsi toko').fill(storeName);

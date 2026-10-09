@@ -146,6 +146,20 @@ function withWebLock<T>(task: () => Promise<T>): Promise<T> {
 	return navigator.locks.request(refreshLockName, task);
 }
 
+const noReadCache: ReadCache = {
+	remember: () => Promise.resolve(),
+	recall: () => Promise.resolve(undefined)
+};
+
+export function serverApiClient(eventFetch: typeof fetch): ApiClient {
+	return new ApiClient({
+		fetch: eventFetch,
+		newKey: () => crypto.randomUUID(),
+		withRefreshLock: (task) => task(),
+		readCache: noReadCache
+	});
+}
+
 let browserClient: ApiClient | undefined;
 
 export function apiClient(): ApiClient {

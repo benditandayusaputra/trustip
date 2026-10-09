@@ -1576,6 +1576,62 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/public/stores/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPublicStore
+      tags: [public]
+      responses:
+        "200":
+          description: Profil publik toko, hanya kolom daftar putih
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicStoreResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/public/consignors/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPublicConsignor
+      tags: [public]
+      responses:
+        "200":
+          description: Profil publik penitip, hanya kolom daftar putih
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicConsignorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/directory/needs:
     get:
       operationId: listNeedBoard
@@ -7122,6 +7178,182 @@ components:
           type: boolean
         requires_sample:
           type: boolean
+    PublicPlace:
+      type: object
+      additionalProperties: false
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+    PublicOpenNeed:
+      type: object
+      additionalProperties: false
+      required: [id, title, category, expires_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        category:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+    PublicStore:
+      type: object
+      additionalProperties: false
+      required: [id, slug, name, store_type, description, address, district, city_name, location, opening_hours,
+        logo_url, photo_urls, accepted_categories, terms, other_requirements, reputation, joined_on, open_needs]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        store_type:
+          allOf:
+            - $ref: "#/components/schemas/StoreType"
+          nullable: true
+        description:
+          type: string
+        address:
+          type: string
+        district:
+          type: string
+        city_name:
+          type: string
+        location:
+          allOf:
+            - $ref: "#/components/schemas/PublicPlace"
+          nullable: true
+        opening_hours:
+          type: string
+        logo_url:
+          type: string
+          nullable: true
+        photo_urls:
+          type: array
+          items:
+            type: string
+        accepted_categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/DirectoryCategory"
+        terms:
+          $ref: "#/components/schemas/DirectoryStoreTerms"
+        other_requirements:
+          type: string
+        reputation:
+          $ref: "#/components/schemas/StoreReputation"
+        joined_on:
+          type: string
+          format: date
+        open_needs:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicOpenNeed"
+    PublicStoreResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/PublicStore"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    DeclaredLegality:
+      type: object
+      additionalProperties: false
+      required: [business_id_no, distribution_permit_no, halal_cert_no]
+      properties:
+        business_id_no:
+          type: string
+          nullable: true
+        distribution_permit_no:
+          type: string
+          nullable: true
+        halal_cert_no:
+          type: string
+          nullable: true
+    PublicProductCard:
+      type: object
+      additionalProperties: false
+      required: [sku, name, unit, category, suggested_retail_price, photo_url]
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        unit:
+          type: string
+        category:
+          type: string
+        suggested_retail_price:
+          type: integer
+          format: int64
+        photo_url:
+          type: string
+          nullable: true
+    PublicConsignor:
+      type: object
+      additionalProperties: false
+      required: [id, slug, name, description, district, city_name, location, logo_url, legality, active_partners,
+        joined_on, products]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        district:
+          type: string
+        city_name:
+          type: string
+        location:
+          allOf:
+            - $ref: "#/components/schemas/PublicPlace"
+          nullable: true
+        logo_url:
+          type: string
+          nullable: true
+        legality:
+          $ref: "#/components/schemas/DeclaredLegality"
+        active_partners:
+          type: integer
+          minimum: 0
+        joined_on:
+          type: string
+          format: date
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicProductCard"
+    PublicConsignorResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/PublicConsignor"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
     DirectoryStoreCard:
       type: object
       additionalProperties: false
