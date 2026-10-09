@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Card from '#lib/components/ui/Card.svelte';
+	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import MapView from '#lib/components/ui/MapView.svelte';
 	import type { PublicStore } from '#lib/api/public.js';
@@ -12,9 +13,10 @@
 
 	interface Props {
 		store: PublicStore;
+		shareUrl: string;
 	}
 
-	let { store }: Props = $props();
+	let { store, shareUrl }: Props = $props();
 
 	const text = id.publicProfile;
 	const kind = $derived(
@@ -38,6 +40,7 @@
 		<p class="text-base whitespace-pre-line text-text">{store.description}</p>
 	{/if}
 	<ContactActions organizationId={store.id} name={store.name} canPropose={true} />
+	<ShareButton title={store.name} url={shareUrl} />
 	<Card title={text.about}>
 		<dl class="grid gap-2 text-base">
 			<dt class="text-text-muted">{text.address}</dt>
@@ -95,7 +98,9 @@
 			<ul class="flex flex-col gap-2">
 				{#each store.open_needs as need (need.id)}
 					<li class="flex flex-col">
-						<span class="text-base text-text">{need.title}</span>
+						<a href="/kebutuhan/{need.id}" class="text-base font-semibold text-accent"
+							>{need.title}</a
+						>
 						<span class="text-sm text-text-muted">
 							{need.category} · {text.needUntil(formatDate(need.expires_at))}
 						</span>

@@ -72,7 +72,7 @@ func NewListConsignors(viewers ViewerReader, consignors ConsignorDirectory, cloc
 func (uc *ListConsignors) Execute(
 	ctx context.Context, signedIn actor.Actor, request ListRequest[domain.ConsignorSearchForm],
 ) (Page[domain.ConsignorCard], error) {
-	if err := policy.RequireMember(signedIn); err != nil {
+	if err := policy.RequireVisitorOrMember(signedIn); err != nil {
 		return Page[domain.ConsignorCard]{}, fmt.Errorf("check directory reader: %w", err)
 	}
 	page, err := browseConsignors(ctx, uc.deps, consignorAsk{signedIn: signedIn, request: request}, uc.sourceOf)
@@ -107,7 +107,7 @@ func NewListProducts(viewers ViewerReader, consignors ConsignorDirectory, clock 
 func (uc *ListProducts) Execute(
 	ctx context.Context, signedIn actor.Actor, request ListRequest[domain.ConsignorSearchForm],
 ) (Page[domain.ProductCard], error) {
-	if err := policy.RequireMember(signedIn); err != nil {
+	if err := policy.RequireVisitorOrMember(signedIn); err != nil {
 		return Page[domain.ProductCard]{}, fmt.Errorf("check directory reader: %w", err)
 	}
 	page, err := browseConsignors(ctx, uc.deps, consignorAsk{signedIn: signedIn, request: request}, uc.sourceOf)

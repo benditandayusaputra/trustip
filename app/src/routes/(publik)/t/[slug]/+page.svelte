@@ -1,13 +1,17 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import LinkPreview from '#lib/components/ui/LinkPreview.svelte';
 	import PublicStoreProfile from '#lib/features/directory/components/PublicStoreProfile.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head>
-	<title>{data.store.name}</title>
-	<meta name="description" content={data.store.description} />
-</svelte:head>
+<LinkPreview
+	title={data.store.name}
+	description={data.store.description}
+	url={page.url.href}
+	image={data.store.logo_url}
+/>
 
-<PublicStoreProfile store={data.store} />
+<PublicStoreProfile shareUrl={page.url.href} store={data.store} />

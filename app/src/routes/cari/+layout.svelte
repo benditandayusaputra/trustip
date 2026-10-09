@@ -13,7 +13,7 @@
 </script>
 
 <AccountGate
-	placement="member"
+	placement="anyone"
 	onsignedout={() => {
 		window.location.assign(signInHref(here));
 	}}

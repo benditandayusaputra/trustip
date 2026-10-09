@@ -39,10 +39,12 @@ type directoryProfiles interface {
 	directoryservice.StoreProfiles
 	directoryservice.ConsignorProfiles
 	directoryservice.ProductPages
+	directoryservice.PublicNeeds
 }
 
 type directoryRoutes struct {
 	authenticate fiber.Handler
+	visit        fiber.Handler
 	writeLimiter httpserver.RateLimiter
 	filesBaseURL string
 	securityLog  *slog.Logger
@@ -52,6 +54,7 @@ type directoryRoutes struct {
 func mountDirectory(api fiber.Router, components directoryComponents, routes directoryRoutes) {
 	directoryhandler.Mount(api, directoryhandler.Deps{
 		Authenticate: routes.authenticate,
+		Visit:        routes.visit,
 		ListStores:   directoryservice.NewListStores(components.viewers, components.stores, routes.clock),
 		ListConsignors: directoryservice.NewListConsignors(components.viewers, components.consignors,
 			routes.clock),
@@ -62,6 +65,7 @@ func mountDirectory(api fiber.Router, components directoryComponents, routes dir
 			Store:     directoryservice.NewGetStoreProfile(components.profiles),
 			Consignor: directoryservice.NewGetConsignorProfile(components.profiles),
 			Product:   directoryservice.NewGetProductPage(components.profiles),
+			Need:      directoryservice.NewGetPublicNeed(components.profiles),
 		},
 		FilesBaseURL: routes.filesBaseURL,
 		SearchLimiter: ratelimit.New(ratelimit.Rule{Limit: searchesPerMinutePerIP, Window: time.Minute},

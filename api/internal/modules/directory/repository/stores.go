@@ -30,6 +30,9 @@ func NewDirectory(pool *database.Pool) *Directory {
 }
 
 func (r *Directory) GetViewer(ctx context.Context, key domain.ViewerKey) (domain.Viewer, error) {
+	if key.OrganizationID == "" {
+		return r.getVisitor(ctx, key.CityCode)
+	}
 	readCtx, cancel := database.ReadContext(ctx)
 	defer cancel()
 	row, err := sqlc.New(r.pool.Querier(ctx)).GetDirectoryViewer(readCtx, sqlc.GetDirectoryViewerParams{

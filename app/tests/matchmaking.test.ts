@@ -48,6 +48,24 @@ async function visitorSeesStoreProfile(browser: Browser, storeName: string): Pro
 	await visitor.context().close();
 }
 
+async function visitorFindsTheNeed(browser: Browser, needTitle: string, needId: string) {
+	const visitor = await openAs(browser, 'Desktop Chrome');
+	await visitor.goto('/kebutuhan');
+	await expect(visitor.getByRole('link', { name: 'Masuk' })).toBeVisible({
+		timeout: networkTimeoutMs
+	});
+	await visitor.getByLabel('Cari judul atau deskripsi Kebutuhan').fill(needTitle);
+	await expect(cardTitled(visitor, needTitle)).toBeVisible({ timeout: networkTimeoutMs });
+	const response = await visitor.goto(`/kebutuhan/${needId}`);
+	expect(response?.headers()['cache-control']).toBe(
+		'public, s-maxage=60, stale-while-revalidate=300'
+	);
+	await expect(visitor.getByRole('heading', { level: 1, name: needTitle })).toBeVisible();
+	await expect(visitor.getByRole('button', { name: 'Bagikan' })).toBeVisible();
+	await expect(visitor.locator('meta[property="og:title"]')).toHaveAttribute('content', needTitle);
+	await visitor.context().close();
+}
+
 test.describe.configure({ mode: 'serial', timeout: flowTimeoutMs });
 
 let consignor: Page;
@@ -97,7 +115,7 @@ test(
 );
 
 test(
-	'FR-NED-01 FR-NED-03 FR-NED-05 FR-NED-06 Alur B: the store posts a Need, a consignor responds, and the store accepts',
+	'FR-NED-01 FR-NED-03 FR-NED-05 FR-NED-06 FR-NED-08 FR-PUB-06 FR-PUB-07 FR-PUB-08 Alur B: the store posts a Need, a consignor responds, and the store accepts',
 	ownServer,
 	async ({ browser }) => {
 		const store = await openAs(browser, 'Desktop Chrome');
@@ -111,6 +129,7 @@ test(
 		await store.getByRole('button', { name: 'Pasang Kebutuhan' }).click();
 		await store.waitForURL(/\/app\/kebutuhan\/[0-9a-f-]{36}$/u, { timeout: networkTimeoutMs });
 		const needPath = new URL(store.url()).pathname;
+		await visitorFindsTheNeed(browser, needTitle, needPath.split('/').pop() ?? '');
 
 		await consignor.goto('/kebutuhan');
 		await consignor.getByLabel('Cari judul atau deskripsi Kebutuhan').fill(needTitle);

@@ -13,6 +13,11 @@ export function getPublicConsignor(client: ApiClient, slug: string): Promise<Pub
 }
 
 export type PublicProduct = components['schemas']['PublicProduct'];
+export type PublicNeed = components['schemas']['PublicNeed'];
+
+export function getPublicNeed(client: ApiClient, needId: string): Promise<PublicNeed> {
+	return client.get<PublicNeed>(`/api/v1/public/needs/${encodeURIComponent(needId)}`);
+}
 
 export interface ProductAddress {
 	slug: string;

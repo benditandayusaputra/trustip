@@ -10,6 +10,28 @@ import (
 	"time"
 )
 
+const getDirectoryVisitorCity = `-- name: GetDirectoryVisitorCity :one
+SELECT
+    (city.code IS NOT NULL)::boolean AS has_city,
+    COALESCE(ST_Y(city.centroid::geometry), 0)::float8 AS city_latitude,
+    COALESCE(ST_X(city.centroid::geometry), 0)::float8 AS city_longitude
+FROM (SELECT 1) AS anchor
+LEFT JOIN cities AS city ON city.code = $1::text
+`
+
+type GetDirectoryVisitorCityRow struct {
+	HasCity       bool
+	CityLatitude  float64
+	CityLongitude float64
+}
+
+func (q *Queries) GetDirectoryVisitorCity(ctx context.Context, cityCode string) (GetDirectoryVisitorCityRow, error) {
+	row := q.db.QueryRow(ctx, getDirectoryVisitorCity, cityCode)
+	var i GetDirectoryVisitorCityRow
+	err := row.Scan(&i.HasCity, &i.CityLatitude, &i.CityLongitude)
+	return i, err
+}
+
 const getPublicConsignorProfile = `-- name: GetPublicConsignorProfile :one
 SELECT
     o.id,
@@ -71,6 +93,77 @@ func (q *Queries) GetPublicConsignorProfile(ctx context.Context, slug string) (G
 		&i.HalalCertNo,
 		&i.ActivePartners,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getPublicNeed = `-- name: GetPublicNeed :one
+SELECT
+    n.id,
+    n.title,
+    c.name AS category_name,
+    n.description,
+    COALESCE(n.est_qty_per_week, 0)::bigint AS est_qty_per_week,
+    COALESCE(n.max_retail_price, 0)::bigint AS max_retail_price,
+    COALESCE(n.preferred_model, '')::text AS preferred_model,
+    (n.offered_commission_bps IS NOT NULL)::boolean AS has_offered_commission,
+    COALESCE(n.offered_commission_bps, 0)::bigint AS offered_commission_bps,
+    (CASE WHEN n.status = 'OPEN' AND n.expires_at <= now() THEN 'EXPIRED' ELSE n.status END)::text AS status,
+    n.expires_at,
+    s.id AS store_id,
+    s.name AS store_name,
+    (CASE WHEN s.is_listed THEN s.slug ELSE '' END)::text AS store_profile_slug,
+    COALESCE(sp.store_type, '')::text AS store_type,
+    s.district AS store_district,
+    s.city_name AS store_city_name
+FROM needs AS n
+JOIN categories AS c ON c.id = n.category_id
+JOIN organizations AS s ON s.id = n.store_org_id
+LEFT JOIN store_profiles AS sp ON sp.organization_id = s.id
+WHERE n.id = $1::uuid AND s.status = 'ACTIVE'
+`
+
+type GetPublicNeedRow struct {
+	ID                   string
+	Title                string
+	CategoryName         string
+	Description          string
+	EstQtyPerWeek        int64
+	MaxRetailPrice       int64
+	PreferredModel       string
+	HasOfferedCommission bool
+	OfferedCommissionBps int64
+	Status               string
+	ExpiresAt            time.Time
+	StoreID              string
+	StoreName            string
+	StoreProfileSlug     string
+	StoreType            string
+	StoreDistrict        string
+	StoreCityName        string
+}
+
+func (q *Queries) GetPublicNeed(ctx context.Context, id string) (GetPublicNeedRow, error) {
+	row := q.db.QueryRow(ctx, getPublicNeed, id)
+	var i GetPublicNeedRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.CategoryName,
+		&i.Description,
+		&i.EstQtyPerWeek,
+		&i.MaxRetailPrice,
+		&i.PreferredModel,
+		&i.HasOfferedCommission,
+		&i.OfferedCommissionBps,
+		&i.Status,
+		&i.ExpiresAt,
+		&i.StoreID,
+		&i.StoreName,
+		&i.StoreProfileSlug,
+		&i.StoreType,
+		&i.StoreDistrict,
+		&i.StoreCityName,
 	)
 	return i, err
 }

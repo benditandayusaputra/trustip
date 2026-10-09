@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Card from '#lib/components/ui/Card.svelte';
+	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicConsignor } from '#lib/api/public.js';
 	import { formatBusinessDate } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
@@ -11,9 +12,10 @@
 
 	interface Props {
 		consignor: PublicConsignor;
+		shareUrl: string;
 	}
 
-	let { consignor }: Props = $props();
+	let { consignor, shareUrl }: Props = $props();
 
 	const text = id.publicProfile;
 </script>
@@ -33,6 +35,7 @@
 		{id.directory.joined(formatBusinessDate(consignor.joined_on))}
 	</p>
 	<ContactActions organizationId={consignor.id} name={consignor.name} canPropose={true} />
+	<ShareButton title={consignor.name} url={shareUrl} />
 	<Card title={text.products}>
 		<PublicProductList products={consignor.products} consignorSlug={consignor.slug} />
 	</Card>

@@ -29,6 +29,7 @@ type Lister[F, T any] interface {
 
 type Deps struct {
 	Authenticate   fiber.Handler
+	Visit          fiber.Handler
 	ListStores     Lister[domain.StoreSearchForm, domain.StoreCard]
 	ListConsignors Lister[domain.ConsignorSearchForm, domain.ConsignorCard]
 	ListProducts   Lister[domain.ConsignorSearchForm, domain.ProductCard]
@@ -43,13 +44,13 @@ type Deps struct {
 func Mount(api fiber.Router, deps Deps) {
 	searchLimit := httpserver.RateLimit(deps.SearchLimiter, httpserver.ByClientIP, deps.SecurityLog)
 	present := presenter{filesBaseURL: deps.FilesBaseURL}
-	api.Get(storesPath, deps.Authenticate, searchLimit, list(deps.ListStores, storeSearchForm, present.storeCard))
-	api.Get(consignorsPath, deps.Authenticate, searchLimit,
+	api.Get(storesPath, deps.Visit, searchLimit, list(deps.ListStores, storeSearchForm, present.storeCard))
+	api.Get(consignorsPath, deps.Visit, searchLimit,
 		list(deps.ListConsignors, consignorSearchForm, present.consignorCard))
-	api.Get(productsPath, deps.Authenticate, searchLimit,
+	api.Get(productsPath, deps.Visit, searchLimit,
 		list(deps.ListProducts, consignorSearchForm, present.productCard))
 	api.Get(contactPath, deps.Authenticate, searchLimit, getContact(deps.GetContact))
-	api.Get(boardPath, deps.Authenticate, searchLimit, list(deps.ListNeeds, boardSearchForm, needCardOf))
+	api.Get(boardPath, deps.Visit, searchLimit, list(deps.ListNeeds, boardSearchForm, needCardOf))
 	mountProfiles(api, deps.Profiles, present)
 }
 
@@ -98,15 +99,12 @@ func list[F, T, R any](
 	lister Lister[F, T], formOf func(c fiber.Ctx, search domain.SearchForm) F, present func(T) R,
 ) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		signedIn, err := signedInActor(c)
-		if err != nil {
-			return err
-		}
+		viewer, _ := httpserver.ActorFrom(c)
 		text := httpserver.LineInput("q", c.Query("q"))
 		if err := httpserver.RejectUncleanInputs(text); err != nil {
 			return fmt.Errorf("check directory search: %w", err)
 		}
-		page, err := lister.Execute(c.Context(), signedIn, service.ListRequest[F]{
+		page, err := lister.Execute(c.Context(), viewer, service.ListRequest[F]{
 			Search: formOf(c, searchFormOf(c, text.Value)), Cursor: c.Query("cursor"), Limit: c.Query("limit"),
 		})
 		if err != nil {

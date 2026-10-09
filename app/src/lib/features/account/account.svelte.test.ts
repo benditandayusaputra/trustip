@@ -95,6 +95,20 @@ describe('AccountGate', () => {
 		expect(calls).toEqual(['GET /api/v1/me', 'POST /api/v1/sessions/refresh']);
 	});
 
+	it('FR-PUB-07 lets a visitor without a session stay on a public area and offers to sign in', async () => {
+		serve({
+			'GET /api/v1/me': () => failure(401, 'UNAUTHENTICATED'),
+			'POST /api/v1/sessions/refresh': () => failure(401, 'SESSION_EXPIRED')
+		});
+		const onsignedout = vi.fn();
+
+		await render(AccountHarness, { placement: 'anyone', onsignedout });
+
+		await expect.element(page.getByRole('link', { name: 'Masuk' })).toBeVisible();
+		await expect.element(page.getByRole('heading', { level: 1 })).toBeVisible();
+		expect(onsignedout).not.toHaveBeenCalled();
+	});
+
 	it('offers a retry when the account cannot be loaded', async () => {
 		let attempts = 0;
 		serve({

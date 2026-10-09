@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Package from '@lucide/svelte/icons/package';
 	import Card from '#lib/components/ui/Card.svelte';
+	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicProduct } from '#lib/api/public.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
 	import { id } from '#lib/i18n/id.js';
@@ -13,9 +14,10 @@
 		product: PublicProduct;
 		consignorSlug: string;
 		locate: () => Promise<GeoPosition>;
+		shareUrl: string;
 	}
 
-	let { product, consignorSlug, locate }: Props = $props();
+	let { product, consignorSlug, locate, shareUrl }: Props = $props();
 
 	const text = id.publicProfile;
 	const maker = $derived(product.maker);
@@ -57,6 +59,7 @@
 			{/if}
 		</Card>
 	{/if}
+	<ShareButton title={product.name} url={shareUrl} />
 	<Card title={text.availableAt}>
 		<AvailableStores {product} {consignorSlug} {locate} />
 	</Card>

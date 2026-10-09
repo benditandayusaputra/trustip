@@ -205,3 +205,19 @@ func bestMatchRequest() ListRequest[domain.StoreSearchForm] {
 		Search: domain.StoreSearchForm{Search: domain.SearchForm{Sort: "BEST_MATCH"}},
 	}
 }
+
+func TestListStores_FRPUB07_VisitorBrowsesFromACityWithoutScores(t *testing.T) {
+	directory := &fakeDirectory{cards: cardsNumbered(2), counts: map[int]int{2: 9}}
+
+	page, err := NewListStores(directory, directory, fixedClock{}).Execute(context.Background(), actor.Actor{},
+		ListRequest[domain.StoreSearchForm]{Search: domain.StoreSearchForm{Search: domain.SearchForm{
+			Origin: domain.OriginForm{Kind: "CITY", CityCode: "33.74"},
+		}}})
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+
+	if len(page.Items) != 2 || page.Items[0].HasMatch || !page.Context.Origin.IsKnown {
+		t.Fatalf("page = %+v", page)
+	}
+}

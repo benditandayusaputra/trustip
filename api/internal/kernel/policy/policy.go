@@ -105,3 +105,10 @@ func RequireMember(signedIn actor.Actor) error {
 	}
 	return nil
 }
+
+func RequireVisitorOrMember(viewer actor.Actor) error {
+	if viewer.UserID != "" && !viewer.IsMember() {
+		return apperror.New(apperror.CodeForbidden)
+	}
+	return nil
+}

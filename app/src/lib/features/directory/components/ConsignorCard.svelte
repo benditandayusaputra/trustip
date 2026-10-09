@@ -35,7 +35,9 @@
 			<ChefHat class="size-12 shrink-0 text-text-muted" aria-hidden="true" />
 		{/if}
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
-			<h2 class="text-lg font-semibold text-text">{card.name}</h2>
+			<h2 class="text-lg font-semibold text-text">
+				<a href="/u/{card.slug}" class="hover:text-accent">{card.name}</a>
+			</h2>
 			<p class="text-sm text-text-muted">
 				{text.productCount(card.product_count)}
 				{#if card.distance_m !== null}

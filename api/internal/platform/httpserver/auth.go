@@ -28,6 +28,16 @@ func Authenticate(verifier AccessVerifier, cookieName string) fiber.Handler {
 	}
 }
 
+func AuthenticateIfPresent(verifier AccessVerifier, cookieName string) fiber.Handler {
+	authenticate := Authenticate(verifier, cookieName)
+	return func(c fiber.Ctx) error {
+		if c.Cookies(cookieName) == "" {
+			return c.Next()
+		}
+		return authenticate(c)
+	}
+}
+
 func ActorFrom(c fiber.Ctx) (actor.Actor, bool) {
 	signedIn, ok := c.Locals(actorKey{}).(actor.Actor)
 	return signedIn, ok

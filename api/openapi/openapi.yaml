@@ -1676,6 +1676,34 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/public/needs/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPublicNeed
+      tags: [public]
+      responses:
+        "200":
+          description: Halaman publik Kebutuhan toko
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicNeedResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /api/v1/directory/needs:
     get:
       operationId: listNeedBoard
@@ -7484,6 +7512,77 @@ components:
           type: string
         data:
           $ref: "#/components/schemas/PublicProduct"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    PublicNeedStore:
+      type: object
+      additionalProperties: false
+      required: [id, name, store_type, district, city_name, profile_slug]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        store_type:
+          allOf:
+            - $ref: "#/components/schemas/StoreType"
+          nullable: true
+        district:
+          type: string
+        city_name:
+          type: string
+        profile_slug:
+          type: string
+          nullable: true
+    PublicNeed:
+      type: object
+      additionalProperties: false
+      required: [id, title, category, description, est_qty_per_week, max_retail_price, preferred_model,
+        offered_commission_bps, status, expires_at, store]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        est_qty_per_week:
+          type: integer
+          nullable: true
+        max_retail_price:
+          type: integer
+          format: int64
+          nullable: true
+        preferred_model:
+          type: string
+          nullable: true
+          enum: [FIXED_DEPOSIT, COMMISSION, null]
+        offered_commission_bps:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [OPEN, FULFILLED, CLOSED, EXPIRED]
+        expires_at:
+          type: string
+          format: date-time
+        store:
+          $ref: "#/components/schemas/PublicNeedStore"
+    PublicNeedResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/PublicNeed"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
     DirectoryStoreCard:

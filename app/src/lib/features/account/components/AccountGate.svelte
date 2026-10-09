@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { page } from '$app/state';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
@@ -37,9 +38,13 @@
 			session.account !== undefined &&
 			isPlacedFor(session.account, placement)
 	);
+	const isVisitor = $derived(session.status === 'signedOut' && placement === 'anyone');
+	const signInHref = $derived(
+		`/masuk?${new URLSearchParams({ lanjut: page.url.pathname + page.url.search }).toString()}`
+	);
 
 	$effect(() => {
-		if (session.status === 'signedOut') {
+		if (session.status === 'signedOut' && placement !== 'anyone') {
 			onsignedout();
 		}
 	});
@@ -55,8 +60,15 @@
 <div class="flex min-h-dvh flex-col">
 	<header class="border-b border-border bg-surface">
 		<div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-4 px-4 py-2">
-			<a href="/app" class="text-lg font-semibold text-text">{id.brand}</a>
-			{#if session.status === 'ready'}
+			<a href={isVisitor ? '/' : '/app'} class="text-lg font-semibold text-text">{id.brand}</a>
+			{#if isVisitor}
+				<a
+					href={signInHref}
+					class="inline-flex min-h-11 items-center rounded-control border border-border-strong px-4 font-semibold"
+				>
+					{id.nav.signIn}
+				</a>
+			{:else if session.status === 'ready'}
 				<div class="flex flex-wrap items-center gap-2">
 					{#if isPlaced && actions}
 						{@render actions()}
@@ -67,7 +79,7 @@
 		</div>
 	</header>
 	<main id="konten" tabindex="-1" class="mx-auto w-full max-w-content flex-1 px-4 py-6">
-		{#if isPlaced}
+		{#if isPlaced || isVisitor}
 			{@render children()}
 		{:else if session.status === 'failed'}
 			<Alert title={id.account.loadFailed}>

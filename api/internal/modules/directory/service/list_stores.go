@@ -22,7 +22,7 @@ func NewListStores(viewers ViewerReader, stores StoreDirectory, clock Clock) *Li
 func (uc *ListStores) Execute(
 	ctx context.Context, signedIn actor.Actor, request ListRequest[domain.StoreSearchForm],
 ) (Page[domain.StoreCard], error) {
-	if err := policy.RequireMember(signedIn); err != nil {
+	if err := policy.RequireVisitorOrMember(signedIn); err != nil {
 		return Page[domain.StoreCard]{}, fmt.Errorf("check directory reader: %w", err)
 	}
 	search, err := domain.NewStoreSearch(request.Search)

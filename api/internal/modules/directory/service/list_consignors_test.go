@@ -97,10 +97,12 @@ func TestListConsignors_FRDIR07_DeliveryFilterWithoutStoreLocationIsRejected(t *
 	}
 }
 
-func TestListProducts_BRAUTHZ01_NeedsAMembership(t *testing.T) {
+func TestListProducts_BRAUTHZ01_SignedInUserNeedsAMembership(t *testing.T) {
 	directory := &fakeConsignors{}
 
-	_, err := NewListProducts(directory, directory, fixedClock{}).Execute(context.Background(), actor.Actor{},
+	newcomer := actor.Actor{UserID: "u"}
+
+	_, err := NewListProducts(directory, directory, fixedClock{}).Execute(context.Background(), newcomer,
 		ListRequest[domain.ConsignorSearchForm]{})
 
 	if apperror.From(err).Code() != apperror.CodeForbidden {

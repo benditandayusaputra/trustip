@@ -146,6 +146,7 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	})
 	authhandler.Mount(server.API(), authDeps(deps.auth, securityLog, deps.clock))
 	authenticate := httpserver.Authenticate(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName())
+	visit := httpserver.AuthenticateIfPresent(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName())
 	writeLimiter := newWriteLimiter(deps.clock)
 	orghandler.Mount(server.API(), orgDeps(deps.org, orgRoutes{
 		authenticate: authenticate,
@@ -165,7 +166,7 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 		authenticate: authenticate, clock: deps.clock, securityLog: securityLog, appOrigin: deps.appOrigin,
 	}))
 	mountMarket(server.API(), deps, tradeRoutes{
-		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
+		authenticate: authenticate, visit: visit, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
 		securityLog: securityLog, clock: deps.clock,
 	})
 	return server
@@ -174,8 +175,8 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 func mountMarket(api fiber.Router, deps serverDeps, routes tradeRoutes) {
 	mountTrade(api, deps.trade, routes)
 	mountDirectory(api, deps.directory, directoryRoutes{
-		authenticate: routes.authenticate, writeLimiter: routes.writeLimiter, filesBaseURL: routes.filesBaseURL,
-		securityLog: routes.securityLog, clock: routes.clock,
+		authenticate: routes.authenticate, visit: routes.visit, writeLimiter: routes.writeLimiter,
+		filesBaseURL: routes.filesBaseURL, securityLog: routes.securityLog, clock: routes.clock,
 	})
 	insighthandler.Mount(api, insightDeps(deps.trade.insights, newDirectoryCandidates(deps.directory, deps.clock),
 		routes))

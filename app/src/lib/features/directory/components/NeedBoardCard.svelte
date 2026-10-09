@@ -20,7 +20,9 @@
 
 <article class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
 	<header class="flex flex-col gap-1">
-		<h2 class="text-lg font-semibold text-text">{card.title}</h2>
+		<h2 class="text-lg font-semibold text-text">
+			<a href="/kebutuhan/{card.id}" class="hover:text-accent">{card.title}</a>
+		</h2>
 		<p class="text-sm text-text-muted">
 			{card.store.name}
 			{#if card.store.store_type}

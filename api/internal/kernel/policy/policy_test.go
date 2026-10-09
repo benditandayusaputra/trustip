@@ -100,3 +100,16 @@ func TestRequireMember_BRAUTHZ01_AnyRoleOfAnOrganizationPasses(t *testing.T) {
 		t.Fatalf("newcomer err = %v", err)
 	}
 }
+
+func TestRequireVisitorOrMember_FRPUB07_VisitorsAndMembersPassNewcomersDoNot(t *testing.T) {
+	if err := policy.RequireVisitorOrMember(actor.Actor{}); err != nil {
+		t.Fatalf("visitor err = %v", err)
+	}
+	if err := policy.RequireVisitorOrMember(member(actor.Store, actor.Staff)); err != nil {
+		t.Fatalf("member err = %v", err)
+	}
+	newcomer := policy.RequireVisitorOrMember(actor.Actor{UserID: "u"})
+	if apperror.From(newcomer).Code() != apperror.CodeForbidden {
+		t.Fatalf("newcomer err = %v", newcomer)
+	}
+}

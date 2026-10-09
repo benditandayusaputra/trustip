@@ -74,6 +74,7 @@ func buildTradeComponents(base foundation, sealKeys security.ActiveKeyring) trad
 
 type tradeRoutes struct {
 	authenticate fiber.Handler
+	visit        fiber.Handler
 	filesBaseURL string
 	writeLimiter httpserver.RateLimiter
 	securityLog  *slog.Logger

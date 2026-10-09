@@ -28,6 +28,7 @@ type ProfileReaders struct {
 	Store     StoreProfileReader
 	Consignor ConsignorProfileReader
 	Product   ProductPageReader
+	Need      NeedPageReader
 }
 
 func PublicRoutes() []httpserver.PublicRoute {
@@ -35,6 +36,11 @@ func PublicRoutes() []httpserver.PublicRoute {
 		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + publicStorePath},
 		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + publicConsignorPath},
 		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + publicProductPath},
+		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + publicNeedPath},
+		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + storesPath},
+		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + consignorsPath},
+		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + productsPath},
+		{Method: fiber.MethodGet, Path: httpserver.APIPrefix + boardPath},
 	}
 }
 
@@ -105,6 +111,7 @@ func mountProfiles(api fiber.Router, profiles ProfileReaders, present presenter)
 	api.Get(publicStorePath, getPublic(profiles.Store.Execute, present.publicStore))
 	api.Get(publicConsignorPath, getPublic(profiles.Consignor.Execute, present.publicConsignor))
 	api.Get(publicProductPath, getProductPage(profiles.Product, present))
+	api.Get(publicNeedPath, getNeedPage(profiles.Need))
 }
 
 func getPublic[T, R any](read func(ctx context.Context, slug string) (T, error), present func(T) R) fiber.Handler {

@@ -8,7 +8,7 @@ import type { Account } from '#lib/api/users.js';
 import { deviceReadCache } from '#lib/offline/read-cache.js';
 
 export type AccountStatus = 'loading' | 'ready' | 'failed' | 'signedOut';
-export type Placement = 'member' | 'newcomer';
+export type Placement = 'member' | 'newcomer' | 'anyone';
 
 const dashboards: Record<OrganizationType, string> = {
 	CONSIGNOR: '/app/penitip',
@@ -20,7 +20,7 @@ export function dashboardPath(type: OrganizationType): string {
 }
 
 export function isPlacedFor(account: Account, placement: Placement): boolean {
-	return (account.membership !== null) === (placement === 'member');
+	return (account.membership !== null) === (placement !== 'newcomer');
 }
 
 export class AccountSession {

@@ -1,7 +1,7 @@
 import { page, userEvent } from 'vitest/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import type { PublicConsignor, PublicProduct, PublicStore } from '#lib/api/public.js';
+import type { PublicConsignor, PublicNeed, PublicProduct, PublicStore } from '#lib/api/public.js';
 import PublicProfileHarness from '#lib/testing/PublicProfileHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 
@@ -99,6 +99,8 @@ const product: PublicProduct = {
 
 afterEach(() => {
 	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
+	Reflect.deleteProperty(navigator, 'share');
 });
 
 describe('Public profiles', () => {
@@ -186,5 +188,44 @@ describe('Public profiles', () => {
 		await expect
 			.element(page.getByText('Lokasi tidak bisa dibaca', { exact: false }))
 			.toBeVisible();
+	});
+
+	it('FR-PUB-06 FR-PUB-08 shows a shared need and copies its link', async () => {
+		const need: PublicNeed = {
+			id: '0192f0c4-0000-7000-8000-000000000301',
+			title: 'Butuh camilan kantin',
+			category: 'Kue kering dan camilan',
+			description: 'Untuk kantin kampus.',
+			est_qty_per_week: 50,
+			max_retail_price: 5000,
+			preferred_model: 'COMMISSION',
+			offered_commission_bps: 2000,
+			status: 'OPEN',
+			expires_at: '2026-11-01T00:00:00Z',
+			store: {
+				id: store.id,
+				name: 'Warung Bu Tini',
+				store_type: 'CANTEEN',
+				district: 'Tembalang',
+				city_name: 'Kota Semarang',
+				profile_slug: 'warung-bu-tini'
+			}
+		};
+		const copied: string[] = [];
+		Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+		vi.spyOn(navigator.clipboard, 'writeText').mockImplementation((text: string) => {
+			copied.push(text);
+			return Promise.resolve();
+		});
+		const { container } = await render(PublicProfileHarness, { need });
+		await expect
+			.element(page.getByRole('link', { name: 'Tanggapi dengan Ajuan' }))
+			.toHaveAttribute('href', `/app/ajuan/baru?sasaran=${store.id}&kebutuhan=${need.id}`);
+		await expectAccessible(container);
+
+		await userEvent.click(page.getByRole('button', { name: 'Bagikan' }));
+
+		await expect.element(page.getByText('Tautan disalin.')).toBeVisible();
+		expect(copied).toEqual(['https://trustip.test/kebutuhan/x']);
 	});
 });

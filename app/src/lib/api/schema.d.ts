@@ -675,6 +675,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/needs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getPublicNeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/directory/needs": {
         parameters: {
             query?: never;
@@ -3004,6 +3022,39 @@ export interface components {
             data: components["schemas"]["PublicProduct"];
             meta: components["schemas"]["ResponseMeta"];
         };
+        PublicNeedStore: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            store_type: components["schemas"]["StoreType"] | null;
+            district: string;
+            city_name: string;
+            profile_slug: string | null;
+        };
+        PublicNeed: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            category: string;
+            description: string;
+            est_qty_per_week: number | null;
+            /** Format: int64 */
+            max_retail_price: number | null;
+            /** @enum {string|null} */
+            preferred_model: "FIXED_DEPOSIT" | "COMMISSION" | null;
+            offered_commission_bps: number | null;
+            /** @enum {string} */
+            status: "OPEN" | "FULFILLED" | "CLOSED" | "EXPIRED";
+            /** Format: date-time */
+            expires_at: string;
+            store: components["schemas"]["PublicNeedStore"];
+        };
+        PublicNeedResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["PublicNeed"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
         DirectoryStoreCard: {
             /** Format: date */
             joined_on: string;
@@ -4733,6 +4784,33 @@ export interface operations {
             };
             404: components["responses"]["NotFound"];
             422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getPublicNeed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Halaman publik Kebutuhan toko */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicNeedResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];

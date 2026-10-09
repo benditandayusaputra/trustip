@@ -156,6 +156,11 @@ export const id = {
 		label: 'Verifikasi keamanan',
 		loadFailed: 'Verifikasi keamanan tidak bisa dimuat. Periksa koneksi lalu muat ulang halaman.'
 	},
+	share: {
+		label: 'Bagikan',
+		copied: 'Tautan disalin.',
+		failed: 'Tautan tidak bisa disalin. Salin dari bilah alamat.'
+	},
 	form: {
 		saving: 'Menyimpan',
 		decrease: (label: string) => `Kurangi ${label}`,

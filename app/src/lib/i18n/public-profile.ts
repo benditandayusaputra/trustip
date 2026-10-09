@@ -42,6 +42,11 @@ export const publicProfile = {
 		locationDenied: 'Lokasi tidak bisa dibaca. Toko tetap diurutkan menurut nama.',
 		sortFailed: 'Toko terdekat tidak bisa dimuat. Coba lagi.',
 		openMap: (name: string) => `Buka ${name} di peta`,
-		maker: 'Pembuat'
+		maker: 'Pembuat',
+		needKind: 'Kebutuhan toko',
+		needBy: (store: string) => `Dipasang oleh ${store}`,
+		needDetails: 'Rincian',
+		needClosed: 'Kebutuhan ini sudah tidak menerima tanggapan.',
+		storeProfile: 'Lihat profil toko'
 	}
 };

@@ -22,7 +22,7 @@ func NewListNeedBoard(viewers ViewerReader, board NeedBoard, clock Clock) *ListN
 func (uc *ListNeedBoard) Execute(
 	ctx context.Context, signedIn actor.Actor, request ListRequest[domain.SearchForm],
 ) (Page[domain.NeedCard], error) {
-	if err := policy.RequireMember(signedIn); err != nil {
+	if err := policy.RequireVisitorOrMember(signedIn); err != nil {
 		return Page[domain.NeedCard]{}, fmt.Errorf("check board reader: %w", err)
 	}
 	search, err := domain.NewNeedSearch(request.Search)
