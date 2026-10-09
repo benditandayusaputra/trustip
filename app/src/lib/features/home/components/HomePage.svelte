@@ -24,6 +24,7 @@
 		<div class="flex flex-wrap gap-4">
 			<a href="/daftar" class="{linkClass} bg-accent text-on-accent">{text.register}</a>
 			<a href="/masuk" class="{linkClass} border border-border-strong">{text.signIn}</a>
+			<a href="/masuk#coba-demo" class="{linkClass} text-accent">{text.tryDemo}</a>
 		</div>
 	</section>
 

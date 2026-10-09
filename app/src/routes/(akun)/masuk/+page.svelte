@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { PUBLIC_TURNSTILE_SITE_KEY } from '$app/env/public';
+	import DemoAccounts from '#lib/features/auth/components/DemoAccounts.svelte';
 	import LoginForm from '#lib/features/auth/components/LoginForm.svelte';
+	import type { DemoAccount } from '#lib/features/auth/demo.js';
 	import { registerHref, safeNextPath } from '#lib/features/auth/links.js';
 	import { id } from '#lib/i18n/id.js';
 
 	const text = id.auth.login;
 	const next = $derived(page.url.searchParams.get('lanjut'));
+	let loginForm: { fill: (values: DemoAccount) => void } | undefined = $state();
 </script>
 
 <svelte:head>
@@ -19,6 +22,7 @@
 		<p class="text-base text-text-muted">{text.intro}</p>
 	</header>
 	<LoginForm
+		bind:this={loginForm}
 		siteKey={PUBLIC_TURNSTILE_SITE_KEY}
 		onsignedin={() => {
 			window.location.assign(safeNextPath(next));
@@ -28,4 +32,9 @@
 		{text.noAccount}
 		<a href={registerHref(next)} class="font-semibold text-accent">{text.register}</a>
 	</p>
+	<DemoAccounts
+		onpick={(account: DemoAccount) => {
+			loginForm?.fill(account);
+		}}
+	/>
 </section>

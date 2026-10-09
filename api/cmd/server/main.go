@@ -44,7 +44,11 @@ func main() {
 	}
 	base := logger.New(os.Stdout, cfg.LogLevel)
 	appLog := logger.ForStream(base, logger.App)
-	if err := serve(cfg, base); err != nil {
+	run := serve
+	if len(os.Args) > 1 && os.Args[1] == demoCommand {
+		run = runDemoCommand
+	}
+	if err := run(cfg, base); err != nil {
 		appLog.Error("server stopped", "error", err)
 		os.Exit(1)
 	}
@@ -81,23 +85,23 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	foundation := foundation{pool: pool, clock: systemClock, feed: live.hub}
 	trade := buildTradeComponents(foundation, cfg.SealKeys)
 	server := newServer(base, serverDeps{
-		ready:     pool.Ping,
-		edge:      security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
-		limiter:   ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
-		clock:     systemClock,
-		auth:      components,
-		org:       buildOrgComponents(pool, systemClock),
-		files:     buildFileComponents(pool, cfg, systemClock),
-		inbox:     buildNotificationComponents(pool, systemClock),
-		live:      live,
-		trade:     trade,
+		ready:   pool.Ping,
+		edge:    security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
+		limiter: ratelimit.New(ratelimit.Rule{Limit: requestsPerMinutePerIP, Window: time.Minute}, systemClock),
+		clock:   systemClock,
+		auth:    components,
+		org:     buildOrgComponents(pool, systemClock),
+		files:   buildFileComponents(pool, cfg, systemClock),
+		inbox:   buildNotificationComponents(pool, systemClock),
+		live:    live, trade: trade,
 		directory: buildDirectoryComponents(foundation),
 		appOrigin: cfg.PublicAppOrigin,
 	})
 	appLog := logger.ForStream(base, logger.App)
 	jobs := newScheduler(schedulerParts{
-		runners: buildJobRunners(foundation, trade).loggingChainsTo(logger.ForStream(base, logger.Security)),
-		clock:   systemClock, waits: scheduler.SystemWaits{}, log: appLog,
+		runners: buildJobRunners(foundation, trade).loggingChainsTo(logger.ForStream(base, logger.Security)).
+			resettingDemoWith(resetDemo(pool, demoSecretsOf(cfg))),
+		clock: systemClock, waits: scheduler.SystemWaits{}, log: appLog,
 	})
 	defer startJobs(ctx, jobs, stop)()
 	appLog.Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)

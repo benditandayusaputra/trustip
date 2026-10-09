@@ -11,7 +11,7 @@ SQLC_VERSION := v1.31.1
 WITH_API_ENV := cd api && set -a && . ./.env && set +a
 
 .PHONY: setup tools app-deps hooks env migrate neon-check dev dev-api dev-app check check-api \
-	check-app check-repo test test-api test-app build gen e2e
+	check-app check-repo test test-api test-app build gen e2e demo
 
 setup: tools app-deps env hooks
 
@@ -37,6 +37,9 @@ migrate:
 
 neon-check:
 	cd api && go run ./cmd/dbcheck .env.production
+
+demo: migrate
+	$(WITH_API_ENV) && go run ./cmd/server demo
 
 dev: migrate
 	$(MAKE) -j2 dev-api dev-app

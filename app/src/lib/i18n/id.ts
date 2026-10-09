@@ -116,7 +116,15 @@ export const id = {
 			submit: 'Masuk',
 			noAccount: 'Belum punya akun?',
 			register: 'Daftar',
-			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.'
+			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.',
+			demo: {
+				title: 'Coba akun demo',
+				body: 'Berisi data contoh 30 hari di Lowokwaru, Malang, dan disetel ulang tiap malam pukul 03.00.',
+				email: 'Email',
+				password: 'Kata sandi',
+				consignor: 'Isi sebagai penitip (Roti Pak Anton)',
+				store: 'Isi sebagai toko (Warung Bu Sri)'
+			}
 		},
 		validation: {
 			required: 'Wajib diisi.',

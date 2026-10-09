@@ -46,6 +46,7 @@ export const home = {
 		],
 		closingTitle: 'Mulai bersama mitra Anda',
 		closingBody: 'Satu akun untuk mencatat titipan, hitungan, dan setoran bersama mitra.',
+		tryDemo: 'Coba akun demo',
 		browseStores: 'Lihat toko yang menerima titipan',
 		browseNeeds: 'Lihat Kebutuhan toko'
 	}

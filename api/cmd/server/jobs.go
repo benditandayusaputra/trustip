@@ -43,6 +43,7 @@ type jobRunners struct {
 	reputation  *trustservice.RefreshReputation
 	chains      *sealservice.CheckChains
 	chainLog    *slog.Logger
+	demo        scheduler.Work
 }
 
 func buildJobRunners(base foundation, trade tradeComponents) jobRunners {
@@ -58,6 +59,7 @@ func buildJobRunners(base foundation, trade tradeComponents) jobRunners {
 		reputation:  trustservice.NewRefreshReputation(trustrepository.NewReputation(pool)),
 		chains:      trade.seals.chains,
 		chainLog:    slog.New(slog.DiscardHandler),
+		demo:        func(context.Context, time.Time) error { return nil },
 	}
 }
 
@@ -75,6 +77,7 @@ func scheduledJobs(runners jobRunners) []scheduler.Job {
 		{Name: "need-reminders", Hour: reminderHour, Days: scheduler.EveryDay, Work: runners.remind},
 		{Name: "reputation-summary", Minute: reputationMinute, Days: scheduler.EveryDay, Work: runners.summarize},
 		{Name: "seal-chain-check", Minute: chainCheckMinute, Days: scheduler.EveryDay, Work: runners.checkChains},
+		{Name: "demo-reset", Hour: demoResetHour, Days: scheduler.EveryDay, Work: runners.demo},
 	}
 }
 
@@ -98,6 +101,11 @@ func (r jobRunners) summarize(ctx context.Context, now time.Time) error {
 		return fmt.Errorf("summarize reputation: %w", err)
 	}
 	return nil
+}
+
+func (r jobRunners) resettingDemoWith(reset scheduler.Work) jobRunners {
+	r.demo = reset
+	return r
 }
 
 func (r jobRunners) loggingChainsTo(securityLog *slog.Logger) jobRunners {
