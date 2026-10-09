@@ -84,5 +84,6 @@ build:
 	cd app && npm run build
 
 e2e: migrate
-	cd app && npx playwright test --grep-invert @own-server
+	cd app && npx playwright test --grep-invert "@own-server|@security"
 	cd app && npx playwright test --grep @own-server
+	cd app && npx playwright test --grep @security

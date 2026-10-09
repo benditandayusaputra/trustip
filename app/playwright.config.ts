@@ -25,7 +25,7 @@ export default defineConfig({
 		{
 			name: 'mobile',
 			use: { ...devices['Pixel 7'] },
-			testIgnore: /(partnership|matchmaking)\.test\.ts/u
+			testIgnore: /(partnership|matchmaking|xss)\.test\.ts/u
 		},
 		{ name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: /account\.test\.ts/u }
 	]

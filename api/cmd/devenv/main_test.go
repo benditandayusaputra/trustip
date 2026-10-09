@@ -105,3 +105,18 @@ func readEnv(t *testing.T, path string) map[string]string {
 	}
 	return values
 }
+
+func TestEnvExamples_RSEC73_ListNamesWithoutValues(t *testing.T) {
+	for _, path := range []string{"../../.env.example", "../../../app/.env.example"} {
+		content, err := os.ReadFile(filepath.Clean(path))
+		if err != nil {
+			t.Fatalf("read %s: %v", path, err)
+		}
+		for line := range strings.Lines(string(content)) {
+			name, value, found := strings.Cut(strings.TrimSpace(line), "=")
+			if name != "" && (!found || value != "") {
+				t.Fatalf("%s carries a value for %s", path, name)
+			}
+		}
+	}
+}
