@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_STREAM_URL } from '$app/env/public';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
@@ -27,7 +28,7 @@
 	{#snippet actions()}
 		<OfflineKeeper />
 		<OutboxBadge />
-		<NotificationBell />
+		<NotificationBell streamUrl={PUBLIC_STREAM_URL} />
 	{/snippet}
 	{@render children()}
 </AccountGate>

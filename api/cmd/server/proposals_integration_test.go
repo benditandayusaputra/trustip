@@ -140,7 +140,7 @@ func TestProposal_FRPRP03_DeclineWithAReasonEndsTheProposal(t *testing.T) {
 func TestProposal_RCC74_TwoDecisionsAtOnceOnlyOnePasses(t *testing.T) {
 	scene := newInvitationScene(t)
 	scene.claimAsStore(t)
-	deps := buildTradeComponents(scene.store.pool, scene.store.now, testSealKeys{}).proposals.deps
+	deps := buildTradeComponents(testFoundation(scene.store.pool, scene.store.now), testSealKeys{}).proposals.deps
 	storeOwner := scene.store.actor(t)
 	var group sync.WaitGroup
 	outcomes := make(chan error, 2)

@@ -7,6 +7,6 @@
 	setToaster(new ToastQueue());
 </script>
 
-<NotificationBell />
+<NotificationBell streamUrl="" />
 <NotificationList />
 <Toaster />

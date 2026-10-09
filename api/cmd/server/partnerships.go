@@ -9,7 +9,6 @@ import (
 	partnershiprepository "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/repository"
 	partnershipservice "github.com/benditandayusaputra/trustip/api/internal/modules/partnership/service"
 	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 )
 
 type partnershipSealer struct {
@@ -29,22 +28,22 @@ func (a partnershipAnnouncer) Announce(ctx context.Context, notice partnershipdo
 }
 
 type endingParts struct {
-	clock       serverClock
 	seals       sealComponents
 	settlements settlementservice.Deps
 }
 
-func buildEndingDeps(pool *database.Pool, parts endingParts) partnershipservice.EndDeps {
+func buildEndingDeps(base foundation, parts endingParts) partnershipservice.EndDeps {
+	pool := base.pool
 	partnerships := partnershiprepository.NewPartnerships(pool)
 	return partnershipservice.EndDeps{
 		Partnerships: partnerships,
 		Reader:       partnerships,
 		Settler:      outstandingSettler{issuer: settlementservice.NewIssuer(parts.settlements)},
 		Sealer:       partnershipSealer{documentSealer{recorder: parts.seals.recorder}},
-		Announcer:    partnershipAnnouncer{newOrganizationAnnouncer(pool, parts.clock)},
+		Announcer:    partnershipAnnouncer{newOrganizationAnnouncer(base)},
 		Audit:        newAuditTrail(auditrepository.NewRecords(pool)),
 		Tx:           pool,
-		Clock:        parts.clock,
+		Clock:        base.clock,
 	}
 }
 

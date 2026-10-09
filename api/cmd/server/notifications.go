@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -10,6 +11,8 @@ import (
 	notificationservice "github.com/benditandayusaputra/trustip/api/internal/modules/notification/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/sse"
 )
 
 type notificationInbox interface {
@@ -41,5 +44,40 @@ func notificationDeps(components notificationComponents, routes notificationRout
 		MarkAllRead:  notificationservice.NewMarkAllRead(components.inbox, components.clock),
 		WriteLimiter: routes.writeLimiter,
 		SecurityLog:  routes.securityLog,
+	}
+}
+
+const (
+	streamsPerUser         = 3
+	streamBacklog          = 16
+	streamTicketLifetime   = 30 * time.Second
+	streamTicketsPerMinute = 10
+	streamHeartbeat        = 25 * time.Second
+)
+
+type liveComponents struct {
+	hub     *sse.Hub
+	tickets *sse.Tickets
+}
+
+func newLiveComponents(shutdown <-chan struct{}, clock sse.Clock) liveComponents {
+	return liveComponents{
+		hub:     sse.NewHub(shutdown, sse.Limits{StreamsPerUser: streamsPerUser, Backlog: streamBacklog}),
+		tickets: sse.NewTickets(clock, streamTicketLifetime),
+	}
+}
+
+type streamRoutes struct {
+	authenticate fiber.Handler
+	clock        serverClock
+	securityLog  *slog.Logger
+	appOrigin    string
+}
+
+func streamOptions(live liveComponents, routes streamRoutes) httpserver.StreamOptions {
+	return httpserver.StreamOptions{
+		Hub: live.hub, Tickets: live.tickets, Authenticate: routes.authenticate,
+		TicketLimiter: ratelimit.New(ratelimit.Rule{Limit: streamTicketsPerMinute, Window: time.Minute}, routes.clock),
+		SecurityLog:   routes.securityLog, AppOrigin: routes.appOrigin, Heartbeat: streamHeartbeat,
 	}
 }

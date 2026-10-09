@@ -129,3 +129,48 @@ func TestOpen_SchemaOwnerWhenRefused_ReturnsErrSchemaOwner(t *testing.T) {
 		t.Fatalf("err = %v, want ErrSchemaOwner", err)
 	}
 }
+
+func TestAfterCommit_InsideTransaction_RunsOnlyAfterCommit(t *testing.T) {
+	pool := openPool(t, dbtest.URL(t))
+	ran := false
+
+	err := pool.WithinTx(t.Context(), func(ctx context.Context) error {
+		pool.AfterCommit(ctx, func() { ran = true })
+		if ran {
+			t.Error("hook ran before commit")
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("within tx: %v", err)
+	}
+
+	if !ran {
+		t.Fatal("hook did not run after commit")
+	}
+}
+
+func TestAfterCommit_TransactionRolledBack_NeverRuns(t *testing.T) {
+	pool := openPool(t, dbtest.URL(t))
+	ran := false
+
+	err := pool.WithinTx(t.Context(), func(ctx context.Context) error {
+		pool.AfterCommit(ctx, func() { ran = true })
+		return errors.New("stock changed")
+	})
+
+	if err == nil || ran {
+		t.Fatalf("err = %v, ran = %t", err, ran)
+	}
+}
+
+func TestAfterCommit_OutsideTransaction_RunsAtOnce(t *testing.T) {
+	pool := openPool(t, dbtest.URL(t))
+	ran := false
+
+	pool.AfterCommit(t.Context(), func() { ran = true })
+
+	if !ran {
+		t.Fatal("hook did not run")
+	}
+}

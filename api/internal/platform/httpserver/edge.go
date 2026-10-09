@@ -43,8 +43,10 @@ func EdgeSignature(verifier EdgeVerifier, securityLog *slog.Logger) fiber.Handle
 const PublicFilesPrefix = "/files/"
 
 func isUnsigned(c fiber.Ctx) bool {
-	isPublicFile := c.Method() == fiber.MethodGet && strings.HasPrefix(c.Path(), PublicFilesPrefix)
-	return c.Path() == healthPath || isPublicFile
+	isRead := c.Method() == fiber.MethodGet
+	isPublicFile := isRead && strings.HasPrefix(c.Path(), PublicFilesPrefix)
+	isLiveStream := isRead && c.Path() == APIPrefix+StreamPath
+	return c.Path() == healthPath || isPublicFile || isLiveStream
 }
 
 func signedRequestFrom(c fiber.Ctx) security.SignedRequest {

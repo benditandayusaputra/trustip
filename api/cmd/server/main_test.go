@@ -65,6 +65,7 @@ func newServerFrom(ready httpserver.ReadinessCheck, now *clock.Manual, modules t
 		org:       modules.org,
 		files:     modules.files,
 		inbox:     modules.inbox,
+		live:      newLiveComponents(make(chan struct{}), now),
 		trade:     modules.trade,
 		directory: modules.directory,
 		appOrigin: testAppOrigin,

@@ -11,7 +11,6 @@ import (
 	directoryservice "github.com/benditandayusaputra/trustip/api/internal/modules/directory/service"
 	needhandler "github.com/benditandayusaputra/trustip/api/internal/modules/need/handler"
 	needservice "github.com/benditandayusaputra/trustip/api/internal/modules/need/service"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/ratelimit"
 )
@@ -27,11 +26,11 @@ type directoryComponents struct {
 	needs      needservice.Deps
 }
 
-func buildDirectoryComponents(pool *database.Pool, clock serverClock) directoryComponents {
-	directory := directoryrepository.NewDirectory(pool)
+func buildDirectoryComponents(base foundation) directoryComponents {
+	directory := directoryrepository.NewDirectory(base.pool)
 	return directoryComponents{
 		viewers: directory, stores: directory, consignors: directory, contacts: directory, board: directory,
-		needs: buildNeedDeps(pool, clock),
+		needs: buildNeedDeps(base),
 	}
 }
 

@@ -21,7 +21,6 @@ import (
 	trustrepository "github.com/benditandayusaputra/trustip/api/internal/modules/trust/repository"
 	trustservice "github.com/benditandayusaputra/trustip/api/internal/modules/trust/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/scheduler"
 )
 
@@ -42,14 +41,16 @@ type jobRunners struct {
 	reputation  *trustservice.RefreshReputation
 }
 
-func buildJobRunners(pool *database.Pool, trade tradeComponents) jobRunners {
+func buildJobRunners(base foundation, trade tradeComponents) jobRunners {
+	pool := base.pool
+	reminderBase := foundation{pool: pool, clock: clock.System{}, feed: base.feed}
 	return jobRunners{
 		deemDrops:   dropservice.NewDeemConfirmed(droprepository.NewDrops(pool)),
 		deemCounts:  countservice.NewDeemConfirmed(countrepository.NewCounts(pool)),
 		expire:      proposalservice.NewExpireProposals(proposalrepository.NewProposals(pool)),
 		settlements: settlementservice.NewIssueDueSettlements(trade.settlements),
 		needs:       needservice.NewExpireNeeds(needrepository.NewNeeds(pool)),
-		reminders:   needservice.NewRemindExpiringNeeds(buildNeedDeps(pool, clock.System{})),
+		reminders:   needservice.NewRemindExpiringNeeds(buildNeedDeps(reminderBase)),
 		reputation:  trustservice.NewRefreshReputation(trustrepository.NewReputation(pool)),
 	}
 }

@@ -19,6 +19,7 @@ import { networkTimeoutMs, onboard, registerThenSignIn, uniqueEmail } from './se
 const appOrigin = 'http://localhost:5173';
 const flowTimeoutMs = 600_000;
 const partnerPagePattern = /\/app\/mitra\/[0-9a-f-]{36}$/u;
+const liveNoticeMs = 3000;
 
 async function openAs(browser: Browser, device: string): Promise<Page> {
 	const context = await browser.newContext({ ...devices[device], baseURL: appOrigin });
@@ -79,6 +80,18 @@ async function storeRecordsTwentyLoaves(page: Page): Promise<void> {
 	await expect(page.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
 }
 
+async function storeRecordsWhileConsignorWatches(store: Page, consignor: Page): Promise<void> {
+	const dropSaved = store.waitForResponse(
+		(response) => response.url().endsWith('/api/v1/drops') && response.request().method() === 'POST'
+	);
+	const recorded = storeRecordsTwentyLoaves(store);
+	await dropSaved;
+	await expect(consignor.getByText('Ada pemberitahuan baru dari mitra.')).toBeVisible({
+		timeout: liveNoticeMs
+	});
+	await recorded;
+}
+
 async function storeCountsTwoLeftAndReturned(page: Page, partnerPage: string): Promise<string> {
 	await page.goto(partnerPage);
 	await page.getByRole('link', { name: 'Hitung sisa' }).click();
@@ -127,7 +140,7 @@ async function consignorReceivesTheMoney(page: Page, settlementPage: string): Pr
 	await expect(page.getByText('Lunas', { exact: true }).first()).toBeVisible();
 }
 
-test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
+test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
 	browser
 }) => {
 	test.setTimeout(flowTimeoutMs);
@@ -148,7 +161,7 @@ test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-P
 	expect(seenByConsignor).toBe(seenByStore);
 
 	await store.goto(partnerPage);
-	await storeRecordsTwentyLoaves(store);
+	await storeRecordsWhileConsignorWatches(store, consignor);
 	const recapPage = await storeCountsTwoLeftAndReturned(store, partnerPage);
 	await expectRecap(store);
 	await consignor.goto(new URL(recapPage).pathname);

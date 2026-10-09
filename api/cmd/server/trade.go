@@ -25,7 +25,6 @@ import (
 	stockservice "github.com/benditandayusaputra/trustip/api/internal/modules/stock/service"
 	trustrepository "github.com/benditandayusaputra/trustip/api/internal/modules/trust/repository"
 	trustservice "github.com/benditandayusaputra/trustip/api/internal/modules/trust/service"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/httpserver"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
@@ -45,25 +44,26 @@ type tradeComponents struct {
 	listings     trustservice.ReportStore
 }
 
-func buildTradeComponents(pool *database.Pool, clock serverClock, sealKeys security.ActiveKeyring) tradeComponents {
+func buildTradeComponents(base foundation, sealKeys security.ActiveKeyring) tradeComponents {
+	pool, clock := base.pool, base.clock
 	seals := buildSealComponents(pool, sealKeys)
 	agreements := buildAgreementComponents(pool, seals)
-	settlements := buildSettlementDeps(pool, clock, seals)
-	counts := buildCountDeps(pool, clock, seals)
+	settlements := buildSettlementDeps(base, seals)
+	counts := buildCountDeps(base, seals)
 	counts.Issuer = countSettlementIssuer{issuer: settlementservice.NewIssuer(settlements)}
 	return tradeComponents{
 		products: buildProductComponents(pool, clock),
 		proposals: buildProposalComponents(pool, clock, proposalCollaborators{
 			keeper: newAgreementKeeper(pool, seals), current: currentAgreements{reader: agreements.reader},
-			announcer: proposalAnnouncer{newOrganizationAnnouncer(pool, clock)},
+			announcer: proposalAnnouncer{newOrganizationAnnouncer(base)},
 		}),
 		agreements:   agreements,
 		partnerships: partnershiprepository.NewPartnerships(pool),
-		drops:        buildDropDeps(pool, clock, seals),
+		drops:        buildDropDeps(base, seals),
 		stocks:       stockrepository.NewStocks(pool),
 		counts:       counts,
 		settlements:  settlements,
-		ending:       buildEndingDeps(pool, endingParts{clock: clock, seals: seals, settlements: settlements}),
+		ending:       buildEndingDeps(base, endingParts{seals: seals, settlements: settlements}),
 		reports:      reportrepository.NewReports(pool),
 		listings:     trustrepository.NewReports(pool),
 		insights: insightComponents{

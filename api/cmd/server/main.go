@@ -70,7 +70,11 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	trade := buildTradeComponents(pool, systemClock, cfg.SealKeys)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	live := newLiveComponents(ctx.Done(), systemClock)
+	foundation := foundation{pool: pool, clock: systemClock, feed: live.hub}
+	trade := buildTradeComponents(foundation, cfg.SealKeys)
 	server := newServer(base, serverDeps{
 		ready:     pool.Ping,
 		edge:      security.NewEdgeVerifier(cfg.EdgeKeys, systemClock),
@@ -80,15 +84,14 @@ func serve(cfg config.Config, base *slog.Logger) error {
 		org:       buildOrgComponents(pool, systemClock),
 		files:     buildFileComponents(pool, cfg, systemClock),
 		inbox:     buildNotificationComponents(pool, systemClock),
+		live:      live,
 		trade:     trade,
-		directory: buildDirectoryComponents(pool, systemClock),
+		directory: buildDirectoryComponents(foundation),
 		appOrigin: cfg.PublicAppOrigin,
 	})
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
 	appLog := logger.ForStream(base, logger.App)
 	jobs := newScheduler(schedulerParts{
-		runners: buildJobRunners(pool, trade), clock: systemClock, waits: scheduler.SystemWaits{}, log: appLog,
+		runners: buildJobRunners(foundation, trade), clock: systemClock, waits: scheduler.SystemWaits{}, log: appLog,
 	})
 	defer startJobs(ctx, jobs, stop)()
 	appLog.Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
@@ -116,6 +119,7 @@ type serverDeps struct {
 	org       orgComponents
 	files     fileComponents
 	inbox     notificationComponents
+	live      liveComponents
 	trade     tradeComponents
 	directory directoryComponents
 	appOrigin string
@@ -156,6 +160,9 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 	notificationhandler.Mount(server.API(), notificationDeps(deps.inbox, notificationRoutes{
 		authenticate: authenticate, writeLimiter: writeLimiter, securityLog: securityLog,
 	}))
+	httpserver.MountStream(server.API(), streamOptions(deps.live, streamRoutes{
+		authenticate: authenticate, clock: deps.clock, securityLog: securityLog, appOrigin: deps.appOrigin,
+	}))
 	mountMarket(server.API(), deps, tradeRoutes{
 		authenticate: authenticate, filesBaseURL: deps.files.publicBaseURL, writeLimiter: writeLimiter,
 		securityLog: securityLog, clock: deps.clock,
@@ -177,5 +184,6 @@ func mountMarket(api fiber.Router, deps serverDeps, routes tradeRoutes) {
 func publicRoutes() []httpserver.PublicRoute {
 	routes := append(httpserver.PublicRoutes(), authhandler.PublicRoutes()...)
 	routes = append(routes, orghandler.PublicRoutes()...)
+	routes = append(routes, httpserver.StreamPublicRoutes()...)
 	return append(routes, filehandler.PublicRoutes()...)
 }

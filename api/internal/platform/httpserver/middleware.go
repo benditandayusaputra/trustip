@@ -30,11 +30,18 @@ func AccessLog(accessLog *slog.Logger, clock Clock, handleError fiber.ErrorHandl
 			"route", routePattern(c),
 			"status", c.Response().StatusCode(),
 			"duration_ms", clock.Now().Sub(started).Milliseconds(),
-			"bytes", len(c.Response().Body()),
+			"bytes", responseBytes(c),
 			"ip", ClientIP(c),
 		)
 		return nil
 	}
+}
+
+func responseBytes(c fiber.Ctx) int {
+	if c.Response().IsBodyStream() {
+		return 0
+	}
+	return len(c.Response().Body())
 }
 
 func SecurityHeaders() fiber.Handler {

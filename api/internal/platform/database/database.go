@@ -47,6 +47,12 @@ type Pool struct {
 
 type txKey struct{}
 
+type commitHooksKey struct{}
+
+type commitHooks struct {
+	pending []func()
+}
+
 func Open(ctx context.Context, opts Options) (*Pool, error) {
 	cfg, err := pgxpool.ParseConfig(opts.URL)
 	if err != nil {
@@ -114,13 +120,27 @@ func (p *Pool) WithinTx(ctx context.Context, work func(context.Context) error) e
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", unavailable(err))
 	}
-	if err := work(context.WithValue(writeCtx, txKey{}, tx)); err != nil {
+	hooks := &commitHooks{}
+	txCtx := context.WithValue(context.WithValue(writeCtx, txKey{}, tx), commitHooksKey{}, hooks)
+	if err := work(txCtx); err != nil {
 		return errors.Join(err, rollback(writeCtx, tx))
 	}
 	if err := tx.Commit(writeCtx); err != nil {
 		return fmt.Errorf("commit transaction: %w", err)
 	}
+	for _, hook := range hooks.pending {
+		hook()
+	}
 	return nil
+}
+
+func (p *Pool) AfterCommit(ctx context.Context, hook func()) {
+	hooks, ok := ctx.Value(commitHooksKey{}).(*commitHooks)
+	if !ok {
+		hook()
+		return
+	}
+	hooks.pending = append(hooks.pending, hook)
 }
 
 func rollback(ctx context.Context, tx pgx.Tx) error {

@@ -12,7 +12,6 @@ import (
 	settlementhandler "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/handler"
 	settlementrepository "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/repository"
 	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 )
 
@@ -50,12 +49,13 @@ func (a settlementAnnouncer) Announce(ctx context.Context, notice settlementdoma
 	return a.announce(ctx, organizationNotice(notice))
 }
 
-func buildSettlementDeps(pool *database.Pool, clock serverClock, seals sealComponents) settlementservice.Deps {
+func buildSettlementDeps(base foundation, seals sealComponents) settlementservice.Deps {
+	pool, clock := base.pool, base.clock
 	return settlementservice.Deps{
 		Settlements: settlementrepository.NewSettlements(pool),
 		Sealer:      settlementSealer{documentSealer{recorder: seals.recorder}},
 		Seals:       settlementSealChecker{documentSealChecker{verifier: seals.verifier}},
-		Announcer:   settlementAnnouncer{newOrganizationAnnouncer(pool, clock)},
+		Announcer:   settlementAnnouncer{newOrganizationAnnouncer(base)},
 		Audit:       newAuditTrail(auditrepository.NewRecords(pool)),
 		Approver:    countApprover{counts: countrepository.NewCounts(pool)},
 		Tx:          pool,

@@ -1,14 +1,43 @@
 <script lang="ts">
 	import Bell from '@lucide/svelte/icons/bell';
 	import { apiClient } from '#lib/api/client.js';
+	import { openNotificationStream } from '#lib/api/stream.js';
+	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { id } from '#lib/i18n/id.js';
 	import { UnreadCounter } from '../inbox.svelte';
+	import { LiveNotifications, watchVisibility } from '../live.svelte';
+
+	interface Props {
+		streamUrl: string;
+	}
+
+	let { streamUrl }: Props = $props();
 
 	const counter = new UnreadCounter(apiClient);
+	const toaster = getToaster();
 	const badgeLimit = 99;
 
 	$effect(() => {
 		void counter.refresh();
+		const live = new LiveNotifications({
+			connect: (handlers) => openNotificationStream(apiClient(), streamUrl, handlers),
+			refresh: () => counter.refresh(),
+			onarrive: () => {
+				void counter.refresh();
+				toaster.show({
+					tone: 'info',
+					message: id.notifications.arrived,
+					action: { label: id.notifications.open, href: '/app/pemberitahuan' }
+				});
+			},
+			isVisible: () => document.visibilityState === 'visible'
+		});
+		void live.start();
+		const unwatch = watchVisibility(live);
+		return () => {
+			unwatch();
+			live.stop();
+		};
 	});
 </script>
 

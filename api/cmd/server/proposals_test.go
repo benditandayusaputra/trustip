@@ -14,6 +14,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/modules/proposal/domain"
 	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
+	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 )
 
@@ -82,6 +83,10 @@ func (testSealKeys) Lookup(id string) ([]byte, bool) {
 		return nil, false
 	}
 	return bytes.Repeat([]byte{9}, ed25519.SeedSize), true
+}
+
+func testFoundation(pool *database.Pool, now serverClock) foundation {
+	return foundation{pool: pool, clock: now, feed: newLiveComponents(make(chan struct{}), now).hub}
 }
 
 func (emptyProposals) HasActivePartnership(context.Context, domain.Pair) (bool, error) {

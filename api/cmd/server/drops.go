@@ -8,7 +8,6 @@ import (
 	drophandler "github.com/benditandayusaputra/trustip/api/internal/modules/drop/handler"
 	droprepository "github.com/benditandayusaputra/trustip/api/internal/modules/drop/repository"
 	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 )
 
@@ -47,12 +46,13 @@ func (a dropAnnouncer) Announce(ctx context.Context, notice dropdomain.Notice) e
 	}, notice.RecipientUserID)
 }
 
-func buildDropDeps(pool *database.Pool, clock serverClock, seals sealComponents) dropservice.Deps {
+func buildDropDeps(base foundation, seals sealComponents) dropservice.Deps {
+	pool, clock := base.pool, base.clock
 	return dropservice.Deps{
 		Drops:     droprepository.NewDrops(pool),
 		Sealer:    dropSealer{documentSealer{recorder: seals.recorder}},
 		Seals:     dropSealChecker{documentSealChecker{verifier: seals.verifier}},
-		Announcer: dropAnnouncer{newOrganizationAnnouncer(pool, clock)},
+		Announcer: dropAnnouncer{newOrganizationAnnouncer(base)},
 		Audit:     newAuditTrail(auditrepository.NewRecords(pool)),
 		Tx:        pool,
 		Clock:     clock,

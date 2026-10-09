@@ -876,6 +876,55 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/stream-tickets:
+    post:
+      operationId: issueStreamTicket
+      tags: [notification]
+      description: Tiket sekali pakai berumur 30 detik untuk membuka aliran pemberitahuan langsung.
+      responses:
+        "200":
+          description: Tiket aliran
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamTicketResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/stream:
+    get:
+      operationId: openNotificationStream
+      tags: [notification]
+      description: >-
+        Aliran Server-Sent Events yang dibuka langsung dari peramban, tanpa proxy. Peristiwa
+        `notification` hanya membawa ID dan jenis pemberitahuan. Denyut dikirim tiap 25 detik.
+      parameters:
+        - name: ticket
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Aliran peristiwa
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/v1/notifications/read-all:
     post:
       operationId: markAllNotificationsRead
@@ -4588,6 +4637,29 @@ components:
         count:
           type: integer
           minimum: 0
+    StreamTicket:
+      type: object
+      additionalProperties: false
+      required: [ticket, expires_at]
+      properties:
+        ticket:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+    StreamTicketResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/StreamTicket"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
     UnreadCountResponse:
       type: object
       additionalProperties: false

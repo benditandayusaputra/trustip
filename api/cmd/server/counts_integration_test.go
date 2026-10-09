@@ -81,7 +81,7 @@ func TestRecordCount_FRCNT05_TwentyLoavesTwoLeftAndReturnedGiveTheSectionTwelveR
 
 func TestRecordCount_CNT_ConcurrentCountsOnOnePartnerOnlyOnePasses(t *testing.T) {
 	scene := recordedDrop(t)
-	deps := buildTradeComponents(scene.store.pool, scene.store.now, testSealKeys{}).counts
+	deps := buildTradeComponents(testFoundation(scene.store.pool, scene.store.now), testSealKeys{}).counts
 	cashier := scene.store.actor(t)
 	errs := make([]error, 2)
 	var group sync.WaitGroup

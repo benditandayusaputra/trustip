@@ -8,7 +8,6 @@ import (
 	counthandler "github.com/benditandayusaputra/trustip/api/internal/modules/count/handler"
 	countrepository "github.com/benditandayusaputra/trustip/api/internal/modules/count/repository"
 	countservice "github.com/benditandayusaputra/trustip/api/internal/modules/count/service"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 )
 
@@ -44,12 +43,13 @@ func (a countAnnouncer) Announce(ctx context.Context, notice countdomain.Notice)
 	return a.announce(ctx, organizationNotice(notice))
 }
 
-func buildCountDeps(pool *database.Pool, clock serverClock, seals sealComponents) countservice.Deps {
+func buildCountDeps(base foundation, seals sealComponents) countservice.Deps {
+	pool, clock := base.pool, base.clock
 	return countservice.Deps{
 		Counts:    countrepository.NewCounts(pool),
 		Sealer:    countSealer{documentSealer{recorder: seals.recorder}},
 		Seals:     countSealChecker{documentSealChecker{verifier: seals.verifier}},
-		Announcer: countAnnouncer{newOrganizationAnnouncer(pool, clock)},
+		Announcer: countAnnouncer{newOrganizationAnnouncer(base)},
 		Audit:     newAuditTrail(auditrepository.NewRecords(pool)),
 		Tx:        pool,
 		Clock:     clock,

@@ -104,7 +104,7 @@ func TestRecordDrop_BRDRP07_SavingTwiceMakesOneDocument(t *testing.T) {
 
 func TestRecordDrop_BRDRP07_ConcurrentSavesWithOneKeyMakeOneDocument(t *testing.T) {
 	scene, partnershipID := acceptedScene(t)
-	deps := buildTradeComponents(scene.store.pool, scene.store.now, testSealKeys{}).drops
+	deps := buildTradeComponents(testFoundation(scene.store.pool, scene.store.now), testSealKeys{}).drops
 	cashier := scene.store.actor(t)
 	command := dropservice.RecordDropCommand{IdempotencyKey: dropKey, Input: dropdomain.RecordInput{
 		PartnershipID: partnershipID, AgreementVersion: 1, OccurredAt: claimed.At(testNow()),

@@ -144,7 +144,9 @@ export const id = {
 		loadMore: 'Muat lebih banyak',
 		loadFailed: 'Pemberitahuan tidak bisa dimuat.',
 		unread: 'Belum dibaca',
-		markedAll: 'Semua pemberitahuan ditandai dibaca.'
+		markedAll: 'Semua pemberitahuan ditandai dibaca.',
+		arrived: 'Ada pemberitahuan baru dari mitra.',
+		open: 'Lihat'
 	},
 	captcha: {
 		label: 'Verifikasi keamanan',

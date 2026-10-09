@@ -37,9 +37,9 @@ func (scene dropScene) runJobsUntil(t *testing.T, until time.Time, wakes int) {
 	now := scene.store.now
 	now.Advance(until.Sub(now.Now()))
 	waits := &jumpingWaits{clock: now, wakes: wakes, parked: make(chan struct{})}
-	trade := buildTradeComponents(scene.store.pool, now, testSealKeys{})
+	trade := buildTradeComponents(testFoundation(scene.store.pool, now), testSealKeys{})
 	jobs := newScheduler(schedulerParts{
-		runners: buildJobRunners(scene.store.pool, trade), clock: now, waits: waits,
+		runners: buildJobRunners(testFoundation(scene.store.pool, now), trade), clock: now, waits: waits,
 		log: slog.New(slog.NewTextHandler(io.Discard, nil)),
 	})
 	ctx, cancel := context.WithCancel(t.Context())

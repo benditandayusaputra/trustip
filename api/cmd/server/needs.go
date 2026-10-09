@@ -8,15 +8,15 @@ import (
 	needhandler "github.com/benditandayusaputra/trustip/api/internal/modules/need/handler"
 	needrepository "github.com/benditandayusaputra/trustip/api/internal/modules/need/repository"
 	needservice "github.com/benditandayusaputra/trustip/api/internal/modules/need/service"
-	"github.com/benditandayusaputra/trustip/api/internal/platform/database"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/idgen"
 )
 
-func buildNeedDeps(pool *database.Pool, clock serverClock) needservice.Deps {
+func buildNeedDeps(base foundation) needservice.Deps {
+	pool := base.pool
 	needs := needrepository.NewNeeds(pool)
 	return needservice.Deps{
-		Writer: needs, Reader: needs, Interest: needs, Announcer: needAnnouncer{newOrganizationAnnouncer(pool, clock)},
-		Audit: newAuditTrail(auditrepository.NewRecords(pool)), Tx: pool, Clock: clock, IDs: idgen.UUIDv7{},
+		Writer: needs, Reader: needs, Interest: needs, Announcer: needAnnouncer{newOrganizationAnnouncer(base)},
+		Audit: newAuditTrail(auditrepository.NewRecords(pool)), Tx: pool, Clock: base.clock, IDs: idgen.UUIDv7{},
 	}
 }
 
