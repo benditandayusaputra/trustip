@@ -36,9 +36,21 @@ func (s sealSigner) Verify(digest []byte, signature sealdomain.Signature) (bool,
 	return isValid, nil
 }
 
+func (s sealSigner) PublicKeys() []sealdomain.PublicKey {
+	published := s.sealer.PublicKeys()
+	keys := make([]sealdomain.PublicKey, 0, len(published))
+	for _, key := range published {
+		keys = append(keys, sealdomain.PublicKey(key))
+	}
+	return keys
+}
+
 type sealComponents struct {
 	recorder *sealservice.Recorder
 	verifier *sealservice.Verifier
+	public   *sealservice.VerifyPublicSeal
+	keys     *sealservice.ListPublicKeys
+	chains   *sealservice.CheckChains
 }
 
 func buildSealComponents(pool *database.Pool, keys security.ActiveKeyring) sealComponents {
@@ -46,6 +58,9 @@ func buildSealComponents(pool *database.Pool, keys security.ActiveKeyring) sealC
 	return sealComponents{
 		recorder: sealservice.NewRecorder(seals, signer, idgen.UUIDv7{}),
 		verifier: sealservice.NewVerifier(seals, signer),
+		public:   sealservice.NewVerifyPublicSeal(seals, signer),
+		keys:     sealservice.NewListPublicKeys(signer),
+		chains:   sealservice.NewCheckChains(seals, signer),
 	}
 }
 

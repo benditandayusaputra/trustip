@@ -1704,6 +1704,52 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/public/seals/{code}:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: verifyPublicSeal
+      tags: [public]
+      responses:
+        "200":
+          description: Status segel dan identitas dokumennya, tanpa nilai uang, jumlah barang, atau syarat
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SealVerificationResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/public/seal-keys:
+    get:
+      operationId: listSealKeys
+      tags: [public]
+      responses:
+        "200":
+          description: Kunci publik Ed25519 untuk memeriksa segel secara mandiri
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SealKeyListResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/v1/directory/needs:
     get:
       operationId: listNeedBoard
@@ -7585,6 +7631,71 @@ components:
           $ref: "#/components/schemas/PublicNeed"
         meta:
           $ref: "#/components/schemas/ResponseMeta"
+    SealVerification:
+      type: object
+      additionalProperties: false
+      required: [code, status, document_type, document_number, event_type, occurred_at, consignor_name, store_name]
+      properties:
+        code:
+          type: string
+          pattern: "^[A-Z2-7]{4}(-[A-Z2-7]{4}){3}$"
+        status:
+          type: string
+          enum: [VALID, INVALID]
+        document_type:
+          type: string
+        document_number:
+          type: string
+        event_type:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        consignor_name:
+          type: string
+        store_name:
+          type: string
+    SealVerificationResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/SealVerification"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    SealKey:
+      type: object
+      additionalProperties: false
+      required: [key_id, algorithm, public_key]
+      properties:
+        key_id:
+          type: string
+        algorithm:
+          type: string
+          enum: [Ed25519]
+        public_key:
+          type: string
+          format: byte
+    SealKeyListResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SealKey"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
     DirectoryStoreCard:
       type: object
       additionalProperties: false

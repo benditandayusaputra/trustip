@@ -17,6 +17,7 @@ import (
 	needservice "github.com/benditandayusaputra/trustip/api/internal/modules/need/service"
 	proposalrepository "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/repository"
 	proposalservice "github.com/benditandayusaputra/trustip/api/internal/modules/proposal/service"
+	sealservice "github.com/benditandayusaputra/trustip/api/internal/modules/seal/service"
 	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
 	trustrepository "github.com/benditandayusaputra/trustip/api/internal/modules/trust/repository"
 	trustservice "github.com/benditandayusaputra/trustip/api/internal/modules/trust/service"
@@ -27,6 +28,7 @@ import (
 const (
 	dailyMinute      = 5
 	reputationMinute = 15
+	chainCheckMinute = 20
 	settlementMinute = 10
 	reminderHour     = 6
 )
@@ -39,6 +41,8 @@ type jobRunners struct {
 	needs       *needservice.ExpireNeeds
 	reminders   *needservice.RemindExpiringNeeds
 	reputation  *trustservice.RefreshReputation
+	chains      *sealservice.CheckChains
+	chainLog    *slog.Logger
 }
 
 func buildJobRunners(base foundation, trade tradeComponents) jobRunners {
@@ -52,6 +56,8 @@ func buildJobRunners(base foundation, trade tradeComponents) jobRunners {
 		needs:       needservice.NewExpireNeeds(needrepository.NewNeeds(pool)),
 		reminders:   needservice.NewRemindExpiringNeeds(buildNeedDeps(reminderBase)),
 		reputation:  trustservice.NewRefreshReputation(trustrepository.NewReputation(pool)),
+		chains:      trade.seals.chains,
+		chainLog:    slog.New(slog.DiscardHandler),
 	}
 }
 
@@ -68,6 +74,7 @@ func scheduledJobs(runners jobRunners) []scheduler.Job {
 		},
 		{Name: "need-reminders", Hour: reminderHour, Days: scheduler.EveryDay, Work: runners.remind},
 		{Name: "reputation-summary", Minute: reputationMinute, Days: scheduler.EveryDay, Work: runners.summarize},
+		{Name: "seal-chain-check", Minute: chainCheckMinute, Days: scheduler.EveryDay, Work: runners.checkChains},
 	}
 }
 
@@ -89,6 +96,22 @@ func (r jobRunners) daily(ctx context.Context, now time.Time) error {
 func (r jobRunners) summarize(ctx context.Context, now time.Time) error {
 	if _, err := r.reputation.Execute(ctx, now); err != nil {
 		return fmt.Errorf("summarize reputation: %w", err)
+	}
+	return nil
+}
+
+func (r jobRunners) loggingChainsTo(securityLog *slog.Logger) jobRunners {
+	r.chainLog = securityLog
+	return r
+}
+
+func (r jobRunners) checkChains(ctx context.Context, _ time.Time) error {
+	report, err := r.chains.Execute(ctx)
+	for _, partnershipID := range report.Broken {
+		r.chainLog.Warn("seal chain broken", "event", "seal_chain_broken", "partnership_id", partnershipID)
+	}
+	if err != nil {
+		return fmt.Errorf("check seal chains: %w", err)
 	}
 	return nil
 }

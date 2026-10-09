@@ -18,6 +18,7 @@ import (
 	insighthandler "github.com/benditandayusaputra/trustip/api/internal/modules/insight/handler"
 	notificationhandler "github.com/benditandayusaputra/trustip/api/internal/modules/notification/handler"
 	orghandler "github.com/benditandayusaputra/trustip/api/internal/modules/org/handler"
+	sealhandler "github.com/benditandayusaputra/trustip/api/internal/modules/seal/handler"
 	trusthandler "github.com/benditandayusaputra/trustip/api/internal/modules/trust/handler"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/clock"
 	"github.com/benditandayusaputra/trustip/api/internal/platform/config"
@@ -30,7 +31,10 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/platform/security"
 )
 
-const requestsPerMinutePerIP = 300
+const (
+	requestsPerMinutePerIP      = 300
+	verificationsPerMinutePerIP = 30
+)
 
 func main() {
 	cfg, err := config.Load(os.Environ())
@@ -92,7 +96,8 @@ func serve(cfg config.Config, base *slog.Logger) error {
 	})
 	appLog := logger.ForStream(base, logger.App)
 	jobs := newScheduler(schedulerParts{
-		runners: buildJobRunners(foundation, trade), clock: systemClock, waits: scheduler.SystemWaits{}, log: appLog,
+		runners: buildJobRunners(foundation, trade).loggingChainsTo(logger.ForStream(base, logger.Security)),
+		clock:   systemClock, waits: scheduler.SystemWaits{}, log: appLog,
 	})
 	defer startJobs(ctx, jobs, stop)()
 	appLog.Info("server starting", "addr", cfg.HTTPAddr, "environment", cfg.Environment)
@@ -181,6 +186,12 @@ func mountMarket(api fiber.Router, deps serverDeps, routes tradeRoutes) {
 	insighthandler.Mount(api, insightDeps(deps.trade.insights, newDirectoryCandidates(deps.directory, deps.clock),
 		routes))
 	trusthandler.Mount(api, trustDeps(deps.trade.listings, routes))
+	sealhandler.Mount(api, sealhandler.Deps{
+		Verify: deps.trade.seals.public, Keys: deps.trade.seals.keys,
+		Limiter: ratelimit.New(ratelimit.Rule{Limit: verificationsPerMinutePerIP, Window: time.Minute},
+			routes.clock),
+		SecurityLog: routes.securityLog,
+	})
 }
 
 func publicRoutes() []httpserver.PublicRoute {
@@ -188,5 +199,6 @@ func publicRoutes() []httpserver.PublicRoute {
 	routes = append(routes, orghandler.PublicRoutes()...)
 	routes = append(routes, httpserver.StreamPublicRoutes()...)
 	routes = append(routes, directoryhandler.PublicRoutes()...)
+	routes = append(routes, sealhandler.PublicRoutes()...)
 	return append(routes, filehandler.PublicRoutes()...)
 }

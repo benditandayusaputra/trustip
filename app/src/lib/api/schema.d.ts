@@ -693,6 +693,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/seals/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        get: operations["verifyPublicSeal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/seal-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listSealKeys"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/directory/needs": {
         parameters: {
             query?: never;
@@ -3055,6 +3089,37 @@ export interface components {
             data: components["schemas"]["PublicNeed"];
             meta: components["schemas"]["ResponseMeta"];
         };
+        SealVerification: {
+            code: string;
+            /** @enum {string} */
+            status: "VALID" | "INVALID";
+            document_type: string;
+            document_number: string;
+            event_type: string;
+            /** Format: date-time */
+            occurred_at: string;
+            consignor_name: string;
+            store_name: string;
+        };
+        SealVerificationResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["SealVerification"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        SealKey: {
+            key_id: string;
+            /** @enum {string} */
+            algorithm: "Ed25519";
+            /** Format: byte */
+            public_key: string;
+        };
+        SealKeyListResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["SealKey"][];
+            meta: components["schemas"]["ListMeta"];
+        };
         DirectoryStoreCard: {
             /** Format: date */
             joined_on: string;
@@ -4814,6 +4879,56 @@ export interface operations {
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    verifyPublicSeal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Status segel dan identitas dokumennya, tanpa nilai uang, jumlah barang, atau syarat */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SealVerificationResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listSealKeys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kunci publik Ed25519 untuk memeriksa segel secara mandiri */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SealKeyListResponse"];
+                };
+            };
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
         };
     };
     listNeedBoard: {

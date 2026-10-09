@@ -102,6 +102,20 @@ async function storeRecordsWhileConsignorWatches(store: Page, consignor: Page): 
 	await recorded;
 }
 
+async function visitorVerifiesTheDropSeal(browser: Browser, store: Page): Promise<void> {
+	const codeLink = store.locator('a[href^="/verifikasi/"]').first();
+	const verificationPage = (await codeLink.getAttribute('href')) ?? '';
+	const visitor = await openAs(browser, 'Pixel 7');
+	await visitor.goto(verificationPage);
+	await expect(visitor.getByText('Segel sah')).toBeVisible();
+	await expect(visitor.getByText('Titipan Masuk dicatat')).toBeVisible();
+	await expect(visitor.getByText('Roti Uji (penitip) dan Warung Uji (toko)')).toBeVisible();
+	await expect(visitor.getByText('Rp35.000')).toHaveCount(0);
+	await visitor.goto('/verifikasi/AAAA-AAAA-AAAA-AAAA');
+	await expect(visitor.getByText('Kode tidak ditemukan')).toBeVisible();
+	await visitor.context().close();
+}
+
 interface ProductPageScene {
 	store: Page;
 	consignor: Page;
@@ -179,7 +193,7 @@ async function consignorReceivesTheMoney(page: Page, settlementPage: string): Pr
 	await expect(page.getByText('Lunas', { exact: true }).first()).toBeVisible();
 }
 
-test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-PUB-04 FR-PUB-05 BR-PUB-01 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
+test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-PUB-04 FR-PUB-05 BR-PUB-01 FR-SIG-03 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
 	browser
 }) => {
 	test.setTimeout(flowTimeoutMs);
@@ -201,6 +215,7 @@ test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-PUB-04 FR-PUB-05 BR-P
 
 	await store.goto(partnerPage);
 	await storeRecordsWhileConsignorWatches(store, consignor);
+	await visitorVerifiesTheDropSeal(browser, store);
 	await buyerFindsTheStoreOnTheProductPage(browser, { store, consignor, partnerPage });
 	const recapPage = await storeCountsTwoLeftAndReturned(store, partnerPage);
 	await expectRecap(store);

@@ -51,7 +51,10 @@
 							event.occurred_at
 						)}
 					</span>
-					<span class="font-mono text-text">{text.code}: {event.code}</span>
+					<span class="text-text">
+						{text.code}:
+						<a href="/verifikasi/{event.code}" class="font-mono text-accent">{event.code}</a>
+					</span>
 				</li>
 			{/each}
 		</ol>

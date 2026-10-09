@@ -24,6 +24,8 @@ type fixedKeys struct {
 
 func (f fixedKeys) Active() (string, []byte) { return "v1", f.keys["v1"] }
 
+func (f fixedKeys) IDs() []string { return []string{"v1"} }
+
 func (f fixedKeys) Lookup(id string) ([]byte, bool) {
 	key, ok := f.keys[id]
 	return key, ok
@@ -95,5 +97,13 @@ func TestSealer_RSEC29_SharedSealVectorSignsTheSame(t *testing.T) {
 
 	if got := hex.EncodeToString(signature.Bytes); got != vector.Signature {
 		t.Fatalf("signature = %s", got)
+	}
+}
+
+func TestPublicKeys_RSEC32_PublishesEveryKeyOfTheRing(t *testing.T) {
+	keys := rfcSealer(t).PublicKeys()
+
+	if len(keys) != 1 || keys[0].KeyID != "v1" || hex.EncodeToString(keys[0].Bytes) != rfc8032Public {
+		t.Fatalf("keys = %+v", keys)
 	}
 }

@@ -10,6 +10,12 @@ var ErrSealUnknownKey = errors.New("seal key id is unknown")
 type ActiveKeyring interface {
 	KeyLookup
 	Active() (string, []byte)
+	IDs() []string
+}
+
+type PublicKey struct {
+	KeyID string
+	Bytes []byte
 }
 
 type Signature struct {
@@ -44,6 +50,17 @@ func (s *Sealer) PublicKey(keyID string) ([]byte, bool) {
 		return nil, false
 	}
 	return publicKeyOf(seed), true
+}
+
+func (s *Sealer) PublicKeys() []PublicKey {
+	ids := s.keys.IDs()
+	keys := make([]PublicKey, 0, len(ids))
+	for _, keyID := range ids {
+		if public, ok := s.PublicKey(keyID); ok {
+			keys = append(keys, PublicKey{KeyID: keyID, Bytes: public})
+		}
+	}
+	return keys
 }
 
 func publicKeyOf(seed []byte) ed25519.PublicKey {

@@ -44,6 +44,30 @@ export const agreements = {
 			PAYMENT_REJECTED: 'Pembayaran ditolak',
 			PARTNERSHIP_ENDED: 'Kemitraan berakhir'
 		} as Record<string, string | undefined>,
-		by: (user: string, organization: string) => `${user}, ${organization}`
+		by: (user: string, organization: string) => `${user}, ${organization}`,
+		verifyTitle: 'Verifikasi segel',
+		notFound: 'Kode tidak ditemukan',
+		notFoundBody:
+			'Periksa lagi kode verifikasi di jejak segel dokumen. Kode terdiri dari 16 huruf dan angka.',
+		publicValidBody:
+			'Catatan ini tidak berubah sejak dicatat dan tanda tangan digital platform cocok.',
+		publicInvalidBody:
+			'Catatan ini tidak cocok dengan tanda tangan atau rantai segelnya. Hubungi pengelola Trustip.',
+		document: 'Dokumen',
+		event: 'Peristiwa',
+		time: 'Waktu',
+		parties: 'Para pihak',
+		partiesValue: (consignor: string, store: string) =>
+			`${consignor} (penitip) dan ${store} (toko)`,
+		documentTypes: {
+			AGREEMENT: 'Kesepakatan Dagang',
+			DROP: 'Titipan Masuk',
+			COUNT: 'Hitung Sisa',
+			SETTLEMENT: 'Setoran',
+			PAYMENT: 'Pembayaran',
+			PARTNERSHIP: 'Kemitraan'
+		} as Record<string, string | undefined>,
+		limits:
+			'Segel membuktikan catatan tidak berubah sejak dicatat dan akun mana yang menyetujuinya. Segel bukan tanda tangan elektronik tersertifikasi.'
 	}
 };

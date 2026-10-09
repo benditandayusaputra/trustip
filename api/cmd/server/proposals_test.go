@@ -78,6 +78,8 @@ type testSealKeys struct{}
 
 func (testSealKeys) Active() (string, []byte) { return "v1", bytes.Repeat([]byte{9}, ed25519.SeedSize) }
 
+func (testSealKeys) IDs() []string { return []string{"v1"} }
+
 func (testSealKeys) Lookup(id string) ([]byte, bool) {
 	if id != "v1" {
 		return nil, false

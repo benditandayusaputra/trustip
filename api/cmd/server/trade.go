@@ -42,6 +42,7 @@ type tradeComponents struct {
 	reports      *reportrepository.Reports
 	insights     insightComponents
 	listings     trustservice.ReportStore
+	seals        sealComponents
 }
 
 func buildTradeComponents(base foundation, sealKeys security.ActiveKeyring) tradeComponents {
@@ -66,6 +67,7 @@ func buildTradeComponents(base foundation, sealKeys security.ActiveKeyring) trad
 		ending:       buildEndingDeps(base, endingParts{seals: seals, settlements: settlements}),
 		reports:      reportrepository.NewReports(pool),
 		listings:     trustrepository.NewReports(pool),
+		seals:        seals,
 		insights: insightComponents{
 			histories: insightrepository.NewHistories(pool), dashboards: insightrepository.NewDashboards(pool),
 		},
