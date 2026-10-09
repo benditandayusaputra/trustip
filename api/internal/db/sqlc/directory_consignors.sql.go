@@ -21,31 +21,32 @@ WITH origin AS (
     CROSS JOIN viewer
     JOIN consignor_profiles AS cp ON cp.organization_id = o.id
     WHERE o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
-        AND (NOT $6::boolean OR cp.distribution_permit_no <> '')
-        AND (NOT $7::boolean OR cp.halal_cert_no <> '')
-        AND (NOT $8::boolean OR cp.can_provide_sample)
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $6::uuid AND v.is_demo)
+        AND (NOT $7::boolean OR cp.distribution_permit_no <> '')
+        AND (NOT $8::boolean OR cp.halal_cert_no <> '')
+        AND (NOT $9::boolean OR cp.can_provide_sample)
         AND (
-            NOT $9::boolean
+            NOT $10::boolean
             OR ST_DWithin(o.location_public, viewer.point, cp.delivery_radius_km * 1000.0, false)
         )
         AND EXISTS (
             SELECT 1 FROM products AS p
             WHERE p.consignor_org_id = o.id AND NOT p.is_archived
-                AND (NOT $10::boolean OR p.is_seeking_stores)
-                AND (cardinality($11::uuid[]) = 0 OR p.category_id = ANY ($11::uuid[]))
-                AND (NOT $12::boolean OR p.suggested_retail_price >= $13::bigint)
-                AND (NOT $14::boolean OR p.suggested_retail_price <= $15::bigint)
-                AND (NOT $16::boolean OR p.shelf_life_days >= $17::bigint)
+                AND (NOT $11::boolean OR p.is_seeking_stores)
+                AND (cardinality($12::uuid[]) = 0 OR p.category_id = ANY ($12::uuid[]))
+                AND (NOT $13::boolean OR p.suggested_retail_price >= $14::bigint)
+                AND (NOT $15::boolean OR p.suggested_retail_price <= $16::bigint)
+                AND (NOT $17::boolean OR p.shelf_life_days >= $18::bigint)
         )
         AND (
-            $18::text = ''
-            OR o.name ILIKE '%' || replace(replace(replace($18::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR o.description ILIKE '%' || replace(replace(replace($18::text, '\', '\\'), '%', '\%'), '_', '\_')
+            $19::text = ''
+            OR o.name ILIKE '%' || replace(replace(replace($19::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR o.description ILIKE '%' || replace(replace(replace($19::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
             OR EXISTS (
                 SELECT 1 FROM products AS p
                 WHERE p.consignor_org_id = o.id AND NOT p.is_archived
-                    AND p.name ILIKE '%' || replace(replace(replace($18::text, '\', '\\'), '%', '\%'), '_', '\_')
+                    AND p.name ILIKE '%' || replace(replace(replace($19::text, '\', '\\'), '%', '\%'), '_', '\_')
                         || '%'
             )
         )
@@ -68,6 +69,7 @@ type CountDirectoryConsignorsByRadiusParams struct {
 	OriginLatitude   float64
 	ViewerLongitude  float64
 	ViewerLatitude   float64
+	ViewerID         string
 	HasPermit        bool
 	HasHalal         bool
 	CanSample        bool
@@ -95,6 +97,7 @@ func (q *Queries) CountDirectoryConsignorsByRadius(ctx context.Context, arg Coun
 		arg.OriginLatitude,
 		arg.ViewerLongitude,
 		arg.ViewerLatitude,
+		arg.ViewerID,
 		arg.HasPermit,
 		arg.HasHalal,
 		arg.CanSample,
@@ -174,6 +177,7 @@ WITH origin AS (
     LEFT JOIN org_stats AS st ON st.organization_id = o.id
     LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $11::uuid AND v.is_demo)
         AND (
             NOT $12::boolean
             OR ST_DWithin(o.location_public, origin.point, $13::float8, false)
@@ -387,6 +391,7 @@ WITH origin AS (
     LEFT JOIN files AS pf ON pf.id = p.photo_file_id
     WHERE p.is_seeking_stores AND NOT p.is_archived
         AND o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $11::uuid AND v.is_demo)
         AND ($12::text = '' OR o.id = NULLIF($12::text, '')::uuid)
         AND (
             NOT $13::boolean

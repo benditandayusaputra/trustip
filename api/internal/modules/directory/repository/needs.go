@@ -16,7 +16,7 @@ func (r *Directory) CountNeedsWithin(ctx context.Context, query domain.NeedQuery
 		sqlc.CountDirectoryNeedsByRadiusParams{
 			RadiiMeters: radiusStepsInMeters(), OriginLongitude: query.Origin.Point.Longitude,
 			OriginLatitude: query.Origin.Point.Latitude, Now: query.Now, CategoryIds: nonNull(query.CategoryIDs),
-			Query: query.Text,
+			Query: query.Text, ViewerID: query.ViewerID,
 		})
 	if err != nil {
 		return nil, fmt.Errorf("count board needs: %w", err)

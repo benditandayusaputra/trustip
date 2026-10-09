@@ -31,7 +31,7 @@ func (r *Directory) countConsignors(
 			CanSample: list.CanSample, DeliversToViewer: list.DeliversToViewer, SeekingOnly: seekingOnly,
 			CategoryIds: list.CategoryIds, HasMinPrice: list.HasMinPrice, MinPrice: list.MinPrice,
 			HasMaxPrice: list.HasMaxPrice, MaxPrice: list.MaxPrice, HasMinShelfLife: list.HasMinShelfLife,
-			MinShelfLifeDays: list.MinShelfLifeDays, Query: list.Query,
+			MinShelfLifeDays: list.MinShelfLifeDays, Query: list.Query, ViewerID: list.ViewerID,
 		})
 	if err != nil {
 		return nil, fmt.Errorf("count directory consignors: %w", err)

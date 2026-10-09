@@ -61,6 +61,8 @@ SET consignor_org_id = COALESCE(consignor_org_id, NULLIF($1::text, '')::uuid),
     awaiting_org_id = $3::uuid,
     updated_at = $4::timestamptz
 WHERE id = $5::uuid AND status = 'OPEN' AND awaiting_org_id IS NULL
+    AND (SELECT s.is_demo FROM organizations AS s WHERE s.id = proposals.from_org_id)
+        = (SELECT c.is_demo FROM organizations AS c WHERE c.id = $3::uuid)
 `
 
 type ClaimInvitationParams struct {
@@ -298,6 +300,7 @@ FROM organizations AS sender
 JOIN organizations AS target ON target.id = $1::uuid
 LEFT JOIN needs AS need ON need.id = NULLIF($2::text, '')::uuid
 WHERE sender.id = $3::uuid AND target.status = 'ACTIVE' AND target.is_listed
+    AND target.is_demo = sender.is_demo
 `
 
 type GetDirectPartiesParams struct {

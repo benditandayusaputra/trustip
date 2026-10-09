@@ -71,6 +71,7 @@ func (r *Directory) CountStoresWithin(ctx context.Context, query domain.StoreQue
 			PricingModel: filters.PricingModel, HasMaxCommission: filters.HasMaxCommission,
 			MaxCommissionBps: int64(filters.MaxCommissionBPS), WithoutPermit: filters.WithoutPermit,
 			WithoutHalal: filters.WithoutHalal, HasOpenNeed: filters.HasOpenNeed, Query: filters.Text,
+			ViewerID: query.ViewerID,
 		})
 	if err != nil {
 		return nil, fmt.Errorf("count directory stores: %w", err)

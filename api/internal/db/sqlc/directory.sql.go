@@ -18,11 +18,12 @@ WITH origin AS (
     FROM needs AS n
     JOIN organizations AS o ON o.id = n.store_org_id
     WHERE n.status = 'OPEN' AND n.expires_at > $4::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
-        AND (cardinality($5::uuid[]) = 0 OR n.category_id = ANY ($5::uuid[]))
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $5::uuid AND v.is_demo)
+        AND (cardinality($6::uuid[]) = 0 OR n.category_id = ANY ($6::uuid[]))
         AND (
-            $6::text = ''
-            OR n.title ILIKE '%' || replace(replace(replace($6::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR n.description ILIKE '%' || replace(replace(replace($6::text, '\', '\\'), '%', '\%'), '_', '\_')
+            $7::text = ''
+            OR n.title ILIKE '%' || replace(replace(replace($7::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR n.description ILIKE '%' || replace(replace(replace($7::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
         )
 )
@@ -43,6 +44,7 @@ type CountDirectoryNeedsByRadiusParams struct {
 	OriginLongitude float64
 	OriginLatitude  float64
 	Now             time.Time
+	ViewerID        string
 	CategoryIds     []string
 	Query           string
 }
@@ -58,6 +60,7 @@ func (q *Queries) CountDirectoryNeedsByRadius(ctx context.Context, arg CountDire
 		arg.OriginLongitude,
 		arg.OriginLatitude,
 		arg.Now,
+		arg.ViewerID,
 		arg.CategoryIds,
 		arg.Query,
 	)
@@ -87,33 +90,34 @@ WITH origin AS (
     FROM organizations AS o
     JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
-        AND ($4::text = '' OR sp.store_type = $4::text)
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $4::uuid AND v.is_demo)
+        AND ($5::text = '' OR sp.store_type = $5::text)
         AND (
-            cardinality($5::uuid[]) = 0
+            cardinality($6::uuid[]) = 0
             OR EXISTS (
                 SELECT 1 FROM store_accepted_categories AS sac
-                WHERE sac.organization_id = o.id AND sac.category_id = ANY ($5::uuid[])
+                WHERE sac.organization_id = o.id AND sac.category_id = ANY ($6::uuid[])
             )
         )
         AND (
-            $6::text = ''
-            OR ($6::text = 'FIXED_DEPOSIT' AND sp.accepts_fixed_deposit)
-            OR ($6::text = 'COMMISSION' AND sp.accepts_commission)
+            $7::text = ''
+            OR ($7::text = 'FIXED_DEPOSIT' AND sp.accepts_fixed_deposit)
+            OR ($7::text = 'COMMISSION' AND sp.accepts_commission)
         )
-        AND (NOT $7::boolean OR sp.commission_min_bps <= $8::bigint)
-        AND (NOT $9::boolean OR NOT sp.requires_distribution_permit)
-        AND (NOT $10::boolean OR NOT sp.requires_halal)
+        AND (NOT $8::boolean OR sp.commission_min_bps <= $9::bigint)
+        AND (NOT $10::boolean OR NOT sp.requires_distribution_permit)
+        AND (NOT $11::boolean OR NOT sp.requires_halal)
         AND (
-            NOT $11::boolean
+            NOT $12::boolean
             OR EXISTS (
                 SELECT 1 FROM needs AS n
                 WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
             )
         )
         AND (
-            $12::text = ''
-            OR o.name ILIKE '%' || replace(replace(replace($12::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR o.description ILIKE '%' || replace(replace(replace($12::text, '\', '\\'), '%', '\%'), '_', '\_')
+            $13::text = ''
+            OR o.name ILIKE '%' || replace(replace(replace($13::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR o.description ILIKE '%' || replace(replace(replace($13::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
         )
 )
@@ -133,6 +137,7 @@ type CountDirectoryStoresByRadiusParams struct {
 	RadiiMeters      []float64
 	OriginLongitude  float64
 	OriginLatitude   float64
+	ViewerID         string
 	StoreType        string
 	CategoryIds      []string
 	PricingModel     string
@@ -154,6 +159,7 @@ func (q *Queries) CountDirectoryStoresByRadius(ctx context.Context, arg CountDir
 		arg.RadiiMeters,
 		arg.OriginLongitude,
 		arg.OriginLatitude,
+		arg.ViewerID,
 		arg.StoreType,
 		arg.CategoryIds,
 		arg.PricingModel,
@@ -316,6 +322,7 @@ WITH origin AS (
     CROSS JOIN origin
     LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE n.status = 'OPEN' AND n.expires_at > $10::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $9::uuid AND v.is_demo)
         AND (
             NOT $11::boolean
             OR ST_DWithin(o.location_public, origin.point, $12::float8, false)
@@ -488,6 +495,7 @@ WITH origin AS (
     LEFT JOIN org_stats AS st ON st.organization_id = o.id
     LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $9::uuid AND v.is_demo)
         AND (
             NOT $10::boolean
             OR ST_DWithin(o.location_public, origin.point, $11::float8, false)

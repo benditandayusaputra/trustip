@@ -98,7 +98,9 @@ SET consignor_org_id = COALESCE(consignor_org_id, NULLIF(@consignor_org_id::text
     store_org_id = COALESCE(store_org_id, NULLIF(@store_org_id::text, '')::uuid),
     awaiting_org_id = @claimer_org_id::uuid,
     updated_at = @claimed_at::timestamptz
-WHERE id = @id::uuid AND status = 'OPEN' AND awaiting_org_id IS NULL;
+WHERE id = @id::uuid AND status = 'OPEN' AND awaiting_org_id IS NULL
+    AND (SELECT s.is_demo FROM organizations AS s WHERE s.id = proposals.from_org_id)
+        = (SELECT c.is_demo FROM organizations AS c WHERE c.id = @claimer_org_id::uuid);
 
 -- name: HasActivePartnership :one
 SELECT EXISTS (
@@ -163,7 +165,8 @@ SELECT
 FROM organizations AS sender
 JOIN organizations AS target ON target.id = @target_id::uuid
 LEFT JOIN needs AS need ON need.id = NULLIF(@need_id::text, '')::uuid
-WHERE sender.id = @sender_id::uuid AND target.status = 'ACTIVE' AND target.is_listed;
+WHERE sender.id = @sender_id::uuid AND target.status = 'ACTIVE' AND target.is_listed
+    AND target.is_demo = sender.is_demo;
 
 -- name: CounterProposal :execrows
 UPDATE proposals

@@ -47,6 +47,7 @@ WITH origin AS (
     FROM organizations AS o
     JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
         AND (@store_type::text = '' OR sp.store_type = @store_type::text)
         AND (
             cardinality(@category_ids::uuid[]) = 0
@@ -128,6 +129,7 @@ WITH origin AS (
     LEFT JOIN org_stats AS st ON st.organization_id = o.id
     LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
         AND (
             NOT @within_radius::boolean
             OR ST_DWithin(o.location_public, origin.point, @radius_meters::float8, false)
@@ -204,6 +206,7 @@ WITH origin AS (
     FROM needs AS n
     JOIN organizations AS o ON o.id = n.store_org_id
     WHERE n.status = 'OPEN' AND n.expires_at > @now::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
         AND (cardinality(@category_ids::uuid[]) = 0 OR n.category_id = ANY (@category_ids::uuid[]))
         AND (
             @query::text = ''
@@ -244,6 +247,7 @@ WITH origin AS (
     CROSS JOIN origin
     LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE n.status = 'OPEN' AND n.expires_at > @now::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
         AND (
             NOT @within_radius::boolean
             OR ST_DWithin(o.location_public, origin.point, @radius_meters::float8, false)

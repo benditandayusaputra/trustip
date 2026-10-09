@@ -76,6 +76,7 @@ WHERE status = 'OPEN' AND expires_at <= @now::timestamptz;
 SELECT o.id, ST_Distance(o.location_public, store.location, false)::float8 AS distance_meters
 FROM organizations AS store
 JOIN organizations AS o ON o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.location_public IS NOT NULL
+    AND o.is_demo = store.is_demo
 WHERE store.id = @store_org_id::uuid AND store.location IS NOT NULL
     AND ST_DWithin(o.location_public, store.location, @radius_meters::float8, false)
     AND EXISTS (
