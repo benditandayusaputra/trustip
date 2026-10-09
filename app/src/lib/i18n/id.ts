@@ -3,6 +3,7 @@ import { counts } from './counts';
 import { dashboard } from './dashboard';
 import { directory } from './directory';
 import { drops } from './drops';
+import { home } from './home';
 import { legal } from './legal';
 import { listingReport } from './listing-report';
 import { needs } from './needs';
@@ -23,6 +24,7 @@ export const id = {
 	...dashboard,
 	...directory,
 	...drops,
+	...home,
 	...listingReport,
 	...needs,
 	...offline,

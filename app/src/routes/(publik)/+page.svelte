@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { id } from '#lib/i18n/id.js';
+	import HomePage from '#lib/features/home/components/HomePage.svelte';
 </script>
 
-<h1 class="text-xl">{id.brand}</h1>
+<HomePage />
