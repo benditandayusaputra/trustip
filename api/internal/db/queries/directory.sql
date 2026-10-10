@@ -47,7 +47,7 @@ WITH origin AS (
     FROM organizations AS o
     JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = NULLIF(@viewer_id::text, '')::uuid AND v.is_demo)
         AND (@store_type::text = '' OR sp.store_type = @store_type::text)
         AND (
             cardinality(@category_ids::uuid[]) = 0

@@ -90,7 +90,7 @@ WITH origin AS (
     FROM organizations AS o
     JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $4::uuid AND v.is_demo)
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = NULLIF($4::text, '')::uuid AND v.is_demo)
         AND ($5::text = '' OR sp.store_type = $5::text)
         AND (
             cardinality($6::uuid[]) = 0
