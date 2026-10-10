@@ -1,5 +1,9 @@
 import type { Product, ProductRequest } from '#lib/api/products.js';
-import { id } from '#lib/i18n/id.js';
+import { common as commonText } from '#lib/i18n/common.js';
+import { organization as organizationText } from '#lib/i18n/organization.js';
+import { products as productsText } from '#lib/i18n/products.js';
+
+const id = { ...commonText, ...organizationText, ...productsText };
 
 const minNameLength = 2;
 const maxNameLength = 80;

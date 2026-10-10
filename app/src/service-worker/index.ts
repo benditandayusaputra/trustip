@@ -6,7 +6,9 @@ const shellCache = `trustip-shell-${version}`;
 const pageCache = `trustip-pages-${version}`;
 const keptCaches = new Set([shellCache, pageCache]);
 const offlinePage = '/luring';
-const shellFiles = [...immutable, ...assets, ...prerendered].map((file) => file.path);
+const shellFiles = [...immutable, ...assets, ...prerendered].map(
+	(file) => new URL(file.path, self.registration.scope).pathname
+);
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(
@@ -61,7 +63,7 @@ async function networkOrSavedPage(request: Request, url: URL): Promise<Response>
 		}
 		return response;
 	} catch {
-		const saved = (await caches.match(request)) ?? (await caches.match(offlinePage));
-		return saved ?? Response.error();
+		const saved = await caches.match(request);
+		return saved ?? Response.redirect(new URL(offlinePage, self.location.href).href);
 	}
 }

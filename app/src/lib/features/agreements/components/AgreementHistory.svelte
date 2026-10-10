@@ -5,7 +5,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import { listAgreementVersions, type AgreementVersion } from '#lib/api/agreements.js';
 	import { formatDate } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as id } from '#lib/i18n/agreements.js';
 	import { describeItemChange, describeTermChange } from '../history';
 
 	interface Props {

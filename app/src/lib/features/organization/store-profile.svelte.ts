@@ -9,7 +9,7 @@ import {
 	type StoreProfileRequest,
 	type StoreType
 } from '#lib/api/organizations.js';
-import { id } from '#lib/i18n/id.js';
+import { organization as id } from '#lib/i18n/organization.js';
 import { explainSectionFailure, type SectionOutcome } from './section';
 
 export const maxStorePhotos = 5;

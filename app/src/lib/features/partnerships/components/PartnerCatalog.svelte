@@ -2,7 +2,10 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { PartnerCatalogItem } from '#lib/api/partnerships.js';
 	import { formatBasisPoints, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { partnerships as partnershipsText } from '#lib/i18n/partnerships.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
+
+	const id = { ...partnershipsText, ...proposalsText };
 
 	interface Props {
 		items: PartnerCatalogItem[];

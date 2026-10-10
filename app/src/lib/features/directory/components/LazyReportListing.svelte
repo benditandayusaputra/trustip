@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Flag from '@lucide/svelte/icons/flag';
 	import type { Component } from 'svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { listingReport as id } from '#lib/i18n/listing-report.js';
 	import type { ReportTarget } from '../report.svelte';
 
 	interface Props {

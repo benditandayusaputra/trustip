@@ -1,6 +1,6 @@
 import type { Drop } from '#lib/api/drops.js';
 import { formatBusinessDate, formatInteger, formatRupiah } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { drops as id } from '#lib/i18n/drops.js';
 
 export interface DropItemRow extends Record<string, string> {
 	id: string;

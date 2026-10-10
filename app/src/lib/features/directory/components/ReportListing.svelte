@@ -7,7 +7,7 @@
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
-	import { id } from '#lib/i18n/id.js';
+	import { listingReport as id } from '#lib/i18n/listing-report.js';
 	import { ListingReportForm, type ReportReason, type ReportTarget } from '../report.svelte';
 
 	interface Props {

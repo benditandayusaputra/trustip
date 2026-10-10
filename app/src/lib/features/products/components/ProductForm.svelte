@@ -10,8 +10,11 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Product } from '#lib/api/products.js';
-	import { id } from '#lib/i18n/id.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
+	import { products as productsText } from '#lib/i18n/products.js';
 	import { ProductEditor } from '../editor.svelte';
+
+	const id = { ...organizationText, ...productsText };
 
 	interface Props {
 		product: Product | null;

@@ -1,5 +1,5 @@
 import type { ProposalRevisionRecord } from '#lib/api/proposals.js';
-import { id } from '#lib/i18n/id.js';
+import { proposals as id } from '#lib/i18n/proposals.js';
 
 const text = id.proposals;
 

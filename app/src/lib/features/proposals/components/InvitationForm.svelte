@@ -7,7 +7,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { Proposal } from '#lib/api/proposals.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import { InvitationComposer } from '../composer.svelte';
 	import GeneralTermsFields from './GeneralTermsFields.svelte';
 	import ItemTermsRow from './ItemTermsRow.svelte';

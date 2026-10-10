@@ -1,7 +1,10 @@
 import type { Product } from '#lib/api/products.js';
 import type { CountRhythm, InvitationRequest, SettlementSchedule } from '#lib/api/proposals.js';
 import type { PricingModel, Terms } from '#lib/domain/pricing.js';
-import { id } from '#lib/i18n/id.js';
+import { products as productsText } from '#lib/i18n/products.js';
+import { proposals as proposalsText } from '#lib/i18n/proposals.js';
+
+const id = { ...productsText, ...proposalsText };
 
 const basisPointsPerPercent = 100;
 const maxCommissionPercent = 50;

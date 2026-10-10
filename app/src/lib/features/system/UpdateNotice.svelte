@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { updated } from '$app/state';
 	import Button from '#lib/components/ui/Button.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 </script>
 
 {#if updated.current}

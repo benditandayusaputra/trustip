@@ -2,7 +2,7 @@ import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import { uploadImage } from '#lib/api/files.js';
 import { updatePaymentInfo, type Organization } from '#lib/api/organizations.js';
-import { id } from '#lib/i18n/id.js';
+import { organization as id } from '#lib/i18n/organization.js';
 import { explainSectionFailure, type SectionOutcome } from './section';
 
 type PaymentField = 'info' | 'qr';

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SettlementList from '#lib/features/settlements/components/SettlementList.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { settlements as id } from '#lib/i18n/settlements.js';
 </script>
 
 <svelte:head>

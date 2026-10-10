@@ -1,6 +1,6 @@
 <script lang="ts">
 	import NotificationList from '#lib/features/notifications/components/NotificationList.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 </script>
 
 <svelte:head>

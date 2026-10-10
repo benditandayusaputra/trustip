@@ -8,7 +8,7 @@ import {
 	type Product,
 	type ProductRequest
 } from '#lib/api/products.js';
-import { id } from '#lib/i18n/id.js';
+import { organization as id } from '#lib/i18n/organization.js';
 import {
 	emptyProductValues,
 	fieldsFromServer,

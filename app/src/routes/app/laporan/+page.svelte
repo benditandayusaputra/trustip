@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import ReportsPage from '#lib/features/reports/components/ReportsPage.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { reports as id } from '#lib/i18n/reports.js';
 
 	const session = getAccountSession();
 	const organizationType = $derived(

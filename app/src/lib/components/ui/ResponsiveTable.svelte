@@ -18,13 +18,13 @@
 		column.numeric ? 'text-right font-mono font-medium tabular-nums' : 'text-left';
 </script>
 
-<div class="hidden md:block">
-	<table class="w-full border-collapse text-sm">
+<div class="hidden overflow-x-auto rounded-card border border-border bg-surface md:block">
+	<table class="w-full border-collapse text-sm text-text">
 		<caption class="sr-only">{caption}</caption>
 		<thead>
-			<tr class="border-b border-border text-text-muted">
+			<tr class="border-b border-border bg-surface-hover text-text-muted">
 				{#each columns as column (column.key)}
-					<th scope="col" class="px-4 py-2 font-medium {alignment(column)}">{column.label}</th>
+					<th scope="col" class="px-4 py-4 font-medium {alignment(column)}">{column.label}</th>
 				{/each}
 			</tr>
 		</thead>
@@ -32,7 +32,7 @@
 			{#each rows as row (row[rowKey])}
 				<tr class="border-b border-border hover:bg-surface-hover">
 					{#each columns as column (column.key)}
-						<td class="px-4 py-2 {alignment(column)}">{row[column.key]}</td>
+						<td class="px-4 py-4 {alignment(column)}">{row[column.key]}</td>
 					{/each}
 				</tr>
 			{/each}

@@ -10,7 +10,7 @@
 	} from '#lib/features/directory/board-query.js';
 	import PlacePicker from '#lib/features/organization/components/PlacePicker.svelte';
 	import type { Place } from '#lib/features/organization/place.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 
 	const session = getAccountSession();
 	const isConsignor = $derived(session.account?.membership?.organization_type === 'CONSIGNOR');

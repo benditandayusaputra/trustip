@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Card from '#lib/components/ui/Card.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 
 	export interface TaskLink {
 		label: string;

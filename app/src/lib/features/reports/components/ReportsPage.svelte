@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Tabs from '#lib/components/ui/Tabs.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { reports as id } from '#lib/i18n/reports.js';
 	import DailyRecapView from './DailyRecapView.svelte';
 	import SalesReportView from './SalesReportView.svelte';
 	import SettlementReportView from './SettlementReportView.svelte';

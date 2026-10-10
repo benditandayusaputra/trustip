@@ -7,10 +7,13 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime, formatInteger, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as dropsText } from '#lib/i18n/drops.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
 	import { DropRecord } from '../record.svelte';
 	import { itemRows, statusToneOf } from '../rows';
 	import DropActions from './DropActions.svelte';
+
+	const id = { ...dropsText, ...proposalsText };
 
 	interface Props {
 		dropId: string;

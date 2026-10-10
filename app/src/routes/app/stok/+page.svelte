@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import StockOverview from '#lib/features/stock/components/StockOverview.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { drops as dropsText } from '#lib/i18n/drops.js';
+	import { stock as stockText } from '#lib/i18n/stock.js';
+
+	const id = { ...commonText, ...dropsText, ...stockText };
 
 	const session = getAccountSession();
 	const isStore = $derived(session.account?.membership?.organization_type === 'STORE');

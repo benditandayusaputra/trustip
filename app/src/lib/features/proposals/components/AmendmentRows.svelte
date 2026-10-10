@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '#lib/components/ui/Button.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import { changedRows, type AmendmentRow } from '../amendment.svelte';
 	import type { InvitationErrors } from '../schema';
 	import ItemTermsRow from './ItemTermsRow.svelte';

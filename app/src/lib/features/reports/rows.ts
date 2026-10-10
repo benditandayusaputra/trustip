@@ -5,7 +5,7 @@ import {
 	formatInteger,
 	formatRupiah
 } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { reports as id } from '#lib/i18n/reports.js';
 
 type Figures = SalesReport['summary'];
 

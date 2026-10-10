@@ -1,10 +1,11 @@
 <script lang="ts">
+	import FilterLayout from '#lib/components/ui/FilterLayout.svelte';
 	import { onMount, type Snippet } from 'svelte';
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { DirectoryConsignorCard, DirectoryProductCard } from '#lib/api/directory.js';
 	import { listCategories, type Category } from '#lib/api/organizations.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 	import {
 		consignorSearchParams,
 		defaultConsignorQuery,
@@ -55,42 +56,47 @@
 	}
 </script>
 
-<ConsignorFilters {query} {categories} {place} onchange={change} />
-<Tabs
-	label={text.tabsLabel}
-	{tabs}
-	bind:selected={
-		() => query.tab,
-		(tab: string) => {
-			change({ tab: tab as ConsignorTab });
-		}
-	}
->
-	{#snippet panel(selected: string)}
-		{#if selected === 'produk'}
-			<DirectoryResults
-				list={products}
-				query={search}
-				failedTitle={text.productsFailed}
-				emptyMessage={text.productsEmpty}
-				onclear={clear}
-			>
-				{#snippet card(product: DirectoryProductCard)}
-					<ProductCard card={product} />
-				{/snippet}
-			</DirectoryResults>
-		{:else}
-			<DirectoryResults
-				list={consignors}
-				query={search}
-				failedTitle={text.consignorsFailed}
-				emptyMessage={text.consignorsEmpty}
-				onclear={clear}
-			>
-				{#snippet card(consignor: DirectoryConsignorCard)}
-					<ConsignorCard card={consignor} />
-				{/snippet}
-			</DirectoryResults>
-		{/if}
+<FilterLayout>
+	{#snippet filters()}
+		<ConsignorFilters {query} {categories} {place} onchange={change} />
 	{/snippet}
-</Tabs>
+
+	<Tabs
+		label={text.tabsLabel}
+		{tabs}
+		bind:selected={
+			() => query.tab,
+			(tab: string) => {
+				change({ tab: tab as ConsignorTab });
+			}
+		}
+	>
+		{#snippet panel(selected: string)}
+			{#if selected === 'produk'}
+				<DirectoryResults
+					list={products}
+					query={search}
+					failedTitle={text.productsFailed}
+					emptyMessage={text.productsEmpty}
+					onclear={clear}
+				>
+					{#snippet card(product: DirectoryProductCard)}
+						<ProductCard card={product} />
+					{/snippet}
+				</DirectoryResults>
+			{:else}
+				<DirectoryResults
+					list={consignors}
+					query={search}
+					failedTitle={text.consignorsFailed}
+					emptyMessage={text.consignorsEmpty}
+					onclear={clear}
+				>
+					{#snippet card(consignor: DirectoryConsignorCard)}
+						<ConsignorCard card={consignor} />
+					{/snippet}
+				</DirectoryResults>
+			{/if}
+		{/snippet}
+	</Tabs>
+</FilterLayout>

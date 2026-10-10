@@ -1,7 +1,7 @@
 import { browser } from '$app/env';
 import { ApiError, NetworkError } from './errors';
 import { readEnvelope, toPage, type Page, type SuccessEnvelope } from './envelope';
-import { id } from '#lib/i18n/id.js';
+import { common as id } from '#lib/i18n/common.js';
 import { deviceReadCache } from '#lib/offline/read-cache.js';
 
 const refreshPath = '/api/v1/sessions/refresh';

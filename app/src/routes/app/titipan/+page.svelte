@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import DropHistoryList from '#lib/features/drops/components/DropHistoryList.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as id } from '#lib/i18n/drops.js';
 
 	const session = getAccountSession();
 	const isStore = $derived(session.account?.membership?.organization_type === 'STORE');

@@ -2,7 +2,7 @@
 	import NumberField from '#lib/components/ui/NumberField.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import type { InvitationErrors, InvitationValues } from '../schema';
 
 	interface Props {

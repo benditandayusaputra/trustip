@@ -10,7 +10,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { ReportGrouping } from '#lib/api/reports.js';
 	import type { RangePreset } from '#lib/domain/ranges.js';
-	import { id } from '#lib/i18n/id.js';
+	import { reports as id } from '#lib/i18n/reports.js';
 	import Button from '#lib/components/ui/Button.svelte';
 	import { downloadCsv } from '../download';
 	import { reportRows, salesCsv, summaryCards } from '../rows';

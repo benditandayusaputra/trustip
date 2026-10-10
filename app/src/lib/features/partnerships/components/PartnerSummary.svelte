@@ -3,7 +3,10 @@
 	import type { Partnership } from '#lib/api/partnerships.js';
 	import { whatsAppChatUrl } from '#lib/domain/whatsapp.js';
 	import { formatDate } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { partnerships as partnershipsText } from '#lib/i18n/partnerships.js';
+
+	const id = { ...commonText, ...partnershipsText };
 
 	interface Props {
 		partnership: Partnership;

@@ -3,7 +3,7 @@
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import type { ProposalRecord } from '../record.svelte';
 
 	interface Props {

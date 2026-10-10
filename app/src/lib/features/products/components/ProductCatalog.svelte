@@ -9,8 +9,11 @@
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { products as productsText } from '#lib/i18n/products.js';
 	import { ProductCatalog } from '../catalog.svelte';
+
+	const id = { ...commonText, ...productsText };
 
 	const text = id.products;
 	const catalog = new ProductCatalog(apiClient);

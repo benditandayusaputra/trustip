@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CloudUpload from '@lucide/svelte/icons/cloud-upload';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 	import { watchOutbox } from '#lib/offline/announcer.js';
 	import { outboxScheduler, ownEntries } from '#lib/offline/device.js';
 	import { OutboxQueue } from '../queue.svelte';
@@ -32,8 +32,8 @@
 		<span
 			aria-hidden="true"
 			class="absolute top-1 right-1 min-w-5 rounded-pill px-1 {hasOld
-				? 'bg-danger'
-				: 'bg-warning'} text-center text-xs font-semibold text-on-accent"
+				? 'bg-danger-fill'
+				: 'bg-warning-fill'} text-center text-xs font-semibold text-on-accent"
 		>
 			{queue.waitingCount}
 		</span>

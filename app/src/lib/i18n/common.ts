@@ -1,48 +1,14 @@
-import { agreements } from './agreements';
-import { counts } from './counts';
-import { dashboard } from './dashboard';
-import { directory } from './directory';
-import { drops } from './drops';
-import { home } from './home';
-import { legal } from './legal';
-import { listingReport } from './listing-report';
-import { needs } from './needs';
-import { offline } from './offline';
-import { organization } from './organization';
-import { partnerships } from './partnerships';
-import { products } from './products';
-import { publicProfile } from './public-profile';
-import { proposals } from './proposals';
-import { reports } from './reports';
-import { settlements } from './settlements';
-import { stock } from './stock';
-
-export const id = {
+export const common = {
 	brand: 'Trustip',
-	legal,
-	...agreements,
-	...counts,
-	...dashboard,
-	...directory,
-	...drops,
-	...home,
-	...listingReport,
-	...needs,
-	...offline,
-	...organization,
-	...partnerships,
-	...products,
-	...publicProfile,
-	...proposals,
-	...reports,
-	...settlements,
-	...stock,
 	layout: {
 		skipToContent: 'Lewati ke konten',
 		mainNavigation: 'Navigasi utama',
 		publicNavigation: 'Navigasi situs',
 		footerNavigation: 'Tautan kebijakan',
-		more: 'Lainnya'
+		more: 'Lainnya',
+		workspace: 'Catatan titip jual bersama mitra',
+		sharedRecords: 'Titipan, hitungan, dan setoran',
+		organizations: { STORE: 'Ruang kerja toko', CONSIGNOR: 'Ruang kerja penitip' }
 	},
 	nav: {
 		home: 'Beranda',

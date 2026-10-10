@@ -5,7 +5,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { Proposal } from '#lib/api/proposals.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import { InvitationLanding } from '../record.svelte';
 
 	interface Props {
@@ -39,14 +39,14 @@
 {:else if landing.status === 'signedOut'}
 	<p class="text-base text-text">{text.signedOutBody}</p>
 	<div class="flex flex-wrap gap-2">
-		<a href={signInHref} class="{linkClass} bg-accent text-on-accent">{text.signIn}</a>
+		<a href={signInHref} class="{linkClass} bg-primary text-on-accent">{text.signIn}</a>
 		<a href={registerHref} class="{linkClass} border border-border-strong text-text"
 			>{text.register}</a
 		>
 	</div>
 {:else if landing.status === 'newcomer'}
 	<p class="text-base text-text">{text.newcomerBody}</p>
-	<a href={onboardingHref} class="{linkClass} bg-accent text-on-accent">{text.onboard}</a>
+	<a href={onboardingHref} class="{linkClass} bg-primary text-on-accent">{text.onboard}</a>
 {:else if landing.status === 'refused' || !landing.invitation}
 	<Alert title={text.loadFailed}>{landing.message}</Alert>
 {:else}

@@ -8,7 +8,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { DropFilter } from '#lib/api/drops.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as id } from '#lib/i18n/drops.js';
 	import { DropHistory, emptyFilter } from '../history.svelte';
 	import { statusToneOf } from '../rows';
 	import DropFilters from './DropFilters.svelte';

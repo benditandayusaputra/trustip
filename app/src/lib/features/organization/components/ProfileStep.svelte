@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TextField from '#lib/components/ui/TextField.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { organization as id } from '#lib/i18n/organization.js';
 	import type { OnboardingWizard } from '../wizard.svelte';
 
 	interface Props {

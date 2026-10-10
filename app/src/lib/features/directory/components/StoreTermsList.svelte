@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { PublicStore } from '#lib/api/public.js';
 	import { formatBasisPoints } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { publicProfile as publicProfileText } from '#lib/i18n/public-profile.js';
+
+	const id = { ...directoryText, ...publicProfileText };
 
 	interface Props {
 		terms: PublicStore['terms'];

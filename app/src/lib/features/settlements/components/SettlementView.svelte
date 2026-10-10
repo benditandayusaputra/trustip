@@ -9,7 +9,7 @@
 	import type { Settlement } from '#lib/api/settlements.js';
 	import { formatBusinessDate, formatDate, formatDateTime } from '#lib/i18n/format.js';
 	import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { settlements as id } from '#lib/i18n/settlements.js';
 	import { whatsAppMessageUrl } from '#lib/domain/whatsapp.js';
 	import { canRecordPayment, canRemind, type Viewer } from '../access';
 	import { SettlementRecord } from '../record.svelte';

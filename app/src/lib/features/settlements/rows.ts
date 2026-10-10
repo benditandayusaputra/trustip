@@ -1,7 +1,7 @@
 import type { Settlement, SettlementSummary } from '#lib/api/settlements.js';
 import type { Tone } from '#lib/components/ui/tone.js';
 import { formatBasisPoints, formatDate, formatInteger, formatRupiah } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { settlements as id } from '#lib/i18n/settlements.js';
 
 export interface SettlementLineRow extends Record<string, string> {
 	key: string;

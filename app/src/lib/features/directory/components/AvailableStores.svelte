@@ -4,7 +4,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { PublicProduct } from '#lib/api/public.js';
 	import { formatDistance } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { publicProfile as id } from '#lib/i18n/public-profile.js';
 	import { NearbyStores, type GeoPosition } from '../availability.svelte';
 
 	interface Props {

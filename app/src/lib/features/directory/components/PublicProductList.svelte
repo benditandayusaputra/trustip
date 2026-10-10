@@ -2,7 +2,7 @@
 	import Package from '@lucide/svelte/icons/package';
 	import type { PublicConsignor } from '#lib/api/public.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { publicProfile as id } from '#lib/i18n/public-profile.js';
 
 	interface Props {
 		products: PublicConsignor['products'];

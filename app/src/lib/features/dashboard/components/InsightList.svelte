@@ -3,7 +3,7 @@
 	import Card from '#lib/components/ui/Card.svelte';
 	import { edgeTone } from '#lib/components/ui/tone.js';
 	import type { Insight } from '#lib/api/insights.js';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import { cardOf, type Side } from '../cards';
 
 	interface Props {

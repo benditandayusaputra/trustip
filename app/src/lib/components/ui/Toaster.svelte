@@ -2,7 +2,7 @@
 	import CloseIcon from '@lucide/svelte/icons/x';
 	import { getToaster, type Toast } from './toast.svelte';
 	import { edgeTone } from './tone';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 
 	const toastLifetimeMs = 6000;
 	const toaster = getToaster();

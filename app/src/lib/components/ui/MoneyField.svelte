@@ -1,7 +1,7 @@
 <script lang="ts">
 	import FieldShell from './FieldShell.svelte';
 	import { describedBy, inputClass } from './field';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 	import { formatInteger, parseDigits } from '#lib/i18n/format.js';
 
 	interface Props {

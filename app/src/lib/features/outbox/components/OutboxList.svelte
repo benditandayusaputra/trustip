@@ -6,7 +6,7 @@
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 	import { watchOutbox } from '#lib/offline/announcer.js';
 	import { outboxScheduler, ownEntries } from '#lib/offline/device.js';
 	import type { OutboxEntry } from '#lib/offline/outbox.js';

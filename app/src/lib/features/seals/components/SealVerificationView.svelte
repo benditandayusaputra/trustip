@@ -4,7 +4,7 @@
 	import ShieldQuestion from '@lucide/svelte/icons/shield-question';
 	import type { SealVerification } from '#lib/api/public.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as id } from '#lib/i18n/agreements.js';
 
 	interface Props {
 		code: string;

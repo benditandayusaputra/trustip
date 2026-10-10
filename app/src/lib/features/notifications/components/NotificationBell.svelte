@@ -3,7 +3,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import { openNotificationStream } from '#lib/api/stream.js';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 	import { UnreadCounter } from '../inbox.svelte';
 	import { LiveNotifications, watchVisibility } from '../live.svelte';
 
@@ -50,7 +50,7 @@
 	{#if counter.count > 0}
 		<span
 			aria-hidden="true"
-			class="absolute top-1 right-1 min-w-5 rounded-pill bg-accent px-1 text-center text-xs font-semibold text-on-accent"
+			class="absolute top-1 right-1 min-w-5 rounded-pill bg-primary px-1 text-center text-xs font-semibold text-on-accent"
 		>
 			{counter.count > badgeLimit ? `${String(badgeLimit)}+` : counter.count}
 		</span>

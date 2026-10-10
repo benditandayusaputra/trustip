@@ -6,7 +6,7 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 	import { findOwnEntry, outboxScheduler } from '#lib/offline/device.js';
 	import { fixHrefOf } from '../review-rows';
 	import { EntryReview } from '../review.svelte';
@@ -83,7 +83,7 @@
 	<div class="flex flex-wrap items-center gap-2">
 		<a
 			href={fixHrefOf(entry)}
-			class="inline-flex min-h-12 items-center rounded-control bg-accent px-5 font-semibold text-on-accent"
+			class="inline-flex min-h-12 items-center rounded-control bg-primary px-5 font-semibold text-on-accent"
 		>
 			{text.fix}
 		</a>

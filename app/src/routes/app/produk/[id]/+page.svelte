@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import ProductDetail from '#lib/features/products/components/ProductDetail.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { products as id } from '#lib/i18n/products.js';
 </script>
 
 <svelte:head>

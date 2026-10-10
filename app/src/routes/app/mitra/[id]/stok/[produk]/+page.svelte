@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import StockCardView from '#lib/features/stock/components/StockCardView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { stock as id } from '#lib/i18n/stock.js';
 </script>
 
 <svelte:head>

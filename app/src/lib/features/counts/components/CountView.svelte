@@ -8,10 +8,13 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime, formatInteger, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { counts as countsText } from '#lib/i18n/counts.js';
+	import { settlements as settlementsText } from '#lib/i18n/settlements.js';
 	import { CountRecord } from '../record.svelte';
 	import { lineRows } from '../rows';
 	import CountConfirm from './CountConfirm.svelte';
+
+	const id = { ...countsText, ...settlementsText };
 
 	interface Props {
 		countId: string;

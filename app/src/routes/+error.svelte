@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
+	import ThemePicker from '#lib/components/ui/ThemePicker.svelte';
 
 	const notFoundStatus = 404;
 	const isNotFound = $derived(page.status === notFoundStatus);
@@ -11,6 +12,7 @@
 </svelte:head>
 
 <main id="konten" class="mx-auto flex min-h-dvh max-w-form flex-col justify-center gap-4 px-4">
+	<div class="self-end"><ThemePicker /></div>
 	<p class="font-mono text-kpi font-bold text-accent">{page.status}</p>
 	<h1 class="text-xl">{isNotFound ? id.errorPage.notFoundTitle : id.errorPage.failedTitle}</h1>
 	<p class="text-text-muted">
@@ -18,7 +20,7 @@
 	</p>
 	<a
 		href="/"
-		class="inline-flex min-h-12 items-center justify-center self-start rounded-control bg-accent px-5 font-semibold text-on-accent"
+		class="inline-flex min-h-12 items-center justify-center self-start rounded-control bg-primary px-5 font-semibold text-on-accent"
 	>
 		{id.errorPage.backHome}
 	</a>

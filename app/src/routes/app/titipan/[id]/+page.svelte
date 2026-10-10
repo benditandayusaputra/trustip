@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import DropView from '#lib/features/drops/components/DropView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as id } from '#lib/i18n/drops.js';
 
 	const session = getAccountSession();
 	const organizationId = $derived(session.account?.membership?.organization_id ?? '');

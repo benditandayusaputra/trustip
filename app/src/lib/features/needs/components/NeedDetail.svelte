@@ -8,9 +8,12 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { NeedAction } from '#lib/api/needs.js';
 	import { formatBasisPoints, formatDate, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { needs as needsText } from '#lib/i18n/needs.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
 	import { NeedRecord } from '../state.svelte';
 	import { needTone } from '../tone';
+
+	const id = { ...needsText, ...proposalsText };
 
 	interface Props {
 		needId: string;

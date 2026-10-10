@@ -3,8 +3,11 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import type { Proposal } from '#lib/api/proposals.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
 	import { invitationUrl, senderName, whatsAppShareUrl } from '../links';
+
+	const id = { ...commonText, ...proposalsText };
 
 	interface Props {
 		proposal: Proposal;
@@ -37,7 +40,7 @@
 			href={shareUrl}
 			target="_blank"
 			rel="noopener noreferrer"
-			class="inline-flex min-h-12 items-center rounded-control bg-accent px-5 font-semibold text-on-accent"
+			class="inline-flex min-h-12 items-center rounded-control bg-primary px-5 font-semibold text-on-accent"
 		>
 			{text.shareWhatsApp}
 			<span class="sr-only">{id.auth.opensInNewTab}</span>

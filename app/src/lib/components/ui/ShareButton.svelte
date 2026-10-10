@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Share2 from '@lucide/svelte/icons/share-2';
 	import { getToaster } from './toast.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 
 	interface Props {
 		title: string;

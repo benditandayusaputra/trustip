@@ -134,7 +134,10 @@ describe('Count form', () => {
 			ondone
 		});
 
-		await fill('Sisa fisik (pcs)', '2');
+		const remaining = page.getByRole('textbox', { name: 'Sisa fisik (pcs)' });
+		await userEvent.fill(remaining, '2');
+		await expect.element(remaining).toHaveFocus();
+		await expect.element(page.getByText('Rp36.000')).toBeVisible();
 		await fill('Dikembalikan (pcs)', '2');
 		await userEvent.selectOptions(
 			page.getByRole('combobox', { name: 'Alasan pengembalian' }),

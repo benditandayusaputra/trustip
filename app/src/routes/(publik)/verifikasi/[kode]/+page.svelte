@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SealVerificationView from '#lib/features/seals/components/SealVerificationView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as id } from '#lib/i18n/agreements.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

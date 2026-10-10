@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { ApiError } from '#lib/api/errors.js';
-import { id } from '#lib/i18n/id.js';
+import { common as id } from '#lib/i18n/common.js';
 
 const notFoundStatus = 404;
 

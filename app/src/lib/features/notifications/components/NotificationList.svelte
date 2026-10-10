@@ -10,7 +10,7 @@
 	import type { Notification } from '#lib/api/notifications.js';
 	import { safeHref } from '#lib/domain/safe-href.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 	import { Inbox } from '../inbox.svelte';
 
 	const text = id.notifications;

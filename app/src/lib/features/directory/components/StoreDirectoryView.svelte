@@ -1,9 +1,10 @@
 <script lang="ts">
+	import FilterLayout from '#lib/components/ui/FilterLayout.svelte';
 	import { onMount, type Snippet } from 'svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { DirectoryStoreCard } from '#lib/api/directory.js';
 	import { listCategories, type Category } from '#lib/api/organizations.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 	import { defaultStoreQuery, storeSearchParams, type StoreQuery } from '../query';
 	import { DirectoryList } from '../state.svelte';
 	import DirectoryResults from './DirectoryResults.svelte';
@@ -34,24 +35,29 @@
 	});
 </script>
 
-<StoreFilters
-	{query}
-	{categories}
-	{place}
-	onchange={(changes: Partial<StoreQuery>) => {
-		onchange({ ...query, ...changes });
-	}}
-/>
-<DirectoryResults
-	list={stores}
-	query={search}
-	failedTitle={text.failed}
-	emptyMessage={text.empty}
-	onclear={() => {
-		onchange(defaultStoreQuery());
-	}}
->
-	{#snippet card(store: DirectoryStoreCard)}
-		<StoreCard card={store} />
+<FilterLayout>
+	{#snippet filters()}
+		<StoreFilters
+			{query}
+			{categories}
+			{place}
+			onchange={(changes: Partial<StoreQuery>) => {
+				onchange({ ...query, ...changes });
+			}}
+		/>
 	{/snippet}
-</DirectoryResults>
+
+	<DirectoryResults
+		list={stores}
+		query={search}
+		failedTitle={text.failed}
+		emptyMessage={text.empty}
+		onclear={() => {
+			onchange(defaultStoreQuery());
+		}}
+	>
+		{#snippet card(store: DirectoryStoreCard)}
+			<StoreCard card={store} />
+		{/snippet}
+	</DirectoryResults>
+</FilterLayout>

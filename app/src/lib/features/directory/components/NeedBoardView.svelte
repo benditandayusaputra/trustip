@@ -1,11 +1,12 @@
 <script lang="ts">
+	import FilterLayout from '#lib/components/ui/FilterLayout.svelte';
 	import { onMount, type Snippet } from 'svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { NeedBoardCard as Card } from '#lib/api/directory.js';
 	import { listCategories, type Category } from '#lib/api/organizations.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 	import { boardSearchParams, defaultBoardQuery, type BoardQuery } from '../board-query';
 	import { radiusChoices } from '../query';
 	import { DirectoryList } from '../state.svelte';
@@ -62,47 +63,57 @@
 	}
 </script>
 
-<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2">
-	<legend class="sr-only">{text.filters}</legend>
-	<div class="md:col-span-2">
-		<TextField label={text.search} type="search" maxlength={maxSearchLength} bind:value={typed} />
-	</div>
-	{@render place()}
-	<Select
-		label={id.directory.radius}
-		options={radiusOptions}
-		value={query.radius}
-		onchange={(radius: string) => {
-			change({ radius: radius as BoardQuery['radius'] });
-		}}
-	/>
-	<Select
-		label={id.directory.sort}
-		options={sortOptions}
-		value={query.sort}
-		onchange={(sort: string) => {
-			change({ sort: sort as BoardQuery['sort'] });
-		}}
-	/>
-	<Select
-		label={text.category}
-		options={categoryOptions}
-		value={query.categoryIds?.[0] ?? ''}
-		onchange={(categoryId: string) => {
-			change({ categoryIds: categoryId === '' ? null : [categoryId] });
-		}}
-	/>
-</fieldset>
-<DirectoryResults
-	list={needs}
-	query={search}
-	failedTitle={text.failed}
-	emptyMessage={text.empty}
-	onclear={() => {
-		onchange(defaultBoardQuery());
-	}}
->
-	{#snippet card(need: Card)}
-		<NeedBoardCard card={need} {canRespond} />
+<FilterLayout>
+	{#snippet filters()}
+		<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
+			<legend class="sr-only">{text.filters}</legend>
+			<div class="md:col-span-2 xl:col-span-1">
+				<TextField
+					label={text.search}
+					type="search"
+					maxlength={maxSearchLength}
+					bind:value={typed}
+				/>
+			</div>
+			{@render place()}
+			<Select
+				label={id.directory.radius}
+				options={radiusOptions}
+				value={query.radius}
+				onchange={(radius: string) => {
+					change({ radius: radius as BoardQuery['radius'] });
+				}}
+			/>
+			<Select
+				label={id.directory.sort}
+				options={sortOptions}
+				value={query.sort}
+				onchange={(sort: string) => {
+					change({ sort: sort as BoardQuery['sort'] });
+				}}
+			/>
+			<Select
+				label={text.category}
+				options={categoryOptions}
+				value={query.categoryIds?.[0] ?? ''}
+				onchange={(categoryId: string) => {
+					change({ categoryIds: categoryId === '' ? null : [categoryId] });
+				}}
+			/>
+		</fieldset>
 	{/snippet}
-</DirectoryResults>
+
+	<DirectoryResults
+		list={needs}
+		query={search}
+		failedTitle={text.failed}
+		emptyMessage={text.empty}
+		onclear={() => {
+			onchange(defaultBoardQuery());
+		}}
+	>
+		{#snippet card(need: Card)}
+			<NeedBoardCard card={need} {canRespond} />
+		{/snippet}
+	</DirectoryResults>
+</FilterLayout>

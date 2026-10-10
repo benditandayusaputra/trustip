@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { DirectoryStoreCard } from '#lib/api/directory.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 
 	interface Props {
 		match: NonNullable<DirectoryStoreCard['match']>;

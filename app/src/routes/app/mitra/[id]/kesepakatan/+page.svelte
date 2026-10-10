@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import AgreementHistory from '#lib/features/agreements/components/AgreementHistory.svelte';
 	import AgreementView from '#lib/features/agreements/components/AgreementView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as id } from '#lib/i18n/agreements.js';
 </script>
 
 <svelte:head>

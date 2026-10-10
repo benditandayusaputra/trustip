@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import SettlementView from '#lib/features/settlements/components/SettlementView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { settlements as id } from '#lib/i18n/settlements.js';
 
 	const session = getAccountSession();
 	const viewer = $derived({

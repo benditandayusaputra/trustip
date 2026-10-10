@@ -5,7 +5,7 @@
 	import DailySalesChart from '#lib/features/reports/components/DailySalesChart.svelte';
 	import type { SalesNarrowing } from '#lib/api/reports.js';
 	import { lastThirtyDays } from '#lib/features/dashboard/views.js';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 
 	const session = getAccountSession();
 	const isOwner = $derived(session.account?.membership?.role === 'OWNER');

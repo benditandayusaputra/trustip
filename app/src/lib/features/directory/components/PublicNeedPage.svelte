@@ -4,8 +4,13 @@
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicNeed } from '#lib/api/public.js';
 	import { formatBasisPoints, formatDate, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { needs as needsText } from '#lib/i18n/needs.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
+	import { publicProfile as publicProfileText } from '#lib/i18n/public-profile.js';
 	import LazyReportListing from './LazyReportListing.svelte';
+
+	const id = { ...directoryText, ...needsText, ...organizationText, ...publicProfileText };
 
 	interface Props {
 		need: PublicNeed;
@@ -24,8 +29,8 @@
 </script>
 
 <article class="flex flex-col gap-6">
-	<header class="flex flex-col gap-2">
-		<p class="text-sm text-text-muted">{text.needKind}</p>
+	<header class="trade-panel flex flex-col gap-4">
+		<p class="section-label">{text.needKind}</p>
 		<h1 class="text-xl font-semibold text-text">{need.title}</h1>
 		<p class="text-sm text-text-muted">
 			{text.needBy(store.name)}
@@ -63,7 +68,7 @@
 		{#if isOpen}
 			<a
 				href={respondHref}
-				class="inline-flex min-h-11 items-center rounded-control bg-accent px-4 font-semibold text-on-accent"
+				class="inline-flex min-h-11 items-center rounded-control bg-primary px-4 font-semibold text-on-accent"
 				>{board.respond}</a
 			>
 		{:else}

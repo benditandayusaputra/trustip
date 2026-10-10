@@ -3,7 +3,7 @@
 	import BottomSheet from '../ui/BottomSheet.svelte';
 	import NavLink from './NavLink.svelte';
 	import type { NavItem } from './navigation';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 
 	interface Props {
 		primary: NavItem[];
@@ -18,7 +18,7 @@
 
 <nav
 	aria-label={id.layout.mainNavigation}
-	class="fixed inset-x-0 bottom-0 z-(--z-nav) flex h-(--bottom-nav-height) border-t border-border bg-surface lg:hidden"
+	class="fixed inset-x-0 bottom-0 z-(--z-nav) flex h-(--bottom-nav-height) border-t border-border bg-surface pb-(--safe-area-bottom) lg:hidden"
 >
 	{#each primary as item (item.href)}
 		<NavLink {item} {currentPath} layout="tab" />
@@ -37,7 +37,7 @@
 <BottomSheet bind:open={moreOpen} title={id.layout.more}>
 	<ul class="flex flex-col">
 		{#each more as item (item.href)}
-			<li><NavLink {item} {currentPath} layout="row" /></li>
+			<li><NavLink {item} {currentPath} layout="row" onclick={() => (moreOpen = false)} /></li>
 		{/each}
 	</ul>
 </BottomSheet>

@@ -1,7 +1,7 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import { reportListing, type ListingReportRequest } from '#lib/api/listing-reports.js';
-import { id } from '#lib/i18n/id.js';
+import { listingReport as id } from '#lib/i18n/listing-report.js';
 
 export type ReportReason = ListingReportRequest['reason'];
 export type ReportTarget = Pick<ListingReportRequest, 'target_type' | 'target_id'>;

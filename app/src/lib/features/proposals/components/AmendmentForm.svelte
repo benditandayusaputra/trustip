@@ -8,10 +8,13 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Proposal } from '#lib/api/proposals.js';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as agreementsText } from '#lib/i18n/agreements.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
 	import { AmendmentComposer } from '../amendment.svelte';
 	import AmendmentRows from './AmendmentRows.svelte';
 	import GeneralTermsFields from './GeneralTermsFields.svelte';
+
+	const id = { ...agreementsText, ...proposalsText };
 
 	interface Props {
 		partnershipId: string;

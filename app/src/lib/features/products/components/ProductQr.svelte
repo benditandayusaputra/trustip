@@ -1,7 +1,7 @@
 <script lang="ts">
 	import QrCode from '#lib/components/ui/QrCode.svelte';
 	import type { Product } from '#lib/api/products.js';
-	import { id } from '#lib/i18n/id.js';
+	import { products as id } from '#lib/i18n/products.js';
 	import { publicProductUrl } from '../links';
 
 	interface Props {

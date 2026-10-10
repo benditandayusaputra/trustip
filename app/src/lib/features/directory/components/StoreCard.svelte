@@ -3,11 +3,14 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { DirectoryStoreCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatBusinessDate, formatDistance } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import ContactActions from './ContactActions.svelte';
 	import LazyReportListing from './LazyReportListing.svelte';
 	import MatchReasons from './MatchReasons.svelte';
 	import MatchSummary from './MatchSummary.svelte';
+
+	const id = { ...directoryText, ...organizationText };
 
 	interface Props {
 		card: DirectoryStoreCard;
@@ -27,7 +30,7 @@
 </script>
 
 <article class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
-	<header class="flex items-start gap-4">
+	<header class="flex flex-wrap items-start gap-4">
 		{#if card.logo_url}
 			<img
 				src={card.logo_url}
@@ -39,7 +42,11 @@
 				class="size-12 shrink-0 rounded-control object-cover"
 			/>
 		{:else}
-			<Store class="size-12 shrink-0 text-text-muted" aria-hidden="true" />
+			<div
+				class="flex size-12 shrink-0 items-center justify-center rounded-control bg-accent-surface"
+			>
+				<Store class="size-6 text-accent" aria-hidden="true" />
+			</div>
 		{/if}
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<h2 class="text-lg font-semibold text-text">

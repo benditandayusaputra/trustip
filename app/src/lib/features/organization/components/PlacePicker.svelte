@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Select from '#lib/components/ui/Select.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 	import { locateDevice } from '../geolocation';
 	import type { Place, PlaceKind } from '../place';
 	import { RegionChoice } from '../regions.svelte';

@@ -8,7 +8,7 @@
 	import type { SalesNarrowing } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import { DashboardState, SalesOverview } from '../state.svelte';
 	import {
 		chartChoicesOf,

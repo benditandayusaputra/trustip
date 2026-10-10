@@ -13,6 +13,7 @@ import {
 	signOut,
 	signOutKeepingEntries
 } from './offline';
+import { initialScriptBytes, publicPageBudgetBytes, recordingScreenBudgetBytes } from './budget';
 import { consignorWithProduct } from './catalog';
 import { networkTimeoutMs, onboard, registerThenSignIn, uniqueEmail } from './session';
 
@@ -138,11 +139,25 @@ async function buyerFindsTheStoreOnTheProductPage(
 	const publicLink = scene.consignor.getByRole('link', { name: 'Lihat halaman publik produk' });
 	const publicPage = new URL((await publicLink.getAttribute('href')) ?? '').pathname;
 	const buyer = await openAs(browser, 'Pixel 7');
-	await buyer.goto(publicPage);
+	expect(await initialScriptBytes(buyer, publicPage)).toBeLessThanOrEqual(publicPageBudgetBytes);
 	await expect(buyer.getByRole('heading', { level: 1, name: 'Roti Manis Uji' })).toBeVisible();
 	await expect(buyer.getByText('Warung Uji', { exact: true })).toBeVisible();
 	await expect(buyer.getByRole('link', { name: 'Buka Warung Uji di peta' })).toBeVisible();
 	await buyer.context().close();
+}
+
+async function recordingScreensStayWithinBudget(page: Page, partnerPage: string): Promise<void> {
+	await page.goto(partnerPage);
+	const screens = [
+		page.getByRole('link', { name: 'Catat titipan' }).first(),
+		page.getByRole('link', { name: 'Hitung sisa' })
+	];
+	const paths = await Promise.all(screens.map((link) => link.getAttribute('href')));
+	for (const path of paths) {
+		expect(await initialScriptBytes(page, path ?? '')).toBeLessThanOrEqual(
+			recordingScreenBudgetBytes
+		);
+	}
 }
 
 async function storeCountsTwoLeftAndReturned(page: Page, partnerPage: string): Promise<string> {
@@ -193,50 +208,53 @@ async function consignorReceivesTheMoney(page: Page, settlementPage: string): Pr
 	await expect(page.getByText('Lunas', { exact: true }).first()).toBeVisible();
 }
 
-test('FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-PUB-04 FR-PUB-05 BR-PUB-01 FR-SIG-03 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user', async ({
-	browser
-}) => {
-	test.setTimeout(flowTimeoutMs);
-	const consignor = await openAs(browser, 'Pixel 7');
-	const store = await openAs(browser, 'Desktop Chrome');
-	const consignorEmail = await consignorWithProduct(consignor);
-	const invitationPath = await sendInvitation(consignor);
+test(
+	'FR-PRP-07 BR-PRP-03 FR-AGR-01 FR-DRP-01 FR-NTF-02 FR-PUB-04 FR-PUB-05 BR-PUB-01 FR-SIG-03 FR-CNT-05 FR-STL-06 FR-PWA-06 BR-PWA-03 BR-PWA-05 BR-PWA-06 two businesses partner, trade 20 loaves through a paid recap, then the store records offline, reviews a stock change, and never sends for another user',
+	{ tag: '@transaction' },
+	async ({ browser }) => {
+		test.setTimeout(flowTimeoutMs);
+		const consignor = await openAs(browser, 'Pixel 7');
+		const store = await openAs(browser, 'Desktop Chrome');
+		const consignorEmail = await consignorWithProduct(consignor);
+		const invitationPath = await sendInvitation(consignor);
 
-	const { partnerPage, email: storeEmail } = await storeAcceptsInvitation(store, invitationPath);
-	const seenByStore = await agreementSeenOn(store);
-	await store.goto('/app');
-	await expect(store).toHaveURL(/\/app\/toko$/u);
-	await consignor.goto('/app/mitra');
-	await consignor.getByRole('link', { name: /Warung Uji/u }).click();
-	const seenByConsignor = await agreementSeenOn(consignor);
+		const { partnerPage, email: storeEmail } = await storeAcceptsInvitation(store, invitationPath);
+		const seenByStore = await agreementSeenOn(store);
+		await store.goto('/app');
+		await expect(store).toHaveURL(/\/app\/toko$/u);
+		await consignor.goto('/app/mitra');
+		await consignor.getByRole('link', { name: /Warung Uji/u }).click();
+		const seenByConsignor = await agreementSeenOn(consignor);
 
-	expect(partnerPage).toMatch(partnerPagePattern);
-	expect(seenByConsignor).toBe(seenByStore);
+		expect(partnerPage).toMatch(partnerPagePattern);
+		expect(seenByConsignor).toBe(seenByStore);
 
-	await store.goto(partnerPage);
-	await storeRecordsWhileConsignorWatches(store, consignor);
-	await visitorVerifiesTheDropSeal(browser, store);
-	await buyerFindsTheStoreOnTheProductPage(browser, { store, consignor, partnerPage });
-	const recapPage = await storeCountsTwoLeftAndReturned(store, partnerPage);
-	await expectRecap(store);
-	await consignor.goto(new URL(recapPage).pathname);
-	await expectRecap(consignor);
-	await consignor.getByRole('button', { name: 'Sesuai' }).click();
-	await consignor.getByRole('dialog').getByRole('button', { name: 'Sesuai' }).click();
-	await expect(consignor.getByText('Hitung Sisa dinyatakan sesuai.')).toBeVisible({
-		timeout: networkTimeoutMs
-	});
-	const settlementPage = await storePaysCash(store, recapPage);
-	await consignorReceivesTheMoney(consignor, settlementPage);
+		await recordingScreensStayWithinBudget(store, partnerPage);
+		await store.goto(partnerPage);
+		await storeRecordsWhileConsignorWatches(store, consignor);
+		await visitorVerifiesTheDropSeal(browser, store);
+		await buyerFindsTheStoreOnTheProductPage(browser, { store, consignor, partnerPage });
+		const recapPage = await storeCountsTwoLeftAndReturned(store, partnerPage);
+		await expectRecap(store);
+		await consignor.goto(new URL(recapPage).pathname);
+		await expectRecap(consignor);
+		await consignor.getByRole('button', { name: 'Sesuai' }).click();
+		await consignor.getByRole('dialog').getByRole('button', { name: 'Sesuai' }).click();
+		await expect(consignor.getByText('Hitung Sisa dinyatakan sesuai.')).toBeVisible({
+			timeout: networkTimeoutMs
+		});
+		const settlementPage = await storePaysCash(store, recapPage);
+		await consignorReceivesTheMoney(consignor, settlementPage);
 
-	const partnershipId = partnershipIdOf(partnerPage);
-	await storeWorksOffline(store, partnershipId);
-	await storeReviewsAStockChangedElsewhere(browser, store, partnershipId);
-	await anotherUserNeverSendsTheEntries(
-		{ store, consignor, partnershipId },
-		{ storeEmail, consignorEmail }
-	);
-});
+		const partnershipId = partnershipIdOf(partnerPage);
+		await storeWorksOffline(store, partnershipId);
+		await storeReviewsAStockChangedElsewhere(browser, store, partnershipId);
+		await anotherUserNeverSendsTheEntries(
+			{ store, consignor, partnershipId },
+			{ storeEmail, consignorEmail }
+		);
+	}
+);
 
 async function storeWorksOffline(store: Page, partnershipId: string): Promise<void> {
 	await prepareForOffline(store, partnershipId);

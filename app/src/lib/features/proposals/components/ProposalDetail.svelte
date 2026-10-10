@@ -6,7 +6,8 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { Proposal } from '#lib/api/proposals.js';
 	import { formatBasisPoints, formatDateTime, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { products as productsText } from '#lib/i18n/products.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
 	import { partyName } from '../links';
 	import { ProposalRecord } from '../record.svelte';
 	import { RevisionTrail } from '../trail.svelte';
@@ -14,6 +15,8 @@
 	import InvitationShare from './InvitationShare.svelte';
 	import ProposalActions from './ProposalActions.svelte';
 	import RevisionHistory from './RevisionHistory.svelte';
+
+	const id = { ...productsText, ...proposalsText };
 
 	interface Props {
 		proposalId: string;

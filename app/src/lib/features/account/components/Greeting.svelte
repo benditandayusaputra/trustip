@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 	import { getAccountSession } from '../session.svelte';
 
 	const session = getAccountSession();

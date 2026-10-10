@@ -5,7 +5,7 @@ import type {
 } from '#lib/api/directory.js';
 import type { Need } from '#lib/api/needs.js';
 import { formatDistance } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { dashboard as id } from '#lib/i18n/dashboard.js';
 
 export interface Opportunity {
 	key: string;

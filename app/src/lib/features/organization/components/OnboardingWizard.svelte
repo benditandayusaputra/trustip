@@ -4,12 +4,15 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import { watchOnline } from '#lib/offline/network.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import { steps } from '../schema';
 	import { OnboardingWizard, type SubmitOutcome } from '../wizard.svelte';
 	import LocationFields from './LocationFields.svelte';
 	import ProfileStep from './ProfileStep.svelte';
 	import TypeStep from './TypeStep.svelte';
+
+	const id = { ...commonText, ...organizationText };
 
 	interface Props {
 		onfounded: () => void;

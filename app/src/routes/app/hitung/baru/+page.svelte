@@ -4,7 +4,7 @@
 	import CountForm from '#lib/features/counts/components/CountForm.svelte';
 	import { expiredReturnOf } from '#lib/features/counts/schema.js';
 	import PartnerChooser from '#lib/features/drops/components/PartnerChooser.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { counts as id } from '#lib/i18n/counts.js';
 
 	const partnershipId = $derived(page.url.searchParams.get('mitra') ?? '');
 	const revisionOf = $derived(page.url.searchParams.get('antrean') ?? '');

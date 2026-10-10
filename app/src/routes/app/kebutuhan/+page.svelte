@@ -1,6 +1,6 @@
 <script lang="ts">
 	import NeedList from '#lib/features/needs/components/NeedList.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { needs as id } from '#lib/i18n/needs.js';
 </script>
 
 <svelte:head>

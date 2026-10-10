@@ -7,7 +7,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Organization } from '#lib/api/organizations.js';
-	import { id } from '#lib/i18n/id.js';
+	import { organization as id } from '#lib/i18n/organization.js';
 	import { ListingEditor } from '../listing.svelte';
 
 	interface Props {

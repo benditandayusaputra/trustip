@@ -7,7 +7,7 @@
 	import type { SalesNarrowing } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { formatBusinessDate, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { reports as id } from '#lib/i18n/reports.js';
 	import { areaShape } from '#lib/domain/chart.js';
 	import { dayCells } from '../rows';
 	import { SalesReportView } from '../state.svelte';

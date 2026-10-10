@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import WifiOff from '@lucide/svelte/icons/wifi-off';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 	import { watchOnline } from '#lib/offline/network.js';
 	import type { Freshness } from '#lib/offline/freshness.svelte.js';
 	import { deviceReadCache } from '#lib/offline/read-cache.js';

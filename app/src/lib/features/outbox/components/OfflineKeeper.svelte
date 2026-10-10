@@ -12,6 +12,14 @@
 		void refreshWorkPackets(apiClient());
 	}
 
+	function whenIdle(work: () => void) {
+		if ('requestIdleCallback' in window) {
+			window.requestIdleCallback(work);
+			return;
+		}
+		setTimeout(work);
+	}
+
 	function sendWhenVisible() {
 		if (document.visibilityState === 'visible') {
 			void scheduler.run();
@@ -21,7 +29,7 @@
 	onMount(() => {
 		const stopWatching = watchOnline((online) => {
 			if (online) {
-				catchUp();
+				whenIdle(catchUp);
 			}
 		});
 		document.addEventListener('visibilitychange', sendWhenVisible);

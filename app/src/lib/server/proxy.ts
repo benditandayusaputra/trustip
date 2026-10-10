@@ -1,5 +1,5 @@
 import { edgeHeaders, freshNonce, unixSeconds, type EdgeKey } from './edge-signer';
-import { id } from '#lib/i18n/id.js';
+import { common as id } from '#lib/i18n/common.js';
 
 const forwardedRequestHeaders = [
 	'cookie',

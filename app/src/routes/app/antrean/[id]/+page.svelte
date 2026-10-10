@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import OutboxReview from '#lib/features/outbox/components/OutboxReview.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 </script>
 
 <svelte:head>

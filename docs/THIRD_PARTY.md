@@ -74,6 +74,7 @@ Ukuran untuk pustaka yang ikut ke peramban diukur dari bundel terkompresi. Alat 
 | `vitest-browser-svelte` | 3.1 | MIT | Alat pengembangan | Merender komponen Svelte di peramban nyata saat uji |
 | `axe-core` | 4.14 | MPL-2.0 | Alat pengembangan | Pemeriksa aksesibilitas otomatis di uji komponen |
 | `@playwright/test`, `playwright` | 1.63 | Apache-2.0 | Alat pengembangan | Uji ujung ke ujung di HP dan desktop |
+| `lighthouse` | 13.5 | Apache-2.0 | Alat pengembangan | Mengukur skor performa, LCP, dan CLS di uji ujung ke ujung terhadap anggaran 10.1 |
 | `knip` | 6.40 | ISC | Alat pengembangan | Pencari ekspor dan dependensi tak terpakai |
 | `openapi-typescript` | 7.13 | MIT | Alat pengembangan | Membangkitkan `src/lib/api/schema.d.ts` dari `openapi.yaml`. Dipasang dengan `overrides` karena versi ini masih menulis TypeScript 5 sebagai rekan, padahal hanya memakai API pembangun sintaks yang sama di TypeScript 6 |
 | `@types/node` | 24 | MIT | Alat pengembangan | Tipe Node untuk berkas konfigurasi |

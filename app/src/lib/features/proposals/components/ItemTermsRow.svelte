@@ -4,7 +4,7 @@
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { exampleQuantity, splitOf } from '#lib/domain/pricing.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import { termsOf, type InvitationErrors, type ItemValues } from '../schema';
 
 	interface Props {

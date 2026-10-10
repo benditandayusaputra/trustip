@@ -6,7 +6,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Product } from '#lib/api/products.js';
-	import { id } from '#lib/i18n/id.js';
+	import { products as id } from '#lib/i18n/products.js';
 	import { ProductRecord } from '../catalog.svelte';
 	import ProductForm from './ProductForm.svelte';
 	import ProductQr from './ProductQr.svelte';

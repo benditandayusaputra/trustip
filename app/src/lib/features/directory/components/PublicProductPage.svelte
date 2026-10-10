@@ -4,7 +4,7 @@
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicProduct } from '#lib/api/public.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { publicProfile as id } from '#lib/i18n/public-profile.js';
 	import type { GeoPosition } from '../availability.svelte';
 	import AvailableStores from './AvailableStores.svelte';
 	import DeclaredLegality from './DeclaredLegality.svelte';
@@ -24,7 +24,7 @@
 </script>
 
 <article class="flex flex-col gap-6">
-	<header class="flex flex-col gap-4 md:flex-row">
+	<header class="grid items-center gap-6 lg:grid-cols-2">
 		{#if product.photo_url}
 			<img
 				src={product.photo_url}
@@ -32,15 +32,19 @@
 				width="400"
 				height="300"
 				decoding="async"
-				class="aspect-4/3 w-full rounded-control object-cover md:max-w-form"
+				class="aspect-4/3 w-full rounded-card border border-border object-cover"
 			/>
 		{:else}
-			<Package class="size-12 text-text-muted" aria-hidden="true" />
+			<div
+				class="flex aspect-4/3 items-center justify-center rounded-card border border-border bg-surface-hover"
+			>
+				<Package class="size-12 text-text-muted" aria-hidden="true" />
+			</div>
 		{/if}
-		<div class="flex flex-col gap-2">
-			<p class="text-sm text-text-muted">{product.category}</p>
-			<h1 class="text-xl font-semibold text-text">{product.name}</h1>
-			<p class="font-mono text-xl font-bold text-accent">
+		<div class="flex flex-col gap-4">
+			<p class="section-label">{product.category}</p>
+			<h1 class="text-hero-compact font-semibold text-text">{product.name}</h1>
+			<p class="font-mono text-kpi-compact font-bold text-text">
 				{formatRupiah(product.suggested_retail_price)}
 			</p>
 			<p class="text-sm text-text-muted">{text.suggestedPrice(product.unit)}</p>

@@ -1,5 +1,5 @@
 import type { NeedRequest } from '#lib/api/needs.js';
-import { id } from '#lib/i18n/id.js';
+import { needs as id } from '#lib/i18n/needs.js';
 
 const minTitleLength = 5;
 const maxTitleLength = 80;

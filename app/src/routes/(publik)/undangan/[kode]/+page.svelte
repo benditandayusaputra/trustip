@@ -4,7 +4,7 @@
 	import type { Proposal } from '#lib/api/proposals.js';
 	import { onboardingHref, registerHref, signInHref } from '#lib/features/auth/links.js';
 	import InvitationLandingView from '#lib/features/proposals/components/InvitationLandingView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 
 	const code = $derived(page.params.kode ?? '');
 	const here = $derived(`/undangan/${encodeURIComponent(code)}`);

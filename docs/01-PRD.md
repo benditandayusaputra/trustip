@@ -33,7 +33,7 @@
 | 2 | Mencatat Titipan Masuk dan Hitung Sisa saat luring naik dari P1 ke P0 | Sinyal di warung dan kantin sering putus, dan pencatatan tidak boleh menunggu |
 | 3 | Segel dokumen bertanda tangan digital | Transparansi dua pihak butuh bukti bahwa catatan tidak diubah setelah terjadi |
 | 4 | Captcha, kata sandi dengan salt dan pepper, tanda tangan permintaan ke API | Pengerasan keamanan. Kriteria teknis berbobot 20% |
-| 5 | Tampilan mengikuti `DESIGN.md`: tema gelap dengan angka monospace | Arah desain yang dipilih tim |
+| 5 | Tampilan mengikuti `DESIGN.md`: tema terang/gelap dengan primary biru dan angka monospace | Arah desain yang dipilih tim |
 | 6 | Ditambah `03-ATURAN-REKAYASA.md` dan `04-RENCANA-IMPLEMENTASI.md`. Urutan pengerjaan menjadi 13 tahap | Aturan kode dan urutan kerja dibuat eksplisit dan bisa diperiksa |
 
 ## 1. Ringkasan

@@ -62,11 +62,11 @@ describe('NumberField', () => {
 		await expectAccessible(container);
 	});
 
-	it('clamps typed values to the maximum', async () => {
+	it('clamps typed values to the maximum before focus leaves the field', async () => {
 		await render(NumberField, { label: 'Sisa', value: 0, max: 20 });
 
 		await userEvent.fill(page.getByLabelText('Sisa', { exact: true }), '35');
-		await userEvent.tab();
+		await expect.element(page.getByLabelText('Sisa', { exact: true })).toHaveFocus();
 
 		await expect.element(page.getByLabelText('Sisa', { exact: true })).toHaveValue('20');
 	});

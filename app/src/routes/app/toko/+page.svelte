@@ -3,7 +3,7 @@
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import StoreDashboard from '#lib/features/dashboard/components/StoreDashboard.svelte';
 	import { lastThirtyDays } from '#lib/features/dashboard/views.js';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 
 	const session = getAccountSession();
 	const isOwner = $derived(session.account?.membership?.role === 'OWNER');

@@ -3,7 +3,7 @@
 	import Card from '#lib/components/ui/Card.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import type { Side } from '../cards';
 	import { OpportunityFeed } from '../state.svelte';
 

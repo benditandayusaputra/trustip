@@ -9,7 +9,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { PaymentMethod, Settlement } from '#lib/api/settlements.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { settlements as id } from '#lib/i18n/settlements.js';
 	import { PaymentComposer, needsProof } from '../payment.svelte';
 
 	interface Props {

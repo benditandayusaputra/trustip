@@ -1,6 +1,9 @@
 import type { AgreementVersion } from '#lib/api/agreements.js';
 import { formatBasisPoints, formatRupiah } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { agreements as agreementsText } from '#lib/i18n/agreements.js';
+import { proposals as proposalsText } from '#lib/i18n/proposals.js';
+
+const id = { ...agreementsText, ...proposalsText };
 
 type TermChange = AgreementVersion['term_changes'][number];
 type ItemChange = AgreementVersion['item_changes'][number];

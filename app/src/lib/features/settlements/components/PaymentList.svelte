@@ -3,7 +3,10 @@
 	import type { Tone } from '#lib/components/ui/tone.js';
 	import type { Payment } from '#lib/api/settlements.js';
 	import { formatBusinessDate, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { settlements as settlementsText } from '#lib/i18n/settlements.js';
+
+	const id = { ...commonText, ...settlementsText };
 
 	interface Props {
 		payments: Payment[];

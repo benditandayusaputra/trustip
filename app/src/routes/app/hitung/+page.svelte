@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import CountHistoryList from '#lib/features/counts/components/CountHistoryList.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { counts as id } from '#lib/i18n/counts.js';
 
 	const session = getAccountSession();
 	const isStore = $derived(session.account?.membership?.organization_type === 'STORE');

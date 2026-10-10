@@ -22,6 +22,7 @@ function formPaths(partnershipId: string) {
 export async function documentCounts(page: Page, partnershipId: string): Promise<DocumentCounts> {
 	const read = async (path: string) => {
 		const response = await page.request.get(`${path}?partnership_id=${partnershipId}`);
+		expect(response.ok(), `${path} returned ${String(response.status())}`).toBe(true);
 		return ((await response.json()) as { data: unknown[] }).data.length;
 	};
 	return { drops: await read('/api/v1/drops'), counts: await read('/api/v1/counts') };
@@ -101,6 +102,7 @@ export async function fixReviewedCount(page: Page): Promise<void> {
 
 export async function signOutKeepingEntries(page: Page): Promise<void> {
 	await page.goto('/app/antrean');
+	await page.locator('summary', { hasText: 'Akun' }).click();
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
 	const dialog = page.getByRole('dialog', { name: /catatan belum terkirim$/u });
 	await expect(dialog).toBeVisible({ timeout: networkTimeoutMs });
@@ -110,6 +112,7 @@ export async function signOutKeepingEntries(page: Page): Promise<void> {
 
 export async function signOut(page: Page): Promise<void> {
 	await page.goto('/app/antrean');
+	await page.locator('summary', { hasText: 'Akun' }).click();
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
 	await page.waitForURL(/\/masuk/u, { timeout: networkTimeoutMs });
 }

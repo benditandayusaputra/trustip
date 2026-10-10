@@ -1,8 +1,11 @@
 import type { Agreement } from '#lib/api/agreements.js';
 import type { CountSheet } from '#lib/api/counts.js';
 import { formatBusinessDate, formatInteger } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { drops as dropsText } from '#lib/i18n/drops.js';
+import { offline as offlineText } from '#lib/i18n/offline.js';
 import type { OutboxEntry } from '#lib/offline/outbox.js';
+
+const id = { ...dropsText, ...offlineText };
 
 type CountEntry = Extract<OutboxEntry, { kind: 'COUNT' }>;
 type DropEntry = Extract<OutboxEntry, { kind: 'DROP' }>;

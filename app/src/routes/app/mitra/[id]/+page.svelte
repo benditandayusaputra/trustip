@@ -8,7 +8,7 @@
 	import PartnerPage from '#lib/features/partnerships/components/PartnerPage.svelte';
 	import RunningSales from '#lib/features/settlements/components/RunningSales.svelte';
 	import SettlementList from '#lib/features/settlements/components/SettlementList.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { partnerships as id } from '#lib/i18n/partnerships.js';
 
 	const partnershipId = $derived(page.params.id ?? '');
 	const session = getAccountSession();

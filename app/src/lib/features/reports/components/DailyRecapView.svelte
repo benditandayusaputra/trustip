@@ -7,7 +7,7 @@
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import { id } from '#lib/i18n/id.js';
+	import { reports as id } from '#lib/i18n/reports.js';
 	import { DailyRecapState } from '../recaps.svelte';
 	import { recapCells } from '../rows';
 

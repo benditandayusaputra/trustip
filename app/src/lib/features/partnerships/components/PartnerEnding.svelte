@@ -7,7 +7,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Partnership } from '#lib/api/partnerships.js';
-	import { id } from '#lib/i18n/id.js';
+	import { partnerships as id } from '#lib/i18n/partnerships.js';
 	import { EndingRecord, blockerHref } from '../ending.svelte';
 
 	interface Props {

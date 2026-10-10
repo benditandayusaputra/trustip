@@ -2,8 +2,11 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { NeedBoardCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatDate, formatDistance, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import LazyReportListing from './LazyReportListing.svelte';
+
+	const id = { ...directoryText, ...organizationText };
 
 	interface Props {
 		card: NeedBoardCard;
@@ -58,7 +61,7 @@
 	{#if canRespond && !card.is_own}
 		<a
 			href={respondHref}
-			class="inline-flex min-h-11 items-center self-start rounded-control bg-accent px-4 font-semibold text-on-accent"
+			class="inline-flex min-h-11 items-center self-start rounded-control bg-primary px-4 font-semibold text-on-accent"
 			>{text.respond}</a
 		>
 	{/if}

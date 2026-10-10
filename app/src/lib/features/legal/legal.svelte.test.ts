@@ -2,8 +2,10 @@ import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import LegalPage from './components/LegalPage.svelte';
-import { id } from '#lib/i18n/id.js';
+import { legal as legalText } from '#lib/i18n/legal.js';
 import { expectAccessible } from '#lib/testing/accessibility.js';
+
+const id = { legal: legalText };
 
 describe('LegalPage', () => {
 	it('FR-PUB-09 shows the privacy policy with every section heading', async () => {

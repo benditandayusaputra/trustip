@@ -1,9 +1,12 @@
 export const home = {
 	home: {
 		title: 'Trustip: titip jual untuk UMKM',
-		headline: 'Dari mencari tempat titip sampai uang disetor, di catatan yang sama.',
+		headline: 'Titip jual lebih mudah.',
+		headlineAccent: 'Catatan lebih jelas.',
+		audience: 'Untuk produsen dan toko lokal',
+		audienceDetail: 'Produsen rumahan, warung, kantin, dan toko oleh-oleh.',
 		intro:
-			'Trustip mempertemukan pemilik produk dengan toko yang menerima titipan, lalu mencatat titipan, sisa, dan setoran yang dilihat kedua pihak.',
+			'Temukan mitra usaha, sepakati aturan dagang, dan pantau titipan sampai uang disetor. Kedua pihak melihat catatan yang sama.',
 		register: 'Daftar gratis',
 		signIn: 'Masuk',
 		problemsTitle: 'Masalah titip jual hari ini',
@@ -48,6 +51,20 @@ export const home = {
 		closingBody: 'Satu akun untuk mencatat titipan, hitungan, dan setoran bersama mitra.',
 		tryDemo: 'Coba akun demo',
 		browseStores: 'Lihat toko yang menerima titipan',
-		browseNeeds: 'Lihat Kebutuhan toko'
+		browseNeeds: 'Lihat Kebutuhan toko',
+		example: {
+			title: 'Satu catatan, dua pihak',
+			partners: 'Roti Pak Anton → Warung Bu Sri',
+			product: 'Roti manis',
+			units: '20 dititip · 2 tersisa · 18 terjual',
+			gross: 'Rp36.000',
+			storeShareLabel: 'Untung toko',
+			storeShare: 'Rp4.500',
+			mustPayLabel: 'Harus setor',
+			mustPay: 'Rp31.500',
+			sameRecord: 'Toko dan penitip melihat hitungan yang sama.',
+			action: 'Lihat alurnya di akun demo',
+			disclaimer: 'Contoh hitungan untuk menjelaskan cara kerja.'
+		}
 	}
 };

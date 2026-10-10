@@ -8,7 +8,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { Need } from '#lib/api/needs.js';
 	import { listCategories, type Category } from '#lib/api/organizations.js';
-	import { id } from '#lib/i18n/id.js';
+	import { needs as id } from '#lib/i18n/needs.js';
 	import { NeedComposer } from '../state.svelte';
 
 	interface Props {

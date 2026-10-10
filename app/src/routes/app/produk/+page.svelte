@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ProductCatalog from '#lib/features/products/components/ProductCatalog.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { products as id } from '#lib/i18n/products.js';
 </script>
 
 <svelte:head>
@@ -12,7 +12,7 @@
 		<h1 class="text-xl font-semibold text-text">{id.products.title}</h1>
 		<a
 			href="/app/produk/baru"
-			class="inline-flex min-h-12 items-center rounded-control bg-accent px-5 font-semibold text-on-accent"
+			class="inline-flex min-h-12 items-center rounded-control bg-primary px-5 font-semibold text-on-accent"
 		>
 			{id.products.add}
 		</a>

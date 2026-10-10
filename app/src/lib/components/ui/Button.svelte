@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 
 	type Variant = 'primary' | 'secondary' | 'danger';
 
@@ -24,8 +24,8 @@
 	}: Props = $props();
 
 	const variants: Record<Variant, string> = {
-		primary: 'bg-accent text-on-accent border border-accent',
-		secondary: 'bg-bg text-text border border-border-strong',
+		primary: 'bg-primary text-on-accent border border-primary hover:bg-primary-hover',
+		secondary: 'bg-surface text-text border border-border-strong hover:bg-surface-hover',
 		danger: 'bg-bg text-danger border border-danger'
 	};
 </script>
@@ -35,7 +35,7 @@
 	{onclick}
 	disabled={disabled || busy}
 	aria-busy={busy}
-	class="inline-flex min-h-12 items-center justify-center gap-2 rounded-control px-5 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-60 {variants[
+	class="inline-flex min-h-12 items-center justify-center gap-2 rounded-control px-5 text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 {variants[
 		variant
 	]}"
 >

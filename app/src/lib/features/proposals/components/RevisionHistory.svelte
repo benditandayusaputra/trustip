@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ProposalRevisionRecord } from '#lib/api/proposals.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import { revisionSummary } from '../history';
 
 	interface Props {

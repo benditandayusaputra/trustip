@@ -3,14 +3,14 @@
 	import { page } from '$app/state';
 	import type { Proposal } from '#lib/api/proposals.js';
 	import AmendmentForm from '#lib/features/proposals/components/AmendmentForm.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 </script>
 
 <svelte:head>
 	<title>{id.proposals.amendTitle}</title>
 </svelte:head>
 
-<section class="mx-auto flex w-full max-w-form flex-col gap-6">
+<section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
 	<h1 class="text-xl font-semibold text-text">{id.proposals.amendTitle}</h1>
 	<p class="text-base text-text-muted">{id.proposals.amendIntro}</p>
 	{#key page.url.href}

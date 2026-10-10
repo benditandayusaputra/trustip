@@ -3,7 +3,7 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { DirectoryProductCard } from '#lib/api/directory.js';
 	import { formatDistance, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 	import ConsignorTraits from './ConsignorTraits.svelte';
 	import ContactActions from './ContactActions.svelte';
 	import LazyReportListing from './LazyReportListing.svelte';
@@ -20,20 +20,22 @@
 </script>
 
 <article class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
+	{#if card.photo_url}
+		<img
+			src={card.photo_url}
+			alt=""
+			width="400"
+			height="300"
+			loading="lazy"
+			decoding="async"
+			class="aspect-4/3 w-full rounded-control object-cover"
+		/>
+	{:else}
+		<div class="flex aspect-4/3 items-center justify-center rounded-control bg-surface-hover">
+			<PackageOpen class="size-12 text-text-muted" aria-hidden="true" />
+		</div>
+	{/if}
 	<header class="flex items-start gap-4">
-		{#if card.photo_url}
-			<img
-				src={card.photo_url}
-				alt=""
-				width="48"
-				height="48"
-				loading="lazy"
-				decoding="async"
-				class="size-12 shrink-0 rounded-control object-cover"
-			/>
-		{:else}
-			<PackageOpen class="size-12 shrink-0 text-text-muted" aria-hidden="true" />
-		{/if}
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<h2 class="text-lg font-semibold text-text">{card.name}</h2>
 			<p class="text-sm text-text-muted">
@@ -42,7 +44,9 @@
 					· <span class="font-mono">{text.approximate(formatDistance(card.distance_m))}</span>
 				{/if}
 			</p>
-			<p class="font-mono text-base text-text">{formatRupiah(card.suggested_retail_price)}</p>
+			<p class="font-mono text-lg font-semibold text-text">
+				{formatRupiah(card.suggested_retail_price)}
+			</p>
 		</div>
 		{#if card.match}
 			<MatchSummary match={card.match} />

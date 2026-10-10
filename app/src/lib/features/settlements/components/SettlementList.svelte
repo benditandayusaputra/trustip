@@ -9,7 +9,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { SettlementFilter } from '#lib/api/settlements.js';
 	import { formatBusinessDate, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { settlements as id } from '#lib/i18n/settlements.js';
 	import { SettlementList, emptyFilter } from '../list.svelte';
 	import { standingLabel, standingTone } from '../rows';
 

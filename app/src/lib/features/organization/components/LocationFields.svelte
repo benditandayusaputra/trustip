@@ -3,10 +3,13 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import type { RegionChoice } from '../regions.svelte';
 	import type { GeoPoint, OnboardingErrors, PlaceValues } from '../schema';
 	import LocationPin from './LocationPin.svelte';
+
+	const id = { ...commonText, ...organizationText };
 
 	interface Props {
 		regions: RegionChoice;

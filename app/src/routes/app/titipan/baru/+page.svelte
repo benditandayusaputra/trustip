@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import DropForm from '#lib/features/drops/components/DropForm.svelte';
 	import PartnerChooser from '#lib/features/drops/components/PartnerChooser.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as id } from '#lib/i18n/drops.js';
 
 	const partnershipId = $derived(page.url.searchParams.get('mitra') ?? '');
 	const revisionOf = $derived(page.url.searchParams.get('antrean') ?? '');

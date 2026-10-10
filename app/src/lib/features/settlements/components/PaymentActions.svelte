@@ -3,9 +3,12 @@
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { settlements as settlementsText } from '#lib/i18n/settlements.js';
 	import { canMarkPaid, canReview, type Viewer } from '../access';
 	import type { PaymentChoice, SettlementRecord } from '../record.svelte';
+
+	const id = { ...commonText, ...settlementsText };
 
 	interface Props {
 		record: SettlementRecord;

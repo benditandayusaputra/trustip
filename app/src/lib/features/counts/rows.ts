@@ -1,6 +1,6 @@
 import type { Count } from '#lib/api/counts.js';
 import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { counts as id } from '#lib/i18n/counts.js';
 
 export interface CountLineRow extends Record<string, string> {
 	id: string;

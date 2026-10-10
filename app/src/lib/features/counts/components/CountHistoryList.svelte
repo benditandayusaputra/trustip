@@ -10,8 +10,11 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { CountFilter } from '#lib/api/counts.js';
 	import { formatDateTime, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { counts as countsText } from '#lib/i18n/counts.js';
+	import { drops as dropsText } from '#lib/i18n/drops.js';
 	import { CountHistory, emptyFilter } from '../history.svelte';
+
+	const id = { ...countsText, ...dropsText };
 
 	interface Props {
 		partnershipId?: string;

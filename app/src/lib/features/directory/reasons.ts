@@ -1,6 +1,6 @@
 import type { MatchReason } from '#lib/api/directory.js';
 import { formatBasisPoints, formatDistance } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { directory as id } from '#lib/i18n/directory.js';
 
 const text = id.directory.reasons;
 

@@ -2,7 +2,7 @@
 	import DateField from '#lib/components/ui/DateField.svelte';
 	import NumberField from '#lib/components/ui/NumberField.svelte';
 	import type { DropSuggestion } from '#lib/api/insights.js';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as id } from '#lib/i18n/drops.js';
 	import { isExpirySoon, maxQty, type DropErrors, type DropLine } from '../schema';
 
 	interface Props {

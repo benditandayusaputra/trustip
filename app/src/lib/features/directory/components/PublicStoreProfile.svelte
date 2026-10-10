@@ -4,12 +4,16 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { PublicStore } from '#lib/api/public.js';
 	import { formatBasisPoints, formatBusinessDate, formatDate } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
+	import { publicProfile as publicProfileText } from '#lib/i18n/public-profile.js';
 	import ContactActions from './ContactActions.svelte';
 	import ProfileHeader from './ProfileHeader.svelte';
 	import LazyMap from './LazyMap.svelte';
 	import LazyReportListing from './LazyReportListing.svelte';
 	import StoreTermsList from './StoreTermsList.svelte';
+
+	const id = { ...directoryText, ...organizationText, ...publicProfileText };
 
 	interface Props {
 		store: PublicStore;

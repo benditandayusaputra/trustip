@@ -1,6 +1,6 @@
 <script lang="ts">
 	import OutboxList from '#lib/features/outbox/components/OutboxList.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 </script>
 
 <svelte:head>

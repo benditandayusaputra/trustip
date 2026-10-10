@@ -4,7 +4,7 @@ import type { PartnerCatalogItem } from '#lib/api/partnerships.js';
 import { addDays, daysBetween } from '#lib/domain/dates.js';
 import { splitOf, summarize, type Split, type Terms } from '#lib/domain/pricing.js';
 import { businessDateOf } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { drops as id } from '#lib/i18n/drops.js';
 
 export const maxQty = 10_000;
 export const maxDaysBack = 3;

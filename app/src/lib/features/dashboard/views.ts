@@ -2,7 +2,7 @@ import type { Dashboard } from '#lib/api/insights.js';
 import type { SalesNarrowing, SalesReport } from '#lib/api/reports.js';
 import { rangeOf, type DateRange } from '#lib/domain/ranges.js';
 import { businessDateOf, formatRupiah } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { dashboard as id } from '#lib/i18n/dashboard.js';
 import type { RankedRow } from './components/RankingList.svelte';
 import type { TaskLink } from './components/TaskList.svelte';
 

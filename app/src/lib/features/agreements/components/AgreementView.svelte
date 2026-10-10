@@ -5,9 +5,13 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as agreementsText } from '#lib/i18n/agreements.js';
+	import { products as productsText } from '#lib/i18n/products.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
 	import { AgreementRecord } from '../record.svelte';
 	import { productRows } from '../rows';
+
+	const id = { ...agreementsText, ...productsText, ...proposalsText };
 
 	interface Props {
 		partnershipId: string;

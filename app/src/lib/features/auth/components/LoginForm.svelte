@@ -6,7 +6,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import { watchOnline } from '#lib/offline/network.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 	import { LoginForm, type LoginOutcome, type LoginValues } from '../login.svelte';
 
 	interface Props {

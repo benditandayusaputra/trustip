@@ -3,8 +3,11 @@
 	import { apiClient } from '#lib/api/client.js';
 	import { getDirectoryContact, type DirectoryContact } from '#lib/api/directory.js';
 	import type { Proposal } from '#lib/api/proposals.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
 	import InvitationForm from './InvitationForm.svelte';
+
+	const id = { ...commonText, ...proposalsText };
 
 	interface Props {
 		targetId: string;

@@ -9,7 +9,7 @@
 	} from '#lib/features/directory/consignor-query.js';
 	import PlacePicker from '#lib/features/organization/components/PlacePicker.svelte';
 	import type { Place } from '#lib/features/organization/place.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as id } from '#lib/i18n/directory.js';
 
 	const query = $derived(consignorQueryFrom(page.url.searchParams));
 	const origin = $derived<Place>({

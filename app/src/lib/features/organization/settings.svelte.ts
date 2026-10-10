@@ -2,7 +2,7 @@ import type { ApiClient } from '#lib/api/client.js';
 import { ApiError, NetworkError } from '#lib/api/errors.js';
 import { uploadImage } from '#lib/api/files.js';
 import { getOrganization, updateProfile, type Organization } from '#lib/api/organizations.js';
-import { id } from '#lib/i18n/id.js';
+import { organization as id } from '#lib/i18n/organization.js';
 import { toOnboardingErrors, toProfileUpdateRequest, toProfileValues } from './mapper';
 import { RegionChoice } from './regions.svelte';
 import { emptyValues, hasErrors, validateProfile, type OnboardingErrors } from './schema';

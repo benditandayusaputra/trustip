@@ -1,7 +1,7 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError, NetworkError } from '#lib/api/errors.js';
 import { logIn } from '#lib/api/sessions.js';
-import { id } from '#lib/i18n/id.js';
+import { common as id } from '#lib/i18n/common.js';
 import { deviceReadCache } from '#lib/offline/read-cache.js';
 
 const firstServerErrorStatus = 500;

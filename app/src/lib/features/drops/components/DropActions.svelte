@@ -3,7 +3,7 @@
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as id } from '#lib/i18n/drops.js';
 	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { canCancel, canConfirm, type DropChoice, type DropRecord } from '../record.svelte';
 

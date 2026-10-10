@@ -3,12 +3,15 @@
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicConsignor } from '#lib/api/public.js';
 	import { formatBusinessDate } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { publicProfile as publicProfileText } from '#lib/i18n/public-profile.js';
 	import ContactActions from './ContactActions.svelte';
 	import DeclaredLegality from './DeclaredLegality.svelte';
 	import ProfileHeader from './ProfileHeader.svelte';
 	import PublicProductList from './PublicProductList.svelte';
 	import LazyReportListing from './LazyReportListing.svelte';
+
+	const id = { ...directoryText, ...publicProfileText };
 
 	interface Props {
 		consignor: PublicConsignor;

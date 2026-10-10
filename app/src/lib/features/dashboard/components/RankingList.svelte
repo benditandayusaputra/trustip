@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Card from '#lib/components/ui/Card.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 
 	export interface RankedRow {
 		key: string;
@@ -22,7 +22,7 @@
 	{:else}
 		<ol class="flex flex-col divide-y divide-border">
 			{#each rows as row, index (row.key)}
-				<li class="flex items-center justify-between gap-4 py-2 text-base text-text">
+				<li class="flex flex-wrap items-center justify-between gap-4 py-4 text-base text-text">
 					<span>{index + 1}. {row.label}</span>
 					<span class="font-mono tabular-nums">{row.value}</span>
 				</li>

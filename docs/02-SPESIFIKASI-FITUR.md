@@ -22,7 +22,7 @@ Kriteria penerimaan ditulis dengan pola `WHEN <keadaan> THE SYSTEM SHALL <perila
 | 4 | Mencatat Titipan Masuk dan Hitung Sisa saat luring naik dari P1 ke P0 | 19, 22, 24, 26 |
 | 5 | Bentuk jawaban API baku dan tanda tangan permintaan dari proxy | 20, 21.3, 21.6, 21.9 |
 | 6 | Folder kode `api` dan `app` | 21.2 |
-| 7 | Tampilan mengikuti `DESIGN.md`: tema gelap tunggal | 24 |
+| 7 | Tampilan mengikuti `DESIGN.md`: tema terang/gelap dan primary biru | 24 |
 
 ## Daftar isi
 
@@ -1235,7 +1235,7 @@ Navigasi bawah di HP. Penitip: Beranda, Cari, Mitra, Setoran, Lainnya. Toko: Ber
 | Aksi yang tidak bisa dibatalkan | Dialog konfirmasi yang menyebut akibatnya |
 | Uang | Selalu berformat Rupiah. Isian uang memberi pemisah ribuan otomatis |
 | Jumlah | Tombol tambah dan kurang yang besar, papan angka di HP |
-| Status | Warna tetap dan selalu disertai teks: abu (draf, berakhir), cyan (dikirim, terbit), kuning (menunggu, belum terkirim), hijau (sesuai, lunas, segel sah), merah (ditolak, lewat tempo, segel tidak sah) |
+| Status | Warna tetap dan selalu disertai teks: abu (draf, berakhir), biru (dikirim, terbit), kuning (menunggu, belum terkirim), hijau (sesuai, lunas, segel sah), merah (ditolak, lewat tempo, segel tidak sah) |
 | Luring | Pita "Tanpa koneksi. Catatan disimpan di perangkat dan dikirim saat sinyal kembali." Aksi yang butuh koneksi dinonaktifkan dengan keterangan |
 
 **Prinsip layar pencatatan**
@@ -1276,7 +1276,7 @@ Navigasi bawah di HP. Penitip: Beranda, Cari, Mitra, Setoran, Lainnya. Toko: Ber
 
 Arah tampilan ditetapkan di `DESIGN.md`. Ringkasnya:
 
-- Tema gelap tunggal: latar `#121212`, kartu `#1E1E1E`, aksen cyan `#00E5FF` untuk data dan aksi utama, merah `#FF453A` untuk masalah, hijau `#32D74B` untuk keadaan baik.
+- Tema mengikuti sistem dengan pilihan Terang dan Gelap yang tersimpan di perangkat. Primary biru `#2563EB`; latar terang `#F6F8FC` dan gelap `#0B1220`. Semua warna mengikuti token semantik pada `DESIGN.md`.
 - Huruf Inter untuk teks dan JetBrains Mono untuk semua angka uang dan jumlah, disajikan dari server sendiri.
 - Teks isi 16 piksel di HP. Angka kunci 32 piksel tebal.
 - Bahasa: kalimat aktif, sapaan "Anda", tanpa istilah akuntansi. Pakai "hak penitip" dan "harus setor", bukan "utang dagang".

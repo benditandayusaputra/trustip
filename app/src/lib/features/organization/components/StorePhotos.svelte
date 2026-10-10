@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Close from '@lucide/svelte/icons/x';
 	import ImageField from '#lib/components/ui/ImageField.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { organization as id } from '#lib/i18n/organization.js';
 	import { maxStorePhotos, type StoreProfileValues } from '../store-profile.svelte';
 
 	interface Props {

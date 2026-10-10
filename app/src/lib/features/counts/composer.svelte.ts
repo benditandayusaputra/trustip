@@ -2,7 +2,7 @@ import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import { getCountSheet, type CountOccasion, type CountSheet } from '#lib/api/counts.js';
 import { businessDateOf } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { counts as id } from '#lib/i18n/counts.js';
 import type { EntryDraft, OutboxEntry, SentDocument } from '#lib/offline/outbox.js';
 import type { SubmitResult } from '#lib/offline/sync.js';
 import { withQueuedDrops } from './queued';

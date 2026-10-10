@@ -1,6 +1,6 @@
 import type { components } from './schema';
 import { ApiError, type FieldError } from './errors';
-import { id } from '#lib/i18n/id.js';
+import { common as id } from '#lib/i18n/common.js';
 
 type ErrorResponse = components['schemas']['ErrorResponse'];
 type ListMeta = components['schemas']['ListMeta'];

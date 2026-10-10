@@ -8,7 +8,7 @@
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDate, formatInteger, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { partnerships as id } from '#lib/i18n/partnerships.js';
 	import { PartnerList, type PartnerFilter } from '../state.svelte';
 
 	const text = id.partners;

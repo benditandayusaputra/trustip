@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import CountView from '#lib/features/counts/components/CountView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { counts as id } from '#lib/i18n/counts.js';
 
 	const session = getAccountSession();
 	const organizationId = $derived(session.account?.membership?.organization_id ?? '');

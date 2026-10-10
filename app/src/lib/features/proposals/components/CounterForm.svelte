@@ -5,7 +5,7 @@
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Proposal } from '#lib/api/proposals.js';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 	import { CounterComposer } from '../counter.svelte';
 	import GeneralTermsFields from './GeneralTermsFields.svelte';
 	import ItemTermsRow from './ItemTermsRow.svelte';

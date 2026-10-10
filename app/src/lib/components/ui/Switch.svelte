@@ -32,7 +32,7 @@
 			onchange?.(checked);
 		}}
 		class="relative inline-flex h-8 w-12 shrink-0 items-center rounded-pill border border-border-strong px-1 {checked
-			? 'bg-accent'
+			? 'bg-primary'
 			: 'bg-bg'}"
 	>
 		<span

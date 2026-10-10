@@ -5,16 +5,21 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import DateField from '#lib/components/ui/DateField.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import FormActions from '#lib/components/ui/FormActions.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { drops as dropsText } from '#lib/i18n/drops.js';
+	import { offline as offlineText } from '#lib/i18n/offline.js';
 	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { findOwnEntry, outboxScheduler } from '#lib/offline/device.js';
 	import { DropComposer } from '../composer.svelte';
 	import { previewOf, type DropLine } from '../schema';
 	import DropLineRow from './DropLineRow.svelte';
 	import DropPreview from './DropPreview.svelte';
+
+	const id = { ...commonText, ...dropsText, ...offlineText };
 
 	interface Props {
 		partnershipId: string;
@@ -120,7 +125,9 @@
 		{#if composer.errors.items}
 			<p class="text-sm text-danger" role="alert">{composer.errors.items}</p>
 		{/if}
-		<DropPreview {preview} />
-		<Button type="submit" busy={composer.busy}>{text.save}</Button>
+		<FormActions>
+			<DropPreview {preview} />
+			<Button type="submit" busy={composer.busy}>{text.save}</Button>
+		</FormActions>
 	</form>
 {/if}

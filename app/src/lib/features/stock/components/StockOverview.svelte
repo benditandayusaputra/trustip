@@ -7,7 +7,7 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatBusinessDate, formatInteger } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { stock as id } from '#lib/i18n/stock.js';
 	import { flagToneOf, groupByProduct } from '../rows';
 	import { StockHoldings } from '../state.svelte';
 

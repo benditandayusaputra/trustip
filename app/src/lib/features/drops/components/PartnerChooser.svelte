@@ -5,8 +5,11 @@
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { drops as dropsText } from '#lib/i18n/drops.js';
 	import { PartnerOptions } from '../partners.svelte';
+
+	const id = { ...commonText, ...dropsText };
 
 	interface Props {
 		hrefOf: (partnershipId: string) => string;

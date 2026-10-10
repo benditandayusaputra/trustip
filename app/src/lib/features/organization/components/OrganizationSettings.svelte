@@ -5,16 +5,20 @@
 	import ImageField from '#lib/components/ui/ImageField.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
+	import ThemeSettings from '#lib/components/ui/ThemeSettings.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Organization } from '#lib/api/organizations.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import { ProfileSettings, type SaveOutcome } from '../settings.svelte';
 	import LocationFields from './LocationFields.svelte';
 	import ConsignorProfileSection from './ConsignorProfileSection.svelte';
 	import ListingSection from './ListingSection.svelte';
 	import PaymentSection from './PaymentSection.svelte';
 	import StoreProfileSection from './StoreProfileSection.svelte';
+
+	const id = { ...commonText, ...organizationText };
 
 	interface Props {
 		organizationId: string;
@@ -56,6 +60,8 @@
 		toaster.show({ tone: 'danger', message: outcome.message });
 	}
 </script>
+
+<ThemeSettings />
 
 {#if settings.status === 'failed'}
 	<Alert title={text.loadFailed}>

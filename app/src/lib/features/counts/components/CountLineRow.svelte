@@ -3,7 +3,7 @@
 	import Select from '#lib/components/ui/Select.svelte';
 	import type { ReturnReason } from '#lib/domain/count.js';
 	import { formatInteger } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { counts as id } from '#lib/i18n/counts.js';
 	import type { CountErrors, CountLineValues, InputMode, withChanges } from '../schema';
 
 	interface Props {

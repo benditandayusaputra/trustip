@@ -1,5 +1,5 @@
 import type { Tone } from '#lib/components/ui/tone.js';
-import { id } from '#lib/i18n/id.js';
+import { offline as id } from '#lib/i18n/offline.js';
 import { isOld, isWaiting, type OutboxEntry } from '#lib/offline/outbox.js';
 import type { FlushResult } from '#lib/offline/sync.js';
 

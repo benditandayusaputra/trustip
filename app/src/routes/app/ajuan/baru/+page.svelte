@@ -5,7 +5,10 @@
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import DirectProposalView from '#lib/features/proposals/components/DirectProposalView.svelte';
 	import InvitationForm from '#lib/features/proposals/components/InvitationForm.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { proposals as proposalsText } from '#lib/i18n/proposals.js';
+
+	const id = { ...directoryText, ...proposalsText };
 
 	const session = getAccountSession();
 	const membership = $derived(session.account?.membership);
@@ -22,7 +25,7 @@
 	<title>{targetId === '' ? id.proposals.newTitle : id.directory.propose}</title>
 </svelte:head>
 
-<section class="mx-auto flex w-full max-w-form flex-col gap-6">
+<section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
 	{#if membership && targetId !== ''}
 		<DirectProposalView
 			{targetId}

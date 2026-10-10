@@ -1,0 +1,90 @@
+import { expect, test, type Page } from '@playwright/test';
+
+const storageKey = 'trustip-appearance';
+
+async function expectAppearance(page: Page, theme: string): Promise<void> {
+	await expect(page.locator('html')).toHaveAttribute('data-appearance', theme);
+	const colors = await page.evaluate(() => {
+		const root = document.documentElement;
+		return {
+			background: getComputedStyle(root).getPropertyValue('--color-bg').trim(),
+			meta: document.querySelector('meta[name="theme-color"]')?.getAttribute('content')?.trim()
+		};
+	});
+	expect(colors.meta).toBe(colors.background);
+}
+
+test('explicit theme persists across navigation, reload and browser tabs', async ({ page }) => {
+	await page.goto('/');
+	await page.getByLabel('Tema tampilan').selectOption('dark');
+	await expectAppearance(page, 'dark');
+	await page.getByRole('link', { name: 'Kebijakan privasi', exact: true }).click();
+	await expectAppearance(page, 'dark');
+	await page.reload();
+	await expectAppearance(page, 'dark');
+	const second = await page.context().newPage();
+	await second.goto('/ketentuan');
+	await expectAppearance(second, 'dark');
+	await second.getByLabel('Tema tampilan').selectOption('light');
+	await expectAppearance(second, 'light');
+	await expectAppearance(page, 'light');
+	await expect(page.getByLabel('Tema tampilan')).toHaveValue('light');
+});
+
+test('saved theme is applied before the first page body is parsed', async ({ page }) => {
+	await page.addInitScript((key) => {
+		localStorage.setItem(key, 'dark');
+		const firstBody = new MutationObserver(() => {
+			if (document.querySelector('body')) {
+				document.documentElement.dataset.firstAppearance =
+					document.documentElement.dataset.appearance;
+				firstBody.disconnect();
+			}
+		});
+		firstBody.observe(document, { childList: true, subtree: true });
+	}, storageKey);
+	await page.goto('/');
+	await expect(page.locator('html')).toHaveAttribute('data-first-appearance', 'dark');
+	await expectAppearance(page, 'dark');
+});
+
+test('theme controls work when browser storage is unavailable', async ({ page }) => {
+	await page.addInitScript(() => {
+		Object.defineProperty(window, 'localStorage', {
+			get() {
+				throw new DOMException('Storage unavailable', 'SecurityError');
+			}
+		});
+	});
+	await page.goto('/');
+	await page.getByLabel('Tema tampilan').selectOption('dark');
+	await expectAppearance(page, 'dark');
+	await page.getByLabel('Tema tampilan').selectOption('light');
+	await expectAppearance(page, 'light');
+});
+
+test.describe('system appearance with a dark device preference', () => {
+	test('system preference follows device changes and an explicit choice overrides them', async ({
+		page
+	}) => {
+		await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+		await page.goto('/');
+		await expectAppearance(page, 'dark');
+		await page.emulateMedia({ colorScheme: 'light' });
+		await expectAppearance(page, 'light');
+		await page.getByLabel('Tema tampilan').selectOption('dark');
+		await page.emulateMedia({ colorScheme: 'light' });
+		await expectAppearance(page, 'dark');
+		await page.getByLabel('Tema tampilan').selectOption('system');
+		await expectAppearance(page, 'light');
+	});
+	test('an invalid saved preference falls back to the device theme', async ({ page }) => {
+		await page.addInitScript((key) => {
+			localStorage.setItem(key, 'unknown');
+		}, storageKey);
+		await page.emulateMedia({ colorScheme: 'dark' });
+		await page.goto('/');
+		await expectAppearance(page, 'dark');
+		await expect(page.getByLabel('Tema tampilan')).toHaveValue('system');
+	});
+});

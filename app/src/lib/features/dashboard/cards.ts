@@ -1,7 +1,7 @@
 import type { Insight } from '#lib/api/insights.js';
 import type { Tone } from '#lib/components/ui/tone.js';
 import { formatRupiah } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { dashboard as id } from '#lib/i18n/dashboard.js';
 
 export interface InsightCard {
 	key: string;

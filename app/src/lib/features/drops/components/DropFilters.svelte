@@ -3,7 +3,7 @@
 	import Select from '#lib/components/ui/Select.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { DropFilter } from '#lib/api/drops.js';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as id } from '#lib/i18n/drops.js';
 	import { PartnerOptions } from '../partners.svelte';
 
 	interface Props {

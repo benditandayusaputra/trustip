@@ -1,6 +1,6 @@
 <script lang="ts">
 	import WifiOff from '@lucide/svelte/icons/wifi-off';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 </script>
 
 <svelte:head>
@@ -13,7 +13,7 @@
 	<p class="text-text-muted">{id.offline.body}</p>
 	<a
 		href="/"
-		class="inline-flex min-h-12 items-center rounded-control bg-accent px-5 font-semibold text-on-accent"
+		class="inline-flex min-h-12 items-center rounded-control bg-primary px-5 font-semibold text-on-accent"
 	>
 		{id.offline.retry}
 	</a>

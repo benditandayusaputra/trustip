@@ -9,7 +9,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { NeedStatus } from '#lib/api/needs.js';
 	import { formatDate } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { needs as id } from '#lib/i18n/needs.js';
 	import { NeedList } from '../state.svelte';
 	import { needTone } from '../tone';
 

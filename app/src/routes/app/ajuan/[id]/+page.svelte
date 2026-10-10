@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import ProposalDetail from '#lib/features/proposals/components/ProposalDetail.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { proposals as id } from '#lib/i18n/proposals.js';
 
 	const session = getAccountSession();
 	const organizationId = $derived(session.account?.membership?.organization_id ?? '');

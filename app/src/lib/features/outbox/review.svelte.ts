@@ -1,7 +1,7 @@
 import { getAgreement, type Agreement } from '#lib/api/agreements.js';
 import type { ApiClient } from '#lib/api/client.js';
 import { getCountSheet, type CountSheet } from '#lib/api/counts.js';
-import { id } from '#lib/i18n/id.js';
+import { offline as id } from '#lib/i18n/offline.js';
 import type { OutboxEntry } from '#lib/offline/outbox.js';
 import type { FlushResult } from '#lib/offline/sync.js';
 import {

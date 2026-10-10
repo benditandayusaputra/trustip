@@ -5,13 +5,15 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import DateField from '#lib/components/ui/DateField.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import FormActions from '#lib/components/ui/FormActions.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { CountOccasion } from '#lib/api/counts.js';
-	import { id } from '#lib/i18n/id.js';
+	import { counts as countsText } from '#lib/i18n/counts.js';
+	import { offline as offlineText } from '#lib/i18n/offline.js';
 	import { noteCompletedAction } from '#lib/offline/install.js';
 	import { findOwnEntry, outboxScheduler, waitingEntries } from '#lib/offline/device.js';
 	import { CountComposer } from '../composer.svelte';
@@ -24,6 +26,8 @@
 	} from '../schema';
 	import CountLineRow from './CountLineRow.svelte';
 	import CountPreview from './CountPreview.svelte';
+
+	const id = { ...countsText, ...offlineText };
 
 	interface Props {
 		partnershipId: string;
@@ -165,7 +169,9 @@
 			bind:value={composer.note}
 			error={composer.errors.note}
 		/>
-		<CountPreview tally={preview} />
-		<Button type="submit" busy={composer.busy}>{text.save}</Button>
+		<FormActions>
+			<CountPreview tally={preview} />
+			<Button type="submit" busy={composer.busy}>{text.save}</Button>
+		</FormActions>
 	</form>
 {/if}

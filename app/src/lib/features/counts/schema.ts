@@ -8,7 +8,7 @@ import {
 } from '#lib/domain/count.js';
 import { addDays } from '#lib/domain/dates.js';
 import { businessDateOf } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { counts as id } from '#lib/i18n/counts.js';
 
 const backdatedClock = 'T12:00:00+07:00';
 const maxDaysBack = 3;

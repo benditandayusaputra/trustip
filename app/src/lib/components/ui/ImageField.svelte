@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ImageUp from '@lucide/svelte/icons/image-up';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 
 	interface Props {
 		label: string;

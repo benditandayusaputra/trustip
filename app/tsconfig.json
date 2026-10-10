@@ -17,7 +17,8 @@
 		"vite.config.ts",
 		"csp.config.ts",
 		"csp.config.test.ts",
-		"playwright.config.ts"
+		"playwright.config.ts",
+		"playwright.compat.config.ts"
 	],
 	"exclude": ["src/service-worker"]
 }

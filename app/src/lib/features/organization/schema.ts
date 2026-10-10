@@ -1,4 +1,7 @@
-import { id } from '#lib/i18n/id.js';
+import { common as commonText } from '#lib/i18n/common.js';
+import { organization as organizationText } from '#lib/i18n/organization.js';
+
+const id = { ...commonText, ...organizationText };
 
 export const steps = ['type', 'profile', 'location'] as const;
 export type Step = (typeof steps)[number];

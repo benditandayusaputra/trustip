@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import OrganizationSettings from '#lib/features/organization/components/OrganizationSettings.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { organization as id } from '#lib/i18n/organization.js';
 
 	const session = getAccountSession();
 	const membership = $derived(session.account?.membership);

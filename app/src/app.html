@@ -3,7 +3,9 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="preload" href="/appearance.js" as="script" />
 		%sveltekit.head%
+		<script src="/appearance.js"></script>
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div class="contents">%sveltekit.body%</div>

@@ -2,7 +2,7 @@
 	import ShieldAlert from '@lucide/svelte/icons/shield-alert';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as id } from '#lib/i18n/agreements.js';
 
 	interface SealEvent {
 		event_type: string;

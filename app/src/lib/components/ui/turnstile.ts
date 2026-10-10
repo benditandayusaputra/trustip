@@ -1,9 +1,13 @@
 const scriptUrl = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
-export interface TurnstileRenderOptions {
+export interface TurnstileAppearance {
+	theme: 'light' | 'dark';
+	size: 'compact' | 'flexible';
+}
+
+export interface TurnstileRenderOptions extends TurnstileAppearance {
 	sitekey: string;
 	action: string;
-	theme: 'dark';
 	language: string;
 	callback: (token: string) => void;
 	'expired-callback': () => void;
@@ -23,6 +27,17 @@ declare global {
 }
 
 let loading: Promise<TurnstileApi> | undefined;
+
+export function turnstileAppearance(container: HTMLElement): TurnstileAppearance {
+	const root = document.documentElement;
+	const minimumWidth = Number.parseFloat(
+		getComputedStyle(root).getPropertyValue('--captcha-min-width')
+	);
+	return {
+		theme: root.dataset.appearance === 'dark' ? 'dark' : 'light',
+		size: container.clientWidth < minimumWidth ? 'compact' : 'flexible'
+	};
+}
 
 export function loadTurnstile(): Promise<TurnstileApi> {
 	if (window.turnstile) {

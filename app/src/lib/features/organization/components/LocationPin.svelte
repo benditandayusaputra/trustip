@@ -2,7 +2,7 @@
 	import LocateFixed from '@lucide/svelte/icons/locate-fixed';
 	import Button from '#lib/components/ui/Button.svelte';
 	import MapView from '#lib/components/ui/MapView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { organization as id } from '#lib/i18n/organization.js';
 	import { locateDevice } from '../geolocation';
 	import type { GeoPoint } from '../schema';
 

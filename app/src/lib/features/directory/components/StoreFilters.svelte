@@ -4,8 +4,11 @@
 	import Select from '#lib/components/ui/Select.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import type { Category } from '#lib/api/organizations.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import { anyCategory, radiusChoices, sortChoices, type StoreQuery } from '../query';
+
+	const id = { ...directoryText, ...organizationText };
 
 	interface Props {
 		query: StoreQuery;
@@ -51,9 +54,9 @@
 	});
 </script>
 
-<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
 	<legend class="sr-only">{text.filters}</legend>
-	<div class="md:col-span-2">
+	<div class="md:col-span-2 xl:col-span-1">
 		<TextField label={text.search} type="search" maxlength={maxSearchLength} bind:value={typed} />
 	</div>
 	{@render place()}

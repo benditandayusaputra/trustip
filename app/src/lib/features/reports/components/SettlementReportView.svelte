@@ -9,7 +9,7 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { RangePreset } from '#lib/domain/ranges.js';
-	import { id } from '#lib/i18n/id.js';
+	import { reports as id } from '#lib/i18n/reports.js';
 	import { SettlementReportState } from '../recaps.svelte';
 	import { settlementCells } from '../rows';
 

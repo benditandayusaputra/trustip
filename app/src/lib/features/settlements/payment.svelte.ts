@@ -8,7 +8,10 @@ import {
 	type Settlement
 } from '#lib/api/settlements.js';
 import { businessDateOf } from '#lib/i18n/format.js';
-import { id } from '#lib/i18n/id.js';
+import { organization as organizationText } from '#lib/i18n/organization.js';
+import { settlements as settlementsText } from '#lib/i18n/settlements.js';
+
+const id = { ...organizationText, ...settlementsText };
 
 type PaymentField = 'method' | 'paid_on' | 'proof_file_id' | 'amount';
 

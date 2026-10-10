@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import AgreementView from '#lib/features/agreements/components/AgreementView.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as id } from '#lib/i18n/agreements.js';
 
 	const version = $derived(Number(page.params.versi ?? '0'));
 </script>

@@ -2,7 +2,7 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 	import type { OutboxEntry } from '#lib/offline/outbox.js';
 	import { statusToneOf } from '../queue.svelte';
 

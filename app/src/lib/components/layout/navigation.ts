@@ -13,7 +13,7 @@ import Search from '@lucide/svelte/icons/search';
 import Settings from '@lucide/svelte/icons/settings';
 import Warehouse from '@lucide/svelte/icons/warehouse';
 import Wallet from '@lucide/svelte/icons/wallet';
-import { id } from '#lib/i18n/id.js';
+import { common as id } from '#lib/i18n/common.js';
 
 export type OrganizationType = 'CONSIGNOR' | 'STORE';
 

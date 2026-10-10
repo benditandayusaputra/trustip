@@ -6,7 +6,10 @@
 	import { getDirectoryContact } from '#lib/api/directory.js';
 	import { ApiError } from '#lib/api/errors.js';
 	import { whatsAppChatUrl } from '#lib/domain/whatsapp.js';
-	import { id } from '#lib/i18n/id.js';
+	import { directory as directoryText } from '#lib/i18n/directory.js';
+	import { publicProfile as publicProfileText } from '#lib/i18n/public-profile.js';
+
+	const id = { ...directoryText, ...publicProfileText };
 
 	interface Props {
 		organizationId: string;
@@ -52,7 +55,7 @@
 	{#if canPropose}
 		<a
 			href={proposeHref}
-			class="inline-flex min-h-11 items-center rounded-control bg-accent px-4 font-semibold text-on-accent"
+			class="inline-flex min-h-11 items-center rounded-control bg-primary px-4 font-semibold text-on-accent"
 			>{text.propose}</a
 		>
 	{/if}

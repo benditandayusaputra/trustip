@@ -4,9 +4,9 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
-	import SkipLink from '#lib/components/layout/SkipLink.svelte';
+	import AppShell from '#lib/components/layout/AppShell.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 	import type { Account } from '#lib/api/users.js';
 	import {
 		AccountSession,
@@ -56,42 +56,46 @@
 	});
 </script>
 
-<SkipLink />
-<div class="flex min-h-dvh flex-col">
-	<header class="border-b border-border bg-surface">
-		<div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-4 px-4 py-2">
-			<a href={isVisitor ? '/' : '/app'} class="text-lg font-semibold text-text">{id.brand}</a>
-			{#if isVisitor}
-				<a
-					href={signInHref}
-					class="inline-flex min-h-11 items-center rounded-control border border-border-strong px-4 font-semibold"
-				>
-					{id.nav.signIn}
-				</a>
-			{:else if session.status === 'ready'}
-				<div class="flex flex-wrap items-center gap-2">
-					{#if isPlaced && actions}
-						{@render actions()}
-					{/if}
-					{#await import('./AccountMenu.svelte') then { default: AccountMenu }}
-						<AccountMenu />
-					{/await}
-				</div>
+{#snippet toolbar()}
+	{#if isVisitor}
+		<a
+			href={signInHref}
+			class="inline-flex min-h-11 items-center rounded-control border border-border-strong px-4 font-semibold"
+		>
+			{id.nav.signIn}
+		</a>
+	{:else if session.status === 'ready'}
+		<div class="flex flex-wrap items-center gap-2">
+			{#if isPlaced && actions}
+				{@render actions()}
 			{/if}
+			{#await import('./AccountMenu.svelte') then { default: AccountMenu }}
+				<AccountMenu />
+			{/await}
 		</div>
-	</header>
-	<main id="konten" tabindex="-1" class="mx-auto w-full max-w-content flex-1 px-4 py-6">
-		{#if isPlaced || isVisitor || isOpenWhileLoading}
-			{@render children()}
-		{:else if session.status === 'failed'}
-			<Alert title={id.account.loadFailed}>
-				{session.failure}
-				{#snippet action()}
-					<Button variant="secondary" onclick={() => session.load()}>{id.auth.retry}</Button>
-				{/snippet}
-			</Alert>
-		{:else}
-			<Skeleton />
-		{/if}
-	</main>
-</div>
+	{/if}
+{/snippet}
+
+{#snippet content()}
+	{#if isPlaced || isVisitor || isOpenWhileLoading}
+		{@render children()}
+	{:else if session.status === 'failed'}
+		<Alert title={id.account.loadFailed}>
+			{session.failure}
+			{#snippet action()}
+				<Button variant="secondary" onclick={() => session.load()}>{id.auth.retry}</Button>
+			{/snippet}
+		</Alert>
+	{:else}
+		<Skeleton />
+	{/if}
+{/snippet}
+
+<AppShell
+	organizationType={isPlaced && placement !== 'newcomer'
+		? session.account?.membership?.organization_type
+		: undefined}
+	currentPath={page.url.pathname}
+	actions={toolbar}
+	children={content}
+/>

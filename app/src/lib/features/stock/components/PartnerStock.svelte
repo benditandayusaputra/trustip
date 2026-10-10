@@ -8,9 +8,12 @@
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatInteger } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { drops as dropsText } from '#lib/i18n/drops.js';
+	import { stock as stockText } from '#lib/i18n/stock.js';
 	import { batchRows, flagToneOf } from '../rows';
 	import { PartnershipStock, suggestedQtyOf } from '../state.svelte';
+
+	const id = { ...dropsText, ...stockText };
 
 	interface Props {
 		partnershipId: string;

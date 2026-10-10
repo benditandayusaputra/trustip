@@ -4,7 +4,7 @@
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
 	import { safeNextPath, signInHref } from '#lib/features/auth/links.js';
 	import OnboardingWizard from '#lib/features/organization/components/OnboardingWizard.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { organization as id } from '#lib/i18n/organization.js';
 
 	const next = $derived(safeNextPath(page.url.searchParams.get('lanjut')));
 </script>
@@ -20,7 +20,7 @@
 	}}
 	onmisplaced={() => void goto(next, { replaceState: true })}
 >
-	<section class="mx-auto flex w-full max-w-form flex-col gap-6">
+	<section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
 		<h1 class="text-xl font-semibold text-text">{id.onboarding.title}</h1>
 		<OnboardingWizard onfounded={() => void goto(next, { replaceState: true })} />
 	</section>

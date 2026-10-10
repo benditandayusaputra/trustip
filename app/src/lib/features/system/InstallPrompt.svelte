@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Smartphone from '@lucide/svelte/icons/smartphone';
 	import Button from '#lib/components/ui/Button.svelte';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 	import { InstallInvite, browserEnvironment, type InstallEnvironment } from './install.svelte';
 
 	interface Props {

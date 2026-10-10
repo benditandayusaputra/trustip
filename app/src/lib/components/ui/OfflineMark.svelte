@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { formatDateTime } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { offline as id } from '#lib/i18n/offline.js';
 	import Badge from './Badge.svelte';
 
 	interface Props {

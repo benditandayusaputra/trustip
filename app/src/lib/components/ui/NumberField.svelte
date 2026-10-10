@@ -3,7 +3,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import FieldShell from './FieldShell.svelte';
 	import { describedBy, inputClass } from './field';
-	import { id } from '#lib/i18n/id.js';
+	import { common as id } from '#lib/i18n/common.js';
 	import { parseDigits } from '#lib/i18n/format.js';
 
 	interface Props {
@@ -35,7 +35,9 @@
 	function readInput(event: Event & { currentTarget: HTMLInputElement }) {
 		const input = event.currentTarget;
 		value = clamp(parseDigits(input.value) ?? min);
-		input.value = String(value);
+		if (input.value !== String(value)) {
+			input.value = String(value);
+		}
 	}
 </script>
 
@@ -57,7 +59,7 @@
 			inputmode="numeric"
 			autocomplete="off"
 			value={String(value)}
-			onchange={readInput}
+			oninput={readInput}
 			aria-invalid={error ? true : undefined}
 			aria-describedby={describedBy(inputId, hint, error)}
 			class="{inputClass} text-right font-mono font-medium tabular-nums"

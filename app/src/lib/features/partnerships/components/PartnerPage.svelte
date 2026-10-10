@@ -7,12 +7,18 @@
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Partnership } from '#lib/api/partnerships.js';
-	import { id } from '#lib/i18n/id.js';
+	import { agreements as agreementsText } from '#lib/i18n/agreements.js';
+	import { common as commonText } from '#lib/i18n/common.js';
+	import { counts as countsText } from '#lib/i18n/counts.js';
+	import { drops as dropsText } from '#lib/i18n/drops.js';
+	import { partnerships as partnershipsText } from '#lib/i18n/partnerships.js';
 	import { PartnerRecord } from '../state.svelte';
 	import PartnerCatalog from './PartnerCatalog.svelte';
 	import PartnerEnding from './PartnerEnding.svelte';
 	import PublicListingToggle from './PublicListingToggle.svelte';
 	import PartnerSummary from './PartnerSummary.svelte';
+
+	const id = { ...agreementsText, ...commonText, ...countsText, ...dropsText, ...partnershipsText };
 
 	interface Props {
 		partnershipId: string;

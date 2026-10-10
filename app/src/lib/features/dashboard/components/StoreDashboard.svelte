@@ -5,7 +5,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
-	import { id } from '#lib/i18n/id.js';
+	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import { DashboardState, SalesOverview } from '../state.svelte';
 	import { rankedByGross, storeTasks, taskLinksOf } from '../views';
 	import InsightList from './InsightList.svelte';
@@ -40,7 +40,7 @@
 	<Alert title={text.loadFailed}>{board.failure}</Alert>
 {:else}
 	{@const figures = board.dashboard.figures}
-	<div class="grid grid-cols-2 gap-4 lg:grid-cols-5">
+	<div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
 		<KpiCard label={text.activePartners} value={formatInteger(figures.active_partners)} />
 		<KpiCard label={text.unitsConsigned} value={formatInteger(figures.stock_units)} />
 		{#if summary}
