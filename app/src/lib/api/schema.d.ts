@@ -3132,6 +3132,7 @@ export interface components {
             store_type: components["schemas"]["StoreType"] | null;
             logo_url: string | null;
             distance_m: number | null;
+            location: components["schemas"]["GeoPoint"] | null;
             accepted_categories: components["schemas"]["DirectoryCategory"][];
             open_need_category_ids: string[];
             terms: components["schemas"]["DirectoryStoreTerms"];

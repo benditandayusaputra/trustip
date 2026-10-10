@@ -92,6 +92,9 @@
 	--sidebar-width: 240px;
 	--directory-columns: 320px minmax(0, 1fr);
 	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+	--store-results-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+	--directory-map-height: 26rem;
+	--map-marker-size: 44px;
 	--focus-ring-width: 2px;
 	--focus-ring-offset: 2px;
 	--border-width-accent: 4px;

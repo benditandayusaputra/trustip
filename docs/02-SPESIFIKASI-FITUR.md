@@ -183,6 +183,8 @@ Direktori dua arah. Penitip mencari Toko. Toko mencari Penitip dan produknya. Pe
 | FR-DIR-13 | Tampilan peta dengan penanda | P1 |
 | FR-DIR-14 | Simpan ke daftar favorit | P1 |
 
+Arahan pengguna 10 Oktober 2026 mengizinkan FR-DIR-13 untuk direktori Toko. Daftar dan Peta memakai saringan serta pagination yang sama. Marker menampilkan lokasi publik dan membuka detail toko melalui klik atau keyboard. Toko tanpa koordinat tetap tersedia dalam Daftar, dan peta menjelaskan bahwa hanya hasil yang sudah dimuat yang ditampilkan. Lihat ADR 0047.
+
 **Aturan**
 
 - **BR-DIR-01** Jarak dihitung garis lurus dari titik asal ke lokasi publik sasaran. Jarak ke Penitip ditampilkan dengan awalan "±".

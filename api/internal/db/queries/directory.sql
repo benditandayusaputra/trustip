@@ -95,6 +95,9 @@ WITH origin AS (
 ), listed AS (
     SELECT
         o.id, o.slug, o.name, o.city_name, o.district, o.created_at,
+        (o.location_public IS NOT NULL)::boolean AS has_location,
+        COALESCE(ST_Y(o.location_public::geometry), 0)::float8 AS latitude,
+        COALESCE(ST_X(o.location_public::geometry), 0)::float8 AS longitude,
         COALESCE(o.last_active_at, '0001-01-01T00:00:00Z'::timestamptz)::timestamptz AS last_active_at,
         COALESCE(sp.store_type, '')::text AS store_type, sp.accepts_fixed_deposit, sp.accepts_commission,
         COALESCE(sp.commission_min_bps, -1)::bigint AS commission_min_bps,
@@ -104,7 +107,7 @@ WITH origin AS (
         COALESCE(st.settlements_counted, 0)::bigint AS settlements_counted,
         COALESCE(st.on_time_payment_bps, 0)::bigint AS on_time_payment_bps,
         COALESCE(st.active_partner_count, 0)::bigint AS active_partner_count,
-        CASE WHEN @has_origin::boolean THEN ST_Distance(o.location_public, origin.point, false) ELSE -1 END::float8
+        CASE WHEN @has_origin::boolean THEN COALESCE(ST_Distance(o.location_public, origin.point, false), -1) ELSE -1 END::float8
             AS distance_meters,
         ARRAY(
             SELECT c.id::text FROM store_accepted_categories AS sac JOIN categories AS c ON c.id = sac.category_id
@@ -166,6 +169,7 @@ WITH origin AS (
 ), ranked AS (
     SELECT
         listed.id, listed.slug, listed.name, listed.city_name, listed.district, listed.created_at,
+        listed.has_location, listed.latitude, listed.longitude,
         listed.last_active_at, listed.store_type, listed.accepts_fixed_deposit, listed.accepts_commission,
         listed.commission_min_bps, listed.commission_max_bps, listed.requires_distribution_permit,
         listed.requires_halal, listed.requires_sample, listed.logo_storage_key, listed.settlements_counted,
@@ -187,7 +191,7 @@ SELECT
     accepts_commission, commission_min_bps, commission_max_bps, requires_distribution_permit, requires_halal,
     requires_sample, logo_storage_key, settlements_counted, on_time_payment_bps, active_partner_count,
     distance_meters, accepted_category_ids, accepted_category_names, need_category_ids, is_self, is_partner,
-    sort_text, sort_number
+    sort_text, sort_number, has_location, latitude, longitude
 FROM ranked
 WHERE @from_start::boolean OR (sort_text, sort_number, id) > (@after_text::text, @after_number::float8, @after_id::uuid)
 ORDER BY sort_text, sort_number, id

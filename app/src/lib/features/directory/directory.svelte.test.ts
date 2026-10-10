@@ -15,6 +15,7 @@ const canteen = {
 	store_type: 'CANTEEN',
 	logo_url: null,
 	distance_m: 1200,
+	location: { latitude: -6.99, longitude: 110.42 },
 	accepted_categories: [{ id: 'c1', name: 'Kue kering dan camilan' }],
 	open_need_category_ids: ['c1'],
 	terms: {
@@ -85,6 +86,39 @@ afterEach(() => {
 });
 
 describe('Store directory', () => {
+	it('explains search and keeps advanced filters closed until requested', async () => {
+		serve({ [storesPath]: () => list([canteen]) });
+		const { container } = await render(DirectoryHarness, {});
+		await expect
+			.element(page.getByRole('searchbox', { name: 'Cari nama atau deskripsi toko' }))
+			.toBeVisible();
+		await expect
+			.element(page.getByRole('combobox', { name: 'Jenis toko' }))
+			.not.toBeInTheDocument();
+		const toggle = page.getByRole('button', { name: /^Filter/u });
+		await expect.element(toggle).toHaveAttribute('aria-expanded', 'false');
+		await userEvent.click(toggle);
+		await expect.element(toggle).toHaveAttribute('aria-expanded', 'true');
+		await expect.element(page.getByRole('combobox', { name: 'Jenis toko' })).toBeVisible();
+		await expectAccessible(container);
+		await userEvent.click(toggle);
+		await expect
+			.element(page.getByRole('combobox', { name: 'Jenis toko' }))
+			.not.toBeInTheDocument();
+	});
+	it('offers a list alternative when no store has public coordinates', async () => {
+		serve({ [storesPath]: () => list([{ ...canteen, location: null }]) });
+		const { container } = await render(DirectoryHarness, {});
+		await expect.element(page.getByRole('heading', { name: 'Kantin Kampus' })).toBeVisible();
+		await userEvent.click(page.getByRole('button', { name: 'Peta', exact: true }));
+		await expect
+			.element(
+				page.getByText('Toko yang dimuat belum memiliki lokasi publik untuk ditampilkan di peta.')
+			)
+			.toBeVisible();
+		await expect.element(page.getByRole('heading', { name: 'Kantin Kampus' })).toBeVisible();
+		await expectAccessible(container);
+	});
 	it('FR-DIR-01 FR-DIR-10 shows the card with distance, score, and short reasons', async () => {
 		serve({ [storesPath]: () => list([canteen]) });
 		const { container } = await render(DirectoryHarness, {});
@@ -109,6 +143,7 @@ describe('Store directory', () => {
 		const addresses: string[] = [];
 		await render(DirectoryHarness, { onaddress: (address: string) => addresses.push(address) });
 
+		await userEvent.click(page.getByRole('button', { name: /^Filter/u }));
 		await userEvent.selectOptions(page.getByRole('combobox', { name: 'Jenis toko' }), 'CANTEEN');
 
 		await vi.waitFor(() => {
@@ -148,6 +183,7 @@ describe('Store directory', () => {
 
 		await expect.element(page.getByText('Daftar toko tidak bisa dimuat.')).toBeVisible();
 		await expect.element(page.getByRole('button', { name: 'Coba lagi' })).toBeVisible();
+		await userEvent.click(page.getByRole('button', { name: /^Filter/u }));
 		await expect.element(page.getByRole('combobox', { name: 'Jenis toko' })).toHaveValue('CAFE');
 	});
 

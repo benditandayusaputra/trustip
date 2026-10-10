@@ -15,6 +15,33 @@ export const directory = {
 	directory: {
 		storesTitle: 'Cari toko',
 		filters: 'Saring toko',
+		introduction:
+			'Temukan toko yang cocok untuk produk Anda. Cari nama toko atau gunakan filter untuk mempersempit pilihan.',
+		filterToggle: 'Filter',
+		searchPanel: 'Pencarian toko',
+		filterHint:
+			'Pilih lokasi, kategori, dan syarat kerja sama. Hasil diperbarui saat pilihan berubah.',
+		activeFilters: (count: number) => `${String(count)} aktif`,
+		loadedStores: (count: number) => `${String(count)} toko dimuat`,
+		viewLabel: 'Tampilan hasil pencarian',
+		listView: 'Daftar',
+		mapView: 'Peta',
+		mapLabel: 'Peta lokasi publik toko',
+		mapHint:
+			'Angka marker menunjukkan jumlah toko. Klik marker atau buka daftar nama toko untuk melihat detail. Gunakan tombol + dan − untuk mengubah skala peta.',
+		markerGroup: (count: number) =>
+			`${String(count)} toko di lokasi ini. Toko lain bisa dipilih dari daftar nama.`,
+		markerLabel: (name: string) => `Lihat detail ${name}`,
+		mapUnavailable: 'Peta tidak bisa dimuat. Anda tetap bisa memilih toko dari daftar di bawah.',
+		noMapLocations: 'Toko yang dimuat belum memiliki lokasi publik untuk ditampilkan di peta.',
+		missingLocations: (count: number) =>
+			`${String(count)} toko belum memiliki lokasi publik dan tetap tersedia di tampilan Daftar.`,
+		mapCount: (count: number) =>
+			`${String(count)} toko berlokasi dari hasil yang sudah dimuat. Muat lagi untuk melihat toko berikutnya.`,
+		chooseMarker: 'Pilih marker atau nama toko untuk melihat detail toko.',
+		selectedStore: 'Detail toko terpilih',
+		selectedAnnouncement: (name: string) => `Detail ${name} ditampilkan.`,
+		storeChoices: 'Pilih toko pada peta',
 		search: 'Cari nama atau deskripsi toko',
 		radius: 'Jarak',
 		radii: { '2': '2 km', '5': '5 km', '10': '10 km', '25': '25 km', all: 'Semua jarak' },

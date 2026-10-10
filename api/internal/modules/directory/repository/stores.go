@@ -129,6 +129,9 @@ func toStoreCard(row sqlc.ListDirectoryStoresRow) domain.StoreCard {
 	card := domain.StoreCard{
 		ID: row.ID, Slug: row.Slug, Name: row.Name, CityName: row.CityName, District: row.District,
 		StoreType: row.StoreType, LogoStorageKey: row.LogoStorageKey,
+		Location: domain.Place{
+			Point: domain.Point{Latitude: row.Latitude, Longitude: row.Longitude}, IsKnown: row.HasLocation,
+		},
 		AcceptedCategories: categoriesOf(row.AcceptedCategoryIds, row.AcceptedCategoryNames),
 		NeedCategoryIDs:    row.NeedCategoryIds,
 		Terms: domain.StoreTerms{

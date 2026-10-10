@@ -7699,7 +7699,7 @@ components:
     DirectoryStoreCard:
       type: object
       additionalProperties: false
-      required: [id, slug, name, city_name, district, store_type, logo_url, distance_m, accepted_categories,
+      required: [id, slug, name, city_name, district, store_type, logo_url, distance_m, location, accepted_categories,
         open_need_category_ids, terms, reputation, joined_on, is_self, is_partner, match]
       properties:
         joined_on:
@@ -7725,6 +7725,10 @@ components:
           nullable: true
         distance_m:
           type: integer
+          nullable: true
+        location:
+          allOf:
+            - $ref: "#/components/schemas/GeoPoint"
           nullable: true
         accepted_categories:
           type: array

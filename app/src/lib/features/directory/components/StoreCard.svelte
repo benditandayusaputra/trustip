@@ -29,7 +29,7 @@
 	);
 </script>
 
-<article class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
+<article class="flex min-w-0 flex-col gap-4 rounded-card border border-border bg-surface p-5">
 	<header class="flex flex-wrap items-start gap-4">
 		{#if card.logo_url}
 			<img
@@ -50,20 +50,19 @@
 		{/if}
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<h2 class="text-lg font-semibold text-text">
-				<a href="/t/{card.slug}" class="hover:text-accent">{card.name}</a>
+				<a href="/t/{card.slug}" class="break-words hover:text-accent">{card.name}</a>
 			</h2>
 			<p class="text-sm text-text-muted">
 				{card.store_type ? storeTypes[card.store_type] : ''}
 				{#if card.distance_m !== null}
 					· <span class="font-mono">{formatDistance(card.distance_m)}</span>
 				{/if}
-				· {card.city_name}
+				{card.store_type || card.distance_m !== null ? '·' : ''}
+				{card.city_name}
 			</p>
 		</div>
-		{#if card.match}
-			<MatchSummary match={card.match} />
-		{/if}
 	</header>
+	{#if card.match}<MatchSummary match={card.match} compact />{/if}
 	<div class="flex flex-wrap gap-2">
 		{#if card.is_self}
 			<Badge tone="neutral" label={text.self} />

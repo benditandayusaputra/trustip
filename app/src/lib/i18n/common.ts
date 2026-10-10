@@ -135,6 +135,7 @@ export const common = {
 		copied: 'Tautan disalin.',
 		failed: 'Tautan tidak bisa disalin. Salin dari bilah alamat.'
 	},
+	map: { zoomIn: 'Perbesar peta', zoomOut: 'Perkecil peta' },
 	form: {
 		saving: 'Menyimpan',
 		decrease: (label: string) => `Kurangi ${label}`,

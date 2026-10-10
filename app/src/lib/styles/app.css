@@ -148,3 +148,27 @@ html .leaflet-container .leaflet-bar a.leaflet-disabled {
 	background: var(--color-surface);
 	color: var(--color-text-muted);
 }
+.store-map-marker {
+	border: var(--focus-ring-width) solid var(--color-on-accent);
+	border-radius: var(--radius-pill);
+	background: var(--color-primary);
+	color: var(--color-on-accent);
+	font-weight: var(--font-weight-semibold);
+	box-shadow: 0 0 0 var(--focus-ring-width) var(--color-primary);
+}
+.store-map-marker-number {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+}
+.store-map-marker-selected {
+	background: var(--color-text);
+	color: var(--color-bg);
+	box-shadow: 0 0 0 var(--border-width-accent) var(--color-accent);
+}
+.store-map-marker:focus-visible {
+	outline: var(--border-width-accent) solid var(--color-text);
+	outline-offset: var(--focus-ring-offset);
+}

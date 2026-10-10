@@ -15,10 +15,11 @@
 		failedTitle: string;
 		emptyMessage: string;
 		card: Snippet<[T]>;
+		results?: Snippet<[T[]]>;
 		onclear: () => void;
 	}
 
-	let { list, query, failedTitle, emptyMessage, card, onclear }: Props = $props();
+	let { list, query, failedTitle, emptyMessage, card, results, onclear }: Props = $props();
 
 	const text = id.directory;
 	let isOnline = $state(true);
@@ -55,11 +56,15 @@
 		{/snippet}
 	</EmptyState>
 {:else}
-	<ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-		{#each list.items as item (item.id)}
-			<li>{@render card(item)}</li>
-		{/each}
-	</ul>
+	{#if results}
+		{@render results(list.items)}
+	{:else}
+		<ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+			{#each list.items as item (item.id)}
+				<li>{@render card(item)}</li>
+			{/each}
+		</ul>
+	{/if}
 	{#if list.nextCursor}
 		<Button variant="secondary" busy={list.busy} onclick={() => void list.loadMore()}>
 			{text.loadMore}

@@ -50,6 +50,7 @@ type storeCardResponse struct {
 	StoreType          *string                 `json:"store_type"`
 	LogoURL            *string                 `json:"logo_url"`
 	DistanceM          *int                    `json:"distance_m"`
+	Location           *placeResponse          `json:"location"`
 	AcceptedCategories []categoryResponse      `json:"accepted_categories"`
 	OpenNeedCategories []string                `json:"open_need_category_ids"`
 	Terms              storeTermsResponse      `json:"terms"`
@@ -88,6 +89,7 @@ func (p presenter) storeCard(card domain.StoreCard) storeCardResponse {
 	}
 	response.LogoURL = p.fileURL(card.LogoStorageKey)
 	response.DistanceM = distanceOf(card.Distance)
+	response.Location = placeOf(card.Location)
 	response.Match = optionalMatch(card)
 	return response
 }

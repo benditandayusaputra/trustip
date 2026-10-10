@@ -90,6 +90,7 @@ type StoreCard struct {
 	StoreType          string
 	LogoStorageKey     string
 	Distance           Distance
+	Location           Place
 	AcceptedCategories []Category
 	NeedCategoryIDs    []string
 	Terms              StoreTerms
