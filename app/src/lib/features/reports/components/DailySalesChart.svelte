@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
@@ -15,9 +16,10 @@
 	interface Props {
 		range: DateRange;
 		narrowing?: SalesNarrowing;
+		controls?: Snippet;
 	}
 
-	let { range, narrowing = {} }: Props = $props();
+	let { range, narrowing = {}, controls }: Props = $props();
 
 	const text = id.reports;
 	const daily = new SalesReportView(apiClient, () => new Date());
@@ -38,6 +40,9 @@
 </script>
 
 <Card title={text.dailyChart}>
+	{#if controls}
+		{@render controls()}
+	{/if}
 	{#if daily.status === 'loading'}
 		<Skeleton />
 	{:else if daily.status === 'failed' || !daily.report}

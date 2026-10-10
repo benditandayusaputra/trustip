@@ -156,12 +156,35 @@ describe('Consignor dashboard', () => {
 		serve();
 		await render(DashboardHarness, {});
 
+		await userEvent.click(page.getByRole('combobox', { name: 'Saring grafik' }));
 		await userEvent.selectOptions(
 			page.getByRole('combobox', { name: 'Saring grafik' }),
 			`partner:${storeId}`
 		);
 
 		await expect.element(page.getByText(`chart ${storeId}`)).toBeVisible();
+		await expect.element(page.getByRole('combobox', { name: 'Saring grafik' })).toHaveFocus();
+	});
+
+	it('keeps consignor suggestions compact without hiding their actions', async () => {
+		servedInsights = Array.from({ length: 5 }, (_, index) => ({
+			...overdueInsight,
+			subject: { ...overdueInsight.subject, settlement_number: `ST-${String(index + 1)}` }
+		}));
+		serve();
+		const { container } = await render(DashboardHarness, {});
+		await expect.element(page.getByText('Setoran ST-3 lewat tempo')).toBeVisible();
+		await expect.element(page.getByText('Setoran ST-4 lewat tempo')).not.toBeInTheDocument();
+		const expand = page.getByRole('button', { name: 'Lihat semua saran (5)' });
+		await expect.element(expand).toHaveAttribute('aria-expanded', 'false');
+		await userEvent.click(expand);
+		await expect.element(page.getByText('Setoran ST-5 lewat tempo')).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: 'Ingatkan bayar' }).last())
+			.toHaveAttribute('href', `/app/setoran/${settlementId}`);
+		await userEvent.click(page.getByRole('button', { name: 'Tampilkan lebih sedikit saran' }));
+		await expect.element(page.getByText('Setoran ST-4 lewat tempo')).not.toBeInTheDocument();
+		await expectAccessible(container);
 	});
 
 	it('BR-RPT-01 keeps sales figures away from staff', async () => {

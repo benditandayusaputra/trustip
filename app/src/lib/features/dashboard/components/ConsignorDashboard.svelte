@@ -25,12 +25,14 @@
 	interface Props {
 		isOwner: boolean;
 		range: DateRange;
-		chart: Snippet<[SalesNarrowing]>;
+		chart: Snippet<[SalesNarrowing, Snippet]>;
 	}
 
 	let { isOwner, range, chart }: Props = $props();
 
 	const text = id.dashboard;
+	const suggestionPreview = 3;
+	const listPreview = 5;
 	const board = new DashboardState(apiClient);
 	const sales = new SalesOverview(apiClient);
 	let chartChoice = $state('');
@@ -50,7 +52,7 @@
 	<Alert title={text.loadFailed}>{board.failure}</Alert>
 {:else}
 	{@const figures = board.dashboard.figures}
-	<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+	<div class="grid grid-cols-2 gap-4 {summary ? 'lg:grid-cols-4' : ''}">
 		<KpiCard label={text.unitsAtStores} value={formatInteger(figures.stock_units)} />
 		{#if summary}
 			<KpiCard label={text.soldLast30} value={formatInteger(summary.sold_qty)} />
@@ -65,31 +67,40 @@
 			caption={text.overdueCaption(figures.overdue.count, formatRupiah(figures.overdue.amount))}
 		/>
 	</div>
-	<div class="grid gap-6 lg:grid-cols-12">
-		<div class="flex flex-col gap-6 lg:col-span-4 lg:col-start-9 lg:row-start-1">
-			<TaskList tasks={taskLinksOf(board.dashboard, consignorTasks)} />
-			<InsightList insights={board.insights} side="CONSIGNOR" />
+	{#snippet chartControls()}
+		<Select
+			label={text.chartFilter}
+			options={chartChoicesOf(sales.byPartner, sales.byProduct)}
+			bind:value={chartChoice}
+		/>
+	{/snippet}
+	{#if isOwner}
+		<div class="grid items-start gap-6 lg:grid-cols-12">
+			<div class="lg:col-span-4 lg:col-start-9 lg:row-start-1">
+				<TaskList tasks={taskLinksOf(board.dashboard, consignorTasks)} />
+			</div>
+			<div class="min-w-0 lg:col-span-8 lg:row-start-1">
+				{@render chart(narrowingOf(chartChoice), chartControls)}
+			</div>
 		</div>
-		<div class="flex flex-col gap-4 lg:col-span-8 lg:row-start-1">
-			{#if isOwner}
-				<Select
-					label={text.chartFilter}
-					options={chartChoicesOf(sales.byPartner, sales.byProduct)}
-					bind:value={chartChoice}
-				/>
-				{#key chartChoice}
-					{@render chart(narrowingOf(chartChoice))}
-				{/key}
-			{:else}
-				<p class="text-sm text-text-muted">{text.ownerOnly}</p>
-			{/if}
+	{:else}
+		<TaskList tasks={taskLinksOf(board.dashboard, consignorTasks)} />
+		<p class="text-sm text-text-muted">{text.ownerOnly}</p>
+	{/if}
+	<InsightList insights={board.insights} side="CONSIGNOR" previewCount={suggestionPreview} />
+	{#if isOwner}
+		<div class="grid items-start gap-6 lg:grid-cols-2">
+			<RankingList
+				title={text.rankingStores}
+				rows={rankedByGross(sales.byPartner)}
+				previewCount={listPreview}
+			/>
+			<RankingList
+				title={text.rankingProducts}
+				rows={rankedByGross(sales.byProduct)}
+				previewCount={listPreview}
+			/>
 		</div>
-	</div>
-	<div class="grid gap-6 md:grid-cols-2">
-		{#if isOwner}
-			<RankingList title={text.rankingStores} rows={rankedByGross(sales.byPartner)} />
-			<RankingList title={text.rankingProducts} rows={rankedByGross(sales.byProduct)} />
-		{/if}
-		<OpportunityList side="CONSIGNOR" />
-	</div>
+	{/if}
+	<OpportunityList side="CONSIGNOR" previewCount={listPreview} />
 {/if}

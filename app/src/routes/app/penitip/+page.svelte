@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Greeting from '#lib/features/account/components/Greeting.svelte';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import ConsignorDashboard from '#lib/features/dashboard/components/ConsignorDashboard.svelte';
@@ -20,8 +21,8 @@
 	<Greeting />
 	{#key isOwner}
 		<ConsignorDashboard {isOwner} {range}>
-			{#snippet chart(narrowing: SalesNarrowing)}
-				<DailySalesChart {range} {narrowing} />
+			{#snippet chart(narrowing: SalesNarrowing, controls: Snippet)}
+				<DailySalesChart {range} {narrowing} {controls} />
 			{/snippet}
 		</ConsignorDashboard>
 	{/key}
