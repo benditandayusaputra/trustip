@@ -36,8 +36,7 @@ export const directory = {
 		noMapLocations: 'Toko yang dimuat belum memiliki lokasi publik untuk ditampilkan di peta.',
 		missingLocations: (count: number) =>
 			`${String(count)} toko belum memiliki lokasi publik dan tetap tersedia di tampilan Daftar.`,
-		mapCount: (count: number) =>
-			`${String(count)} toko berlokasi dari hasil yang sudah dimuat. Muat lagi untuk melihat toko berikutnya.`,
+		mapCount: (count: number) => `Peta menampilkan ${String(count)} toko yang sudah dimuat.`,
 		chooseMarker: 'Pilih marker atau nama toko untuk melihat detail toko.',
 		selectedStore: 'Detail toko terpilih',
 		selectedAnnouncement: (name: string) => `Detail ${name} ditampilkan.`,
