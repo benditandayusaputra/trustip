@@ -65,6 +65,7 @@ function salesReport(groupBy: string) {
 }
 
 let served = dashboard;
+let servedInsights = [overdueInsight];
 
 const needId = '0192f0c4-0000-7000-8000-000000000a01';
 const candidate = (name: string) => ({
@@ -99,7 +100,7 @@ function dataFor(path: string): unknown {
 		return served;
 	}
 	if (url.pathname === '/api/v1/insights') {
-		return [overdueInsight];
+		return servedInsights;
 	}
 	return salesReport(url.searchParams.get('group_by') ?? 'PARTNER');
 }
@@ -120,6 +121,7 @@ function serve(status = 200) {
 
 afterEach(() => {
 	served = dashboard;
+	servedInsights = [overdueInsight];
 	vi.unstubAllGlobals();
 });
 
@@ -182,6 +184,23 @@ describe('Consignor dashboard', () => {
 });
 
 describe('Store dashboard', () => {
+	it('keeps many suggestions compact and lets the user reveal the rest', async () => {
+		servedInsights = Array.from({ length: 7 }, (_, index) => ({
+			...overdueInsight,
+			subject: { ...overdueInsight.subject, settlement_number: `ST-${String(index + 1)}` }
+		}));
+		serve();
+		const { container } = await render(DashboardHarness, { side: 'STORE' });
+		await expect.element(page.getByText('Setoran ST-3 lewat tempo')).toBeVisible();
+		await expect.element(page.getByText('Setoran ST-4 lewat tempo')).not.toBeInTheDocument();
+		const expand = page.getByRole('button', { name: 'Lihat semua saran (7)' });
+		await expect.element(expand).toHaveAttribute('aria-expanded', 'false');
+		await userEvent.click(expand);
+		await expect.element(page.getByText('Setoran ST-7 lewat tempo')).toBeVisible();
+		await userEvent.click(page.getByRole('button', { name: 'Tampilkan lebih sedikit saran' }));
+		await expect.element(page.getByText('Setoran ST-4 lewat tempo')).not.toBeInTheDocument();
+		await expectAccessible(container);
+	});
 	const storeBoard: Dashboard = {
 		...dashboard,
 		figures: { ...dashboard.figures, due_soon: tally(1, 14000) },

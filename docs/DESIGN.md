@@ -78,7 +78,7 @@ Daftar putih publik tidak berubah: harga setor, angka transaksi, lokasi persis p
 
 ### Operasional
 
-Dasbor toko: lima angka spesifikasi, Hitung cepat, perlu tindakan, produk terlaris dan peluang. Dasbor penitip: empat angka spesifikasi, perlu tindakan, grafik, peringkat, saran dan peluang. Kolom menyesuaikan ruang setelah sidebar; angka tidak diperkecil sampai sulit dibaca. Informasi gabungan tetap hanya untuk OWNER.
+Dasbor toko: lima angka spesifikasi, Hitung cepat dan Perlu tindakan, lalu Saran selebar area isi, diikuti Produk terlaris dan Peluang. Saran menampilkan tiga kartu awal; daftar lain menampilkan lima baris awal. Tombol buka/ringkas tetap menyediakan seluruh data. Dasbor penitip: empat angka spesifikasi, perlu tindakan, grafik, peringkat, saran dan peluang. Kolom menyesuaikan ruang setelah sidebar; angka tidak diperkecil sampai sulit dibaca. Informasi gabungan tetap hanya untuk OWNER.
 
 Riwayat, katalog, Ajuan, Kemitraan, Kebutuhan dan Setoran memakai filter di atas isi, status berlabel dan tindakan sesuai hak akses. Detail dokumen membedakan nomor/status, isi, jejak konfirmasi, segel dan langkah berikutnya. Tabel desktop berubah menjadi daftar berlabel di HP; tabel padat hanya boleh memiliki overflow lokal.
 

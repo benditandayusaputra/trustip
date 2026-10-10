@@ -22,6 +22,8 @@
 	let { isOwner, range }: Props = $props();
 
 	const text = id.dashboard;
+	const suggestionPreview = 3;
+	const listPreview = 5;
 	const board = new DashboardState(apiClient);
 	const sales = new SalesOverview(apiClient);
 	const summary = $derived(sales.byPartner?.summary);
@@ -53,19 +55,23 @@
 			caption={text.dueSoonCaption(figures.due_soon.count, formatRupiah(figures.due_soon.amount))}
 		/>
 	</div>
-	<div class="grid gap-6 lg:grid-cols-12">
-		<div class="flex flex-col gap-6 lg:col-span-8">
-			<QuickCountList partners={board.dashboard.quick_count} />
-			{#if isOwner}
-				<RankingList title={text.rankingProducts} rows={rankedByGross(sales.byProduct)} />
-			{:else}
-				<p class="text-sm text-text-muted">{text.ownerOnly}</p>
-			{/if}
-			<OpportunityList side="STORE" />
+	<div class="grid items-start gap-6 lg:grid-cols-12">
+		<div class="lg:col-span-8">
+			<QuickCountList partners={board.dashboard.quick_count} previewCount={listPreview} />
 		</div>
-		<div class="flex flex-col gap-6 lg:col-span-4">
-			<TaskList tasks={taskLinksOf(board.dashboard, storeTasks)} />
-			<InsightList insights={board.insights} side="STORE" />
-		</div>
+		<div class="lg:col-span-4"><TaskList tasks={taskLinksOf(board.dashboard, storeTasks)} /></div>
+	</div>
+	<InsightList insights={board.insights} side="STORE" previewCount={suggestionPreview} />
+	<div class="grid items-start gap-6 lg:grid-cols-2">
+		{#if isOwner}
+			<RankingList
+				title={text.rankingProducts}
+				rows={rankedByGross(sales.byProduct)}
+				previewCount={listPreview}
+			/>
+		{:else}
+			<p class="text-sm text-text-muted">{text.ownerOnly}</p>
+		{/if}
+		<OpportunityList side="STORE" previewCount={listPreview} />
 	</div>
 {/if}

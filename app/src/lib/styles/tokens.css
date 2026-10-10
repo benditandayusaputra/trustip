@@ -91,6 +91,7 @@
 	--captcha-min-width: 300px;
 	--sidebar-width: 240px;
 	--directory-columns: 320px minmax(0, 1fr);
+	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 	--focus-ring-width: 2px;
 	--focus-ring-offset: 2px;
 	--border-width-accent: 4px;
