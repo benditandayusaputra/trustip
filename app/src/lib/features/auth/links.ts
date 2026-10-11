@@ -1,3 +1,6 @@
+import type { Account } from '#lib/api/users.js';
+import { dashboardDestination } from '#lib/domain/dashboard-access.js';
+
 const signInPath = '/masuk';
 const registerPath = '/daftar';
 const onboardingPath = '/onboarding';
@@ -29,4 +32,12 @@ export function safeNextPath(raw: string | null): string {
 
 function withNext(path: string, next: string | null): string {
 	return next ? `${path}?${new URLSearchParams({ lanjut: next }).toString()}` : path;
+}
+
+export function signedInPath(next: string | null, account: Account): string {
+	const path = safeNextPath(next);
+	if (!account.membership) {
+		return onboardingHref(path);
+	}
+	return dashboardDestination(path, account.membership.organization_type);
 }

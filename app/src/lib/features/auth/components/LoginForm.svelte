@@ -5,6 +5,7 @@
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import PasswordField from '#lib/components/ui/PasswordField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
+	import type { Account } from '#lib/api/users.js';
 	import { apiClient } from '#lib/api/client.js';
 	import { watchOnline } from '#lib/offline/network.js';
 	import { common as id } from '#lib/i18n/common.js';
@@ -12,7 +13,7 @@
 
 	interface Props {
 		siteKey: string;
-		onsignedin: () => void;
+		onsignedin: (account: Account) => void;
 	}
 
 	let { siteKey, onsignedin }: Props = $props();
@@ -36,7 +37,7 @@
 		event.preventDefault();
 		const outcome = await form.submit();
 		if (outcome.kind === 'signedIn') {
-			onsignedin();
+			onsignedin(outcome.account);
 			return;
 		}
 		captcha?.reset();

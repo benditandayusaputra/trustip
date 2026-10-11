@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { registerHref, safeNextPath, signInHref } from './links';
+import { registerHref, safeNextPath, signInHref, signedInPath } from './links';
 
 describe('safeNextPath (R-SEC-49)', () => {
 	it.each([
@@ -28,5 +28,32 @@ describe('account links', () => {
 	it('carry the destination along', () => {
 		expect(signInHref('/undangan/A B')).toBe('/masuk?lanjut=%2Fundangan%2FA+B');
 		expect(registerHref(null)).toBe('/daftar');
+	});
+});
+
+describe('login landing uses the new account', () => {
+	const account = {
+		id: 'u',
+		full_name: 'Sari',
+		email: 'sari@contoh.id',
+		membership: {
+			organization_id: 'o',
+			organization_type: 'CONSIGNOR' as const,
+			role: 'OWNER' as const
+		}
+	};
+	it('replaces the previous store dashboard with the consignor dashboard', () => {
+		expect(signedInPath('/app/toko?old=1', account)).toBe('/app/penitip');
+	});
+	it('keeps a valid invitation destination', () => {
+		expect(signedInPath('/undangan/ABC', account)).toBe('/undangan/ABC');
+	});
+	it('rejects external redirects before choosing the dashboard', () => {
+		expect(signedInPath('//evil.example', account)).toBe('/app/penitip');
+	});
+	it('sends newcomers through onboarding', () => {
+		expect(signedInPath('/undangan/ABC', { ...account, membership: null })).toBe(
+			'/onboarding?lanjut=%2Fundangan%2FABC'
+		);
 	});
 });

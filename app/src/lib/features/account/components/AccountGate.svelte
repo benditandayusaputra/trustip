@@ -7,6 +7,7 @@
 	import AppShell from '#lib/components/layout/AppShell.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { common as id } from '#lib/i18n/common.js';
+	import { dashboardDestination } from '#lib/domain/dashboard-access.js';
 	import type { Account } from '#lib/api/users.js';
 	import {
 		AccountSession,
@@ -32,10 +33,14 @@
 		void session.load();
 	});
 
+	const currentRoute = $derived(page.route.id ?? page.url.pathname);
 	const isPlaced = $derived(
 		session.status === 'ready' &&
 			session.account !== undefined &&
-			isPlacedFor(session.account, placement)
+			isPlacedFor(session.account, placement) &&
+			(placement !== 'member' ||
+				dashboardDestination(currentRoute, session.account.membership?.organization_type ?? '') ===
+					currentRoute)
 	);
 	const isVisitor = $derived(session.status === 'signedOut' && placement === 'anyone');
 	const isOpenWhileLoading = $derived(session.status === 'loading' && placement === 'anyone');

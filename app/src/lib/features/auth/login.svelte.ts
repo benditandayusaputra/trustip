@@ -1,5 +1,6 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError, NetworkError } from '#lib/api/errors.js';
+import type { Account } from '#lib/api/users.js';
 import { logIn } from '#lib/api/sessions.js';
 import { common as id } from '#lib/i18n/common.js';
 import { deviceReadCache } from '#lib/offline/read-cache.js';
@@ -15,7 +16,7 @@ export interface LoginValues {
 export type LoginErrors = Partial<Record<keyof LoginValues | 'captcha' | 'form', string>>;
 
 export type LoginOutcome =
-	| { kind: 'signedIn' }
+	| { kind: 'signedIn'; account: Account }
 	| { kind: 'invalid' }
 	| { kind: 'failed'; message: string; canRetry: boolean };
 
@@ -39,13 +40,13 @@ export class LoginForm {
 		}
 		this.busy = true;
 		try {
-			await logIn(this.#client(), {
+			const account = await logIn(this.#client(), {
 				email: this.values.email,
 				password: this.values.password,
 				captcha_token: this.captchaToken
 			});
 			await this.#forgetDeviceData();
-			return { kind: 'signedIn' };
+			return { kind: 'signedIn', account };
 		} catch (error) {
 			return this.#explain(error);
 		} finally {
