@@ -262,15 +262,17 @@ test(
 	async ({ browser }) => {
 		const page = await openPage(browser);
 		await page.goto('/demo');
+		await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', {
+			timeout: networkTimeoutMs
+		});
 
 		await tabTo(page, 'Lewati ke konten');
 		await page.keyboard.press('Enter');
 		await expect(page.locator('main#konten')).toBeFocused();
 		await tabTo(page, 'Isi sebagai toko (Warung Bu Sri)');
 		await page.keyboard.press('Enter');
-		await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', {
-			timeout: networkTimeoutMs
-		});
+		await expect(page.getByLabel('Email')).toHaveValue('toko@demo.trustip.id');
+		await expect(page.getByLabel('Kata sandi')).toHaveValue(demoPassword);
 		await tabTo(page, 'Masuk');
 		await page.keyboard.press('Enter');
 		await page.waitForURL(/\/app\/toko$/u, { timeout: networkTimeoutMs });

@@ -1,15 +1,13 @@
 <script lang="ts">
-	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
-	import Handshake from '@lucide/svelte/icons/handshake';
-	import ShieldCheck from '@lucide/svelte/icons/shield-check';
-	import Store from '@lucide/svelte/icons/store';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Check from '@lucide/svelte/icons/check';
 	import { home as id } from '#lib/i18n/home.js';
+	import HomeHero from './HomeHero.svelte';
+	import HomeRoles from './HomeRoles.svelte';
+	import HomeWorkflow from './HomeWorkflow.svelte';
 	import TradeExample from './TradeExample.svelte';
 
 	const text = id.home;
-	const stepIcons = [Store, Handshake, ClipboardList, ShieldCheck];
-	const linkClass = 'inline-flex min-h-12 items-center rounded-control px-5 font-semibold';
 </script>
 
 <svelte:head>
@@ -18,61 +16,69 @@
 </svelte:head>
 
 <div class="flex flex-col gap-12 text-text">
-	<section class="grid items-center gap-8 py-6 lg:grid-cols-2" aria-labelledby="beranda-judul">
-		<div class="flex flex-col gap-6">
-			<p class="section-label">{text.audience}</p>
-			<h1 id="beranda-judul" class="text-hero-compact font-semibold md:text-hero">
-				{text.headline}<br /><span class="text-accent">{text.headlineAccent}</span>
-			</h1>
-			<p class="max-w-form text-base leading-body text-text-muted">{text.intro}</p>
-			<div class="flex flex-wrap gap-2">
-				<a href="/daftar" class="action-link"
-					>{text.register}<ArrowRight class="size-5" aria-hidden="true" /></a
-				>
-				<a href="/demo" class="{linkClass} border border-border-strong bg-surface text-text"
-					>{text.tryDemo}</a
-				>
-			</div>
-			<p class="text-sm text-text-muted">{text.audienceDetail}</p>
+	<HomeHero />
+	<HomeRoles />
+	<HomeWorkflow />
+
+	<section class="grid items-center gap-8 lg:grid-cols-2" aria-labelledby="beranda-contoh">
+		<div class="flex flex-col gap-5">
+			<p class="section-label">{text.exampleEyebrow}</p>
+			<h2 id="beranda-contoh" class="text-kpi-compact font-semibold">{text.exampleTitle}</h2>
+			<p class="text-base text-text-muted">{text.exampleIntro}</p>
+			<ul class="flex flex-col gap-2 text-sm text-text-muted">
+				{#each text.exampleHighlights as highlight (highlight)}
+					<li class="flex items-start gap-2">
+						<Check class="size-5 shrink-0 text-accent" aria-hidden="true" />{highlight}
+					</li>
+				{/each}
+			</ul>
 		</div>
 		<TradeExample />
 	</section>
 
-	<section class="flex flex-col gap-4" aria-labelledby="beranda-masalah">
-		<h2 id="beranda-masalah" class="text-lg font-semibold">{text.problemsTitle}</h2>
+	<section class="flex flex-col gap-6" aria-labelledby="beranda-masalah">
+		<header class="flex flex-col gap-2">
+			<p class="section-label">{text.problemsEyebrow}</p>
+			<h2 id="beranda-masalah" class="text-kpi-compact font-semibold">{text.problemsTitle}</h2>
+			<p class="max-w-reading text-base text-text-muted">{text.problemsIntro}</p>
+		</header>
 		<ul class="grid gap-4 md:grid-cols-2">
 			{#each text.problems as problem (problem.title)}
-				<li class="flex flex-col gap-2 rounded-card border border-border bg-surface p-4">
-					<h3 class="text-base font-semibold">{problem.title}</h3>
-					<p class="text-base text-text-muted">{problem.body}</p>
+				<li class="flex flex-col gap-4 rounded-card border border-border bg-surface p-5 md:p-6">
+					<div class="flex flex-col gap-2">
+						<h3 class="text-lg font-semibold">{problem.title}</h3>
+						<p class="text-sm text-text-muted">{problem.body}</p>
+					</div>
+					<p
+						class="flex items-start gap-2 border-t border-border pt-4 text-sm font-medium text-accent"
+					>
+						<Check class="size-5 shrink-0" aria-hidden="true" />{problem.solution}
+					</p>
 				</li>
 			{/each}
 		</ul>
 	</section>
 
-	<section class="flex flex-col gap-4" aria-labelledby="beranda-cara">
-		<h2 id="beranda-cara" class="text-lg font-semibold">{text.stepsTitle}</h2>
-		<ol class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-			{#each text.steps as step, index (step.title)}
-				{@const Icon = stepIcons[index] ?? Store}
-				<li class="flex flex-col gap-4 border-t border-border pt-6">
-					<Icon class="size-6 shrink-0 text-accent" aria-hidden="true" />
-					<div class="flex flex-col gap-2">
-						<h3 class="text-base font-semibold">{step.title}</h3>
-						<p class="text-base text-text-muted">{step.body}</p>
-					</div>
-				</li>
-			{/each}
-		</ol>
-	</section>
-
-	<section class="trade-panel flex flex-col gap-4" aria-labelledby="beranda-mulai">
-		<h2 id="beranda-mulai" class="text-lg font-semibold">{text.closingTitle}</h2>
-		<p class="text-base text-text-muted">{text.closingBody}</p>
-		<div class="flex flex-wrap gap-4">
-			<a href="/daftar" class="action-link">{text.register}</a>
-			<a href="/cari/toko" class="{linkClass} text-accent">{text.browseStores}</a>
-			<a href="/kebutuhan" class="{linkClass} text-accent">{text.browseNeeds}</a>
+	<section
+		class="flex flex-col items-start gap-6 rounded-card bg-primary p-6 text-on-accent md:p-8"
+		aria-labelledby="beranda-mulai"
+	>
+		<div class="flex flex-col gap-2">
+			<h2 id="beranda-mulai" class="text-kpi-compact font-semibold">{text.closingTitle}</h2>
+			<p class="text-base">{text.closingBody}</p>
+		</div>
+		<div class="flex flex-wrap items-center gap-4">
+			<a
+				href="/daftar"
+				class="inline-flex min-h-12 items-center justify-center gap-2 rounded-control bg-on-accent px-5 font-semibold text-primary hover:underline"
+				>{text.register}<ArrowRight class="size-5" aria-hidden="true" /></a
+			>
+			<a href="/cari/toko" class="inline-flex min-h-11 items-center font-semibold underline"
+				>{text.browseStores}</a
+			>
+			<a href="/kebutuhan" class="inline-flex min-h-11 items-center font-semibold underline"
+				>{text.browseNeeds}</a
+			>
 		</div>
 	</section>
 </div>

@@ -2,49 +2,107 @@ export const home = {
 	home: {
 		title: 'Trustip: titip jual untuk UMKM',
 		headline: 'Titip jual lebih mudah.',
-		headlineAccent: 'Catatan lebih jelas.',
-		audience: 'Untuk produsen dan toko lokal',
+		headlineAccent: 'Dari mitra sampai setoran.',
+		audience: 'Platform titip jual untuk UMKM',
 		audienceDetail: 'Produsen rumahan, warung, kantin, dan toko oleh-oleh.',
 		intro:
-			'Temukan mitra usaha, sepakati aturan dagang, dan pantau titipan sampai uang disetor. Kedua pihak melihat catatan yang sama.',
+			'Trustip membantu pemilik produk menitipkan barang di toko, menyepakati harga, dan mencatat penjualan hingga pembayaran. Penitip dan toko melihat catatan yang sama.',
+		seeWorkflow: 'Lihat cara kerja',
+		highlights: ['Temukan mitra', 'Hitungan otomatis', 'Catatan bersama'],
+		illustration: {
+			eyebrow: 'Satu alur, dua mitra',
+			caption: 'Produk dititipkan. Catatan dibagikan.',
+			consignor: 'Penitip',
+			consignorBody: 'Menyiapkan dan menitipkan produk',
+			store: 'Toko',
+			storeBody: 'Menjual dan mencatat sisanya'
+		},
+		rolesEyebrow: 'Untuk usaha Anda',
+		rolesTitle: 'Punya produk atau punya toko?',
+		rolesIntro: 'Dua peran usaha, satu tempat untuk bekerja sama.',
+		roles: [
+			{
+				title: 'Saya pemilik produk',
+				body: 'Titipkan produk ke mitra dan pantau perkembangannya tanpa menanyakan catatan satu per satu.',
+				benefits: [
+					'Cari toko yang menerima titipan',
+					'Pantau stok, penjualan, dan setoran',
+					'Sepakati harga dan retur dengan jelas'
+				],
+				action: 'Temukan toko',
+				href: '/cari/toko'
+			},
+			{
+				title: 'Saya pemilik toko',
+				body: 'Temukan produk untuk mengisi rak dan kelola titipan dari beberapa penitip dengan lebih rapi.',
+				benefits: [
+					'Cari produk atau pasang Kebutuhan',
+					'Catat barang masuk dan hitung sisanya',
+					'Lihat untung dan kewajiban setoran'
+				],
+				action: 'Temukan produk dan penitip',
+				href: '/cari/penitip'
+			}
+		],
 		register: 'Daftar gratis',
 		signIn: 'Masuk',
 		problemsTitle: 'Masalah titip jual hari ini',
+		problemsEyebrow: 'Lebih mudah dikelola',
+		problemsIntro:
+			'Dari mencari tempat titip sampai memeriksa catatan, Trustip membantu di setiap tahap.',
 		problems: [
 			{
 				title: 'Sulit menemukan toko',
-				body: 'Produsen berkeliling mencari toko yang mau dititipi, dan syarat tiap toko berbeda.'
+				body: 'Produsen berkeliling mencari toko yang mau dititipi, dan syarat tiap toko berbeda.',
+				solution: 'Cari toko dan baca syaratnya sebelum mengajukan kerja sama.'
 			},
 			{
 				title: 'Harus datang untuk tahu laku berapa',
-				body: 'Jumlah terjual baru diketahui setelah penitip datang atau menelepon toko.'
+				body: 'Jumlah terjual baru diketahui setelah penitip datang atau menelepon toko.',
+				solution: 'Pantau penjualan setelah toko mencatat Hitung Sisa.'
 			},
 			{
 				title: 'Catatan dua pihak tidak sama',
-				body: 'Nota kertas di dua tempat memicu selisih hitungan, telat bayar, sampai konflik.'
+				body: 'Nota kertas di dua tempat memicu selisih hitungan, telat bayar, sampai konflik.',
+				solution: 'Periksa catatan bersama, konfirmasi, dan segel dokumennya.'
 			},
 			{
 				title: 'Retur tidak tercatat',
-				body: 'Barang tak laku dan kedaluwarsa menumpuk tanpa catatan, dan jumlah titip hanya kira-kira.'
+				body: 'Barang tak laku dan kedaluwarsa menumpuk tanpa catatan, dan jumlah titip hanya kira-kira.',
+				solution: 'Catat retur dan lihat peringatan kedaluwarsa pada dasbor.'
 			}
 		],
 		stepsTitle: 'Cara kerja',
+		stepsEyebrow: 'Dari mitra sampai uang diterima',
+		stepsIntro:
+			'Lima langkah yang menghubungkan penitip dan toko. Setiap pihak tahu apa yang perlu dilakukan.',
+		paymentNote:
+			'Pembayaran dilakukan langsung antar mitra. Trustip mencatat pembayaran dan konfirmasi penerimaannya.',
 		steps: [
 			{
-				title: 'Cari Mitra',
-				body: 'Penitip mencari toko terdekat yang menerima titipan. Toko mencari produk atau memasang Kebutuhan.'
+				title: 'Cari mitra',
+				actor: 'Penitip & toko',
+				body: 'Temukan toko yang menerima titipan atau produk untuk mengisi rak.'
 			},
 			{
-				title: 'Kesepakatan Dagang',
-				body: 'Harga jual, harga setor atau komisi, jadwal setor, dan nasib barang tak laku disepakati di web.'
+				title: 'Sepakati harga',
+				actor: 'Penitip & toko',
+				body: 'Setujui harga, bagian toko, jadwal setor, dan aturan barang yang kembali.'
 			},
 			{
-				title: 'Titipan Masuk dan Hitung Sisa',
-				body: 'Toko mencatat barang yang ditaruh dan sisanya, bahkan tanpa sinyal. Terjual dan harus setor langsung terhitung.'
+				title: 'Catat titipan',
+				actor: 'Toko & penitip',
+				body: 'Toko mencatat produk dan jumlah yang masuk. Penitip memeriksa catatannya.'
 			},
 			{
-				title: 'Setoran yang tersegel',
-				body: 'Setoran terbit otomatis. Setiap catatan disegel supaya tidak bisa diubah diam-diam oleh siapa pun.'
+				title: 'Hitung sisa',
+				actor: 'Toko',
+				body: 'Isi sisa dan retur. Jumlah terjual serta uang yang harus disetor dihitung otomatis.'
+			},
+			{
+				title: 'Konfirmasi setoran',
+				actor: 'Toko & penitip',
+				body: 'Toko mencatat pembayaran. Penitip mengonfirmasi uang yang diterima.'
 			}
 		],
 		closingTitle: 'Mulai bersama mitra Anda',
@@ -52,9 +110,19 @@ export const home = {
 		tryDemo: 'Coba akun demo',
 		browseStores: 'Lihat toko yang menerima titipan',
 		browseNeeds: 'Lihat Kebutuhan toko',
+		exampleEyebrow: 'Begini hasilnya',
+		exampleTitle: 'Cukup catat barang masuk dan sisanya.',
+		exampleIntro:
+			'Dari 20 roti yang dititipkan dan 2 yang tersisa, Trustip menghitung 18 terjual. Omzet, untung toko, dan setoran mengikuti harga yang sudah disepakati.',
+		exampleHighlights: [
+			'Penjualan dihitung dari sisa',
+			'Pembagian sesuai kesepakatan',
+			'Catatan bisa diperiksa kedua pihak'
+		],
 		example: {
 			title: 'Satu catatan, dua pihak',
 			partners: 'Roti Pak Anton → Warung Bu Sri',
+			pricing: 'Contoh harga: jual Rp2.000 · setor Rp1.750 per roti.',
 			product: 'Roti manis',
 			units: '20 dititip · 2 tersisa · 18 terjual',
 			gross: 'Rp36.000',

@@ -58,7 +58,7 @@ Angka panjang mendapat kartu selebar baris pada HP di bawah 480 px, sehingga jum
 
 ## 4. Kerangka seluruh halaman
 
-- Publik: header merek, navigasi, pilihan tema, masuk; footer kebijakan. Halaman publik tetap dirender server.
+- Publik: header merek, navigasi, pilihan tema, masuk; footer merek, direktori, cara kerja, demo, pendaftaran, dan kebijakan. Halaman publik tetap dirender server.
 - Anggota: sidebar desktop dan header tindakan; navigasi bawah pada HP/tablet sesuai peran. Semua rute aplikasi, direktori, dan papan kebutuhan menggunakan kerangka yang sama ketika anggota masuk.
 - Penitip: Beranda, Cari, Mitra, Setoran, Lainnya.
 - Toko: Beranda, Hitung, Titipan, Cari, Lainnya.
@@ -70,7 +70,9 @@ Angka panjang mendapat kartu selebar baris pada HP di bawah 480 px, sehingga jum
 
 ### Publik
 
-Beranda menampilkan nilai utama, ajakan daftar/demo, contoh hitungan yang diberi label contoh, masalah titip jual, empat langkah, dan ajakan penutup. Tidak memuat klaim pengguna, testimoni, atau hasil bisnis yang belum terbukti.
+Beranda menjelaskan titip jual sejak layar pertama dengan ilustrasi penitip menyerahkan produk ke toko, ajakan daftar/demo, dan tautan menuju cara kerja. Berikutnya tampil kebutuhan dua peran usaha, lima langkah bernomor (cari mitra, sepakati harga, catat titipan, hitung sisa, konfirmasi setoran), contoh hitungan yang diberi label contoh, masalah beserta manfaat pencatatan, dan ajakan penutup. Pembayaran antar mitra dijelaskan sebagai pembayaran langsung yang dicatat dan dikonfirmasi di Trustip. Tidak memuat klaim pengguna, testimoni, atau hasil bisnis yang belum terbukti.
+
+Ilustrasi beranda dan akun memakai satu komponen vektor bersama dengan ukuran berbeda, mengikuti token kedua tema. Footer pada kerangka publik mengelompokkan tautan menjadi Jelajahi, Mulai, dan Informasi, disertai identitas dan penjelasan singkat aplikasi. Semua tautan menuju halaman yang tersedia; tidak menambahkan kontak atau akun sosial rekaan. Pada HP, bagian footer tersusun satu kolom dan target sentuh minimal 44 px. Direktori mempertahankan footer ringkas agar perluasan footer tidak menambah pergeseran tata letak saat hasil dimuat.
 
 Direktori Toko selalu menampilkan pencarian dan urutan. Filter lokasi, kategori, dan syarat dibuka melalui tombol Filter, dengan penjelasan dan jumlah pilihan aktif. Panel filter berada di atas hasil pada HP maupun desktop dan menyesuaikan jumlah kolom dengan ruang yang tersedia. Pilihan Daftar/Peta menggunakan hasil pencarian yang sama; marker lokasi publik bisa diklik atau diaktifkan lewat keyboard untuk membuka detail. Daftar nama toko tetap tersedia sebagai alternatif peta. Direktori Penitip memakai panel filter di samping hasil mulai 1440 px, dan sebelum hasil pada layar lebih kecil. Foto produk ditampilkan jika tersedia; bila belum ada, gunakan placeholder ikon yang tenang, bukan foto rekaan. Profil usaha memakai kepala profil, kategori, keterangan, syarat, dan aksi relevan. Produk memiliki foto utama, harga jual saran, komposisi, pembuat, dan daftar tempat membeli. Kebijakan memakai kolom baca nyaman.
 

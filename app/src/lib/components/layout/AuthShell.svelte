@@ -3,7 +3,7 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Brand from './Brand.svelte';
 	import SkipLink from './SkipLink.svelte';
-	import AuthIllustration from './AuthIllustration.svelte';
+	import TradeIllustration from '../ui/TradeIllustration.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
 	import { common as id } from '#lib/i18n/common.js';
 
@@ -33,7 +33,7 @@
 		class="mx-auto grid w-full max-w-content flex-1 items-center gap-6 px-4 py-4 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-8"
 	>
 		<aside
-			class="flex min-w-0 flex-col gap-4 rounded-card bg-auth-surface p-4 lg:gap-6 lg:p-8"
+			class="flex min-w-0 flex-col gap-4 rounded-card bg-illustration-surface p-4 lg:gap-6 lg:p-8"
 			aria-label={text.title}
 		>
 			<div class="hidden flex-col gap-4 lg:flex">
@@ -43,7 +43,7 @@
 				</h2>
 				<p class="text-base text-text-muted">{text.body}</p>
 			</div>
-			<AuthIllustration />
+			<TradeIllustration compact />
 			<p class="text-center text-sm font-medium text-text-muted lg:text-left">{text.caption}</p>
 		</aside>
 		<div class="mx-auto w-full max-w-auth-form">
