@@ -4,6 +4,7 @@
 	import CaptchaField from '#lib/components/ui/CaptchaField.svelte';
 	import Checkbox from '#lib/components/ui/Checkbox.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
+	import PasswordField from '#lib/components/ui/PasswordField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import { watchOnline } from '#lib/offline/network.js';
@@ -74,10 +75,9 @@
 		bind:value={form.values.email}
 		error={form.errors.email}
 	/>
-	<TextField
+	<PasswordField
 		label={text.password}
 		name="password"
-		type="password"
 		autocomplete="new-password"
 		hint={text.passwordHint}
 		bind:value={form.values.password}

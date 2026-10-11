@@ -1,10 +1,10 @@
 <script lang="ts">
-	import PublicShell from '#lib/components/layout/PublicShell.svelte';
+	import AuthShell from '#lib/components/layout/AuthShell.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
 </script>
 
-<PublicShell>
+<AuthShell>
 	{@render children()}
-</PublicShell>
+</AuthShell>

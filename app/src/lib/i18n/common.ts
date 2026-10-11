@@ -57,6 +57,18 @@ export const common = {
 		notifications: 'Pemberitahuan'
 	},
 	auth: {
+		presentation: {
+			title: 'Titip jual bersama mitra',
+			eyebrow: 'Untuk penitip dan toko',
+			headline: 'Titipan rapi.',
+			headlineAccent: 'Mitra tetap sepakat.',
+			body: 'Dari barang dititipkan hingga setoran diterima, catat setiap langkah bersama mitra dalam satu tempat.',
+			caption: 'Satu catatan untuk penitip dan toko.',
+			backHome: 'Beranda',
+			footer: 'Trustip · Catatan titip jual bersama mitra'
+		},
+		showPassword: 'Tampilkan sandi',
+		hidePassword: 'Sembunyikan sandi',
 		register: {
 			title: 'Daftar akun',
 			intro: 'Satu akun untuk mencatat titipan, hitungan, dan setoran bersama mitra.',
@@ -82,6 +94,8 @@ export const common = {
 			submit: 'Masuk',
 			noAccount: 'Belum punya akun?',
 			register: 'Daftar',
+			demoTitle: 'Jelajahi Trustip dengan data contoh',
+			demoIntro: 'Pilih peran demo, lalu masuk setelah menyelesaikan verifikasi keamanan.',
 			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.',
 			demo: {
 				title: 'Coba akun demo',

@@ -29,9 +29,8 @@
 				<a href="/daftar" class="action-link"
 					>{text.register}<ArrowRight class="size-5" aria-hidden="true" /></a
 				>
-				<a
-					href="/masuk#coba-demo"
-					class="{linkClass} border border-border-strong bg-surface text-text">{text.tryDemo}</a
+				<a href="/demo" class="{linkClass} border border-border-strong bg-surface text-text"
+					>{text.tryDemo}</a
 				>
 			</div>
 			<p class="text-sm text-text-muted">{text.audienceDetail}</p>

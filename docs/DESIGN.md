@@ -76,6 +76,12 @@ Direktori Toko selalu menampilkan pencarian dan urutan. Filter lokasi, kategori,
 
 Daftar putih publik tidak berubah: harga setor, angka transaksi, lokasi persis penitip, nomor WhatsApp, dan jumlah stok per toko tidak ditambahkan. Verifikasi segel hanya menampilkan metadata yang diperbolehkan; segel tidak disebut tanda tangan tersertifikasi.
 
+### Akun dan identitas
+
+Masuk dan registrasi memakai kerangka akun khusus: header merek, pilihan tema dan kembali ke beranda; ilustrasi titip jual di kiri dan formulir di kanan pada desktop. Pada HP, ilustrasi menjadi ringkas di atas formulir. Semua teks tetap terbaca pada kedua tema, kontrol dapat dijangkau dengan keyboard, dan kata sandi dapat diperlihatkan melalui tombol berlabel. Formulir masuk dan registrasi tidak menampilkan akun contoh. Demo dari beranda diarahkan ke `/demo`, dengan captcha dan alur masuk yang sama.
+
+Logo aplikasi menggunakan gambar dua mitra biru dan paket jingga yang diberikan pengguna pada 10 Oktober 2026. Gambar dipakai pada merek, favicon, ikon instalasi dan ikon Apple; ekspor ukuran tidak mengubah bentuk atau warna logo. Biru tetap menjadi warna utama, sedangkan jingga digunakan sebagai aksen ilustrasi.
+
 ### Operasional
 
 Dasbor toko: lima angka spesifikasi, Hitung cepat dan Perlu tindakan, lalu Saran selebar area isi, diikuti Produk terlaris dan Peluang. Saran menampilkan tiga kartu awal; daftar lain menampilkan lima baris awal. Tombol buka/ringkas tetap menyediakan seluruh data. Dasbor penitip: empat angka spesifikasi, Perlu tindakan berdampingan dengan grafik mulai desktop, lalu Saran selebar isi, dua peringkat, dan Peluang selebar isi. Filter toko/produk berada di dalam kartu grafik dan mempertahankan fokus saat pilihan berubah. Pada HP, Perlu tindakan mendahului grafik. Saran menampilkan tiga kartu awal; peringkat dan Peluang menampilkan lima baris awal, dengan tombol buka/ringkas untuk sisanya. Kolom menyesuaikan ruang setelah sidebar; angka tidak diperkecil sampai sulit dibaca. Informasi gabungan tetap hanya untuk OWNER.

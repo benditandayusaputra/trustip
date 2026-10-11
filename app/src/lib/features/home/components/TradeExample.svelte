@@ -27,10 +27,7 @@
 	<p class="flex items-start gap-2 rounded-control bg-accent-surface p-4 text-sm text-accent">
 		<CheckCheck class="size-5 shrink-0" aria-hidden="true" />{text.sameRecord}
 	</p>
-	<a
-		href="/masuk#coba-demo"
-		class="inline-flex min-h-11 items-center gap-2 font-semibold text-accent"
-	>
+	<a href="/demo" class="inline-flex min-h-11 items-center gap-2 font-semibold text-accent">
 		{text.action}<ArrowRight class="size-4" aria-hidden="true" />
 	</a>
 	<p class="text-xs text-text-muted">{text.disclaimer}</p>

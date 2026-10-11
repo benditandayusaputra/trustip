@@ -18,6 +18,14 @@
 	--color-warning-fill: #92400e;
 	--color-warning-surface: #fffbeb;
 	--color-chart-fill: #2563eb;
+	--color-auth-surface: #eaf1ff;
+	--color-auth-ground: #d7e4ff;
+	--color-auth-orange: #f49c19;
+	--color-auth-parcel-top: #ffbc55;
+	--color-auth-parcel-side: #db7b08;
+	--color-auth-parcel-tape: #ffdaa0;
+	--color-auth-skin: #f5c4a0;
+	--color-auth-ink: #263b64;
 	--color-text: #152238;
 	--color-text-muted: #52627a;
 	--color-on-accent: #ffffff;
@@ -72,6 +80,7 @@
 	--container-content: 1200px;
 	--container-form: 640px;
 	--container-reading: 720px;
+	--container-auth-form: 480px;
 
 	--ease-*: initial;
 	--ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -89,6 +98,8 @@
 	--captcha-height: 65px;
 	--captcha-compact-height: 140px;
 	--captcha-min-width: 300px;
+	--auth-art-mobile-height: 112px;
+	--auth-art-height: 300px;
 	--sidebar-width: 240px;
 	--directory-columns: 320px minmax(0, 1fr);
 	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
@@ -111,6 +122,9 @@
 	--color-border-strong: #71819a;
 	--color-accent: #93c5fd;
 	--color-accent-surface: #172d50;
+	--color-auth-surface: #14233e;
+	--color-auth-ground: #1b3457;
+	--color-auth-ink: #6f91c9;
 	--color-danger: #fca5a5;
 	--color-danger-surface: #3b212b;
 	--color-success: #86efac;

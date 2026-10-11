@@ -132,6 +132,7 @@ async function visitorPages(page: Page): Promise<string[]> {
 		'/',
 		'/masuk',
 		'/daftar',
+		'/demo',
 		'/privasi',
 		'/ketentuan',
 		'/luring',
@@ -260,7 +261,7 @@ test(
 	{ tag: '@accessibility' },
 	async ({ browser }) => {
 		const page = await openPage(browser);
-		await page.goto('/masuk');
+		await page.goto('/demo');
 
 		await tabTo(page, 'Lewati ke konten');
 		await page.keyboard.press('Enter');
@@ -270,7 +271,7 @@ test(
 		await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', {
 			timeout: networkTimeoutMs
 		});
-		await tabTo(page, 'Masuk', 'Shift+Tab');
+		await tabTo(page, 'Masuk');
 		await page.keyboard.press('Enter');
 		await page.waitForURL(/\/app\/toko$/u, { timeout: networkTimeoutMs });
 		await expect(page.getByRole('heading', { name: 'Hitung cepat' })).toBeVisible({

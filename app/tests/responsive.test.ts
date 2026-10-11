@@ -3,7 +3,15 @@ import { networkTimeoutMs } from './session';
 
 const widths = [320, 768, 1440];
 const themes = ['light', 'dark'] as const;
-const publicPaths = ['/', '/masuk', '/daftar', '/privasi', '/cari/toko', '/halaman-tidak-ada'];
+const publicPaths = [
+	'/',
+	'/masuk',
+	'/daftar',
+	'/demo',
+	'/privasi',
+	'/cari/toko',
+	'/halaman-tidak-ada'
+];
 
 for (const width of widths) {
 	for (const theme of themes) {
@@ -15,7 +23,7 @@ for (const width of widths) {
 			await page.emulateMedia({ colorScheme: theme });
 			for (const path of publicPaths) {
 				await page.goto(path, { waitUntil: 'load' });
-				if (path === '/masuk' || path === '/daftar') {
+				if (path === '/masuk' || path === '/daftar' || path === '/demo') {
 					await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', {
 						timeout: networkTimeoutMs
 					});

@@ -32,7 +32,7 @@
 	<link rel="preload" href={interRegular} as="font" type="font/woff2" crossorigin="anonymous" />
 	<meta name="theme-color" content={pageThemeColor} />
 	<link rel="manifest" href="/manifest.webmanifest" />
-	<link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+	<link rel="icon" href="/icons/favicon.png" type="image/png" />
 	<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 </svelte:head>
 
