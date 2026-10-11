@@ -123,9 +123,16 @@ func (f Figures) add(other Figures) Figures {
 	}
 }
 
+type ProductPreview struct {
+	PhotoKey string
+	Slug     string
+	SKU      string
+}
+
 type Row struct {
-	Key   string
-	Label string
+	Product ProductPreview
+	Key     string
+	Label   string
 	Figures
 }
 

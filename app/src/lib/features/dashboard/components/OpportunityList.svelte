@@ -16,6 +16,7 @@
 	let { side, previewCount }: Props = $props();
 
 	const text = id.dashboard;
+	const loadingRows = 3;
 	const feed = new OpportunityFeed(apiClient);
 
 	$effect(() => {
@@ -25,7 +26,7 @@
 
 <Card title={text.opportunitiesTitle}>
 	{#if feed.status === 'loading'}
-		<Skeleton />
+		<Skeleton lines={loadingRows} shape="control" />
 	{:else if feed.status === 'failed'}
 		<p class="text-sm text-text-muted">{text.opportunitiesFailed}</p>
 	{:else if feed.items.length === 0}

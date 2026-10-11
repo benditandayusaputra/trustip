@@ -14,7 +14,7 @@
 	const text = id.dashboard;
 </script>
 
-<Card title={text.quickCountTitle}>
+<Card fill title={text.quickCountTitle}>
 	{#if partners.length === 0}
 		<p class="text-sm text-text-muted">{text.quickCountEmpty}</p>
 	{:else}

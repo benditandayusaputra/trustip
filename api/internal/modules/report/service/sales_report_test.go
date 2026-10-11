@@ -60,3 +60,13 @@ func TestGetSalesReport_BRRPT01_StaffCannotReadReports(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestGetSalesReport_ProductRankingPreservesPhotoAndAddress(t *testing.T) {
+	product := domain.ProductPreview{PhotoKey: "photo.webp", Slug: "roti-anton", SKU: "ROT-1"}
+	sales := &fakeSales{rows: []domain.Row{{Key: "a", Product: product}}}
+	report, err := service.NewGetSalesReport(sales).Execute(t.Context(), storeMember(actor.Owner),
+		domain.Filter{From: "2026-11-01", To: "2026-11-30", GroupBy: "PRODUCT"})
+	if err != nil || report.Rows[0].Product != product {
+		t.Fatalf("report = %+v, err = %v", report, err)
+	}
+}

@@ -30,7 +30,7 @@
 			lessLabel={id.dashboard.fewerInsights}
 		>
 			{#snippet children(limit: number)}
-				<ul class="grid grid-cols-(--insight-columns) items-start gap-4">
+				<ul class="grid auto-rows-fr grid-cols-(--insight-columns) items-stretch gap-4">
 					{#each cards.slice(0, limit) as card (card.key)}
 						<li
 							class="flex flex-col gap-2 rounded-control border border-l-4 border-border p-4 {edgeTone[
@@ -42,7 +42,7 @@
 							<p class="text-sm text-text-muted">{card.body}</p>
 							<a
 								href={card.href}
-								class="inline-flex min-h-11 items-center font-semibold text-accent"
+								class="mt-auto inline-flex min-h-11 items-center font-semibold text-accent"
 							>
 								{card.actionLabel}
 							</a>

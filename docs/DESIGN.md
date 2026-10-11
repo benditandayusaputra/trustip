@@ -86,7 +86,7 @@ Logo aplikasi menggunakan gambar dua mitra biru dan paket jingga yang diberikan 
 
 ### Operasional
 
-Dasbor toko: lima angka spesifikasi, Hitung cepat dan Perlu tindakan, lalu Saran selebar area isi, diikuti Produk terlaris dan Peluang. Saran menampilkan tiga kartu awal; daftar lain menampilkan lima baris awal. Tombol buka/ringkas tetap menyediakan seluruh data. Dasbor penitip: empat angka spesifikasi, Perlu tindakan berdampingan dengan grafik mulai desktop, lalu Saran selebar isi, dua peringkat, dan Peluang selebar isi. Filter toko/produk berada di dalam kartu grafik dan mempertahankan fokus saat pilihan berubah. Pada HP, Perlu tindakan mendahului grafik. Saran menampilkan tiga kartu awal; peringkat dan Peluang menampilkan lima baris awal, dengan tombol buka/ringkas untuk sisanya. Kolom menyesuaikan ruang setelah sidebar; angka tidak diperkecil sampai sulit dibaca. Informasi gabungan tetap hanya untuk OWNER.
+Dasbor toko: lima angka spesifikasi, Hitung cepat dan Perlu tindakan, lalu Saran selebar area isi, diikuti Peluang dan Produk terlaris yang masing-masing selebar isi. Hitung cepat dan Perlu tindakan memiliki tinggi sama pada desktop; seluruh kartu Saran memiliki tinggi sama. Saran menampilkan tiga kartu awal; daftar lain menampilkan lima baris awal. Tombol buka/ringkas tetap menyediakan seluruh data. Dasbor penitip: empat angka spesifikasi, Perlu tindakan berdampingan dengan grafik mulai desktop, lalu Saran selebar isi, Peluang, lalu dua peringkat yang masing-masing selebar isi. Filter toko/produk berada di dalam kartu grafik dan mempertahankan fokus saat pilihan berubah. Pada HP, Perlu tindakan mendahului grafik. Saran menampilkan tiga kartu awal; peringkat dan Peluang menampilkan lima baris awal, dengan tombol buka/ringkas untuk sisanya. Kolom menyesuaikan ruang setelah sidebar; angka tidak diperkecil sampai sulit dibaca. Produk terlaris menampilkan foto asli atau placeholder bila belum ada foto, serta tautan detail produk. Informasi gabungan tetap hanya untuk OWNER.
 
 Riwayat, katalog, Ajuan, Kemitraan, Kebutuhan dan Setoran memakai filter di atas isi, status berlabel dan tindakan sesuai hak akses. Detail dokumen membedakan nomor/status, isi, jejak konfirmasi, segel dan langkah berikutnya. Tabel desktop berubah menjadi daftar berlabel di HP; tabel padat hanya boleh memiliki overflow lokal.
 
@@ -97,7 +97,7 @@ Titipan Masuk dan Hitung Sisa memakai baris produk dan kontrol jumlah besar. Rin
 | Komponen | Aturan |
 |---|---|
 | Kartu | Permukaan sesuai tema, border dekoratif, radius 16 px, tanpa bayangan tebal |
-| Angka kunci | Label sekunder, angka utama monospace, keterangan opsional |
+| Angka kunci | Ikon sesuai data pada permukaan berwarna semantik, label sekunder, angka utama monospace, keterangan opsional |
 | Tombol utama | Primary biru, teks putih, tinggi minimal 48 px; satu aksi utama per konteks |
 | Sekunder | Permukaan sesuai tema, border kuat, teks utama |
 | Bahaya | Border/teks bahaya, akibat dijelaskan di konfirmasi |

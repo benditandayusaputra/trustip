@@ -1,10 +1,9 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
-	import KpiCard from '#lib/components/ui/KpiCard.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import DashboardFigures from './DashboardFigures.svelte';
+	import DashboardSkeleton from './DashboardSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
-	import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
 	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import { DashboardState, SalesOverview } from '../state.svelte';
 	import { rankedByGross, storeTasks, taskLinksOf } from '../views';
@@ -37,41 +36,30 @@
 </script>
 
 {#if board.status === 'loading'}
-	<Skeleton />
+	<DashboardSkeleton side="STORE" />
 {:else if board.status === 'failed' || !board.dashboard}
 	<Alert title={text.loadFailed}>{board.failure}</Alert>
 {:else}
 	{@const figures = board.dashboard.figures}
-	<div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
-		<KpiCard label={text.activePartners} value={formatInteger(figures.active_partners)} />
-		<KpiCard label={text.unitsConsigned} value={formatInteger(figures.stock_units)} />
-		{#if summary}
-			<KpiCard label={text.grossLast30} value={formatRupiah(summary.split.gross)} />
-			<KpiCard label={text.storeShareLast30} value={formatRupiah(summary.split.store_share)} />
-		{/if}
-		<KpiCard
-			label={text.mustPayTotal}
-			value={formatRupiah(figures.unpaid.amount)}
-			caption={text.dueSoonCaption(figures.due_soon.count, formatRupiah(figures.due_soon.amount))}
-		/>
-	</div>
-	<div class="grid items-start gap-6 lg:grid-cols-12">
-		<div class="lg:col-span-8">
+	<DashboardFigures {figures} {summary} salesStatus={sales.status} {isOwner} side="STORE" />
+	<div class="grid items-stretch gap-6 lg:grid-cols-12">
+		<div class="min-w-0 lg:col-span-8">
 			<QuickCountList partners={board.dashboard.quick_count} previewCount={listPreview} />
 		</div>
-		<div class="lg:col-span-4"><TaskList tasks={taskLinksOf(board.dashboard, storeTasks)} /></div>
+		<div class="min-w-0 lg:col-span-4">
+			<TaskList tasks={taskLinksOf(board.dashboard, storeTasks)} />
+		</div>
 	</div>
 	<InsightList insights={board.insights} side="STORE" previewCount={suggestionPreview} />
-	<div class="grid items-start gap-6 lg:grid-cols-2">
-		{#if isOwner}
-			<RankingList
-				title={text.rankingProducts}
-				rows={rankedByGross(sales.byProduct)}
-				previewCount={listPreview}
-			/>
-		{:else}
-			<p class="text-sm text-text-muted">{text.ownerOnly}</p>
-		{/if}
-		<OpportunityList side="STORE" previewCount={listPreview} />
-	</div>
+	<OpportunityList side="STORE" previewCount={listPreview} />
+	{#if isOwner}
+		<RankingList
+			title={text.rankingProducts}
+			rows={rankedByGross(sales.byProduct)}
+			status={sales.status}
+			previewCount={listPreview}
+		/>
+	{:else}
+		<p class="text-sm text-text-muted">{text.ownerOnly}</p>
+	{/if}
 {/if}

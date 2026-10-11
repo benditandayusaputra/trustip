@@ -21,10 +21,11 @@
 		onsignedout: () => void;
 		onmisplaced: (account: Account) => void;
 		actions?: Snippet;
+		loading?: Snippet;
 		children: Snippet;
 	}
 
-	let { placement, onsignedout, onmisplaced, actions, children }: Props = $props();
+	let { placement, onsignedout, onmisplaced, actions, children, loading }: Props = $props();
 
 	const session = new AccountSession(apiClient);
 	setAccountSession(session);
@@ -92,7 +93,7 @@
 			{/snippet}
 		</Alert>
 	{:else}
-		<Skeleton />
+		{#if loading}{@render loading()}{:else}<Skeleton />{/if}
 	{/if}
 {/snippet}
 

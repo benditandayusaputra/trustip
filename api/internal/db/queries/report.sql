@@ -28,6 +28,7 @@ WITH scoped AS (
 )
 SELECT
     o.id::text AS key, o.name AS label,
+    ''::text AS photo_key, ''::text AS consignor_slug, ''::text AS sku,
     COALESCE(SUM(f.sold_qty), 0)::bigint AS sold_qty, COALESCE(SUM(f.gross_amount), 0)::bigint AS gross_amount,
     COALESCE(SUM(f.store_share_amount), 0)::bigint AS store_share_amount,
     COALESCE(SUM(f.consignor_share_amount), 0)::bigint AS consignor_share_amount,
@@ -69,13 +70,16 @@ WITH scoped AS (
 )
 SELECT
     pr.id::text AS key, (pr.name || ' (' || pr.sku || ')')::text AS label,
+    COALESCE(image.storage_key, '')::text AS photo_key, owner.slug::text AS consignor_slug, pr.sku::text AS sku,
     COALESCE(SUM(f.sold_qty), 0)::bigint AS sold_qty, COALESCE(SUM(f.gross_amount), 0)::bigint AS gross_amount,
     COALESCE(SUM(f.store_share_amount), 0)::bigint AS store_share_amount,
     COALESCE(SUM(f.consignor_share_amount), 0)::bigint AS consignor_share_amount,
     COALESCE(SUM(f.returned_qty), 0)::bigint AS returned_qty, COALESCE(SUM(f.received_qty), 0)::bigint AS received_qty
 FROM facts AS f
 JOIN products AS pr ON pr.id = f.product_id
-GROUP BY pr.id, pr.name, pr.sku
+JOIN organizations AS owner ON owner.id = pr.consignor_org_id
+LEFT JOIN files AS image ON image.id = pr.photo_file_id
+GROUP BY pr.id, pr.name, pr.sku, owner.slug, image.storage_key
 ORDER BY gross_amount DESC, pr.name;
 
 -- name: SalesByDay :many
@@ -109,6 +113,7 @@ WITH scoped AS (
 SELECT
     to_char(f.occurred_at AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD')::text AS key,
     to_char(f.occurred_at AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD')::text AS label,
+    ''::text AS photo_key, ''::text AS consignor_slug, ''::text AS sku,
     COALESCE(SUM(f.sold_qty), 0)::bigint AS sold_qty, COALESCE(SUM(f.gross_amount), 0)::bigint AS gross_amount,
     COALESCE(SUM(f.store_share_amount), 0)::bigint AS store_share_amount,
     COALESCE(SUM(f.consignor_share_amount), 0)::bigint AS consignor_share_amount,

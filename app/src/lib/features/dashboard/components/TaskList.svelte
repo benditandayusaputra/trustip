@@ -15,7 +15,7 @@
 	let { tasks }: Props = $props();
 </script>
 
-<Card title={id.dashboard.tasksTitle}>
+<Card fill title={id.dashboard.tasksTitle}>
 	{#if tasks.length === 0}
 		<p class="text-sm text-text-muted">{id.dashboard.noTasks}</p>
 	{:else}

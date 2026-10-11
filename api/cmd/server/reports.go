@@ -9,6 +9,7 @@ import (
 func reportDeps(reports *reportrepository.Reports, routes tradeRoutes) reporthandler.Deps {
 	return reporthandler.Deps{
 		Authenticate: routes.authenticate,
+		FilesBaseURL: routes.filesBaseURL,
 		Sales:        reportservice.NewGetSalesReport(reports),
 		Daily:        reportservice.NewGetDailyRecap(reports, routes.clock),
 		Settlements:  reportservice.NewGetSettlementReport(reports, routes.clock),

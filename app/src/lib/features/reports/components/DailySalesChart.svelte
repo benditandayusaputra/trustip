@@ -44,7 +44,7 @@
 		{@render controls()}
 	{/if}
 	{#if daily.status === 'loading'}
-		<Skeleton />
+		<Skeleton shape="chart" />
 	{:else if daily.status === 'failed' || !daily.report}
 		<p class="text-sm text-text">{text.chartFailed}</p>
 	{:else}
@@ -53,7 +53,7 @@
 			<ResponsiveTable caption={text.dailyChart} {columns} rows={dayCells(report)} rowKey="key" />
 		{:else}
 			{#await import('#lib/components/ui/AreaChart.svelte')}
-				<Skeleton />
+				<Skeleton shape="chart" />
 			{:then chart}
 				<chart.default
 					caption={text.chartCaption(

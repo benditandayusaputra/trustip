@@ -4,6 +4,8 @@
 	import type { Account } from '#lib/api/users.js';
 	import { page } from '$app/state';
 	import { dashboardPath } from '#lib/features/account/session.svelte.js';
+	import DashboardSkeleton from '#lib/features/dashboard/components/DashboardSkeleton.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
 	import { onboardingHref, signInHref } from '#lib/features/auth/links.js';
 	import OfflineKeeper from '#lib/features/outbox/components/OfflineKeeper.svelte';
@@ -32,6 +34,13 @@
 			{ replaceState: true }
 		)}
 >
+	{#snippet loading()}
+		{#if page.url.pathname === '/app/toko' || page.url.pathname === '/app/penitip'}
+			<DashboardSkeleton side={page.url.pathname === '/app/toko' ? 'STORE' : 'CONSIGNOR'} />
+		{:else}
+			<Skeleton />
+		{/if}
+	{/snippet}
 	{#snippet actions()}
 		<OfflineKeeper />
 		<OutboxBadge />

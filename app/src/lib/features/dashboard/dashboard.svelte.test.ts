@@ -60,7 +60,16 @@ function salesReport(groupBy: string) {
 		to: '2026-11-20',
 		group_by: groupBy,
 		summary: figures,
-		rows: [{ key: storeId, label, ...figures }]
+		rows: [
+			{
+				key: storeId,
+				label,
+				...figures,
+				...(groupBy === 'PRODUCT' && {
+					product: { photo_url: '/product-photo.png', href: '/produk/roti-anton/ROT-1' }
+				})
+			}
+		]
 	};
 }
 
@@ -250,6 +259,10 @@ describe('Store dashboard', () => {
 			.toHaveAttribute('href', '/app/setoran');
 		await expect.element(page.getByRole('link', { name: '1 pembayaran ditolak' })).toBeVisible();
 		await expect.element(page.getByText('1. Roti Sobek (ROT-1)')).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: /Roti Sobek.*Lihat detail/u }))
+			.toHaveAttribute('href', '/produk/roti-anton/ROT-1');
+		expect(container.querySelector('img')?.getAttribute('src')).toBe('/product-photo.png');
 		await expect
 			.element(page.getByRole('link', { name: /Butuh roti sarapan 2 tanggapan/u }))
 			.toHaveAttribute('href', `/app/kebutuhan/${needId}`);

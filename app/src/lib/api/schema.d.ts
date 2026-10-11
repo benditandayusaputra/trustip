@@ -2837,7 +2837,12 @@ export interface components {
             returned_bps: number;
             split: components["schemas"]["Split"];
         };
+        SalesProductPreview: {
+            photo_url: string | null;
+            href: string;
+        };
         SalesReportRow: {
+            product?: components["schemas"]["SalesProductPreview"];
             key: string;
             label: string;
             sold_qty: number;

@@ -13,10 +13,13 @@ func TestSalesReport_BRRPT03_TotalsMatchTheSettlementOfTheSameRange(t *testing.T
 
 	byPartner := scene.store.get(salesReportPath)
 	byProduct := scene.consignor.get(salesReportPath + "&group_by=PRODUCT")
+	storeProducts := scene.store.get(salesReportPath + "&group_by=PRODUCT")
 	settlement := scene.store.get(settlementsPath + "/" + scene.settlementID)
 
 	requireCode(t, byPartner, "OK")
 	loadContract(t).requireConforms(t, byPartner)
+	loadContract(t).requireConforms(t, byProduct)
+	loadContract(t).requireConforms(t, storeProducts)
 	split := `"split":{"gross":36000,"store_share":4500,"consignor_share":31500}`
 	if !strings.Contains(string(settlement.body), split) {
 		t.Fatalf("settlement = %s", settlement.body)
@@ -28,6 +31,11 @@ func TestSalesReport_BRRPT03_TotalsMatchTheSettlementOfTheSameRange(t *testing.T
 	if !strings.Contains(string(byProduct.body), split) ||
 		!strings.Contains(string(byProduct.body), `"group_by":"PRODUCT"`) {
 		t.Fatalf("by product = %s", byProduct.body)
+	}
+	for _, report := range []exchange{byProduct, storeProducts} {
+		if !strings.Contains(string(report.body), `"product":{"photo_url":null,"href":"/produk/`) {
+			t.Fatalf("product preview = %s", report.body)
+		}
 	}
 }
 

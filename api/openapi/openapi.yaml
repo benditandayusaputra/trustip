@@ -7059,11 +7059,23 @@ components:
           minimum: 0
         split:
           $ref: "#/components/schemas/Split"
+    SalesProductPreview:
+      type: object
+      additionalProperties: false
+      required: [photo_url, href]
+      properties:
+        photo_url:
+          type: string
+          nullable: true
+        href:
+          type: string
     SalesReportRow:
       type: object
       additionalProperties: false
       required: [key, label, sold_qty, returned_qty, received_qty, returned_bps, split]
       properties:
+        product:
+          $ref: "#/components/schemas/SalesProductPreview"
         key:
           type: string
         label:

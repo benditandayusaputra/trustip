@@ -3,7 +3,7 @@ import type { SalesNarrowing, SalesReport } from '#lib/api/reports.js';
 import { rangeOf, type DateRange } from '#lib/domain/ranges.js';
 import { businessDateOf, formatRupiah } from '#lib/i18n/format.js';
 import { dashboard as id } from '#lib/i18n/dashboard.js';
-import type { RankedRow } from './components/RankingList.svelte';
+import type { RankedRow } from './ranking';
 import type { TaskLink } from './components/TaskList.svelte';
 
 const maxRankedRows = 5;
@@ -67,7 +67,12 @@ export function rankedByGross(report: SalesReport | undefined): RankedRow[] {
 	return (report?.rows ?? [])
 		.filter((row) => row.sold_qty > 0)
 		.slice(0, maxRankedRows)
-		.map((row) => ({ key: row.key, label: row.label, value: formatRupiah(row.split.gross) }));
+		.map((row) => ({
+			key: row.key,
+			label: row.label,
+			value: formatRupiah(row.split.gross),
+			product: row.product
+		}));
 }
 
 export interface ChartChoice {

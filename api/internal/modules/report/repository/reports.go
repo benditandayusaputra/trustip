@@ -68,13 +68,17 @@ func (r *Reports) SalesRows(ctx context.Context, query domain.Query) ([]domain.R
 	}
 	found := make([]domain.Row, 0, len(rows))
 	for _, row := range rows {
-		found = append(found, domain.Row{Key: row.Key, Label: row.Label, Figures: domain.Figures{
-			SoldQty: int(row.SoldQty), ReturnedQty: int(row.ReturnedQty), ReceivedQty: int(row.ReceivedQty),
-			Split: pricing.Split{
-				Gross: money.Rupiah(row.GrossAmount), StoreShare: money.Rupiah(row.StoreShareAmount),
-				ConsignorShare: money.Rupiah(row.ConsignorShareAmount),
+		found = append(found, domain.Row{
+			Key: row.Key, Label: row.Label,
+			Product: domain.ProductPreview{PhotoKey: row.PhotoKey, Slug: row.ConsignorSlug, SKU: row.Sku},
+			Figures: domain.Figures{
+				SoldQty: int(row.SoldQty), ReturnedQty: int(row.ReturnedQty), ReceivedQty: int(row.ReceivedQty),
+				Split: pricing.Split{
+					Gross: money.Rupiah(row.GrossAmount), StoreShare: money.Rupiah(row.StoreShareAmount),
+					ConsignorShare: money.Rupiah(row.ConsignorShareAmount),
+				},
 			},
-		}})
+		})
 	}
 	return found, nil
 }

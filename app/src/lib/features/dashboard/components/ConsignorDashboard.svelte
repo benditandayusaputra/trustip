@@ -1,13 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Alert from '#lib/components/ui/Alert.svelte';
-	import KpiCard from '#lib/components/ui/KpiCard.svelte';
+	import DashboardFigures from './DashboardFigures.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import DashboardSkeleton from './DashboardSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { SalesNarrowing } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
-	import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
 	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import { DashboardState, SalesOverview } from '../state.svelte';
 	import {
@@ -47,26 +46,12 @@
 </script>
 
 {#if board.status === 'loading'}
-	<Skeleton />
+	<DashboardSkeleton side="CONSIGNOR" />
 {:else if board.status === 'failed' || !board.dashboard}
 	<Alert title={text.loadFailed}>{board.failure}</Alert>
 {:else}
 	{@const figures = board.dashboard.figures}
-	<div class="grid grid-cols-2 gap-4 {summary ? 'lg:grid-cols-4' : ''}">
-		<KpiCard label={text.unitsAtStores} value={formatInteger(figures.stock_units)} />
-		{#if summary}
-			<KpiCard label={text.soldLast30} value={formatInteger(summary.sold_qty)} />
-			<KpiCard
-				label={text.consignorShareLast30}
-				value={formatRupiah(summary.split.consignor_share)}
-			/>
-		{/if}
-		<KpiCard
-			label={text.unpaidSettlements}
-			value={formatRupiah(figures.unpaid.amount)}
-			caption={text.overdueCaption(figures.overdue.count, formatRupiah(figures.overdue.amount))}
-		/>
-	</div>
+	<DashboardFigures {figures} {summary} salesStatus={sales.status} {isOwner} side="CONSIGNOR" />
 	{#snippet chartControls()}
 		<Select
 			label={text.chartFilter}
@@ -88,19 +73,21 @@
 		<p class="text-sm text-text-muted">{text.ownerOnly}</p>
 	{/if}
 	<InsightList insights={board.insights} side="CONSIGNOR" previewCount={suggestionPreview} />
+	<OpportunityList side="CONSIGNOR" previewCount={listPreview} />
 	{#if isOwner}
-		<div class="grid items-start gap-6 lg:grid-cols-2">
+		<div class="flex flex-col gap-6">
 			<RankingList
 				title={text.rankingStores}
 				rows={rankedByGross(sales.byPartner)}
+				status={sales.status}
 				previewCount={listPreview}
 			/>
 			<RankingList
 				title={text.rankingProducts}
 				rows={rankedByGross(sales.byProduct)}
+				status={sales.status}
 				previewCount={listPreview}
 			/>
 		</div>
 	{/if}
-	<OpportunityList side="CONSIGNOR" previewCount={listPreview} />
 {/if}
