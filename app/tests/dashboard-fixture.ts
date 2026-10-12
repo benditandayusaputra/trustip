@@ -68,7 +68,7 @@ function salesReport(group: string) {
 				label: group === 'PARTNER' ? 'Warung Bu Tini' : 'Roti Sobek (ROT-1)',
 				...sales,
 				...(group === 'PRODUCT' && {
-					product: { photo_url: '/icons/icon-192.png', href: '/produk/roti-anton/ROT-1' }
+					product: { photo_url: '/icons/icon-192.png', href: '/p/roti-anton/ROT-1' }
 				})
 			}
 		]

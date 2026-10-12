@@ -125,7 +125,7 @@ func toProductResponse(product domain.ProductPreview, filesBaseURL string) *prod
 	if product.Slug == "" || product.SKU == "" {
 		return nil
 	}
-	preview := &productResponse{Href: "/produk/" + url.PathEscape(product.Slug) + "/" + url.PathEscape(product.SKU)}
+	preview := &productResponse{Href: "/p/" + url.PathEscape(product.Slug) + "/" + url.PathEscape(product.SKU)}
 	if product.PhotoKey != "" {
 		photoURL := strings.TrimRight(filesBaseURL, "/") + "/" + product.PhotoKey
 		preview.PhotoURL = &photoURL

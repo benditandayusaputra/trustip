@@ -33,7 +33,7 @@ func TestSalesReport_BRRPT03_TotalsMatchTheSettlementOfTheSameRange(t *testing.T
 		t.Fatalf("by product = %s", byProduct.body)
 	}
 	for _, report := range []exchange{byProduct, storeProducts} {
-		if !strings.Contains(string(report.body), `"product":{"photo_url":null,"href":"/produk/`) {
+		if !strings.Contains(string(report.body), `"product":{"photo_url":null,"href":"/p/`) {
 			t.Fatalf("product preview = %s", report.body)
 		}
 	}

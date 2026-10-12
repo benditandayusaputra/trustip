@@ -98,7 +98,7 @@ for (const side of ['STORE', 'CONSIGNOR'] as const) {
 			await page.screenshot({ path: testInfo.outputPath(`${side}-${theme}.png`), fullPage: true });
 		}
 		await page.getByRole('link', { name: /Roti Sobek.*Lihat detail/u }).click();
-		await expect(page).toHaveURL(/\/produk\/roti-anton\/ROT-1$/u);
+		await expect(page).toHaveURL(/\/p\/roti-anton\/ROT-1$/u);
 	});
 }
 
