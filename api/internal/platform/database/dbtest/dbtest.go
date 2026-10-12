@@ -42,9 +42,7 @@ func Connect(t *testing.T, databaseURL string) *pgx.Conn {
 		t.Fatalf("connect test database: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := conn.Close(context.WithoutCancel(t.Context())); err != nil {
-			t.Errorf("close test connection: %v", err)
-		}
+		closeConnection(t, conn)
 	})
 	return conn
 }
@@ -58,13 +56,32 @@ func TemporaryDatabase(t *testing.T) string {
 	if _, err := admin.Exec(t.Context(), "CREATE DATABASE "+identifier); err != nil {
 		t.Fatalf("create temporary database: %v", err)
 	}
+	closeConnection(t, admin)
 	t.Cleanup(func() {
-		ctx := context.WithoutCancel(t.Context())
-		if _, err := admin.Exec(ctx, "DROP DATABASE "+identifier+" WITH (FORCE)"); err != nil {
-			t.Errorf("drop temporary database: %v", err)
-		}
+		dropTemporaryDatabase(t, baseURL, identifier)
 	})
 	return withDatabaseName(t, baseURL, name)
+}
+
+func dropTemporaryDatabase(t *testing.T, databaseURL, identifier string) {
+	t.Helper()
+	ctx := context.WithoutCancel(t.Context())
+	conn, err := pgx.Connect(ctx, databaseURL)
+	if err != nil {
+		t.Errorf("connect for temporary database cleanup: %v", err)
+		return
+	}
+	defer closeConnection(t, conn)
+	if _, err := conn.Exec(ctx, "DROP DATABASE "+identifier+" WITH (FORCE)"); err != nil {
+		t.Errorf("drop temporary database: %v", err)
+	}
+}
+
+func closeConnection(t *testing.T, conn *pgx.Conn) {
+	t.Helper()
+	if err := conn.Close(context.WithoutCancel(t.Context())); err != nil {
+		t.Errorf("close test connection: %v", err)
+	}
 }
 
 func withDatabaseName(t *testing.T, databaseURL, name string) string {
@@ -98,7 +115,7 @@ func MigratedDatabase(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("prepare migrations: %v", err)
 	}
-	if _, err := provider.Up(t.Context()); err != nil {
+	if err := migrate(t.Context(), provider.Up); err != nil {
 		t.Fatalf("migrate temporary database: %v", err)
 	}
 	return databaseURL

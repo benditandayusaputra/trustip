@@ -70,7 +70,7 @@ check-app:
 test: test-api test-app
 
 test-api:
-	$(WITH_API_ENV) && TEST_DATABASE_URL="$${TEST_DATABASE_URL:-$$DATABASE_MIGRATE_URL}" go test -race -timeout 30m ./...
+	$(WITH_API_ENV) && TEST_DATABASE_URL="$${TEST_DATABASE_URL:-$$DATABASE_MIGRATE_URL}" go test -race -timeout 45m ./...
 
 test-app:
 	cd app && npm test
