@@ -2,7 +2,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Proposal } from '#lib/api/proposals.js';
 	import { formatBasisPoints, formatDateTime, formatRupiah } from '#lib/i18n/format.js';
@@ -83,7 +83,7 @@
 </script>
 
 {#if record.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if record.status === 'failed' || !record.proposal}
 	<Alert title={text.loadFailed}>{record.failure}</Alert>
 {:else}

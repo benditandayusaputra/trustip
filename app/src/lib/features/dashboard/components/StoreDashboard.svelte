@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import DashboardFigures from './DashboardFigures.svelte';
-	import DashboardSkeleton from './DashboardSkeleton.svelte';
+	import DashboardSkeleton from '#lib/components/ui/DashboardSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { dashboard as id } from '#lib/i18n/dashboard.js';

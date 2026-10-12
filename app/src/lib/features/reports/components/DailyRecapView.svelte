@@ -5,7 +5,7 @@
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { reports as id } from '#lib/i18n/reports.js';
 	import { DailyRecapState } from '../recaps.svelte';
@@ -31,7 +31,7 @@
 
 <DateField label={text.date} value={state.date} onchange={(date: string) => (state.date = date)} />
 {#if state.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="report" />
 {:else if state.status === 'failed' || !state.recap}
 	<Alert title={text.loadFailed}>{state.failure}</Alert>
 {:else if state.recap.rows.length === 0}

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { page } from '$app/state';
+	import { navigating, page } from '$app/state';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import PageSkeleton from '#lib/components/layout/PageSkeleton.svelte';
+	import { pendingPagePath } from '#lib/components/layout/page-skeleton.js';
 	import AppShell from '#lib/components/layout/AppShell.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { common as id } from '#lib/i18n/common.js';
@@ -93,7 +94,7 @@
 			{/snippet}
 		</Alert>
 	{:else}
-		{#if loading}{@render loading()}{:else}<Skeleton />{/if}
+		{#if loading}{@render loading()}{:else}<PageSkeleton path={page.url.pathname} />{/if}
 	{/if}
 {/snippet}
 
@@ -102,6 +103,7 @@
 		? session.account?.membership?.organization_type
 		: undefined}
 	currentPath={page.url.pathname}
+	pendingPath={pendingPagePath(navigating.to?.url, page.url)}
 	actions={toolbar}
 	children={content}
 />

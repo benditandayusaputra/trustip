@@ -3,7 +3,7 @@
 	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Partnership } from '#lib/api/partnerships.js';
@@ -65,7 +65,7 @@
 </script>
 
 {#if record.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if record.status === 'failed' || !record.partnership}
 	<Alert title={id.partners.loadFailed}>{record.failure}</Alert>
 {:else}

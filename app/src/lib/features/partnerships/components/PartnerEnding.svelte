@@ -19,6 +19,7 @@
 
 	const text = id.partners;
 	const maxReasonLength = 500;
+	const loadingLines = 3;
 	const toaster = getToaster();
 	const record = new EndingRecord(apiClient);
 	let open = $state(false);
@@ -43,7 +44,7 @@
 <Card title={text.end}>
 	<p class="text-sm text-text-muted">{text.endIntro}</p>
 	{#if record.status === 'loading'}
-		<Skeleton />
+		<Skeleton lines={loadingLines} />
 	{:else if record.status === 'failed'}
 		<p class="text-sm text-text">{text.blockersFailed}</p>
 	{:else if record.blockers.length === 0}

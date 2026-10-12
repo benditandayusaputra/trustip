@@ -3,7 +3,7 @@
 	import Handshake from '@lucide/svelte/icons/handshake';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { common as commonText } from '#lib/i18n/common.js';
 	import { drops as dropsText } from '#lib/i18n/drops.js';
@@ -26,7 +26,7 @@
 </script>
 
 {#if partners.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="list" />
 {:else if partners.status === 'failed'}
 	<Alert title={text.partnersFailed}>{partners.failure}</Alert>
 {:else if partners.items.length === 0}

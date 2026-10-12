@@ -3,7 +3,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime, formatInteger } from '#lib/i18n/format.js';
 	import { stock as id } from '#lib/i18n/stock.js';
@@ -28,7 +28,7 @@
 </script>
 
 {#if record.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if record.status === 'failed' || !record.card}
 	<Alert title={text.cardFailed}>{record.failure}</Alert>
 {:else}

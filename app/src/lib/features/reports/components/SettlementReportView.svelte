@@ -6,7 +6,7 @@
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { RangePreset } from '#lib/domain/ranges.js';
 	import { reports as id } from '#lib/i18n/reports.js';
@@ -51,7 +51,7 @@
 	{/if}
 </fieldset>
 {#if state.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="report" />
 {:else if state.status === 'failed' || !state.report}
 	<Alert title={text.loadFailed}>{state.failure}</Alert>
 {:else if state.report.rows.length === 0}

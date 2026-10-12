@@ -6,7 +6,7 @@
 	import DateField from '#lib/components/ui/DateField.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { CountFilter } from '#lib/api/counts.js';
 	import { formatDateTime, formatRupiah } from '#lib/i18n/format.js';
@@ -65,7 +65,7 @@
 	/>
 </fieldset>
 {#if history.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="list" />
 {:else if history.status === 'failed'}
 	<Alert title={text.historyFailed}>{history.failure}</Alert>
 {:else if history.items.length === 0}

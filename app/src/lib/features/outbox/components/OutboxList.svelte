@@ -4,7 +4,7 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { offline as id } from '#lib/i18n/offline.js';
 	import { watchOutbox } from '#lib/offline/announcer.js';
@@ -54,7 +54,7 @@
 	<Alert title={text.oldWarning(oldCount)}>{text.iosNote}</Alert>
 {/if}
 {#if queue.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="list" />
 {:else if queue.status === 'failed'}
 	<Alert title={text.loadFailed}>{queue.failure}</Alert>
 {:else if queue.entries.length === 0}

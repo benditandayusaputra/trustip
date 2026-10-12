@@ -3,11 +3,16 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Brand from './Brand.svelte';
 	import SkipLink from './SkipLink.svelte';
+	import NavigationContent from './NavigationContent.svelte';
 	import TradeIllustration from '../ui/TradeIllustration.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
 	import { common as id } from '#lib/i18n/common.js';
 
-	let { children }: { children: Snippet } = $props();
+	interface Props {
+		children: Snippet;
+		pendingPath?: string | undefined;
+	}
+	let { children, pendingPath }: Props = $props();
 	const text = id.auth.presentation;
 </script>
 
@@ -47,7 +52,7 @@
 			<p class="text-center text-sm font-medium text-text-muted lg:text-left">{text.caption}</p>
 		</aside>
 		<div class="mx-auto w-full max-w-auth-form">
-			{@render children()}
+			<NavigationContent {pendingPath}>{@render children()}</NavigationContent>
 		</div>
 	</main>
 	<footer

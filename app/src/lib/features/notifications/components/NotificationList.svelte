@@ -4,7 +4,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Notification } from '#lib/api/notifications.js';
@@ -34,7 +34,7 @@
 </script>
 
 {#if inbox.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="list" />
 {:else if inbox.status === 'failed'}
 	<Alert title={text.loadFailed}>
 		{inbox.failure}

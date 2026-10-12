@@ -4,7 +4,7 @@
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import SealPanel from '#lib/components/ui/SealPanel.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Settlement } from '#lib/api/settlements.js';
 	import { formatBusinessDate, formatDate, formatDateTime } from '#lib/i18n/format.js';
@@ -62,7 +62,7 @@
 </script>
 
 {#if record.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if record.status === 'failed' || !record.settlement}
 	<Alert title={text.loadFailed}>{record.failure}</Alert>
 {:else}

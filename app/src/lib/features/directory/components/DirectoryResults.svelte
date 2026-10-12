@@ -4,7 +4,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { directory as id } from '#lib/i18n/directory.js';
 	import { watchOnline } from '#lib/offline/network.js';
 	import type { DirectoryList } from '../state.svelte';
@@ -41,7 +41,7 @@
 	</p>
 {/if}
 {#if list.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="cards" />
 {:else if list.status === 'failed'}
 	<Alert title={failedTitle}>
 		{list.failure}

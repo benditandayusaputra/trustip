@@ -3,7 +3,7 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { NeedAction } from '#lib/api/needs.js';
@@ -48,7 +48,7 @@
 </script>
 
 {#if record.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if record.status === 'failed' || !record.detail}
 	<Alert title={text.failed}>{record.failure}</Alert>
 {:else}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import SkipLink from './SkipLink.svelte';
+	import NavigationContent from './NavigationContent.svelte';
 	import Brand from './Brand.svelte';
 	import PublicFooter from './PublicFooter.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
@@ -10,9 +11,10 @@
 		children: Snippet;
 		footerNote?: Snippet;
 		actions?: Snippet;
+		pendingPath?: string | undefined;
 	}
 
-	let { children, footerNote, actions }: Props = $props();
+	let { children, footerNote, actions, pendingPath }: Props = $props();
 </script>
 
 <SkipLink />
@@ -47,7 +49,7 @@
 		</div>
 	</header>
 	<main id="konten" tabindex="-1" class="mx-auto w-full max-w-content flex-1 px-4 py-8 lg:px-8">
-		{@render children()}
+		<NavigationContent {pendingPath}>{@render children()}</NavigationContent>
 	</main>
 	<PublicFooter note={footerNote} />
 </div>

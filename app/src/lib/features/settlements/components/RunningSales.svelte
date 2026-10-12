@@ -13,6 +13,7 @@
 	let { partnershipId }: Props = $props();
 
 	const text = id.settlements;
+	const loadingLines = 4;
 	const record = new RunningRecord(apiClient);
 
 	$effect(() => {
@@ -24,7 +25,7 @@
 	<div class="flex flex-col gap-2">
 		<p class="text-sm text-text-muted">{text.runningHint}</p>
 		{#if record.status === 'loading'}
-			<Skeleton />
+			<Skeleton lines={loadingLines} />
 		{:else if record.status === 'failed' || !record.running}
 			<p class="text-sm text-text">{text.runningFailed}</p>
 		{:else if !record.running.has_sales}

@@ -6,7 +6,7 @@
 	import DateField from '#lib/components/ui/DateField.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import FormActions from '#lib/components/ui/FormActions.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import { common as commonText } from '#lib/i18n/common.js';
@@ -84,7 +84,7 @@
 </script>
 
 {#if composer.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="form" />
 {:else if composer.status === 'failed'}
 	<Alert title={text.loadFailed}>{composer.failure}</Alert>
 {:else if composer.lines.length === 0}

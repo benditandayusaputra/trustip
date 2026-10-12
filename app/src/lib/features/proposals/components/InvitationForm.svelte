@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import Checkbox from '#lib/components/ui/Checkbox.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
@@ -33,6 +34,7 @@
 	}: Props = $props();
 
 	const text = id.proposals;
+	const loadingRows = 2;
 	const composer = new InvitationComposer(
 		apiClient,
 		() => targetId,
@@ -41,12 +43,15 @@
 	const listsProducts = $derived(isConsignor || targetId !== '');
 	const toaster = getToaster();
 	let formElement: HTMLFormElement | undefined = $state();
+	let catalogLoading = $state(true);
 
 	$effect(() => {
 		if (isConsignor) {
-			void composer.loadCatalog();
+			catalogLoading = true;
+			void composer.loadCatalog().finally(() => (catalogLoading = false));
 		} else if (targetId !== '') {
-			void composer.loadTargetCatalog(preselectedProductId);
+			catalogLoading = true;
+			void composer.loadTargetCatalog(preselectedProductId).finally(() => (catalogLoading = false));
 		}
 	});
 
@@ -70,18 +75,22 @@
 		<fieldset class="flex flex-col gap-2">
 			<legend class="mb-2 text-lg font-semibold text-text">{text.products}</legend>
 			<p class="text-sm text-text-muted">{text.productsHint}</p>
-			{#each composer.catalog as entry (entry.id)}
-				<Checkbox
-					checked={composer.isChosen(entry.id)}
-					onchange={(isChosen: boolean) => {
-						composer.choose(entry, isChosen);
-					}}
-				>
-					{entry.name} · {formatRupiah(entry.retailPrice)}
-				</Checkbox>
+			{#if catalogLoading}
+				<ContentSkeleton variant="list" rows={loadingRows} />
 			{:else}
-				<p class="text-sm text-warning">{text.noProducts}</p>
-			{/each}
+				{#each composer.catalog as entry (entry.id)}
+					<Checkbox
+						checked={composer.isChosen(entry.id)}
+						onchange={(isChosen: boolean) => {
+							composer.choose(entry, isChosen);
+						}}
+					>
+						{entry.name} · {formatRupiah(entry.retailPrice)}
+					</Checkbox>
+				{:else}
+					<p class="text-sm text-warning">{text.noProducts}</p>
+				{/each}
+			{/if}
 		</fieldset>
 		{#each composer.values.items as item, index (item.productId)}
 			<ItemTermsRow {item} {index} errors={composer.errors} />

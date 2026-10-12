@@ -4,7 +4,7 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatBusinessDate, formatInteger } from '#lib/i18n/format.js';
 	import { stock as id } from '#lib/i18n/stock.js';
@@ -28,7 +28,7 @@
 </script>
 
 {#if holdings.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="list" />
 {:else if holdings.status === 'failed'}
 	<Alert title={text.loadFailed}>{holdings.failure}</Alert>
 {:else if groups.length === 0}

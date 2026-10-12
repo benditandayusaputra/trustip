@@ -68,7 +68,7 @@
 						onselect={(id: string) => (selectedId = id)}
 					/>
 				{:else if failed}<p role="status" class="text-warning">{text.mapUnavailable}</p>
-				{:else}<Skeleton />{/if}
+				{:else}<Skeleton shape="map" />{/if}
 				<p class="text-sm text-text-muted">{text.mapCount(located.length)}</p>
 				{#if located.length < stores.length}<p class="text-sm text-text-muted">
 						{text.missingLocations(stores.length - located.length)}

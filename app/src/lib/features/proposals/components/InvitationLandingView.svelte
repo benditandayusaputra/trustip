@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Proposal } from '#lib/api/proposals.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
@@ -35,7 +35,7 @@
 </script>
 
 {#if landing.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if landing.status === 'signedOut'}
 	<p class="text-base text-text">{text.signedOutBody}</p>
 	<div class="flex flex-wrap gap-2">

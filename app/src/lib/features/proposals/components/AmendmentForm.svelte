@@ -3,7 +3,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
@@ -62,7 +62,7 @@
 </script>
 
 {#if composer.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="form" />
 {:else if composer.status === 'failed'}
 	<Alert title={id.agreement.loadFailed}>{composer.failure}</Alert>
 {:else}

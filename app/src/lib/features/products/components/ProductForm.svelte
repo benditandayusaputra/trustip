@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick, untrack } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
+	import FieldSkeleton from '#lib/components/ui/FieldSkeleton.svelte';
 	import ImageField from '#lib/components/ui/ImageField.svelte';
 	import MoneyField from '#lib/components/ui/MoneyField.svelte';
 	import NumberField from '#lib/components/ui/NumberField.svelte';
@@ -36,9 +37,10 @@
 		...editor.categories.map((category) => ({ value: category.id, label: category.name }))
 	]);
 	let formElement: HTMLFormElement | undefined = $state();
+	let categoriesLoading = $state(true);
 
 	$effect(() => {
-		void editor.loadCategories();
+		void editor.loadCategories().finally(() => (categoriesLoading = false));
 	});
 
 	async function handleSubmit(event: SubmitEvent) {
@@ -64,13 +66,17 @@
 			bind:value={editor.values.name}
 			error={editor.errors.name}
 		/>
-		<Select
-			label={text.category}
-			name="category_id"
-			options={categoryOptions}
-			bind:value={editor.values.categoryId}
-			error={editor.errors.categoryId}
-		/>
+		{#if categoriesLoading}
+			<FieldSkeleton label={text.category} />
+		{:else}
+			<Select
+				label={text.category}
+				name="category_id"
+				options={categoryOptions}
+				bind:value={editor.values.categoryId}
+				error={editor.errors.categoryId}
+			/>
+		{/if}
 		<TextField
 			label={text.sku}
 			name="sku"

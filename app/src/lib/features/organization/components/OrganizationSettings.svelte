@@ -3,7 +3,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import ImageField from '#lib/components/ui/ImageField.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import ThemeSettings from '#lib/components/ui/ThemeSettings.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
@@ -73,7 +73,7 @@
 		{/snippet}
 	</Alert>
 {:else if settings.status === 'loading' || !settings.organization}
-	<Skeleton />
+	<ContentSkeleton variant="form" />
 {:else}
 	{@const organization = settings.organization}
 	<ListingSection {organization} {canEdit} onsaved={keep} />

@@ -5,7 +5,7 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { SettlementFilter } from '#lib/api/settlements.js';
 	import { formatBusinessDate, formatRupiah } from '#lib/i18n/format.js';
@@ -55,7 +55,7 @@
 	/>
 </fieldset>
 {#if list.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="list" />
 {:else if list.status === 'failed'}
 	<Alert title={text.listFailed}>{list.failure}</Alert>
 {:else if list.items.length === 0}

@@ -5,7 +5,7 @@
 	import Card from '#lib/components/ui/Card.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatInteger } from '#lib/i18n/format.js';
 	import { drops as dropsText } from '#lib/i18n/drops.js';
@@ -38,7 +38,7 @@
 </script>
 
 {#if stock.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="list" />
 {:else if stock.status === 'failed'}
 	<Alert title={text.loadFailed}>{stock.failure}</Alert>
 {:else if stock.products.length === 0}

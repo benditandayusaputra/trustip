@@ -4,7 +4,7 @@
 	import OfflineMark from '#lib/components/ui/OfflineMark.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import SealPanel from '#lib/components/ui/SealPanel.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime, formatInteger, formatRupiah } from '#lib/i18n/format.js';
 	import { drops as dropsText } from '#lib/i18n/drops.js';
@@ -38,7 +38,7 @@
 </script>
 
 {#if record.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if record.status === 'failed' || !record.drop}
 	<Alert title={text.detailFailed}>{record.failure}</Alert>
 {:else}

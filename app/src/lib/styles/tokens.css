@@ -108,6 +108,7 @@
 	--store-results-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 	--directory-map-height: 26rem;
 	--map-marker-size: 44px;
+	--qr-code-size: 192px;
 	--focus-ring-width: 2px;
 	--focus-ring-offset: 2px;
 	--border-width-accent: 4px;

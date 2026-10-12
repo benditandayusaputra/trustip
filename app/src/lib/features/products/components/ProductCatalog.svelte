@@ -5,7 +5,7 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
@@ -44,7 +44,7 @@
 		<Select label={text.status} options={statusOptions} bind:value={catalog.search.status} />
 	</div>
 	{#if catalog.status === 'loading'}
-		<Skeleton />
+		<ContentSkeleton variant="list" />
 	{:else if catalog.status === 'failed'}
 		<Alert title={text.loadFailed}>
 			{catalog.failure}

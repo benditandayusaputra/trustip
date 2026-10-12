@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
+	import FieldSkeleton from '#lib/components/ui/FieldSkeleton.svelte';
 	import MoneyField from '#lib/components/ui/MoneyField.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
@@ -22,6 +23,7 @@
 	const toaster = getToaster();
 	const maxTitleLength = 80;
 	let categories = $state<Category[]>([]);
+	let categoriesLoading = $state(true);
 	let quantityText = $state('');
 	let formElement: HTMLFormElement | undefined = $state();
 	const categoryOptions = $derived([
@@ -39,7 +41,8 @@
 	onMount(() => {
 		listCategories(apiClient())
 			.then((loaded) => (categories = loaded))
-			.catch(() => (categories = []));
+			.catch(() => (categories = []))
+			.finally(() => (categoriesLoading = false));
 	});
 
 	async function handleSubmit(event: SubmitEvent) {
@@ -67,12 +70,16 @@
 		bind:value={composer.values.title}
 		error={composer.errors.title}
 	/>
-	<Select
-		label={text.category}
-		options={categoryOptions}
-		bind:value={composer.values.categoryId}
-		error={composer.errors.categoryId}
-	/>
+	{#if categoriesLoading}
+		<FieldSkeleton label={text.category} />
+	{:else}
+		<Select
+			label={text.category}
+			options={categoryOptions}
+			bind:value={composer.values.categoryId}
+			error={composer.errors.categoryId}
+		/>
+	{/if}
 	<TextField
 		label={text.description}
 		hint={text.descriptionHint}

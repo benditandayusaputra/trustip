@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { getDirectoryContact, type DirectoryContact } from '#lib/api/directory.js';
 	import type { Proposal } from '#lib/api/proposals.js';
@@ -37,7 +38,7 @@
 </script>
 
 {#if status === 'loading'}
-	<p role="status" class="text-base text-text-muted">{text.targetLoading}</p>
+	<ContentSkeleton variant="form" />
 {:else if status === 'missing' || !contact}
 	<Alert title={text.targetMissing}>
 		<a href="/app" class="font-semibold text-accent">{id.errorPage.backHome}</a>

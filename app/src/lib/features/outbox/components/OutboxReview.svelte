@@ -3,7 +3,7 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
 	import { offline as id } from '#lib/i18n/offline.js';
@@ -51,7 +51,7 @@
 </script>
 
 {#if review.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="detail" />
 {:else if review.status === 'missing'}
 	<Alert title={text.reviewMissing}>
 		<a href="/app/antrean" class="font-semibold text-accent">{text.backToOutbox}</a>

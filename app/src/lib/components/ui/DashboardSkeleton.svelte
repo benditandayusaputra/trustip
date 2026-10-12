@@ -15,6 +15,7 @@
 	role="status"
 	aria-label={id.feedback.loading}
 	aria-busy="true"
+	data-loading-skeleton="dashboard"
 	class="flex w-full flex-col gap-6"
 >
 	<div

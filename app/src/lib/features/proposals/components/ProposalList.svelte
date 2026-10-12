@@ -4,7 +4,7 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { ProposalBox, ProposalSummary } from '#lib/api/proposals.js';
@@ -39,7 +39,7 @@
 <Tabs label={text.boxLabel} {tabs} bind:selected>
 	{#snippet panel()}
 		{#if inbox.status === 'loading'}
-			<Skeleton />
+			<ContentSkeleton variant="list" />
 		{:else if inbox.status === 'failed'}
 			<Alert title={text.listFailed}>{inbox.failure}</Alert>
 		{:else if inbox.items.length === 0}

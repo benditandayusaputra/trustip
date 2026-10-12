@@ -3,6 +3,7 @@
 	import BottomNav from './BottomNav.svelte';
 	import Sidebar from './Sidebar.svelte';
 	import SkipLink from './SkipLink.svelte';
+	import NavigationContent from './NavigationContent.svelte';
 	import Brand from './Brand.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
 	import { common as text } from '#lib/i18n/common.js';
@@ -13,9 +14,10 @@
 		currentPath: string;
 		children: Snippet;
 		actions?: Snippet;
+		pendingPath?: string | undefined;
 	}
 
-	let { organizationType, currentPath, children, actions }: Props = $props();
+	let { organizationType, currentPath, children, actions, pendingPath }: Props = $props();
 
 	const navigation = $derived(organizationType ? navigationFor(organizationType) : undefined);
 </script>
@@ -54,7 +56,7 @@
 				? 'pb-(--toast-offset)'
 				: 'pb-8'}"
 		>
-			{@render children()}
+			<NavigationContent {pendingPath}>{@render children()}</NavigationContent>
 		</main>
 		{#if !organizationType}
 			<footer class="border-t border-border bg-surface px-4 py-6">

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { listAgreementVersions, type AgreementVersion } from '#lib/api/agreements.js';
 	import { formatDate } from '#lib/i18n/format.js';
@@ -34,7 +34,7 @@
 	{#if failure}
 		<Alert title={text.historyFailed}>{failure}</Alert>
 	{:else if !versions}
-		<Skeleton />
+		<ContentSkeleton variant="list" />
 	{:else}
 		<ol class="flex flex-col gap-4">
 			{#each versions as version (version.version)}

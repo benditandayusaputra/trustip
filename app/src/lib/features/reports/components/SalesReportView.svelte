@@ -6,7 +6,7 @@
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { ReportGrouping } from '#lib/api/reports.js';
 	import type { RangePreset } from '#lib/domain/ranges.js';
@@ -77,7 +77,7 @@
 	{/if}
 </fieldset>
 {#if view.status === 'loading'}
-	<Skeleton />
+	<ContentSkeleton variant="report" />
 {:else if view.status === 'failed' || !view.report}
 	<Alert title={text.loadFailed}>{view.failure}</Alert>
 {:else}

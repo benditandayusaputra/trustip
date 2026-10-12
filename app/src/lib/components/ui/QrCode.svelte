@@ -23,7 +23,7 @@
 </script>
 
 {#if source === ''}
-	<Skeleton />
+	<div class="w-(--qr-code-size)"><Skeleton shape="square" /></div>
 {:else}
 	<div class="flex flex-col items-start gap-2">
 		<img src={source} {alt} width={displaySize} height={displaySize} class="rounded-control" />

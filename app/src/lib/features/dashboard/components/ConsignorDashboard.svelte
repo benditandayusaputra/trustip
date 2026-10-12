@@ -3,7 +3,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import DashboardFigures from './DashboardFigures.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import DashboardSkeleton from './DashboardSkeleton.svelte';
+	import DashboardSkeleton from '#lib/components/ui/DashboardSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { SalesNarrowing } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';

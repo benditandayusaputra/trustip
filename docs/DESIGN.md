@@ -107,11 +107,13 @@ Titipan Masuk dan Hitung Sisa memakai baris produk dan kontrol jumlah besar. Rin
 | Grafik | Garis biru, area biru transparan, grid halus, alternatif tabel |
 | Peta | Terang pada light, filter gelap hanya pada dark; kontrol dan atribusi selalu terbaca |
 | Dialog, lembar bawah, toast | Token tema; fokus dan tindakan sesuai keadaan |
-| Skeleton | Ukuran menyerupai isi, tidak menggeser halaman saat data datang |
+| Skeleton | Pola daftar, kartu, detail, formulir, laporan, profil, dan dasbor mengikuti susunan isi; warna kedua tema dan animasi menghormati preferensi pengurangan gerak |
 | Kosong | Penjelasan singkat dan satu tindakan yang relevan |
 | Luring | Pita status, jumlah antrean, peringatan usia lama, batas aksi jelas |
 
 Memuat, kosong, berhasil, validasi gagal, jaringan gagal, dan luring wajib ditangani. Galat isian tampil dekat isian, fokus berpindah ke yang pertama salah, dan nilai tidak hilang. Menyimpan menonaktifkan kiriman ganda. Konflik antrean memperlihatkan catatan perangkat dan keadaan server dengan label jelas. Seluruh aturan bisnis dan tenggat konfirmasi tetap berlaku.
+
+Saat berpindah halaman, cangkang navigasi tetap tampil dan isi tujuan memakai skeleton sesuai jenis halaman selama rute menunggu data atau kode. Isi sebelumnya tetap terpasang agar pembatalan navigasi tidak menghapus isian. Pemuatan akun dan data memakai pola yang sama; halaman yang sudah siap tidak diberi jeda buatan. Profil publik tetap dirender di server.
 
 ## 7. Aksesibilitas, gerak, dan performa
 
