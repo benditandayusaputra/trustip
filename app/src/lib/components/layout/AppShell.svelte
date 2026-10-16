@@ -5,6 +5,7 @@
 	import SkipLink from './SkipLink.svelte';
 	import NavigationContent from './NavigationContent.svelte';
 	import Brand from './Brand.svelte';
+	import WorkspaceBreadcrumb from './WorkspaceBreadcrumb.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
 	import { common as text } from '#lib/i18n/common.js';
 	import { navigationFor, type OrganizationType } from './navigation';
@@ -28,11 +29,11 @@
 		<Sidebar items={[...navigation.primary, ...navigation.more]} {currentPath} {organizationType} />
 	{/if}
 	<div class="flex min-w-0 flex-1 flex-col">
-		<header class="border-b border-border bg-surface px-4 py-4 lg:px-8">
-			<div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-2">
+		<header class="workspace-header flex items-center px-4 py-4 lg:px-8">
+			<div class="mx-auto flex w-full max-w-content flex-wrap items-center justify-between gap-4">
 				{#if organizationType}
 					<div class="lg:hidden"><Brand href="/app" /></div>
-					<p class="hidden text-sm text-text-muted lg:block">{text.layout.workspace}</p>
+					<WorkspaceBreadcrumb {organizationType} {currentPath} />
 				{:else}
 					<Brand />
 				{/if}
@@ -52,7 +53,7 @@
 		<main
 			id="konten"
 			tabindex="-1"
-			class="mx-auto w-full max-w-content flex-1 px-4 pt-8 lg:px-8 lg:pb-8 {organizationType
+			class="workspace-main mx-auto w-full max-w-content flex-1 px-4 pt-8 lg:px-8 lg:pb-8 {organizationType
 				? 'pb-(--toast-offset)'
 				: 'pb-8'}"
 		>

@@ -18,10 +18,10 @@
 	<div class="grid gap-4 md:grid-cols-2">
 		{#each text.roles as role, index (role.title)}
 			{@const Icon = icons[index] ?? Store}
-			<article
-				class="flex flex-col items-start gap-5 rounded-card border border-border bg-surface p-5 md:p-6"
-			>
-				<Icon class="size-8 text-accent" aria-hidden="true" />
+			<article class="surface-card flex flex-col items-start gap-5 p-5 md:p-6">
+				<span class="flex size-12 items-center justify-center rounded-control bg-accent-surface"
+					><Icon class="size-6 text-accent" aria-hidden="true" /></span
+				>
 				<div class="flex flex-col gap-2">
 					<h3 class="text-xl font-semibold">{role.title}</h3>
 					<p class="text-base text-text-muted">{role.body}</p>

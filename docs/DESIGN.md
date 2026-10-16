@@ -1,6 +1,6 @@
 # DESIGN.md: Trustip
 
-Desain antarmuka Trustip yang disetujui tim pada 9 Oktober 2026: primary biru, tema terang dan gelap, serta tata letak yang mengutamakan tindakan dan catatan dua pihak. Keputusan dan alasan dicatat pada `adr/0046-tema-terang-gelap-dan-biru.md`.
+Desain antarmuka Trustip yang disetujui tim pada 9 Oktober 2026: primary biru, tema terang dan gelap, serta tata letak yang mengutamakan tindakan dan catatan dua pihak. Keputusan dan alasan dicatat pada `adr/0046-tema-terang-gelap-dan-biru.md` dan penyegaran 16 Oktober 2026 pada `adr/0053-penyegaran-antarmuka-ruang-kerja.md`.
 
 Dokumen ini mengatur visual. Perilaku, angka, izin, dan keadaan fitur tetap mengikuti `02-SPESIFIKASI-FITUR.md`. Implementasi menggunakan komponen bersama dan token, bukan nilai mentah di halaman.
 
@@ -16,17 +16,17 @@ Pilihan tema: Sistem, Terang, Gelap. Bawaan mengikuti sistem. Preferensi disimpa
 
 | Token | Terang | Gelap | Penggunaan |
 |---|---|---|---|
-| `--color-bg` | `#F6F8FC` | `#0B1220` | Latar halaman |
-| `--color-surface` | `#FFFFFF` | `#131D2E` | Kartu, header, dialog |
+| `--color-bg` | `#F6F8FC` | `#0D1522` | Latar halaman |
+| `--color-surface` | `#FFFFFF` | `#162131` | Kartu, header, dialog |
 | `--color-surface-hover` | `#EEF2F8` | `#1B293E` | Hover, permukaan sekunder |
-| `--color-border` | `#DCE3EF` | `#2D3C53` | Pemisah dekoratif |
-| `--color-border-strong` | `#7B879B` | `#71819A` | Batas kontrol |
+| `--color-border` | `#E3E8F0` | `#2B394C` | Pemisah dekoratif |
+| `--color-border-strong` | `#8491A5` | `#71819A` | Batas kontrol |
 | `--color-primary` | `#2563EB` | `#2563EB` | Tombol utama dan ikon merek |
 | `--color-primary-hover` | `#1D4ED8` | `#1D4ED8` | Hover tombol utama |
 | `--color-on-accent` | `#FFFFFF` | `#FFFFFF` | Teks pada primary |
 | `--color-accent` | `#1D4ED8` | `#93C5FD` | Tautan, data utama, fokus |
 | `--color-accent-surface` | `#EFF6FF` | `#172D50` | Informasi, rekap, navigasi aktif |
-| `--color-text` | `#152238` | `#F3F6FC` | Isi dan angka |
+| `--color-text` | `#17243B` | `#F3F6FC` | Isi dan angka |
 | `--color-text-muted` | `#52627A` | `#A5B4CA` | Label dan keterangan |
 | `--color-success` | `#166534` | `#86EFAC` | Berhasil |
 | `--color-success-surface` | `#F0FDF4` | `#143324` | Permukaan berhasil |
@@ -54,15 +54,15 @@ Inter untuk isi; JetBrains Mono untuk rupiah dan jumlah barang. Keduanya disajik
 | Keterangan | 12 px |
 | Angka kunci | 24 px, 28 px pada layar lebar; angka utama 32 px |
 
-Angka panjang mendapat kartu selebar baris pada HP di bawah 480 px, sehingga jumlah rupiah tidak terpecah. Angka memakai tabular figures; rupiah selalu memakai `Rp` dan pemisah ribuan. Format berasal dari modul `Intl` yang sama dengan lokal `id-ID` dan zona `Asia/Jakarta`. Jarak mengikuti token kelipatan 4/8 px, dengan kartu 16 sampai 20 px. Radius kartu 16 px dan kontrol 12 px.
+Angka panjang mendapat kartu selebar baris pada HP di bawah 480 px, sehingga jumlah rupiah tidak terpecah. Angka memakai tabular figures; rupiah selalu memakai `Rp` dan pemisah ribuan. Format berasal dari modul `Intl` yang sama dengan lokal `id-ID` dan zona `Asia/Jakarta`. Jarak mengikuti token kelipatan 4/8 px, dengan kartu 16 sampai 20 px. Radius kartu 20 px dan kontrol 12 px. Bayangan kartu tipis memakai token bersama; bayangan lebih tinggi hanya untuk menu mengambang dan hover kartu produk.
 
 ## 4. Kerangka seluruh halaman
 
 - Publik: header merek, navigasi, pilihan tema, masuk; footer merek, direktori, cara kerja, demo, pendaftaran, dan kebijakan. Halaman publik tetap dirender server.
-- Anggota: sidebar desktop dan header tindakan; navigasi bawah pada HP/tablet sesuai peran. Semua rute aplikasi, direktori, dan papan kebutuhan menggunakan kerangka yang sama ketika anggota masuk.
+- Anggota: sidebar desktop biru primary selebar 256 px dengan kelompok Ruang kerja dan Kelola usaha, menu aktif putih dengan teks biru, identitas peran, dan pengingat catatan bersama. Header memakai ikon modul, jejak halaman, pencarian mitra, serta tindakan akun; navigasi bawah pada HP/tablet sesuai peran. Semua rute aplikasi, direktori, dan papan kebutuhan menggunakan kerangka yang sama ketika anggota masuk.
 - Penitip: Beranda, Cari, Mitra, Setoran, Lainnya.
 - Toko: Beranda, Hitung, Titipan, Cari, Lainnya.
-- Lainnya membuka lembar menu yang memuat semua modul relevan. Navigasi aktif memakai permukaan biru lembut dan label; label ikon tidak dihilangkan.
+- Lainnya membuka lembar menu yang memuat semua modul relevan. Navigasi aktif di sidebar memakai permukaan putih dan teks biru; navigasi bawah memakai permukaan biru lembut dan label; label ikon tidak dihilangkan.
 - Lebar isi maksimal 1200 px, formulir 640 px, dokumen baca 720 px. Main dan kolom flex/grid boleh menyusut agar isi tidak memaksa overflow.
 - Safe area perangkat dihitung pada navigasi bawah dan toast. Ringkasan formulir berada dalam alur halaman tepat sebelum tombol simpan dan tidak menutupi isian. Dialog serta lembar bawah berada di atas navigasi.
 
@@ -86,6 +86,8 @@ Logo aplikasi menggunakan gambar dua mitra biru dan paket jingga yang diberikan 
 
 ### Operasional
 
+Judul modul memakai ikon Lucide yang sesuai dalam bidang persegi membulat. Katalog produk berupa grid kartu dengan foto asli, kategori, status, nama, SKU, dan harga; produk tanpa foto memakai placeholder ikon. Filter berada dalam panel permukaan terpisah. Angka stok utama memakai kartu gelap dengan aksen biru, sementara kartu lain tetap memakai permukaan tema. Kepala kartu memisahkan judul dan isi dengan garis halus dan ikon fitur. Formulir operasional dikelompokkan dalam kartu; kontrol memiliki latar permukaan, fokus eksplisit dan label permanen. Tab memakai pilihan bersegmen. Tidak ada emoji, statistik rekaan, grafik dekoratif yang menyamar sebagai data, atau dependensi baru.
+
 Dasbor toko: lima angka spesifikasi, Hitung cepat dan Perlu tindakan, lalu Saran selebar area isi, diikuti Peluang dan Produk terlaris yang masing-masing selebar isi. Hitung cepat dan Perlu tindakan memiliki tinggi sama pada desktop; seluruh kartu Saran memiliki tinggi sama. Saran menampilkan tiga kartu awal; daftar lain menampilkan lima baris awal. Tombol buka/ringkas tetap menyediakan seluruh data. Dasbor penitip: empat angka spesifikasi, Perlu tindakan berdampingan dengan grafik mulai desktop, lalu Saran selebar isi, Peluang, lalu dua peringkat yang masing-masing selebar isi. Filter toko/produk berada di dalam kartu grafik dan mempertahankan fokus saat pilihan berubah. Pada HP, Perlu tindakan mendahului grafik. Saran menampilkan tiga kartu awal; peringkat dan Peluang menampilkan lima baris awal, dengan tombol buka/ringkas untuk sisanya. Kolom menyesuaikan ruang setelah sidebar; angka tidak diperkecil sampai sulit dibaca. Produk terlaris menampilkan foto asli atau placeholder bila belum ada foto, serta tautan detail produk. Informasi gabungan tetap hanya untuk OWNER.
 
 Riwayat, katalog, Ajuan, Kemitraan, Kebutuhan dan Setoran memakai filter di atas isi, status berlabel dan tindakan sesuai hak akses. Detail dokumen membedakan nomor/status, isi, jejak konfirmasi, segel dan langkah berikutnya. Tabel desktop berubah menjadi daftar berlabel di HP; tabel padat hanya boleh memiliki overflow lokal.
@@ -96,7 +98,7 @@ Titipan Masuk dan Hitung Sisa memakai baris produk dan kontrol jumlah besar. Rin
 
 | Komponen | Aturan |
 |---|---|
-| Kartu | Permukaan sesuai tema, border dekoratif, radius 16 px, tanpa bayangan tebal |
+| Kartu | Permukaan sesuai tema, border dekoratif, radius 20 px dan bayangan tipis dari token |
 | Angka kunci | Ikon sesuai data pada permukaan berwarna semantik, label sekunder, angka utama monospace, keterangan opsional |
 | Tombol utama | Primary biru, teks putih, tinggi minimal 48 px; satu aksi utama per konteks |
 | Sekunder | Permukaan sesuai tema, border kuat, teks utama |

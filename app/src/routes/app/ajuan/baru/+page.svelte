@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import FileSignature from '@lucide/svelte/icons/file-signature';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { Proposal } from '#lib/api/proposals.js';
@@ -35,7 +37,7 @@
 			onsent={open}
 		/>
 	{:else}
-		<h1 class="text-xl font-semibold text-text">{id.proposals.newTitle}</h1>
+		<PageHeading icon={FileSignature}>{id.proposals.newTitle}</PageHeading>
 		<p class="text-base text-text-muted">{id.proposals.newIntro}</p>
 		{#if membership}
 			<InvitationForm isConsignor={membership.organization_type === 'CONSIGNOR'} onsent={open} />

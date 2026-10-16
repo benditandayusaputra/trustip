@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ListDisclosure from '#lib/components/ui/ListDisclosure.svelte';
@@ -18,7 +19,7 @@
 	const cards = $derived(insights.map((insight, index) => cardOf(insight, index, side)));
 </script>
 
-<Card title={id.dashboard.insightsTitle}>
+<Card icon={Lightbulb} title={id.dashboard.insightsTitle}>
 	{#if cards.length === 0}
 		<p class="text-sm text-text-muted">{id.dashboard.noInsights}</p>
 	{:else}

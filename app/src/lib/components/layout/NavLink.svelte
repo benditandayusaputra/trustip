@@ -21,9 +21,7 @@
 	href={item.href}
 	{onclick}
 	aria-current={current ? 'page' : undefined}
-	class="{layouts[layout]} {current
-		? 'bg-accent-surface font-semibold text-accent'
-		: 'text-text-muted hover:bg-surface-hover hover:text-text'}"
+	class="nav-link {layouts[layout]}"
 >
 	<item.icon class="size-5 shrink-0" aria-hidden="true" />
 	<span>{item.label}</span>

@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
+	import Store from '@lucide/svelte/icons/store';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import SkipLink from './SkipLink.svelte';
 	import NavigationContent from './NavigationContent.svelte';
 	import Brand from './Brand.svelte';
@@ -19,7 +22,7 @@
 
 <SkipLink />
 <div class="flex min-h-dvh flex-col">
-	<header class="border-b border-border bg-surface">
+	<header class="public-header">
 		<div
 			class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-2 px-4 py-4 lg:px-8"
 		>
@@ -28,11 +31,11 @@
 				aria-label={id.layout.publicNavigation}
 				class="flex flex-wrap items-center gap-2 md:gap-4"
 			>
-				<a href="/cari/toko" class="hidden text-text-muted hover:text-text md:inline">
-					{id.nav.findStores}
+				<a href="/cari/toko" class="public-nav-link hidden md:inline-flex">
+					<Store class="size-4" aria-hidden="true" />{id.nav.findStores}
 				</a>
-				<a href="/kebutuhan" class="hidden text-text-muted hover:text-text md:inline">
-					{id.nav.needsBoard}
+				<a href="/kebutuhan" class="public-nav-link hidden md:inline-flex">
+					<Megaphone class="size-4" aria-hidden="true" />{id.nav.needsBoard}
 				</a>
 				<ThemePicker />
 				{#if actions}
@@ -40,9 +43,9 @@
 				{:else}
 					<a
 						href="/masuk"
-						class="inline-flex min-h-11 items-center rounded-control bg-primary px-4 font-semibold text-on-accent hover:bg-primary-hover"
+						class="inline-flex min-h-11 items-center gap-2 rounded-control bg-primary px-4 font-semibold text-on-accent hover:bg-primary-hover"
 					>
-						{id.nav.signIn}
+						{id.nav.signIn}<ArrowUpRight class="size-4" aria-hidden="true" />
 					</a>
 				{/if}
 			</nav>

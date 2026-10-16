@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import CloudUpload from '@lucide/svelte/icons/cloud-upload';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import OutboxReview from '#lib/features/outbox/components/OutboxReview.svelte';
@@ -10,6 +12,6 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.outbox.reviewTitle}</h1>
+	<PageHeading icon={CloudUpload}>{id.outbox.reviewTitle}</PageHeading>
 	<OutboxReview entryId={page.params.id ?? ''} ondiscarded={() => void goto('/app/antrean')} />
 </section>

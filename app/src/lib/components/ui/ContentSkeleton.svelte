@@ -3,6 +3,7 @@
 	import Skeleton from './Skeleton.svelte';
 	import SkeletonRows from './SkeletonRows.svelte';
 	import SkeletonFields from './SkeletonFields.svelte';
+	import SkeletonProducts from './SkeletonProducts.svelte';
 	import SkeletonCards from './SkeletonCards.svelte';
 	import SkeletonReport from './SkeletonReport.svelte';
 	import type { SkeletonVariant } from './skeleton';
@@ -25,6 +26,8 @@
 	<div aria-hidden="true" class="flex min-w-0 flex-col gap-6">
 		{#if variant === 'list'}
 			<SkeletonRows {rows} />
+		{:else if variant === 'catalog'}
+			<SkeletonProducts {rows} />
 		{:else if variant === 'cards'}
 			<SkeletonCards {rows} />
 		{:else if variant === 'form' || variant === 'auth'}

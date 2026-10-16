@@ -93,7 +93,7 @@
 		{#each need.responses as response (response.proposal_id)}
 			<a
 				href="/app/ajuan/{response.proposal_id}"
-				class="flex items-center justify-between gap-4 rounded-control border border-border bg-surface p-4 hover:bg-surface-hover"
+				class="surface-card flex items-center justify-between gap-4 p-5 hover:border-accent hover:bg-surface-hover"
 			>
 				<span class="flex flex-col">
 					<span class="font-semibold text-text">{response.consignor_name}</span>

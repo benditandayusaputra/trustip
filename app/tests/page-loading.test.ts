@@ -63,7 +63,7 @@ async function failData(page: Page) {
 }
 
 const appPages = [
-	['/app/produk', 'list'],
+	['/app/produk', 'catalog'],
 	['/app/mitra', 'list'],
 	['/app/stok', 'list'],
 	['/app/hitung/sample', 'detail'],
@@ -95,7 +95,7 @@ for (const [path, kind] of appPages) {
 }
 
 const dataPages = [
-	['/app/produk', 'list'],
+	['/app/produk', 'catalog'],
 	['/app/laporan', 'report'],
 	['/app/titipan/baru?mitra=sample', 'form']
 ] as const;

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Warehouse from '@lucide/svelte/icons/warehouse';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import StockOverview from '#lib/features/stock/components/StockOverview.svelte';
 	import { common as commonText } from '#lib/i18n/common.js';
@@ -16,7 +18,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.stock.title}</h1>
+	<PageHeading icon={Warehouse}>{id.stock.title}</PageHeading>
 	<p class="text-base text-text-muted">{id.stock.intro}</p>
 	<StockOverview
 		emptyHref={isStore ? '/app/titipan/baru' : '/app/mitra'}

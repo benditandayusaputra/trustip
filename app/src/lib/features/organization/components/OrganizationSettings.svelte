@@ -77,7 +77,12 @@
 {:else}
 	{@const organization = settings.organization}
 	<ListingSection {organization} {canEdit} onsaved={keep} />
-	<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-5">
+	<form
+		bind:this={formElement}
+		onsubmit={handleSubmit}
+		novalidate
+		class="surface-card flex flex-col gap-5 p-5 compact:p-6"
+	>
 		<p class="text-sm text-text-muted">
 			{text.typeLabel}: {fields.types[organization.type].label}. {fields.typeFixed}
 		</p>

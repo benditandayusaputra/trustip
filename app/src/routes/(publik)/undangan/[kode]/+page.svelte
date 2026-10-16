@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import MailOpen from '@lucide/svelte/icons/mail-open';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { Proposal } from '#lib/api/proposals.js';
@@ -15,7 +17,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6 py-8">
-	<h1 class="text-xl font-semibold text-text">{id.invitation.title}</h1>
+	<PageHeading icon={MailOpen}>{id.invitation.title}</PageHeading>
 	{#key code}
 		<InvitationLandingView
 			{code}

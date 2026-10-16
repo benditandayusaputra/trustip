@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Bell from '@lucide/svelte/icons/bell';
 	import NotificationList from '#lib/features/notifications/components/NotificationList.svelte';
 	import { common as id } from '#lib/i18n/common.js';
 </script>
@@ -8,6 +10,6 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.notifications.title}</h1>
+	<PageHeading icon={Bell}>{id.notifications.title}</PageHeading>
 	<NotificationList />
 </section>

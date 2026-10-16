@@ -10,6 +10,7 @@
 		tone?: Tone;
 		loading?: boolean;
 		fullOnMobile?: boolean;
+		featured?: boolean;
 	}
 
 	let {
@@ -19,8 +20,10 @@
 		icon,
 		tone = 'info',
 		loading = false,
-		fullOnMobile = false
+		fullOnMobile = false,
+		featured = false
 	}: Props = $props();
+	const iconTone = $derived(featured ? 'bg-sidebar-badge text-sidebar-accent' : badgeTone[tone]);
 	const maximumNarrowCharacters = 8;
 	const maximumLargeCharacters = 10;
 	const mobileSpan = $derived(
@@ -32,14 +35,15 @@
 </script>
 
 <div
-	class="flex min-w-0 flex-col gap-4 rounded-card border border-border bg-surface p-4 compact:p-5 {mobileSpan}"
+	data-featured={featured}
+	class="metric-card flex min-w-0 flex-col gap-4 rounded-card border {featured
+		? 'border-featured bg-featured'
+		: 'border-border bg-surface'} p-4 compact:p-5 {mobileSpan}"
 >
 	<div class="flex items-start justify-between gap-2">
-		<p class="text-sm font-medium text-text-muted">{label}</p>
+		<p class="metric-label text-sm font-medium">{label}</p>
 		{#if icon}
-			<span
-				class="flex size-11 shrink-0 items-center justify-center rounded-control {badgeTone[tone]}"
-			>
+			<span class="metric-icon flex size-11 shrink-0 items-center justify-center {iconTone}">
 				{@render icon()}
 			</span>
 		{/if}
@@ -48,12 +52,14 @@
 		<Skeleton shape="metric" />
 	{:else}
 		<p
-			class="min-h-8 font-mono leading-tight font-bold wrap-anywhere text-text tabular-nums {valueSize}"
+			class="metric-value min-h-8 font-mono leading-tight font-bold wrap-anywhere tabular-nums {valueSize}"
 		>
 			{value}
 		</p>
 	{/if}
 	{#if caption}
-		<p class="mt-auto border-t border-border pt-2 text-xs text-text-muted">{caption}</p>
+		<p class="metric-caption mt-auto border-t border-border pt-2 text-xs">
+			{caption}
+		</p>
 	{/if}
 </div>

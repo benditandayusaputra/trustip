@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Calculator from '@lucide/svelte/icons/calculator';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import CountForm from '#lib/features/counts/components/CountForm.svelte';
@@ -16,7 +18,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.counts.newTitle}</h1>
+	<PageHeading icon={Calculator}>{id.counts.newTitle}</PageHeading>
 	<p class="text-base text-text-muted">{id.counts.newIntro}</p>
 	{#if partnershipId === ''}
 		<PartnerChooser hrefOf={(partnerId: string) => `/app/hitung/baru?mitra=${partnerId}`} />

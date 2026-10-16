@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { NeedBoardCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatDate, formatDistance, formatRupiah } from '#lib/i18n/format.js';
@@ -21,7 +22,8 @@
 	);
 </script>
 
-<article class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
+<article class="surface-card flex flex-col gap-4 p-5">
+	<Megaphone class="size-6 text-accent" aria-hidden="true" />
 	<header class="flex flex-col gap-1">
 		<h2 class="text-lg font-semibold text-text">
 			<a href="/kebutuhan/{card.id}" class="hover:text-accent">{card.title}</a>

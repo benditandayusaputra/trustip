@@ -20,11 +20,11 @@ const routes: Record<PageSkeletonKind, string[]> = {
 		'/app/mitra/sample/perubahan'
 	],
 	report: ['/app/laporan'],
+	catalog: ['/app/produk'],
 	cards: ['/cari/toko', '/cari/penitip', '/kebutuhan'],
 	'store-dashboard': ['/app', '/app/toko'],
 	'consignor-dashboard': ['/app/penitip'],
 	list: [
-		'/app/produk',
 		'/app/mitra',
 		'/app/titipan',
 		'/app/hitung',

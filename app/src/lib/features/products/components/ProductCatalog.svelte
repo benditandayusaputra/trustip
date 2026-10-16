@@ -1,14 +1,13 @@
 <script lang="ts">
 	import PackageOpen from '@lucide/svelte/icons/package-open';
 	import Alert from '#lib/components/ui/Alert.svelte';
-	import Badge from '#lib/components/ui/Badge.svelte';
+	import CatalogProductCard from './CatalogProductCard.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import { formatRupiah } from '#lib/i18n/format.js';
 	import { common as commonText } from '#lib/i18n/common.js';
 	import { products as productsText } from '#lib/i18n/products.js';
 	import { ProductCatalog } from '../catalog.svelte';
@@ -34,7 +33,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<div class="grid gap-4 md:grid-cols-3">
+	<div class="filter-toolbar grid gap-4 md:grid-cols-3">
 		<TextField label={text.search} type="search" name="q" bind:value={catalog.search.text} />
 		<Select
 			label={text.category}
@@ -44,7 +43,7 @@
 		<Select label={text.status} options={statusOptions} bind:value={catalog.search.status} />
 	</div>
 	{#if catalog.status === 'loading'}
-		<ContentSkeleton variant="list" />
+		<ContentSkeleton variant="catalog" />
 	{:else if catalog.status === 'failed'}
 		<Alert title={text.loadFailed}>
 			{catalog.failure}
@@ -59,27 +58,9 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
-		<ul class="flex flex-col gap-2">
+		<ul class="grid auto-rows-fr grid-cols-(--product-grid-columns) gap-5">
 			{#each catalog.items as product (product.id)}
-				<li>
-					<a
-						href="/app/produk/{product.id}"
-						class="flex items-center justify-between gap-4 rounded-control border border-border bg-surface p-4 hover:bg-surface-hover"
-					>
-						<span class="flex flex-col gap-1">
-							<span class="text-base font-semibold text-text">{product.name}</span>
-							<span class="text-sm text-text-muted">{product.sku} · {product.category_name}</span>
-						</span>
-						<span class="flex flex-col items-end gap-1">
-							<span class="font-mono font-medium text-text tabular-nums">
-								{formatRupiah(product.suggested_retail_price)}
-							</span>
-							{#if product.status === 'ARCHIVED'}
-								<Badge tone="neutral" label={text.statuses.ARCHIVED} />
-							{/if}
-						</span>
-					</a>
-				</li>
+				<li class="min-w-0"><CatalogProductCard {product} /></li>
 			{/each}
 		</ul>
 		{#if catalog.nextCursor}

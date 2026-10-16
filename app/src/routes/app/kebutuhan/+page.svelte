@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import NeedList from '#lib/features/needs/components/NeedList.svelte';
 	import { needs as id } from '#lib/i18n/needs.js';
 </script>
@@ -9,8 +12,10 @@
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<div class="flex flex-wrap items-center justify-between gap-4">
-		<h1 class="text-xl font-semibold text-text">{id.needs.listTitle}</h1>
-		<a href="/app/kebutuhan/baru" class="font-semibold text-accent">{id.needs.post}</a>
+		<PageHeading icon={Megaphone}>{id.needs.listTitle}</PageHeading>
+		<a href="/app/kebutuhan/baru" class="gap-2 font-semibold text-accent"
+			><Plus class="size-5" aria-hidden="true" />{id.needs.post}</a
+		>
 	</div>
 	<NeedList />
 </section>

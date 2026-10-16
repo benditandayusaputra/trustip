@@ -38,7 +38,7 @@
 	});
 </script>
 
-<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<fieldset class="filter-toolbar grid grid-cols-1 gap-4 md:grid-cols-2">
 	<legend class="sr-only">{text.filters}</legend>
 	<Select
 		label={text.status}
@@ -70,7 +70,7 @@
 			<li>
 				<a
 					href="/app/setoran/{settlement.id}"
-					class="flex items-center justify-between gap-4 rounded-control border border-border bg-surface p-4 hover:bg-surface-hover"
+					class="surface-card flex items-center justify-between gap-4 p-5 hover:border-accent hover:bg-surface-hover"
 				>
 					<span class="flex flex-col gap-1">
 						<span class="font-mono text-sm text-text-muted">{settlement.number}</span>

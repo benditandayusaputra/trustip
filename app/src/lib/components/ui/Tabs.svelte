@@ -37,7 +37,7 @@
 		role="tablist"
 		aria-label={label}
 		tabindex="-1"
-		class="flex gap-2 overflow-x-auto border-b border-border"
+		class="segmented-tabs flex gap-1 overflow-x-auto"
 		onkeydown={moveSelection}
 	>
 		{#each tabs as tab (tab.key)}

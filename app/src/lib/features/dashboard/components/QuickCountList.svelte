@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Calculator from '@lucide/svelte/icons/calculator';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ListDisclosure from '#lib/components/ui/ListDisclosure.svelte';
 	import type { Dashboard } from '#lib/api/insights.js';
@@ -14,7 +15,7 @@
 	const text = id.dashboard;
 </script>
 
-<Card fill title={text.quickCountTitle}>
+<Card icon={Calculator} fill title={text.quickCountTitle}>
 	{#if partners.length === 0}
 		<p class="text-sm text-text-muted">{text.quickCountEmpty}</p>
 	{:else}

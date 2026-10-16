@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Wallet from '@lucide/svelte/icons/wallet';
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import SettlementView from '#lib/features/settlements/components/SettlementView.svelte';
@@ -16,7 +18,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.settlements.detailTitle}</h1>
+	<PageHeading icon={Wallet}>{id.settlements.detailTitle}</PageHeading>
 	{#key page.params.id}
 		<SettlementView settlementId={page.params.id ?? ''} {viewer} />
 	{/key}

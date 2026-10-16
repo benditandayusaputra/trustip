@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Package from '@lucide/svelte/icons/package';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import DropForm from '#lib/features/drops/components/DropForm.svelte';
@@ -14,7 +16,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.drops.newTitle}</h1>
+	<PageHeading icon={Package}>{id.drops.newTitle}</PageHeading>
 	<p class="text-base text-text-muted">{id.drops.newIntro}</p>
 	{#if partnershipId === ''}
 		<PartnerChooser hrefOf={(partnerId: string) => `/app/titipan/baru?mitra=${partnerId}`} />

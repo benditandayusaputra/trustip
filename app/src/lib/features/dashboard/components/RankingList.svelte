@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChartNoAxesCombined from '@lucide/svelte/icons/chart-no-axes-combined';
 	import RankingEntry from './RankingEntry.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ListDisclosure from '#lib/components/ui/ListDisclosure.svelte';
@@ -18,7 +19,7 @@
 	const loadingRows = 5;
 </script>
 
-<Card {title}>
+<Card icon={ChartNoAxesCombined} {title}>
 	{#if status === 'loading'}
 		<Skeleton lines={loadingRows} shape="control" />
 	{:else if status === 'failed'}

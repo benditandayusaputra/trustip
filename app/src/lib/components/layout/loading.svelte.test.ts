@@ -9,6 +9,7 @@ import { expectAccessible } from '#lib/testing/accessibility.js';
 const variants: SkeletonVariant[] = [
 	'list',
 	'cards',
+	'catalog',
 	'detail',
 	'form',
 	'report',

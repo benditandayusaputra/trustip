@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Package from '@lucide/svelte/icons/package';
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import DropView from '#lib/features/drops/components/DropView.svelte';
@@ -13,7 +15,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.drops.detailTitle}</h1>
+	<PageHeading icon={Package}>{id.drops.detailTitle}</PageHeading>
 	{#key page.params.id}
 		<DropView dropId={page.params.id ?? ''} viewerOrganizationId={organizationId} />
 	{/key}

@@ -54,7 +54,7 @@
 					<li>
 						<a
 							href="/app/ajuan/{summary.id}"
-							class="flex flex-col gap-1 rounded-control border border-border bg-surface p-4 hover:bg-surface-hover"
+							class="surface-card flex flex-col gap-1 p-5 hover:border-accent hover:bg-surface-hover"
 						>
 							<span class="flex flex-wrap items-center justify-between gap-2">
 								<span class="text-base font-semibold text-text">

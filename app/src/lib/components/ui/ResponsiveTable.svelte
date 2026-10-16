@@ -18,7 +18,9 @@
 		column.numeric ? 'text-right font-mono font-medium tabular-nums' : 'text-left';
 </script>
 
-<div class="hidden overflow-x-auto rounded-card border border-border bg-surface md:block">
+<div
+	class="table-surface hidden overflow-x-auto rounded-card border border-border bg-surface md:block"
+>
 	<table class="w-full border-collapse text-sm text-text">
 		<caption class="sr-only">{caption}</caption>
 		<thead>

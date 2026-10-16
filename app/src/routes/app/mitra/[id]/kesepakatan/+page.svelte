@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Handshake from '@lucide/svelte/icons/handshake';
 	import { page } from '$app/state';
 	import AgreementHistory from '#lib/features/agreements/components/AgreementHistory.svelte';
 	import AgreementView from '#lib/features/agreements/components/AgreementView.svelte';
@@ -10,7 +12,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.agreement.title}</h1>
+	<PageHeading icon={Handshake}>{id.agreement.title}</PageHeading>
 	{#key page.params.id}
 		<AgreementView partnershipId={page.params.id ?? ''} />
 		<AgreementHistory partnershipId={page.params.id ?? ''} />

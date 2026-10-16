@@ -15,9 +15,9 @@
 {#if products.length === 0}
 	<p class="text-base text-text-muted">{id.publicProfile.noProducts}</p>
 {:else}
-	<ul class="grid grid-cols-2 gap-4 md:grid-cols-4">
+	<ul class="grid grid-cols-(--product-grid-columns) gap-5">
 		{#each products as product (product.sku)}
-			<li class="flex flex-col gap-2">
+			<li class="product-tile">
 				{#if product.photo_url}
 					<img
 						src={product.photo_url}
@@ -26,10 +26,10 @@
 						height="200"
 						loading="lazy"
 						decoding="async"
-						class="aspect-square w-full rounded-control object-cover"
+						class="product-photo"
 					/>
 				{:else}
-					<Package class="aspect-square size-full text-text-muted" aria-hidden="true" />
+					<span class="product-photo"><Package class="size-12" aria-hidden="true" /></span>
 				{/if}
 				<a
 					href="/p/{encodeURIComponent(consignorSlug)}/{encodeURIComponent(product.sku)}"

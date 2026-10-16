@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import { goto } from '$app/navigation';
 	import type { Need } from '#lib/api/needs.js';
 	import NeedForm from '#lib/features/needs/components/NeedForm.svelte';
@@ -10,7 +12,7 @@
 </svelte:head>
 
 <section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.needs.newTitle}</h1>
+	<PageHeading icon={Megaphone}>{id.needs.newTitle}</PageHeading>
 	<p class="text-base text-text-muted">{id.needs.newIntro}</p>
 	<NeedForm onposted={(need: Need) => void goto(`/app/kebutuhan/${need.id}`)} />
 </section>

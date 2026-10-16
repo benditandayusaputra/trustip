@@ -1,4 +1,5 @@
 <script lang="ts">
+	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Store from '@lucide/svelte/icons/store';
 
 	interface Props {
@@ -22,13 +23,18 @@
 			class="size-12 shrink-0 rounded-control border border-border object-cover"
 		/>
 	{:else}
-		<Store class="size-12 shrink-0 text-text-muted" aria-hidden="true" />
+		<span
+			class="flex size-12 shrink-0 items-center justify-center rounded-control bg-accent-surface"
+			><Store class="size-6 text-accent" aria-hidden="true" /></span
+		>
 	{/if}
 	<div class="flex min-w-0 flex-col gap-1">
 		<p class="section-label">{kind}</p>
 		<h1 class="text-xl font-semibold text-text">{name}</h1>
 		{#if place}
-			<p class="text-sm text-text-muted">{place}</p>
+			<p class="flex items-center gap-1 text-sm text-text-muted">
+				<MapPin class="size-4 shrink-0" aria-hidden="true" />{place}
+			</p>
 		{/if}
 	</div>
 </header>

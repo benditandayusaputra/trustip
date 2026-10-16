@@ -14,7 +14,7 @@
 	<title>{text.title}</title>
 </svelte:head>
 
-<section class="flex flex-col gap-6 rounded-card border border-border bg-surface p-5 md:p-8">
+<section class="flex flex-col gap-6">
 	<header class="flex flex-col gap-2">
 		<h1 class="text-kpi font-semibold text-text">{text.title}</h1>
 		<p class="text-base text-text-muted">{text.intro}</p>

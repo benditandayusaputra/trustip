@@ -29,7 +29,7 @@
 	);
 </script>
 
-<article class="flex min-w-0 flex-col gap-4 rounded-card border border-border bg-surface p-5">
+<article class="surface-card flex min-w-0 flex-col gap-4 p-5">
 	<header class="flex flex-wrap items-start gap-4">
 		{#if card.logo_url}
 			<img

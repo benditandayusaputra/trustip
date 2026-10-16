@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Card from '#lib/components/ui/Card.svelte';
 	import { dashboard as id } from '#lib/i18n/dashboard.js';
@@ -15,7 +16,7 @@
 	let { tasks }: Props = $props();
 </script>
 
-<Card fill title={id.dashboard.tasksTitle}>
+<Card icon={ClipboardCheck} fill title={id.dashboard.tasksTitle}>
 	{#if tasks.length === 0}
 		<p class="text-sm text-text-muted">{id.dashboard.noTasks}</p>
 	{:else}

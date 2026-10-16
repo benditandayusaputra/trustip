@@ -25,7 +25,7 @@
 
 	const variants: Record<Variant, string> = {
 		primary: 'bg-primary text-on-accent border border-primary hover:bg-primary-hover',
-		secondary: 'bg-surface text-text border border-border-strong hover:bg-surface-hover',
+		secondary: 'bg-surface text-text border border-border hover:bg-surface-hover',
 		danger: 'bg-bg text-danger border border-danger'
 	};
 </script>
@@ -35,7 +35,7 @@
 	{onclick}
 	disabled={disabled || busy}
 	aria-busy={busy}
-	class="inline-flex min-h-12 items-center justify-center gap-2 rounded-control px-5 text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 {variants[
+	class="button-control inline-flex min-h-12 items-center justify-center gap-2 rounded-control px-5 text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 {variants[
 		variant
 	]}"
 >

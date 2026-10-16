@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import FileSignature from '@lucide/svelte/icons/file-signature';
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import ProposalDetail from '#lib/features/proposals/components/ProposalDetail.svelte';
@@ -13,7 +15,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.proposals.detailTitle}</h1>
+	<PageHeading icon={FileSignature}>{id.proposals.detailTitle}</PageHeading>
 	{#key page.params.id}
 		<ProposalDetail proposalId={page.params.id ?? ''} viewerOrganizationId={organizationId} />
 	{/key}

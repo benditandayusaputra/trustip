@@ -70,7 +70,12 @@
 	}
 </script>
 
-<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-6">
+<form
+	bind:this={formElement}
+	onsubmit={handleSubmit}
+	novalidate
+	class="surface-card flex flex-col gap-6 p-5 compact:p-6"
+>
 	{#if listsProducts}
 		<fieldset class="flex flex-col gap-2">
 			<legend class="mb-2 text-lg font-semibold text-text">{text.products}</legend>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Store from '@lucide/svelte/icons/store';
+	import ChefHat from '@lucide/svelte/icons/chef-hat';
 	import { organization as id } from '#lib/i18n/organization.js';
 	import type { OnboardingWizard } from '../wizard.svelte';
 
@@ -21,8 +23,9 @@
 	class="flex flex-col gap-4"
 >
 	{#each choices as choice (choice)}
+		{@const Icon = choice === 'STORE' ? Store : ChefHat}
 		<label
-			class="flex min-h-11 cursor-pointer items-start gap-4 rounded-control border border-border-strong bg-bg p-4 has-checked:border-accent"
+			class="flex min-h-11 cursor-pointer items-start gap-4 rounded-card border border-border-strong bg-surface p-5 has-checked:border-accent has-checked:bg-accent-surface"
 		>
 			<input
 				type="radio"
@@ -31,7 +34,8 @@
 				bind:group={wizard.values.type}
 				class="mt-1 size-6 shrink-0 accent-accent"
 			/>
-			<span class="flex flex-col gap-1">
+			<span class="flex flex-col gap-2">
+				<Icon class="size-6 text-accent" aria-hidden="true" />
 				<span class="text-base font-semibold text-text">{text.types[choice].label}</span>
 				<span class="text-sm text-text-muted">{text.types[choice].body}</span>
 			</span>

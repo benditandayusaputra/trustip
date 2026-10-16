@@ -10,9 +10,16 @@
 	const text = id.home;
 </script>
 
-<section class="grid items-center gap-8 py-6 lg:grid-cols-2" aria-labelledby="beranda-judul">
+<section
+	class="grid items-center gap-8 py-6 lg:grid-cols-2 lg:py-8"
+	aria-labelledby="beranda-judul"
+>
 	<div class="flex flex-col items-start gap-6">
-		<p class="section-label">{text.audience}</p>
+		<p
+			class="inline-flex items-center gap-2 rounded-pill border border-border bg-surface px-4 py-2 text-xs font-semibold text-accent"
+		>
+			<span class="size-2 rounded-pill bg-primary" aria-hidden="true"></span>{text.audience}
+		</p>
 		<h1 id="beranda-judul" class="text-hero-compact font-semibold md:text-hero">
 			{text.headline}<br /><span class="text-accent">{text.headlineAccent}</span>
 		</h1>
@@ -40,9 +47,7 @@
 			>{text.seeWorkflow}<ArrowDown class="size-4" aria-hidden="true" /></a
 		>
 	</div>
-	<figure
-		class="flex flex-col gap-4 rounded-card border border-border bg-illustration-surface p-5 md:p-6"
-	>
+	<figure class="hero-art flex flex-col gap-4 border border-border p-5 md:p-6">
 		<p class="section-label">{text.illustration.eyebrow}</p>
 		<TradeIllustration />
 		<figcaption class="flex flex-col gap-4">

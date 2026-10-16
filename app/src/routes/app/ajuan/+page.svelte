@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import FileSignature from '@lucide/svelte/icons/file-signature';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import ProposalList from '#lib/features/proposals/components/ProposalList.svelte';
 	import { proposals as id } from '#lib/i18n/proposals.js';
@@ -13,11 +16,12 @@
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<div class="flex flex-wrap items-center justify-between gap-4">
-		<h1 class="text-xl font-semibold text-text">{id.proposals.listTitle}</h1>
+		<PageHeading icon={FileSignature}>{id.proposals.listTitle}</PageHeading>
 		<a
 			href="/app/ajuan/baru"
-			class="inline-flex min-h-12 items-center rounded-control bg-primary px-5 font-semibold text-on-accent"
+			class="inline-flex min-h-12 items-center gap-2 rounded-control bg-primary px-5 font-semibold text-on-accent"
 		>
+			<Plus class="size-5" aria-hidden="true" />
 			{id.proposals.invite}
 		</a>
 	</div>

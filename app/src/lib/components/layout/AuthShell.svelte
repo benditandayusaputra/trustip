@@ -38,20 +38,20 @@
 		class="mx-auto grid w-full max-w-content flex-1 items-center gap-6 px-4 py-4 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-8"
 	>
 		<aside
-			class="flex min-w-0 flex-col gap-4 rounded-card bg-illustration-surface p-4 lg:gap-6 lg:p-8"
+			class="auth-presentation flex min-w-0 flex-col gap-4 rounded-card p-4 lg:gap-6 lg:p-8"
 			aria-label={text.title}
 		>
 			<div class="hidden flex-col gap-4 lg:flex">
 				<p class="section-label">{text.eyebrow}</p>
-				<h2 class="text-hero-compact font-semibold text-text">
-					{text.headline}<br /><span class="text-accent">{text.headlineAccent}</span>
+				<h2 class="text-hero-compact font-semibold">
+					{text.headline}<br /><span class="auth-accent">{text.headlineAccent}</span>
 				</h2>
-				<p class="text-base text-text-muted">{text.body}</p>
+				<p class="auth-copy text-base">{text.body}</p>
 			</div>
 			<TradeIllustration compact />
-			<p class="text-center text-sm font-medium text-text-muted lg:text-left">{text.caption}</p>
+			<p class="auth-copy text-center text-sm font-medium lg:text-left">{text.caption}</p>
 		</aside>
-		<div class="mx-auto w-full max-w-auth-form">
+		<div class="auth-form mx-auto w-full max-w-auth-form">
 			<NavigationContent {pendingPath}>{@render children()}</NavigationContent>
 		</div>
 	</main>

@@ -48,7 +48,7 @@
 	}
 </script>
 
-<form onsubmit={handleSubmit} novalidate class="flex flex-col gap-5">
+<form onsubmit={handleSubmit} novalidate class="surface-card flex flex-col gap-5 p-5 compact:p-6">
 	<h2 class="text-lg font-semibold text-text">{text.title}</h2>
 	<fieldset disabled={!canEdit} class="flex flex-col gap-5">
 		<Select

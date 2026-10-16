@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Calculator from '@lucide/svelte/icons/calculator';
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import CountView from '#lib/features/counts/components/CountView.svelte';
@@ -13,7 +15,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.counts.recapTitle}</h1>
+	<PageHeading icon={Calculator}>{id.counts.recapTitle}</PageHeading>
 	{#key page.params.id}
 		<CountView countId={page.params.id ?? ''} viewerOrganizationId={organizationId} />
 	{/key}

@@ -48,7 +48,7 @@
 	onsubmit={handleSubmit}
 	novalidate
 	aria-labelledby="counter-title"
-	class="flex flex-col gap-6 rounded-card border border-accent p-4"
+	class="surface-card flex flex-col gap-6 rounded-card border border-accent p-4 p-5 compact:p-6"
 >
 	<h2 id="counter-title" class="text-lg font-semibold text-text">{text.counterTitle}</h2>
 	<p class="text-base text-text-muted">{text.counterIntro(counterpartName)}</p>

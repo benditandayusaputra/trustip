@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import WifiOff from '@lucide/svelte/icons/wifi-off';
 	import { offline as id } from '#lib/i18n/offline.js';
 </script>
@@ -8,8 +9,7 @@
 </svelte:head>
 
 <section class="mx-auto flex max-w-form flex-col items-center gap-4 py-8 text-center">
-	<WifiOff class="size-12 text-warning" aria-hidden="true" />
-	<h1 class="text-xl">{id.offline.title}</h1>
+	<PageHeading icon={WifiOff}>{id.offline.title}</PageHeading>
 	<p class="text-text-muted">{id.offline.body}</p>
 	<a
 		href="/"

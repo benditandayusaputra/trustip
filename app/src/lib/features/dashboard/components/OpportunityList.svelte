@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Compass from '@lucide/svelte/icons/compass';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ListDisclosure from '#lib/components/ui/ListDisclosure.svelte';
@@ -24,7 +25,7 @@
 	});
 </script>
 
-<Card title={text.opportunitiesTitle}>
+<Card icon={Compass} title={text.opportunitiesTitle}>
 	{#if feed.status === 'loading'}
 		<Skeleton lines={loadingRows} shape="control" />
 	{:else if feed.status === 'failed'}

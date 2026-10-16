@@ -19,7 +19,7 @@
 	const text = id.consignorDirectory;
 </script>
 
-<article class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
+<article class="surface-card flex flex-col gap-4 p-4">
 	{#if card.photo_url}
 		<img
 			src={card.photo_url}

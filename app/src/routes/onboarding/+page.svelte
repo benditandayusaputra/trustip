@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Building2 from '@lucide/svelte/icons/building-2';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
@@ -21,7 +23,7 @@
 	onmisplaced={() => void goto(next, { replaceState: true })}
 >
 	<section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
-		<h1 class="text-xl font-semibold text-text">{id.onboarding.title}</h1>
+		<PageHeading icon={Building2}>{id.onboarding.title}</PageHeading>
 		<OnboardingWizard onfounded={() => void goto(next, { replaceState: true })} />
 	</section>
 </AccountGate>

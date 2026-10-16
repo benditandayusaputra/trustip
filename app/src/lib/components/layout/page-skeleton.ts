@@ -15,6 +15,7 @@ const exact: Record<string, PageSkeletonKind> = {
 	'/app/toko': 'store-dashboard',
 	'/app/penitip': 'consignor-dashboard',
 	'/app/pengaturan': 'form',
+	'/app/produk': 'catalog',
 	'/app/laporan': 'report',
 	'/cari/toko': 'cards',
 	'/cari/penitip': 'cards',

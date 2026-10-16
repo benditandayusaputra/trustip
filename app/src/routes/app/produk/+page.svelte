@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import PackageOpen from '@lucide/svelte/icons/package-open';
 	import ProductCatalog from '#lib/features/products/components/ProductCatalog.svelte';
 	import { products as id } from '#lib/i18n/products.js';
 </script>
@@ -9,11 +12,12 @@
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<div class="flex flex-wrap items-center justify-between gap-4">
-		<h1 class="text-xl font-semibold text-text">{id.products.title}</h1>
+		<PageHeading icon={PackageOpen}>{id.products.title}</PageHeading>
 		<a
 			href="/app/produk/baru"
-			class="inline-flex min-h-12 items-center rounded-control bg-primary px-5 font-semibold text-on-accent"
+			class="inline-flex min-h-12 items-center gap-2 rounded-control bg-primary px-5 font-semibold text-on-accent"
 		>
+			<Plus class="size-5" aria-hidden="true" />
 			{id.products.add}
 		</a>
 	</div>

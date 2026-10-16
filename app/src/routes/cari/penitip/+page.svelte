@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import Search from '@lucide/svelte/icons/search';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import ConsignorDirectoryView from '#lib/features/directory/components/ConsignorDirectoryView.svelte';
@@ -30,7 +32,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.consignorDirectory.title}</h1>
+	<PageHeading icon={Search}>{id.consignorDirectory.title}</PageHeading>
 	<ConsignorDirectoryView {query} onchange={show}>
 		{#snippet place()}
 			<PlacePicker

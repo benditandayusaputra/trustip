@@ -8,6 +8,13 @@ export const common = {
 		more: 'Lainnya',
 		workspace: 'Catatan titip jual bersama mitra',
 		sharedRecords: 'Titipan, hitungan, dan setoran',
+		navigationGroup: 'Ruang kerja',
+		managementGroup: 'Kelola usaha',
+		secureTitle: 'Tercatat bersama.',
+		secureBody: 'Setiap langkah jelas untuk Anda dan mitra.',
+		overview: 'Ringkasan usaha',
+		dashboardIntro: 'Pantau titipan dan langkah berikutnya bersama mitra.',
+		searchPartners: 'Cari mitra',
 		organizations: { STORE: 'Ruang kerja toko', CONSIGNOR: 'Ruang kerja penitip' }
 	},
 	nav: {

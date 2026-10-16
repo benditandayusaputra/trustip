@@ -24,9 +24,7 @@
 	<ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
 		{#each text.steps as step, index (step.title)}
 			{@const Icon = icons[index] ?? Store}
-			<li
-				class="flex flex-col gap-4 rounded-card border border-border bg-surface p-5 md:last:col-span-2 lg:last:col-span-1"
-			>
+			<li class="surface-card flex flex-col gap-4 p-5 md:last:col-span-2 lg:last:col-span-1">
 				<div class="flex items-center justify-between gap-4">
 					<span
 						class="inline-flex size-11 items-center justify-center rounded-pill bg-accent-surface text-lg font-semibold text-accent"

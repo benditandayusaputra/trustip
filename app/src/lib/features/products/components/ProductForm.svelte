@@ -58,7 +58,12 @@
 	}
 </script>
 
-<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-5">
+<form
+	bind:this={formElement}
+	onsubmit={handleSubmit}
+	novalidate
+	class="surface-card flex flex-col gap-5 p-5 compact:p-6"
+>
 	<fieldset {disabled} class="flex flex-col gap-5">
 		<TextField
 			label={text.name}

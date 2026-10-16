@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Search from '@lucide/svelte/icons/search';
 	import FieldShell from './FieldShell.svelte';
 	import { describedBy, inputClass } from './field';
 
@@ -30,16 +31,22 @@
 </script>
 
 <FieldShell {inputId} {label} {hint} {error}>
-	<input
-		id={inputId}
-		{name}
-		{type}
-		{autocomplete}
-		{required}
-		{maxlength}
-		bind:value
-		aria-invalid={error ? true : undefined}
-		aria-describedby={describedBy(inputId, hint, error)}
-		class={inputClass}
-	/>
+	<div class="relative">
+		{#if type === 'search'}<Search
+				class="pointer-events-none absolute top-4 left-4 size-5 text-text-muted"
+				aria-hidden="true"
+			/>{/if}
+		<input
+			id={inputId}
+			{name}
+			{type}
+			{autocomplete}
+			{required}
+			{maxlength}
+			bind:value
+			aria-invalid={error ? true : undefined}
+			aria-describedby={describedBy(inputId, hint, error)}
+			class="{inputClass} {type === 'search' ? 'pl-12' : ''}"
+		/>
+	</div>
 </FieldShell>

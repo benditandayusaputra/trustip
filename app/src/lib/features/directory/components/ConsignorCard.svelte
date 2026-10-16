@@ -19,7 +19,7 @@
 	const text = id.consignorDirectory;
 </script>
 
-<article class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4">
+<article class="surface-card flex flex-col gap-4 p-4">
 	<header class="flex items-start gap-4">
 		{#if card.logo_url}
 			<img
@@ -32,7 +32,10 @@
 				class="size-12 shrink-0 rounded-control object-cover"
 			/>
 		{:else}
-			<ChefHat class="size-12 shrink-0 text-text-muted" aria-hidden="true" />
+			<span
+				class="flex size-12 shrink-0 items-center justify-center rounded-control bg-accent-surface"
+				><ChefHat class="size-6 text-accent" aria-hidden="true" /></span
+			>
 		{/if}
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<h2 class="text-lg font-semibold text-text">

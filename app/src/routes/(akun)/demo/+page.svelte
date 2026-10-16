@@ -13,7 +13,7 @@
 	<title>{text.demoTitle}</title>
 </svelte:head>
 
-<section class="flex flex-col gap-6 rounded-card border border-border bg-surface p-5 md:p-8">
+<section class="flex flex-col gap-6">
 	<header class="flex flex-col gap-2">
 		<h1 class="text-xl font-semibold text-text">{text.demoTitle}</h1>
 		<p class="text-base text-text-muted">{text.demoIntro}</p>

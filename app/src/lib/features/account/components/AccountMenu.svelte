@@ -1,4 +1,6 @@
 <script lang="ts">
+	import UserRound from '@lucide/svelte/icons/user-round';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
@@ -43,13 +45,16 @@
 
 <details class="relative">
 	<summary
-		class="inline-flex min-h-11 cursor-pointer items-center rounded-control border border-border-strong px-4 font-semibold text-text"
+		class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill border border-border bg-surface px-4 font-semibold text-text"
 	>
-		{text.menu}
+		<UserRound class="size-4 text-accent" aria-hidden="true" />{text.menu}<ChevronDown
+			class="size-4 text-text-muted"
+			aria-hidden="true"
+		/>
 	</summary>
 	<nav
 		aria-label={text.menu}
-		class="absolute right-0 z-10 mt-2 flex w-max flex-col gap-2 rounded-card border border-border bg-surface p-2"
+		class="absolute right-0 z-10 mt-2 flex w-max flex-col gap-2 rounded-card border border-border bg-surface p-2 shadow-raised"
 	>
 		<Button
 			variant="secondary"

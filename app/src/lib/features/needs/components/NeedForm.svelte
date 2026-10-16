@@ -62,7 +62,12 @@
 	}
 </script>
 
-<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-6">
+<form
+	bind:this={formElement}
+	onsubmit={handleSubmit}
+	novalidate
+	class="surface-card flex flex-col gap-6 p-5 compact:p-6"
+>
 	<TextField
 		label={text.title}
 		hint={text.titleHint}

@@ -81,7 +81,12 @@
 	}
 </script>
 
-<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-5">
+<form
+	bind:this={formElement}
+	onsubmit={handleSubmit}
+	novalidate
+	class="surface-card flex flex-col gap-5 p-5 compact:p-6"
+>
 	<div class="flex flex-col gap-1">
 		<p class="text-sm text-text-muted">{text.progress(wizard.stepNumber, steps.length)}</p>
 		<h2 bind:this={heading} tabindex="-1" class="text-lg font-semibold text-text">

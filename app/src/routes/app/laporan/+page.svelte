@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
+	import ChartColumn from '@lucide/svelte/icons/chart-column';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import ReportsPage from '#lib/features/reports/components/ReportsPage.svelte';
 	import { reports as id } from '#lib/i18n/reports.js';
@@ -14,7 +16,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<h1 class="text-xl font-semibold text-text">{id.reports.title}</h1>
+	<PageHeading icon={ChartColumn}>{id.reports.title}</PageHeading>
 	{#key organizationType}
 		<ReportsPage {organizationType} />
 	{/key}
