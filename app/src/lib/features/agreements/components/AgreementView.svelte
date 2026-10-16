@@ -47,7 +47,7 @@
 		{agreement.number} · {text.version(agreement.version)}
 	</p>
 	<SealPanel isValid={agreement.seal.is_valid} events={agreement.seal.events} />
-	<dl class="grid grid-cols-2 gap-2 text-sm">
+	<dl class="document-details grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{terms.consignor}</dt>
 		<dd>{agreement.consignor.name}</dd>
 		<dt class="text-text-muted">{terms.store}</dt>

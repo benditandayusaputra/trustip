@@ -105,6 +105,7 @@ describe('Partners', () => {
 			[`/api/v1/partnerships/${partnershipId}/catalog`]: () => list([])
 		});
 		const { container } = await render(PartnersHarness, { view: 'page', partnershipId });
+		await userEvent.click(page.getByText('Akhiri kemitraan', { exact: true }).first());
 
 		await expect.element(page.getByText('Jl. Mawar 3')).toBeVisible();
 		await expect
@@ -191,6 +192,7 @@ describe('Ending a partnership', () => {
 				])
 		});
 		const { container } = await render(PartnersHarness, { view: 'page', partnershipId });
+		await userEvent.click(page.getByText('Akhiri kemitraan', { exact: true }).first());
 
 		await expect
 			.element(page.getByRole('link', { name: 'Setoran ST-202611-0001 belum lunas' }))
@@ -208,7 +210,10 @@ describe('Ending a partnership', () => {
 		});
 		await render(PartnersHarness, { view: 'page', partnershipId });
 
-		await userEvent.click(page.getByRole('button', { name: 'Akhiri kemitraan' }));
+		await userEvent.click(page.getByText('Akhiri kemitraan', { exact: true }).first());
+		await userEvent.click(
+			page.getByRole('button', { name: 'Akhiri kemitraan', exact: true }).last()
+		);
 		await userEvent.click(
 			page.getByRole('dialog').getByRole('button', { name: 'Akhiri kemitraan' })
 		);

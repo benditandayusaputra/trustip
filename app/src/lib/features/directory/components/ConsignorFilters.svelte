@@ -2,7 +2,6 @@
 	import type { Snippet } from 'svelte';
 	import Checkbox from '#lib/components/ui/Checkbox.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import TextField from '#lib/components/ui/TextField.svelte';
 	import type { Category } from '#lib/api/organizations.js';
 	import { directory as id } from '#lib/i18n/directory.js';
 	import type { ConsignorQuery } from '../consignor-query';
@@ -20,9 +19,6 @@
 
 	const text = id.consignorDirectory;
 	const shared = id.directory;
-	const typingDelayMs = 300;
-	const maxSearchLength = 80;
-	let typed = $derived(query.text);
 	const radiusOptions = radiusChoices.map((value) => ({ value, label: shared.radii[value] }));
 	const sortOptions = sortChoices.map((value) => ({ value, label: shared.sorts[value] }));
 	const priceOptions = priceRanges.map((range) => ({
@@ -44,18 +40,6 @@
 		{ key: 'deliversToMe', label: text.deliversToMe, checked: query.deliversToMe }
 	] as const);
 
-	$effect(() => {
-		const next = typed;
-		const timer = setTimeout(() => {
-			if (next !== query.text) {
-				onchange({ text: next });
-			}
-		}, typingDelayMs);
-		return () => {
-			clearTimeout(timer);
-		};
-	});
-
 	function choosePriceRange(key: string) {
 		const range = priceRanges.find((candidate) => candidate.key === key);
 		onchange({ minPrice: range?.minPrice ?? '', maxPrice: range?.maxPrice ?? '' });
@@ -64,9 +48,6 @@
 
 <fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
 	<legend class="sr-only">{text.filters}</legend>
-	<div class="md:col-span-2 xl:col-span-1">
-		<TextField label={text.search} type="search" maxlength={maxSearchLength} bind:value={typed} />
-	</div>
 	{@render place()}
 	<Select
 		label={shared.radius}

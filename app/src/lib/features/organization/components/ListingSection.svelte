@@ -38,7 +38,7 @@
 	}
 </script>
 
-<section class="flex flex-col gap-4" aria-labelledby="{meterId}-title">
+<section class="surface-card flex flex-col gap-4 p-5 compact:p-6" aria-labelledby="{meterId}-title">
 	<h2 id="{meterId}-title" class="text-lg font-semibold text-text">{text.title}</h2>
 	<div class="flex flex-col gap-2">
 		<label for="{meterId}-meter" class="text-sm font-medium text-text">{text.meter(percent)}</label>

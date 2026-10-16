@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { networkTimeoutMs } from './session';
 
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core'), 'utf8');
 const widths = [320, 390, 768, 1024, 1440];
@@ -69,4 +70,15 @@ test('demo is available from the home page and fills only its own sign-in form',
 	await page.getByRole('button', { name: 'Isi sebagai toko (Warung Bu Sri)' }).click();
 	await expect(page.getByLabel('Email')).toHaveValue('toko@demo.trustip.id');
 	await expect(page.getByLabel('Kata sandi')).toHaveValue('Coba-Demo-2026');
+});
+
+test('auth pages fit 320 pixels after the security widget has loaded', async ({ page }) => {
+	await page.setViewportSize({ width: 320, height: 900 });
+	for (const path of ['/masuk', '/daftar', '/demo']) {
+		await page.goto(path);
+		await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', {
+			timeout: networkTimeoutMs
+		});
+		await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+	}
 });

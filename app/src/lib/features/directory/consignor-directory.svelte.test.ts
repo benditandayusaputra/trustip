@@ -109,6 +109,7 @@ describe('Consignor directory', () => {
 		const requested = serve({});
 		await render(ConsignorDirectoryHarness, {});
 
+		await userEvent.click(page.getByRole('button', { name: 'Filter dan urutan' }));
 		await userEvent.click(page.getByRole('checkbox', { name: 'Punya sertifikat halal' }));
 
 		await vi.waitFor(() => {

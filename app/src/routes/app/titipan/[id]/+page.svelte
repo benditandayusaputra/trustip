@@ -15,7 +15,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<PageHeading icon={Package}>{id.drops.detailTitle}</PageHeading>
+	<PageHeading backHref="/app/titipan" icon={Package}>{id.drops.detailTitle}</PageHeading>
 	{#key page.params.id}
 		<DropView dropId={page.params.id ?? ''} viewerOrganizationId={organizationId} />
 	{/key}

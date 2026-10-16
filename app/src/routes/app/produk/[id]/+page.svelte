@@ -11,6 +11,6 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<PageHeading icon={PackageOpen}>{id.products.editTitle}</PageHeading>
+	<PageHeading backHref="/app/produk" icon={PackageOpen}>{id.products.editTitle}</PageHeading>
 	<ProductDetail productId={page.params.id ?? ''} />
 </section>

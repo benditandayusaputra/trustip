@@ -107,7 +107,7 @@ test('logout from a store and login as a consignor redirects to the current dash
 }) => {
 	await mockDashboard(page, 'STORE');
 	await page.goto('/app/toko');
-	await page.getByText('Akun', { exact: true }).click();
+	await page.getByLabel('Buka menu akun').click();
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
 	await expect(page).toHaveURL(/\/masuk\?lanjut=/u);
 	await page.getByLabel('Email').fill('penitip@contoh.id');

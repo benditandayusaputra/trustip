@@ -16,7 +16,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<PageHeading icon={Package}>{id.drops.newTitle}</PageHeading>
+	<PageHeading backHref="/app/titipan" icon={Package}>{id.drops.newTitle}</PageHeading>
 	<p class="text-base text-text-muted">{id.drops.newIntro}</p>
 	{#if partnershipId === ''}
 		<PartnerChooser hrefOf={(partnerId: string) => `/app/titipan/baru?mitra=${partnerId}`} />

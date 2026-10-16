@@ -119,7 +119,7 @@
 			{text.openPartnership}
 		</a>
 	{/if}
-	<dl class="grid grid-cols-2 gap-2 text-sm">
+	<dl class="document-details grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{text.consignor}</dt>
 		<dd>{proposal.consignor?.name ?? text.notJoined}</dd>
 		<dt class="text-text-muted">{text.store}</dt>

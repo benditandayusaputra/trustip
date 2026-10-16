@@ -44,6 +44,13 @@ export const organization = {
 	settings: {
 		title: 'Pengaturan',
 		profileTitle: 'Profil usaha',
+		navigation: 'Bagian pengaturan',
+		general: 'Informasi usaha',
+		generalTab: 'Umum',
+		paymentTab: 'Pembayaran',
+		listingTab: 'Publikasi',
+		generalHint: 'Kelola identitas dan lokasi usaha yang digunakan bersama mitra.',
+		appearance: 'Tampilan',
 		typeLabel: 'Tipe usaha',
 		logo: 'Logo',
 		chooseLogo: 'Pilih gambar logo',

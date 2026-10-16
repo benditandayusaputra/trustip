@@ -49,7 +49,7 @@
 	});
 </script>
 
-<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<fieldset class="filter-toolbar grid grid-cols-1 gap-4 md:grid-cols-2">
 	<legend class="sr-only">{text.filters}</legend>
 	<Select
 		label={text.range}

@@ -28,46 +28,48 @@
 	onMount(() => watchOnline((online) => (isOnline = online)));
 </script>
 
-{#if !isOnline}
-	<p role="status" class="text-sm text-warning">{text.offline}</p>
-{/if}
-{#if search?.is_expanded}
-	<p role="status" class="text-sm text-accent">{text.expanded(search.effective_radius_km)}</p>
-{/if}
-{#if search && !search.origin.is_known}
-	<p role="status" class="text-sm text-text-muted">
-		{text.noOrigin}
-		<a href="/app/pengaturan" class="font-semibold text-accent">{text.setLocation}</a>
-	</p>
-{/if}
-{#if list.status === 'loading'}
-	<ContentSkeleton variant="cards" />
-{:else if list.status === 'failed'}
-	<Alert title={failedTitle}>
-		{list.failure}
-		{#snippet action()}
-			<Button variant="secondary" onclick={() => void list.load(query)}>{text.retry}</Button>
-		{/snippet}
-	</Alert>
-{:else if list.items.length === 0}
-	<EmptyState icon={SearchX} message={emptyMessage}>
-		{#snippet action()}
-			<Button variant="secondary" onclick={onclear}>{text.clearFilters}</Button>
-		{/snippet}
-	</EmptyState>
-{:else}
-	{#if results}
-		{@render results(list.items)}
+<div class="flex min-w-0 flex-col gap-4">
+	{#if !isOnline}
+		<p role="status" class="text-sm text-warning">{text.offline}</p>
+	{/if}
+	{#if search?.is_expanded}
+		<p role="status" class="text-sm text-accent">{text.expanded(search.effective_radius_km)}</p>
+	{/if}
+	{#if search && !search.origin.is_known}
+		<p role="status" class="text-sm text-text-muted">
+			{text.noOrigin}
+			<a href="/app/pengaturan" class="font-semibold text-accent">{text.setLocation}</a>
+		</p>
+	{/if}
+	{#if list.status === 'loading'}
+		<ContentSkeleton variant="cards" />
+	{:else if list.status === 'failed'}
+		<Alert title={failedTitle}>
+			{list.failure}
+			{#snippet action()}
+				<Button variant="secondary" onclick={() => void list.load(query)}>{text.retry}</Button>
+			{/snippet}
+		</Alert>
+	{:else if list.items.length === 0}
+		<EmptyState icon={SearchX} message={emptyMessage}>
+			{#snippet action()}
+				<Button variant="secondary" onclick={onclear}>{text.clearFilters}</Button>
+			{/snippet}
+		</EmptyState>
 	{:else}
-		<ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-			{#each list.items as item (item.id)}
-				<li>{@render card(item)}</li>
-			{/each}
-		</ul>
+		{#if results}
+			{@render results(list.items)}
+		{:else}
+			<ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+				{#each list.items as item (item.id)}
+					<li>{@render card(item)}</li>
+				{/each}
+			</ul>
+		{/if}
+		{#if list.nextCursor}
+			<Button variant="secondary" busy={list.busy} onclick={() => void list.loadMore()}>
+				{text.loadMore}
+			</Button>
+		{/if}
 	{/if}
-	{#if list.nextCursor}
-		<Button variant="secondary" busy={list.busy} onclick={() => void list.loadMore()}>
-			{text.loadMore}
-		</Button>
-	{/if}
-{/if}
+</div>

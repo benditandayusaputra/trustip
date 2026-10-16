@@ -24,6 +24,7 @@ export const publicProfile = {
 		needUntil: (date: string) => `Berlaku sampai ${date}`,
 		reputation: 'Reputasi',
 		products: 'Produk',
+		productsBy: (name: string) => `Produk dari ${name}`,
 		noProducts: 'Belum ada produk yang ditampilkan.',
 		legality: 'Legalitas yang dinyatakan',
 		businessId: 'NIB',

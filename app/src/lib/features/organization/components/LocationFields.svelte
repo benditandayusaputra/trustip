@@ -2,6 +2,7 @@
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
+	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { common as commonText } from '#lib/i18n/common.js';
 	import { organization as organizationText } from '#lib/i18n/organization.js';
@@ -52,24 +53,26 @@
 		{/snippet}
 	</Alert>
 {/if}
-<Select
-	label={text.province}
-	name="province_code"
-	options={provinceOptions}
-	bind:value={values.provinceCode}
-	onchange={chooseProvince}
-	error={errors.provinceCode}
-/>
-<Select
-	label={text.city}
-	name="city_code"
-	options={cityOptions}
-	bind:value={values.cityCode}
-	onchange={() => {
-		values.location = null;
-	}}
-	error={errors.cityCode}
-/>
+<div class="grid gap-5 md:grid-cols-2">
+	<Select
+		label={text.province}
+		name="province_code"
+		options={provinceOptions}
+		bind:value={values.provinceCode}
+		onchange={chooseProvince}
+		error={errors.provinceCode}
+	/>
+	<Select
+		label={text.city}
+		name="city_code"
+		options={cityOptions}
+		bind:value={values.cityCode}
+		onchange={() => {
+			values.location = null;
+		}}
+		error={errors.cityCode}
+	/>
+</div>
 {#if mapCenter}
 	<LocationPin
 		center={mapCenter}
@@ -86,7 +89,7 @@
 	bind:value={values.district}
 	error={errors.district}
 />
-<TextField
+<TextArea
 	label={text.address}
 	name="address"
 	autocomplete="street-address"

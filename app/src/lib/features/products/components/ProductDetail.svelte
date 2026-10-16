@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
@@ -84,7 +85,6 @@
 		checked={product.is_seeking_stores}
 		onchange={(isSeeking: boolean) => void setSeeking(isSeeking)}
 	/>
-	<ProductQr {product} />
 	{#key product.id}
 		<ProductForm
 			{product}
@@ -93,4 +93,10 @@
 			}}
 		/>
 	{/key}
+	<details class="secondary-disclosure">
+		<summary
+			>{text.qrTitle}<ChevronDown class="size-5 text-text-muted" aria-hidden="true" /></summary
+		>
+		<ProductQr {product} />
+	</details>
 {/if}

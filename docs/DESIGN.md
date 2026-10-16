@@ -2,7 +2,7 @@
 
 Desain antarmuka Trustip yang disetujui tim pada 9 Oktober 2026: primary biru, tema terang dan gelap, serta tata letak yang mengutamakan tindakan dan catatan dua pihak. Keputusan dan alasan dicatat pada `adr/0046-tema-terang-gelap-dan-biru.md` dan penyegaran 16 Oktober 2026 pada `adr/0053-penyegaran-antarmuka-ruang-kerja.md`.
 
-Dokumen ini mengatur visual. Perilaku, angka, izin, dan keadaan fitur tetap mengikuti `02-SPESIFIKASI-FITUR.md`. Implementasi menggunakan komponen bersama dan token, bukan nilai mentah di halaman.
+Dokumen ini mengatur visual. Perilaku, angka, izin, dan keadaan fitur tetap mengikuti `02-SPESIFIKASI-FITUR.md`. Implementasi menggunakan komponen bersama dan token, bukan nilai mentah di halaman. Hasil QA per halaman dan perbaikan UX dicatat di `QA-ANTARMUKA.md` dan `adr/0054-qa-navigasi-dan-formulir.md`.
 
 ## 1. Suasana dan pengguna
 
@@ -58,7 +58,7 @@ Angka panjang mendapat kartu selebar baris pada HP di bawah 480 px, sehingga jum
 
 ## 4. Kerangka seluruh halaman
 
-- Publik: header merek, navigasi, pilihan tema, masuk; footer merek, direktori, cara kerja, demo, pendaftaran, dan kebijakan. Halaman publik tetap dirender server.
+- Publik: header merek, navigasi, pilihan tema, masuk; footer merek, direktori, cara kerja, demo, pendaftaran, dan kebijakan. Pada HP, menu membuka tautan Cari toko, Cari produk dan penitip, serta Kebutuhan toko; menu ditutup lewat Escape, klik luar, atau setelah memilih tautan. Halaman publik tetap dirender server.
 - Anggota: sidebar desktop biru primary selebar 256 px dengan kelompok Ruang kerja dan Kelola usaha, menu aktif putih dengan teks biru, identitas peran, dan pengingat catatan bersama. Header memakai ikon modul, jejak halaman, pencarian mitra, serta tindakan akun; navigasi bawah pada HP/tablet sesuai peran. Semua rute aplikasi, direktori, dan papan kebutuhan menggunakan kerangka yang sama ketika anggota masuk.
 - Penitip: Beranda, Cari, Mitra, Setoran, Lainnya.
 - Toko: Beranda, Hitung, Titipan, Cari, Lainnya.
@@ -74,7 +74,7 @@ Beranda menjelaskan titip jual sejak layar pertama dengan ilustrasi penitip meny
 
 Ilustrasi beranda dan akun memakai satu komponen vektor bersama dengan ukuran berbeda, mengikuti token kedua tema. Footer pada kerangka publik mengelompokkan tautan menjadi Jelajahi, Mulai, dan Informasi, disertai identitas dan penjelasan singkat aplikasi. Semua tautan menuju halaman yang tersedia; tidak menambahkan kontak atau akun sosial rekaan. Pada HP, bagian footer tersusun satu kolom dan target sentuh minimal 44 px. Direktori mempertahankan footer ringkas agar perluasan footer tidak menambah pergeseran tata letak saat hasil dimuat.
 
-Direktori Toko selalu menampilkan pencarian dan urutan. Filter lokasi, kategori, dan syarat dibuka melalui tombol Filter, dengan penjelasan dan jumlah pilihan aktif. Panel filter berada di atas hasil pada HP maupun desktop dan menyesuaikan jumlah kolom dengan ruang yang tersedia. Pilihan Daftar/Peta menggunakan hasil pencarian yang sama; marker lokasi publik bisa diklik atau diaktifkan lewat keyboard untuk membuka detail. Daftar nama toko tetap tersedia sebagai alternatif peta. Direktori Penitip memakai panel filter di samping hasil mulai 1440 px, dan sebelum hasil pada layar lebih kecil. Foto produk ditampilkan jika tersedia; bila belum ada, gunakan placeholder ikon yang tenang, bukan foto rekaan. Profil usaha memakai kepala profil, kategori, keterangan, syarat, dan aksi relevan. Produk memiliki foto utama, harga jual saran, komposisi, pembuat, dan daftar tempat membeli. Kebijakan memakai kolom baca nyaman.
+Direktori Toko selalu menampilkan pencarian dan urutan. Filter lokasi, kategori, dan syarat dibuka melalui tombol Filter, dengan penjelasan dan jumlah pilihan aktif. Panel filter berada di atas hasil pada HP maupun desktop dan menyesuaikan jumlah kolom dengan ruang yang tersedia. Pilihan Daftar/Peta menggunakan hasil pencarian yang sama; marker lokasi publik bisa diklik atau diaktifkan lewat keyboard untuk membuka detail. Daftar nama toko tetap tersedia sebagai alternatif peta. Direktori Penitip dan Papan Kebutuhan selalu menampilkan pencarian di atas hasil. Filter lanjutan berada di samping hasil mulai 1440 px; pada layar lebih kecil, pengguna membukanya melalui tombol Filter dan urutan. Hasil dan keadaan kosong tetap terlihat tanpa harus melewati seluruh isian filter. Foto produk ditampilkan jika tersedia; bila belum ada, gunakan placeholder ikon yang tenang, bukan foto rekaan. Profil usaha memakai kepala profil, kategori, keterangan, syarat, dan aksi relevan. Produk memiliki foto utama, harga jual saran, komposisi, pembuat, dan daftar tempat membeli. Kebijakan memakai kolom baca nyaman.
 
 Daftar putih publik tidak berubah: harga setor, angka transaksi, lokasi persis penitip, nomor WhatsApp, dan jumlah stok per toko tidak ditambahkan. Verifikasi segel hanya menampilkan metadata yang diperbolehkan; segel tidak disebut tanda tangan tersertifikasi.
 
@@ -92,7 +92,7 @@ Dasbor toko: lima angka spesifikasi, Hitung cepat dan Perlu tindakan, lalu Saran
 
 Riwayat, katalog, Ajuan, Kemitraan, Kebutuhan dan Setoran memakai filter di atas isi, status berlabel dan tindakan sesuai hak akses. Detail dokumen membedakan nomor/status, isi, jejak konfirmasi, segel dan langkah berikutnya. Tabel desktop berubah menjadi daftar berlabel di HP; tabel padat hanya boleh memiliki overflow lokal.
 
-Titipan Masuk dan Hitung Sisa memakai baris produk dan kontrol jumlah besar. Ringkasan beserta simpan mudah dicapai, di atas navigasi. Rekap uang selalu berurutan omzet, untung toko, harus setor. Formulir lain dikelompokkan dalam permukaan yang jelas. Preferensi tema tersedia di header dan pengaturan, termasuk untuk staf yang tidak boleh mengubah profil.
+Titipan Masuk dan Hitung Sisa memakai baris produk dan kontrol jumlah besar. Ringkasan beserta simpan mudah dicapai, di atas navigasi. Rekap uang selalu berurutan omzet, untung toko, harus setor. Formulir lain dikelompokkan dalam permukaan yang jelas. Formulir produk memisahkan Informasi produk, Harga dan masa simpan, serta Deskripsi dan foto. Isian berpasangan berbagi dua kolom mulai tablet; catatan dan deskripsi memakai area teks beberapa baris. Pada halaman ubah produk, formulir tampil sebelum disclosure QR. Detail dan formulir memiliki tautan kembali ke daftar. Ringkasan dokumen memakai kartu label/nilai yang menjadi satu kolom pada HP. Pengaturan mendahulukan profil usaha, menyediakan navigasi antarbagian yang mempertahankan isian, dan menempatkan pilihan tampilan di bagian akhir. Tindakan mengakhiri kemitraan berada dalam disclosure terpisah dan tetap membutuhkan dialog konfirmasi. Kontrol tema dan akun pada header HP menggunakan ikon dengan nama aksesibel agar header tetap ringkas; pilihan tema di pengaturan menampilkan teks pilihan secara penuh. Preferensi tema tersedia di header dan pengaturan, termasuk untuk staf yang tidak boleh mengubah profil.
 
 ## 6. Komponen dan keadaan
 

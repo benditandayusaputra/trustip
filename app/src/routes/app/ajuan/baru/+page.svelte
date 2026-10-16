@@ -37,7 +37,7 @@
 			onsent={open}
 		/>
 	{:else}
-		<PageHeading icon={FileSignature}>{id.proposals.newTitle}</PageHeading>
+		<PageHeading backHref="/app/ajuan" icon={FileSignature}>{id.proposals.newTitle}</PageHeading>
 		<p class="text-base text-text-muted">{id.proposals.newIntro}</p>
 		{#if membership}
 			<InvitationForm isConsignor={membership.organization_type === 'CONSIGNOR'} onsent={open} />

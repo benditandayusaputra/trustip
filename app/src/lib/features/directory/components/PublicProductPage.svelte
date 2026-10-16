@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Package from '@lucide/svelte/icons/package';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
@@ -24,6 +25,11 @@
 </script>
 
 <article class="flex flex-col gap-6">
+	<a
+		href="/u/{consignorSlug}"
+		class="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium text-text-muted hover:text-accent"
+		><ArrowLeft class="size-4" aria-hidden="true" />{text.productsBy(maker.name)}</a
+	>
 	<header class="grid items-center gap-6 lg:grid-cols-2">
 		{#if product.photo_url}
 			<img

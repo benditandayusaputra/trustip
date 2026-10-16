@@ -4,6 +4,7 @@
 	import Sidebar from './Sidebar.svelte';
 	import SkipLink from './SkipLink.svelte';
 	import NavigationContent from './NavigationContent.svelte';
+	import PublicMenu from './PublicMenu.svelte';
 	import Brand from './Brand.svelte';
 	import WorkspaceBreadcrumb from './WorkspaceBreadcrumb.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
@@ -35,7 +36,7 @@
 					<div class="lg:hidden"><Brand href="/app" /></div>
 					<WorkspaceBreadcrumb {organizationType} {currentPath} />
 				{:else}
-					<Brand />
+					<Brand compact />
 				{/if}
 				<nav aria-label={text.layout.publicNavigation} class="flex flex-wrap items-center gap-2">
 					{#if !organizationType}
@@ -46,7 +47,7 @@
 							{text.nav.needsBoard}
 						</a>
 					{/if}
-					<ThemePicker />{@render actions?.()}
+					{#if !organizationType}<PublicMenu />{/if}<ThemePicker />{@render actions?.()}
 				</nav>
 			</div>
 		</header>

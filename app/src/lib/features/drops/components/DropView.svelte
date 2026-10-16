@@ -50,7 +50,7 @@
 	{#if drop.recorded_offline}
 		<OfflineMark recordedAt={drop.client_recorded_at} receivedAt={drop.received_at} />
 	{/if}
-	<dl class="grid grid-cols-2 gap-2 text-sm">
+	<dl class="document-details grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{text.store}</dt>
 		<dd>{drop.store.name}</dd>
 		<dt class="text-text-muted">{text.consignor}</dt>
@@ -75,7 +75,7 @@
 	{/if}
 	<h2 class="text-lg font-semibold text-text">{text.items}</h2>
 	<ResponsiveTable caption={text.items} {columns} rows={itemRows(drop)} rowKey="id" />
-	<dl class="grid grid-cols-2 gap-2 text-sm">
+	<dl class="document-details grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{text.units}</dt>
 		<dd class="text-right font-mono tabular-nums">{formatInteger(drop.total_qty)}</dd>
 		<dt class="text-text-muted">{text.gross}</dt>

@@ -4,6 +4,7 @@
 	import FieldSkeleton from '#lib/components/ui/FieldSkeleton.svelte';
 	import MoneyField from '#lib/components/ui/MoneyField.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
+	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
@@ -85,7 +86,7 @@
 			error={composer.errors.categoryId}
 		/>
 	{/if}
-	<TextField
+	<TextArea
 		label={text.description}
 		hint={text.descriptionHint}
 		bind:value={composer.values.description}
@@ -93,6 +94,7 @@
 	/>
 	<TextField
 		label={text.weeklyQuantity}
+		inputmode="numeric"
 		hint={text.optional}
 		bind:value={quantityText}
 		error={composer.errors.weeklyQuantity}
@@ -114,6 +116,7 @@
 	{#if composer.values.model !== 'FIXED_DEPOSIT'}
 		<TextField
 			label={text.commission}
+			inputmode="decimal"
 			hint={text.optional}
 			bind:value={composer.values.commissionPercent}
 			error={composer.errors.commissionPercent}

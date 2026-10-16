@@ -206,6 +206,7 @@ describe('Product seeking and QR', () => {
 			[`GET /api/v1/products/${productId}`]: () => envelope(bread)
 		});
 		const { container } = await render(ProductsHarness, { view: 'detail', productId });
+		await userEvent.click(page.getByText('Kode QR produk', { exact: true }).first());
 
 		await expect
 			.element(page.getByRole('img', { name: 'Kode QR untuk Roti Sobek Cokelat' }))

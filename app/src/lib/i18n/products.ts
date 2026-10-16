@@ -1,6 +1,12 @@
 export const products = {
 	products: {
 		title: 'Produk',
+		identityTitle: 'Informasi produk',
+		identityHint: 'Nama, kategori, dan satuan yang dikenali mitra.',
+		pricingTitle: 'Harga dan masa simpan',
+		pricingHint: 'Tentukan harga awal dan ketahanan produk Anda.',
+		detailsTitle: 'Deskripsi dan foto',
+		detailsHint: 'Bantu mitra dan pembeli memahami produk Anda.',
 		add: 'Tambah produk',
 		newTitle: 'Produk baru',
 		editTitle: 'Ubah produk',

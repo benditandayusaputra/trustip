@@ -1,7 +1,7 @@
 <script lang="ts">
 	import NumberField from '#lib/components/ui/NumberField.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
-	import TextField from '#lib/components/ui/TextField.svelte';
+	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import { proposals as id } from '#lib/i18n/proposals.js';
 	import type { InvitationErrors, InvitationValues } from '../schema';
 
@@ -39,7 +39,7 @@
 		bind:value={values.rhythm}
 		error={errors['terms.count_rhythm']}
 	/>
-	<TextField
+	<TextArea
 		label={text.notes}
 		hint={text.notesHint}
 		bind:value={values.notes}

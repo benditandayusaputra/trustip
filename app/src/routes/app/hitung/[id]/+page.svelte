@@ -15,7 +15,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<PageHeading icon={Calculator}>{id.counts.recapTitle}</PageHeading>
+	<PageHeading backHref="/app/hitung" icon={Calculator}>{id.counts.recapTitle}</PageHeading>
 	{#key page.params.id}
 		<CountView countId={page.params.id ?? ''} viewerOrganizationId={organizationId} />
 	{/key}

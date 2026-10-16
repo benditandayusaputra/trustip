@@ -9,6 +9,11 @@ export const common = {
 		workspace: 'Catatan titip jual bersama mitra',
 		sharedRecords: 'Titipan, hitungan, dan setoran',
 		navigationGroup: 'Ruang kerja',
+		backToList: 'Kembali ke daftar',
+		filters: 'Filter dan urutan',
+		menu: 'Menu navigasi',
+		openMenu: 'Buka menu navigasi',
+		breadcrumb: 'Jejak halaman',
 		managementGroup: 'Kelola usaha',
 		secureTitle: 'Tercatat bersama.',
 		secureBody: 'Setiap langkah jelas untuk Anda dan mitra.',
@@ -33,6 +38,7 @@ export const common = {
 		outbox: 'Antrean',
 		settings: 'Pengaturan',
 		findStores: 'Cari toko',
+		findConsignors: 'Cari produk dan penitip',
 		needsBoard: 'Kebutuhan toko',
 		signIn: 'Masuk',
 		signUp: 'Daftar',
@@ -123,6 +129,7 @@ export const common = {
 		opensInNewTab: '(tab baru)'
 	},
 	account: {
+		openMenu: 'Buka menu akun',
 		greeting: (name: string) => `Halo, ${name}`,
 		menu: 'Akun',
 		logOut: 'Keluar',

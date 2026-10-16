@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Megaphone from '@lucide/svelte/icons/megaphone';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
@@ -54,7 +56,7 @@
 {:else}
 	{@const need = record.detail}
 	<div class="flex flex-wrap items-center gap-2">
-		<h1 class="text-xl font-semibold text-text">{need.title}</h1>
+		<PageHeading icon={Megaphone} backHref="/app/kebutuhan">{need.title}</PageHeading>
 		<Badge tone={needTone(need.status)} label={text.statuses[need.status]} />
 	</div>
 	<p class="text-base text-text-muted">

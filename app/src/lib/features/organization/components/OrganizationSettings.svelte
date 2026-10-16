@@ -4,6 +4,7 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import ImageField from '#lib/components/ui/ImageField.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
+	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import ThemeSettings from '#lib/components/ui/ThemeSettings.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
@@ -61,8 +62,6 @@
 	}
 </script>
 
-<ThemeSettings />
-
 {#if settings.status === 'failed'}
 	<Alert title={text.loadFailed}>
 		{settings.failure}
@@ -76,13 +75,26 @@
 	<ContentSkeleton variant="form" />
 {:else}
 	{@const organization = settings.organization}
-	<ListingSection {organization} {canEdit} onsaved={keep} />
+	<nav aria-label={text.navigation} class="settings-navigation">
+		<a href="#profil-usaha">{text.generalTab}</a>
+		<a href="#profil-peran"
+			>{organization.type === 'STORE' ? id.storeProfile.title : id.consignorProfile.title}</a
+		>
+		{#if organization.type === 'CONSIGNOR'}<a href="#pembayaran">{text.paymentTab}</a>{/if}
+		<a href="#publikasi">{text.listingTab}</a>
+		<a href="#tampilan">{text.appearance}</a>
+	</nav>
 	<form
+		id="profil-usaha"
 		bind:this={formElement}
 		onsubmit={handleSubmit}
 		novalidate
-		class="surface-card flex flex-col gap-5 p-5 compact:p-6"
+		class="settings-target surface-card flex flex-col gap-5 p-5 compact:p-6"
 	>
+		<header class="flex flex-col gap-2">
+			<h2 class="text-lg font-semibold">{text.general}</h2>
+			<p class="text-sm text-text-muted">{text.generalHint}</p>
+		</header>
 		<p class="text-sm text-text-muted">
 			{text.typeLabel}: {fields.types[organization.type].label}. {fields.typeFixed}
 		</p>
@@ -106,7 +118,7 @@
 				bind:value={settings.values.name}
 				error={settings.errors.name}
 			/>
-			<TextField
+			<TextArea
 				label={fields.description}
 				name="description"
 				hint={fields.descriptionHint}
@@ -130,9 +142,24 @@
 		</fieldset>
 	</form>
 	{#if organization.type === 'STORE'}
-		<StoreProfileSection {organization} {canEdit} onsaved={keep} />
+		<section class="settings-target" id="profil-peran">
+			<StoreProfileSection {organization} {canEdit} onsaved={keep} />
+		</section>
 	{:else}
-		<ConsignorProfileSection {organization} {canEdit} onsaved={keep} />
-		<PaymentSection {organization} {canEdit} onsaved={keep} />
+		<section class="settings-target" id="profil-peran">
+			<ConsignorProfileSection {organization} {canEdit} onsaved={keep} />
+		</section>
+		<section class="settings-target" id="pembayaran">
+			<PaymentSection {organization} {canEdit} onsaved={keep} />
+		</section>
 	{/if}
 {/if}
+
+<section class="settings-target" id="publikasi">
+	{#if settings.organization}<ListingSection
+			organization={settings.organization}
+			{canEdit}
+			onsaved={keep}
+		/>{/if}
+</section>
+<section class="settings-target" id="tampilan"><ThemeSettings /></section>

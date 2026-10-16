@@ -1,5 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import Handshake from '@lucide/svelte/icons/handshake';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Calculator from '@lucide/svelte/icons/calculator';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
@@ -70,14 +74,17 @@
 	<Alert title={id.partners.loadFailed}>{record.failure}</Alert>
 {:else}
 	{@const partnership = record.partnership}
-	<h1 class="text-xl font-semibold text-text">{partnership.counterpart.name}</h1>
+	<PageHeading icon={Handshake} backHref="/app/mitra">{partnership.counterpart.name}</PageHeading>
 	{#if !isConsignor && partnership.status === 'ACTIVE'}
 		<div class="flex flex-wrap gap-4">
-			<a href="/app/titipan/baru?mitra={partnershipId}" class="font-semibold text-accent">
-				{id.drops.recordDrop}
+			<a href="/app/titipan/baru?mitra={partnershipId}" class="action-link">
+				<Plus class="size-5" aria-hidden="true" />{id.drops.recordDrop}
 			</a>
-			<a href="/app/hitung/baru?mitra={partnershipId}" class="font-semibold text-accent">
-				{id.counts.count}
+			<a
+				href="/app/hitung/baru?mitra={partnershipId}"
+				class="inline-flex min-h-12 items-center gap-2 rounded-control border border-border-strong bg-surface px-5 font-semibold"
+			>
+				<Calculator class="size-5" aria-hidden="true" />{id.counts.count}
 			</a>
 		</div>
 	{/if}

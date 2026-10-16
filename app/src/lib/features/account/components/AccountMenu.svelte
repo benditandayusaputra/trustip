@@ -45,12 +45,12 @@
 
 <details class="relative">
 	<summary
-		class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill border border-border bg-surface px-4 font-semibold text-text"
+		aria-label={text.openMenu}
+		class="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-pill border border-border bg-surface px-2 font-semibold text-text md:px-4"
 	>
-		<UserRound class="size-4 text-accent" aria-hidden="true" />{text.menu}<ChevronDown
-			class="size-4 text-text-muted"
-			aria-hidden="true"
-		/>
+		<UserRound class="size-4 text-accent" aria-hidden="true" /><span class="sr-only md:not-sr-only"
+			>{text.menu}</span
+		><ChevronDown class="hidden size-4 text-text-muted md:block" aria-hidden="true" />
 	</summary>
 	<nav
 		aria-label={text.menu}

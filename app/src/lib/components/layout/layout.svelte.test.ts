@@ -26,6 +26,18 @@ describe('AppShell on a phone', () => {
 		await expectAccessible(container);
 	});
 
+	it('marks More as current when viewing a product on a phone', async () => {
+		await page.viewport(320, 740);
+		await render(AppShell, {
+			organizationType: 'CONSIGNOR',
+			currentPath: '/app/produk/sample',
+			children: textSnippet('Isi')
+		});
+		await expect
+			.element(mainNavigation().getByRole('button', { name: 'Lainnya' }))
+			.toHaveAttribute('aria-current', 'page');
+	});
+
 	it('opens the remaining sections from Lainnya', async () => {
 		await page.viewport(360, 740);
 		await render(AppShell, {
@@ -67,5 +79,21 @@ describe('PublicShell', () => {
 		await expect.element(page.getByRole('link', { name: 'Masuk' })).toBeVisible();
 		await expect.element(page.getByRole('link', { name: 'Kebijakan privasi' })).toBeVisible();
 		await expectAccessible(container);
+	});
+});
+
+describe('Public navigation on a phone', () => {
+	it('makes discovery links available from the mobile menu', async () => {
+		await page.viewport(320, 740);
+		await render(PublicShell, { children: textSnippet('Isi') });
+		const toggle = page.getByLabelText('Buka menu navigasi');
+		await userEvent.click(toggle);
+		await expect
+			.element(
+				page
+					.getByRole('navigation', { name: 'Menu navigasi' })
+					.getByRole('link', { name: 'Cari produk dan penitip' })
+			)
+			.toBeVisible();
 	});
 });

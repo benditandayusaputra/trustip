@@ -12,6 +12,6 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<PageHeading icon={CloudUpload}>{id.outbox.reviewTitle}</PageHeading>
+	<PageHeading backHref="/app/antrean" icon={CloudUpload}>{id.outbox.reviewTitle}</PageHeading>
 	<OutboxReview entryId={page.params.id ?? ''} ondiscarded={() => void goto('/app/antrean')} />
 </section>

@@ -12,7 +12,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<PageHeading icon={Handshake}>{id.agreement.title}</PageHeading>
+	<PageHeading backHref="/app/mitra" icon={Handshake}>{id.agreement.title}</PageHeading>
 	{#key page.params.id}
 		<AgreementView partnershipId={page.params.id ?? ''} />
 		<AgreementHistory partnershipId={page.params.id ?? ''} />

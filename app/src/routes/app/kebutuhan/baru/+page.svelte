@@ -12,7 +12,7 @@
 </svelte:head>
 
 <section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
-	<PageHeading icon={Megaphone}>{id.needs.newTitle}</PageHeading>
+	<PageHeading backHref="/app/kebutuhan" icon={Megaphone}>{id.needs.newTitle}</PageHeading>
 	<p class="text-base text-text-muted">{id.needs.newIntro}</p>
 	<NeedForm onposted={(need: Need) => void goto(`/app/kebutuhan/${need.id}`)} />
 </section>

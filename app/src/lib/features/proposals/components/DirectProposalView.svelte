@@ -1,4 +1,6 @@
 <script lang="ts">
+	import FileSignature from '@lucide/svelte/icons/file-signature';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
@@ -44,7 +46,9 @@
 		<a href="/app" class="font-semibold text-accent">{id.errorPage.backHome}</a>
 	</Alert>
 {:else}
-	<h1 class="text-xl font-semibold text-text">{text.directTitle(contact.name)}</h1>
+	<PageHeading icon={FileSignature} backHref="/app/ajuan"
+		>{text.directTitle(contact.name)}</PageHeading
+	>
 	<p class="text-base text-text-muted">{text.directIntro}</p>
 	{#if needId !== ''}
 		<p role="status" class="text-base text-accent">{text.answeringNeed}</p>

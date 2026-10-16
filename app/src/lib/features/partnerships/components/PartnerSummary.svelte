@@ -19,7 +19,8 @@
 	const chatUrl = $derived(whatsAppChatUrl(counterpart.whatsapp));
 </script>
 
-<div class="flex flex-col gap-4">
+<section class="surface-card flex flex-col gap-4 p-5 compact:p-6">
+	<h2 class="text-lg font-semibold">{text.tabs.summary}</h2>
 	<div class="flex flex-wrap items-center gap-2">
 		<Badge
 			tone={partnership.status === 'ACTIVE' ? 'success' : 'neutral'}
@@ -54,4 +55,4 @@
 			<span class="sr-only">{id.auth.opensInNewTab}</span>
 		</a>
 	{/if}
-</div>
+</section>

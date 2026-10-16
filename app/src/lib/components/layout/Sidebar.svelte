@@ -2,7 +2,7 @@
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import Store from '@lucide/svelte/icons/store';
 	import ChefHat from '@lucide/svelte/icons/chef-hat';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import NavLink from './NavLink.svelte';
 	import Brand from './Brand.svelte';
 	import type { NavItem, OrganizationType } from './navigation';
@@ -33,7 +33,7 @@
 		<span class="min-w-0 flex-1 text-sm font-semibold"
 			>{id.layout.organizations[organizationType]}</span
 		>
-		<ChevronDown class="size-4 shrink-0 text-sidebar-muted" aria-hidden="true" />
+		<ChevronRight class="size-4 shrink-0 text-sidebar-muted" aria-hidden="true" />
 	</a>
 	<nav aria-label={id.layout.mainNavigation} class="flex flex-col gap-6">
 		{#each groups as group (group.label)}

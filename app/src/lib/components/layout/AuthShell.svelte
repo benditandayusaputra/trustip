@@ -35,7 +35,7 @@
 	<main
 		id="konten"
 		tabindex="-1"
-		class="mx-auto grid w-full max-w-content flex-1 items-center gap-6 px-4 py-4 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-8"
+		class="mx-auto grid w-full max-w-content min-w-0 flex-1 grid-cols-1 items-center gap-6 px-4 py-4 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-8"
 	>
 		<aside
 			class="auth-presentation flex min-w-0 flex-col gap-4 rounded-card p-4 lg:gap-6 lg:p-8"
@@ -51,7 +51,7 @@
 			<TradeIllustration compact />
 			<p class="auth-copy text-center text-sm font-medium lg:text-left">{text.caption}</p>
 		</aside>
-		<div class="auth-form mx-auto w-full max-w-auth-form">
+		<div class="auth-form mx-auto w-full max-w-auth-form min-w-0">
 			<NavigationContent {pendingPath}>{@render children()}</NavigationContent>
 		</div>
 	</main>

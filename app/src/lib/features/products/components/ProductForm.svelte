@@ -1,13 +1,7 @@
 <script lang="ts">
 	import { tick, untrack } from 'svelte';
+	import ProductFields from './ProductFields.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
-	import FieldSkeleton from '#lib/components/ui/FieldSkeleton.svelte';
-	import ImageField from '#lib/components/ui/ImageField.svelte';
-	import MoneyField from '#lib/components/ui/MoneyField.svelte';
-	import NumberField from '#lib/components/ui/NumberField.svelte';
-	import Select from '#lib/components/ui/Select.svelte';
-	import Switch from '#lib/components/ui/Switch.svelte';
-	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Product } from '#lib/api/products.js';
@@ -31,7 +25,6 @@
 		untrack(() => product)
 	);
 	const toaster = getToaster();
-	const maxShelfLifeDays = 730;
 	const categoryOptions = $derived([
 		{ value: '', label: id.onboarding.choose },
 		...editor.categories.map((category) => ({ value: category.id, label: category.name }))
@@ -65,91 +58,14 @@
 	class="surface-card flex flex-col gap-5 p-5 compact:p-6"
 >
 	<fieldset {disabled} class="flex flex-col gap-5">
-		<TextField
-			label={text.name}
-			name="name"
-			bind:value={editor.values.name}
-			error={editor.errors.name}
-		/>
-		{#if categoriesLoading}
-			<FieldSkeleton label={text.category} />
-		{:else}
-			<Select
-				label={text.category}
-				name="category_id"
-				options={categoryOptions}
-				bind:value={editor.values.categoryId}
-				error={editor.errors.categoryId}
-			/>
-		{/if}
-		<TextField
-			label={text.sku}
-			name="sku"
-			hint={text.skuHint}
-			bind:value={editor.values.sku}
-			error={editor.errors.sku}
-		/>
-		<TextField
-			label={text.unit}
-			name="unit"
-			hint={text.unitHint}
-			bind:value={editor.values.unit}
-			error={editor.errors.unit}
-		/>
-		<MoneyField
-			label={text.suggestedRetail}
-			name="suggested_retail_price"
-			hint={text.suggestedHint}
-			bind:value={editor.values.retailPrice}
-			{...editor.errors.retailPrice && { error: editor.errors.retailPrice }}
-		/>
-		<MoneyField
-			label={text.suggestedDeposit}
-			name="suggested_deposit_price"
-			bind:value={editor.values.depositPrice}
-			{...editor.errors.depositPrice && { error: editor.errors.depositPrice }}
-		/>
-		<Switch label={text.hasShelfLife} bind:checked={editor.values.hasShelfLife} />
-		{#if editor.values.hasShelfLife}
-			<NumberField
-				label={text.shelfLife}
-				name="shelf_life_days"
-				hint={text.shelfLifeHint}
-				min={1}
-				max={maxShelfLifeDays}
-				bind:value={editor.values.shelfLifeDays}
-				{...editor.errors.shelfLifeDays && { error: editor.errors.shelfLifeDays }}
-			/>
-		{/if}
-		<TextField
-			label={text.netContent}
-			name="net_content"
-			hint={text.netContentHint}
-			bind:value={editor.values.netContent}
-			error={editor.errors.netContent}
-		/>
-		<TextField
-			label={text.description}
-			name="description"
-			bind:value={editor.values.description}
-			error={editor.errors.description}
-		/>
-		<TextField
-			label={text.composition}
-			name="composition"
-			bind:value={editor.values.composition}
-			error={editor.errors.composition}
-		/>
-		<ImageField
-			label={text.photo}
-			chooseLabel={text.choosePhoto}
-			imageUrl={editor.photo?.url}
-			imageAlt={text.photoAlt(editor.values.name)}
-			hint={id.settings.logoHint}
-			error={editor.errors.photo}
-			busy={editor.isUploading}
-			onselect={(file: File) => void editor.choosePhoto(file)}
-		/>
-		<Button type="submit" busy={editor.busy}>{text.save}</Button>
+		<ProductFields {editor} {categoryOptions} {categoriesLoading} />
+		<div class="form-footer">
+			<a
+				href="/app/produk"
+				class="inline-flex min-h-12 items-center justify-center rounded-control border border-border px-5 text-sm font-semibold text-text"
+				>{text.backToCatalog}</a
+			>
+			<Button type="submit" busy={editor.busy}>{text.save}</Button>
+		</div>
 	</fieldset>
 </form>

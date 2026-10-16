@@ -15,7 +15,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<PageHeading icon={FileSignature}>{id.proposals.detailTitle}</PageHeading>
+	<PageHeading backHref="/app/ajuan" icon={FileSignature}>{id.proposals.detailTitle}</PageHeading>
 	{#key page.params.id}
 		<ProposalDetail proposalId={page.params.id ?? ''} viewerOrganizationId={organizationId} />
 	{/key}

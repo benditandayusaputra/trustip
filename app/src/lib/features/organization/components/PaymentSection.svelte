@@ -2,7 +2,7 @@
 	import { untrack } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import ImageField from '#lib/components/ui/ImageField.svelte';
-	import TextField from '#lib/components/ui/TextField.svelte';
+	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Organization } from '#lib/api/organizations.js';
@@ -41,7 +41,7 @@
 		<p class="text-sm text-text-muted">{text.intro}</p>
 	</div>
 	<fieldset disabled={!canEdit} class="flex flex-col gap-5">
-		<TextField
+		<TextArea
 			label={text.info}
 			name="payment_info"
 			hint={text.infoHint}

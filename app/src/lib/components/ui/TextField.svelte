@@ -11,6 +11,7 @@
 		autocomplete?: HTMLInputElement['autocomplete'];
 		required?: boolean;
 		maxlength?: number;
+		inputmode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'search' | 'email' | 'url' | 'none';
 		hint?: string | undefined;
 		error?: string | undefined;
 	}
@@ -23,6 +24,7 @@
 		autocomplete,
 		required = false,
 		maxlength,
+		inputmode,
 		hint,
 		error
 	}: Props = $props();
@@ -43,6 +45,7 @@
 			{autocomplete}
 			{required}
 			{maxlength}
+			{inputmode}
 			bind:value
 			aria-invalid={error ? true : undefined}
 			aria-describedby={describedBy(inputId, hint, error)}

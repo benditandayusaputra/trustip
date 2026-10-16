@@ -12,6 +12,6 @@
 </svelte:head>
 
 <section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
-	<PageHeading icon={PackageOpen}>{id.products.newTitle}</PageHeading>
+	<PageHeading backHref="/app/produk" icon={PackageOpen}>{id.products.newTitle}</PageHeading>
 	<ProductForm product={null} onsaved={(saved: Product) => void goto(`/app/produk/${saved.id}`)} />
 </section>

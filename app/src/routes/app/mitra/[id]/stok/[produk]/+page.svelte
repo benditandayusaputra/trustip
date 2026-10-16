@@ -11,7 +11,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<PageHeading icon={Handshake}>{id.stock.cardTitle}</PageHeading>
+	<PageHeading backHref="/app/mitra" icon={Handshake}>{id.stock.cardTitle}</PageHeading>
 	{#key page.url.pathname}
 		<StockCardView partnershipId={page.params.id ?? ''} productId={page.params.produk ?? ''} />
 	{/key}

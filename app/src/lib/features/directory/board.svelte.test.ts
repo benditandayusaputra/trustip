@@ -95,6 +95,7 @@ describe('Need board', () => {
 		const addresses: string[] = [];
 		await render(NeedBoardHarness, { onaddress: (address: string) => addresses.push(address) });
 
+		await userEvent.click(page.getByRole('button', { name: 'Filter dan urutan' }));
 		await userEvent.selectOptions(page.getByRole('combobox', { name: 'Urutkan' }), 'NEWEST');
 
 		await vi.waitFor(() => {

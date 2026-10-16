@@ -5,6 +5,7 @@
 	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import SkipLink from './SkipLink.svelte';
 	import NavigationContent from './NavigationContent.svelte';
+	import PublicMenu from './PublicMenu.svelte';
 	import Brand from './Brand.svelte';
 	import PublicFooter from './PublicFooter.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
@@ -26,7 +27,7 @@
 		<div
 			class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-2 px-4 py-4 lg:px-8"
 		>
-			<Brand />
+			<Brand compact />
 			<nav
 				aria-label={id.layout.publicNavigation}
 				class="flex flex-wrap items-center gap-2 md:gap-4"
@@ -37,7 +38,7 @@
 				<a href="/kebutuhan" class="public-nav-link hidden md:inline-flex">
 					<Megaphone class="size-4" aria-hidden="true" />{id.nav.needsBoard}
 				</a>
-				<ThemePicker />
+				<PublicMenu /><ThemePicker />
 				{#if actions}
 					{@render actions()}
 				{:else}

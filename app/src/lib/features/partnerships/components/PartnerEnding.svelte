@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '#lib/components/ui/Button.svelte';
-	import Card from '#lib/components/ui/Card.svelte';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
@@ -41,31 +41,34 @@
 	}
 </script>
 
-<Card title={text.end}>
-	<p class="text-sm text-text-muted">{text.endIntro}</p>
-	{#if record.status === 'loading'}
-		<Skeleton lines={loadingLines} />
-	{:else if record.status === 'failed'}
-		<p class="text-sm text-text">{text.blockersFailed}</p>
-	{:else if record.blockers.length === 0}
-		<p class="text-sm text-text">{text.noBlockers}</p>
-	{:else}
-		<h3 class="text-base font-semibold text-text">{text.blockers}</h3>
-		<ul class="flex list-disc flex-col gap-1 pl-5 text-sm text-text">
-			{#each record.blockers as blocker (`${blocker.kind}-${blocker.document_id}`)}
-				{@const href = blockerHref(blocker)}
-				<li>
-					{#if href}
-						<a {href} class="font-semibold text-accent">{blocker.description}</a>
-					{:else}
-						{blocker.description}
-					{/if}
-				</li>
-			{/each}
-		</ul>
-	{/if}
-	<Button variant="danger" onclick={() => (open = true)}>{text.end}</Button>
-</Card>
+<details class="secondary-disclosure">
+	<summary class="text-danger">{text.end}<ChevronDown class="size-5" aria-hidden="true" /></summary>
+	<div class="flex flex-col gap-4">
+		<p class="text-sm text-text-muted">{text.endIntro}</p>
+		{#if record.status === 'loading'}
+			<Skeleton lines={loadingLines} />
+		{:else if record.status === 'failed'}
+			<p class="text-sm text-text">{text.blockersFailed}</p>
+		{:else if record.blockers.length === 0}
+			<p class="text-sm text-text">{text.noBlockers}</p>
+		{:else}
+			<h3 class="text-base font-semibold text-text">{text.blockers}</h3>
+			<ul class="flex list-disc flex-col gap-1 pl-5 text-sm text-text">
+				{#each record.blockers as blocker (`${blocker.kind}-${blocker.document_id}`)}
+					{@const href = blockerHref(blocker)}
+					<li>
+						{#if href}
+							<a {href} class="font-semibold text-accent">{blocker.description}</a>
+						{:else}
+							{blocker.description}
+						{/if}
+					</li>
+				{/each}
+			</ul>
+		{/if}
+		<Button variant="danger" onclick={() => (open = true)}>{text.end}</Button>
+	</div>
+</details>
 
 <Dialog bind:open title={text.endTitle}>
 	<p class="text-base text-text">{text.endBody}</p>

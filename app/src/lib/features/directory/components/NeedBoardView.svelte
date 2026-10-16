@@ -64,17 +64,15 @@
 </script>
 
 <FilterLayout>
+	{#snippet searchControls()}<TextField
+			label={text.search}
+			type="search"
+			maxlength={maxSearchLength}
+			bind:value={typed}
+		/>{/snippet}
 	{#snippet filters()}
 		<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
 			<legend class="sr-only">{text.filters}</legend>
-			<div class="md:col-span-2 xl:col-span-1">
-				<TextField
-					label={text.search}
-					type="search"
-					maxlength={maxSearchLength}
-					bind:value={typed}
-				/>
-			</div>
 			{@render place()}
 			<Select
 				label={id.directory.radius}

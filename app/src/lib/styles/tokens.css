@@ -114,6 +114,7 @@
 	--home-art-height: 300px;
 	--sidebar-width: 256px;
 	--header-height: 88px;
+	--textarea-height: 112px;
 	--product-grid-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
 	--auth-panel-height: 640px;
 	--directory-columns: 320px minmax(0, 1fr);

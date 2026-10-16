@@ -60,7 +60,7 @@
 		<KpiCard label={text.storeShare} value={formatRupiah(count.split.store_share)} />
 		<KpiCard label={text.consignorShare} value={formatRupiah(count.split.consignor_share)} />
 	</div>
-	<dl class="grid grid-cols-2 gap-2 text-sm">
+	<dl class="document-details grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{text.store}</dt>
 		<dd>{count.store.name}</dd>
 		<dt class="text-text-muted">{text.consignor}</dt>

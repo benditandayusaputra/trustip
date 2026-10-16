@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { organization as id } from '#lib/i18n/organization.js';
 	import type { OnboardingWizard } from '../wizard.svelte';
@@ -19,7 +20,7 @@
 	bind:value={wizard.values.name}
 	error={wizard.errors.name}
 />
-<TextField
+<TextArea
 	label={text.description}
 	name="description"
 	hint={text.descriptionHint}

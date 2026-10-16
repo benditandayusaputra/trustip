@@ -6,5 +6,5 @@
 
 <Card title={text.title}>
 	<p class="text-sm text-text-muted">{text.intro}</p>
-	<div><ThemePicker /></div>
+	<div><ThemePicker expanded /></div>
 </Card>

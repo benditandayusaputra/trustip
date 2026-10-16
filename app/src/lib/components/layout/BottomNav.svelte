@@ -3,6 +3,7 @@
 	import BottomSheet from '../ui/BottomSheet.svelte';
 	import NavLink from './NavLink.svelte';
 	import type { NavItem } from './navigation';
+	import { isCurrent } from './navigation';
 	import { common as id } from '#lib/i18n/common.js';
 
 	interface Props {
@@ -14,6 +15,7 @@
 	let { primary, more, currentPath }: Props = $props();
 
 	let moreOpen = $state(false);
+	const isMoreCurrent = $derived(more.some((item) => isCurrent(item.href, currentPath)));
 </script>
 
 <nav
@@ -26,8 +28,12 @@
 	<button
 		type="button"
 		aria-haspopup="dialog"
+		aria-expanded={moreOpen}
+		aria-current={isMoreCurrent ? 'page' : undefined}
 		onclick={() => (moreOpen = true)}
-		class="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 text-xs text-text-muted"
+		class="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 text-xs {isMoreCurrent
+			? 'bg-accent-surface font-semibold text-accent'
+			: 'text-text-muted'}"
 	>
 		<Ellipsis class="size-6" aria-hidden="true" />
 		<span>{id.layout.more}</span>

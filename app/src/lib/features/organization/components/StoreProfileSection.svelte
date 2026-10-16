@@ -4,6 +4,7 @@
 	import NumberField from '#lib/components/ui/NumberField.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import Switch from '#lib/components/ui/Switch.svelte';
+	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
@@ -86,7 +87,7 @@
 		/>
 		<Switch label={text.requiresHalal} bind:checked={editor.values.requiresHalal} />
 		<Switch label={text.requiresSample} bind:checked={editor.values.requiresSample} />
-		<TextField
+		<TextArea
 			label={text.otherRequirements}
 			name="other_requirements"
 			bind:value={editor.values.otherRequirements}
