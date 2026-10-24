@@ -22,5 +22,5 @@ commit-msg:
 
 pre-push:
   jobs:
-    - name: check-and-test
-      run: make check test
+    - name: check
+      run: make check

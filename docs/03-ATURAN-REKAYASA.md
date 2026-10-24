@@ -1038,7 +1038,7 @@ Jejak bisnis (siapa mengubah apa) bukan log, melainkan tabel `audit_logs` (NFR-1
 ## 12. Git dan commit
 
 - **R-GIT-01** Satu fitur, satu commit, lalu langsung push ke `origin main`. Fitur adalah satu baris di daftar fitur `04-RENCANA-IMPLEMENTASI.md`: irisan utuh dari migrasi sampai antarmuka dan ujinya.
-- **R-GIT-02** Commit hanya dibuat saat `make check` dan `make test` lulus. Cabang utama selalu bisa dibangun dan dijalankan.
+- **R-GIT-02** Commit hanya dibuat saat `make check` lulus dan uji paket yang diubah lulus. Kait pra-push menjalankan `make check`; `make test` dan `make e2e` lengkap dijalankan CI pada setiap push ke `main`. CI merah diperbaiki sebelum pekerjaan lain. Cabang utama selalu bisa dibangun dan dijalankan.
 - **R-GIT-03** Bentuk pesan: `<gitmoji> <kalimat perintah berbahasa Indonesia>`, maksimal 72 karakter, tanpa titik di akhir. Pesan menyebut pekerjaan nyata, bukan nomor tahap atau nomor fitur.
 - **R-GIT-04** Badan pesan opsional, dipisah satu baris kosong, berisi alasan dan baris `Rujukan:` dengan ID kebutuhan, misalnya `Rujukan: FR-DRP-01, BR-DRP-03, BR-DRP-07`.
 - **R-GIT-05** Penulis commit adalah identitas git anggota tim yang mengerjakannya. Badan pesan tidak memuat trailer apa pun selain `Rujukan:`. Kait `commit-msg` menolak pesan yang bentuknya menyimpang atau memuat trailer lain.
