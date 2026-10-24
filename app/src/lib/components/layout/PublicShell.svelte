@@ -24,21 +24,16 @@
 <SkipLink />
 <div class="flex min-h-dvh flex-col">
 	<header class="public-header">
-		<div
-			class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-2 px-4 py-4 lg:px-8"
-		>
-			<Brand compact />
-			<nav
-				aria-label={id.layout.publicNavigation}
-				class="flex flex-wrap items-center gap-2 md:gap-4"
-			>
+		<div class="mx-auto flex max-w-content items-center justify-between gap-4 px-4 py-4 lg:px-8">
+			<Brand />
+			<nav aria-label={id.layout.publicNavigation} class="flex items-center gap-2 md:gap-4">
 				<a href="/cari/toko" class="public-nav-link hidden md:inline-flex">
 					<Store class="size-4" aria-hidden="true" />{id.nav.findStores}
 				</a>
 				<a href="/kebutuhan" class="public-nav-link hidden md:inline-flex">
 					<Megaphone class="size-4" aria-hidden="true" />{id.nav.needsBoard}
 				</a>
-				<PublicMenu /><ThemePicker />
+				<div class="hidden md:block"><ThemePicker /></div>
 				{#if actions}
 					{@render actions()}
 				{:else}
@@ -49,6 +44,7 @@
 						{id.nav.signIn}<ArrowUpRight class="size-4" aria-hidden="true" />
 					</a>
 				{/if}
+				<PublicMenu />
 			</nav>
 		</div>
 	</header>

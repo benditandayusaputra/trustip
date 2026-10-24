@@ -20,6 +20,14 @@
 		color-scheme: dark;
 	}
 
+	html:has(.public-header) {
+		scroll-padding-top: var(--header-height);
+	}
+
+	html:has(.home-page) {
+		scroll-behavior: smooth;
+	}
+
 	body {
 		min-height: 100dvh;
 	}
@@ -31,6 +39,12 @@
 		font-weight: 650;
 		letter-spacing: var(--letter-spacing-heading);
 		overflow-wrap: anywhere;
+		text-wrap: balance;
+	}
+
+	p,
+	li {
+		text-wrap: pretty;
 	}
 
 	button,
@@ -80,6 +94,16 @@
 	.page-heading {
 		font-size: var(--text-xl);
 		line-height: var(--leading-tight);
+	}
+
+	.section-title {
+		font-size: var(--text-kpi-compact);
+	}
+
+	@media (width >= 768px) {
+		.section-title {
+			font-size: var(--text-kpi);
+		}
 	}
 
 	.section-label {

@@ -84,9 +84,6 @@
 	.document-details dt {
 		color: var(--color-text-muted);
 	}
-	.public-menu {
-		position: relative;
-	}
 	.public-menu > summary {
 		display: flex;
 		width: var(--spacing-11);
@@ -95,39 +92,52 @@
 		justify-content: center;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-control);
+		color: var(--color-text);
 		list-style: none;
 	}
 	.public-menu > summary::-webkit-details-marker {
 		display: none;
 	}
+	.public-menu[open] > summary {
+		border-color: var(--color-accent);
+		background: var(--color-accent-surface);
+		color: var(--color-accent);
+	}
 	.public-menu-panel {
 		position: absolute;
 		top: 100%;
-		right: 0;
+		inset-inline: 0;
 		z-index: var(--z-sheet);
 		display: flex;
-		width: var(--sidebar-width);
+		max-height: calc(100dvh - var(--header-height));
 		flex-direction: column;
-		gap: var(--spacing-1);
-		margin-top: var(--spacing-2);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-card);
+		gap: var(--spacing-4);
+		overflow-y: auto;
+		border-bottom: 1px solid var(--color-border);
 		background: var(--color-surface);
-		padding: var(--spacing-2);
+		padding: var(--spacing-4);
 		box-shadow: var(--shadow-raised);
+		animation: public-menu-in var(--duration-base) var(--ease-out);
 	}
 	.public-menu-panel a {
 		display: flex;
 		min-height: var(--spacing-12);
 		align-items: center;
-		gap: var(--spacing-2);
+		gap: var(--spacing-4);
 		border-radius: var(--radius-control);
 		padding-inline: var(--spacing-4);
-		font-size: var(--text-sm);
+		font-size: var(--text-base);
+		font-weight: 500;
 	}
 	.public-menu-panel a:hover {
 		background: var(--color-accent-surface);
 		color: var(--color-accent);
+	}
+	@keyframes public-menu-in {
+		from {
+			opacity: 0;
+			transform: translateY(calc(-1 * var(--spacing-2)));
+		}
 	}
 	@media (width < 768px) {
 		.theme-control:not(.theme-control-expanded) .theme-select {

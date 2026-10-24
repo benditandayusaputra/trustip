@@ -15,16 +15,18 @@
 	<meta name="description" content={text.intro} />
 </svelte:head>
 
-<div class="flex flex-col gap-12 text-text">
+<div class="home-page flex flex-col gap-12 text-text">
 	<HomeHero />
 	<HomeRoles />
 	<HomeWorkflow />
 
 	<section class="grid items-center gap-8 lg:grid-cols-2" aria-labelledby="beranda-contoh">
-		<div class="flex flex-col gap-5">
-			<p class="section-label">{text.exampleEyebrow}</p>
-			<h2 id="beranda-contoh" class="text-kpi-compact font-semibold">{text.exampleTitle}</h2>
-			<p class="text-base text-text-muted">{text.exampleIntro}</p>
+		<div class="flex flex-col gap-6">
+			<header class="flex flex-col gap-2">
+				<p class="section-label">{text.exampleEyebrow}</p>
+				<h2 id="beranda-contoh" class="section-title">{text.exampleTitle}</h2>
+				<p class="max-w-reading text-base text-text-muted">{text.exampleIntro}</p>
+			</header>
 			<ul class="flex flex-col gap-2 text-sm text-text-muted">
 				{#each text.exampleHighlights as highlight (highlight)}
 					<li class="flex items-start gap-2">
@@ -39,14 +41,14 @@
 	<section class="flex flex-col gap-6" aria-labelledby="beranda-masalah">
 		<header class="flex flex-col gap-2">
 			<p class="section-label">{text.problemsEyebrow}</p>
-			<h2 id="beranda-masalah" class="text-kpi-compact font-semibold">{text.problemsTitle}</h2>
+			<h2 id="beranda-masalah" class="section-title">{text.problemsTitle}</h2>
 			<p class="max-w-reading text-base text-text-muted">{text.problemsIntro}</p>
 		</header>
 		<ul class="grid gap-4 md:grid-cols-2">
 			{#each text.problems as problem (problem.title)}
 				<li class="flex flex-col gap-4 rounded-card border border-border bg-surface p-5 md:p-6">
 					<div class="flex flex-col gap-2">
-						<h3 class="text-lg font-semibold">{problem.title}</h3>
+						<h3 class="text-lg">{problem.title}</h3>
 						<p class="text-sm text-text-muted">{problem.body}</p>
 					</div>
 					<p
@@ -64,8 +66,8 @@
 		aria-labelledby="beranda-mulai"
 	>
 		<div class="flex flex-col gap-2">
-			<h2 id="beranda-mulai" class="text-kpi-compact font-semibold">{text.closingTitle}</h2>
-			<p class="text-base">{text.closingBody}</p>
+			<h2 id="beranda-mulai" class="section-title">{text.closingTitle}</h2>
+			<p class="max-w-reading text-base">{text.closingBody}</p>
 		</div>
 		<div class="flex flex-wrap items-center gap-4">
 			<a

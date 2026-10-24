@@ -18,7 +18,7 @@
 >
 	<header class="flex flex-col gap-2">
 		<p class="section-label">{text.stepsEyebrow}</p>
-		<h2 id="beranda-cara-judul" class="text-kpi-compact font-semibold">{text.stepsTitle}</h2>
+		<h2 id="beranda-cara-judul" class="section-title">{text.stepsTitle}</h2>
 		<p class="max-w-reading text-base text-text-muted">{text.stepsIntro}</p>
 	</header>
 	<ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -33,7 +33,7 @@
 					<Icon class="size-5 text-text-muted" aria-hidden="true" />
 				</div>
 				<div class="flex flex-col gap-2">
-					<h3 class="text-lg font-semibold">{step.title}</h3>
+					<h3 class="text-lg">{step.title}</h3>
 					<p class="text-xs font-semibold text-accent">{step.actor}</p>
 					<p class="text-sm text-text-muted">{step.body}</p>
 				</div>

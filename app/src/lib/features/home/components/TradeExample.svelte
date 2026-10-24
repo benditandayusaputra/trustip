@@ -8,7 +8,7 @@
 
 <aside class="trade-panel flex flex-col gap-5" aria-label={text.title}>
 	<p class="section-label">{text.title}</p>
-	<h2 class="text-lg font-semibold text-text">{text.partners}</h2>
+	<h3 class="text-lg text-text">{text.partners}</h3>
 	<p class="text-sm text-text-muted">{text.pricing}</p>
 	<div class="flex flex-wrap justify-between gap-4 border-b border-border pb-4">
 		<div>

@@ -20,10 +20,10 @@
 		>
 			<span class="size-2 rounded-pill bg-primary" aria-hidden="true"></span>{text.audience}
 		</p>
-		<h1 id="beranda-judul" class="text-hero-compact font-semibold md:text-hero">
+		<h1 id="beranda-judul" class="text-hero-compact md:text-hero">
 			{text.headline}<br /><span class="text-accent">{text.headlineAccent}</span>
 		</h1>
-		<p class="max-w-form text-base text-text-muted">{text.intro}</p>
+		<p class="max-w-form text-base text-text-muted md:text-lg">{text.intro}</p>
 		<div class="flex flex-wrap gap-2">
 			<a href="/daftar" class="action-link"
 				>{text.register}<ArrowRight class="size-5" aria-hidden="true" /></a

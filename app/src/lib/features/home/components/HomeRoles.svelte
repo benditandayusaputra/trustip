@@ -12,8 +12,8 @@
 <section class="flex flex-col gap-6" aria-labelledby="beranda-peran">
 	<header class="flex flex-col gap-2">
 		<p class="section-label">{text.rolesEyebrow}</p>
-		<h2 id="beranda-peran" class="text-kpi-compact font-semibold">{text.rolesTitle}</h2>
-		<p class="text-base text-text-muted">{text.rolesIntro} {text.audienceDetail}</p>
+		<h2 id="beranda-peran" class="section-title">{text.rolesTitle}</h2>
+		<p class="max-w-reading text-base text-text-muted">{text.rolesIntro} {text.audienceDetail}</p>
 	</header>
 	<div class="grid gap-4 md:grid-cols-2">
 		{#each text.roles as role, index (role.title)}
@@ -23,7 +23,7 @@
 					><Icon class="size-6 text-accent" aria-hidden="true" /></span
 				>
 				<div class="flex flex-col gap-2">
-					<h3 class="text-xl font-semibold">{role.title}</h3>
+					<h3 class="text-xl">{role.title}</h3>
 					<p class="text-base text-text-muted">{role.body}</p>
 				</div>
 				<ul class="flex flex-col gap-2 text-sm text-text-muted">
