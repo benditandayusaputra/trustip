@@ -18,7 +18,8 @@ WITH origin AS (
     FROM needs AS n
     JOIN organizations AS o ON o.id = n.store_org_id
     WHERE n.status = 'OPEN' AND n.expires_at > $4::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $5::uuid AND v.is_demo)
+        AND ($5::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $5::uuid AND v.is_demo))
         AND (cardinality($6::uuid[]) = 0 OR n.category_id = ANY ($6::uuid[]))
         AND (
             $7::text = ''
@@ -90,7 +91,8 @@ WITH origin AS (
     FROM organizations AS o
     JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = NULLIF($4::text, '')::uuid AND v.is_demo)
+        AND ($4::text IN ('', '00000000-0000-0000-0000-000000000000')
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = NULLIF($4::text, '')::uuid AND v.is_demo))
         AND ($5::text = '' OR sp.store_type = $5::text)
         AND (
             cardinality($6::uuid[]) = 0
@@ -325,7 +327,8 @@ WITH origin AS (
     CROSS JOIN origin
     LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
     WHERE n.status = 'OPEN' AND n.expires_at > $10::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $9::uuid AND v.is_demo)
+        AND ($9::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $9::uuid AND v.is_demo))
         AND (
             NOT $11::boolean
             OR ST_DWithin(o.location_public, origin.point, $12::float8, false)
@@ -501,7 +504,8 @@ WITH origin AS (
     LEFT JOIN org_stats AS st ON st.organization_id = o.id
     LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $10::uuid AND v.is_demo)
+        AND ($10::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $10::uuid AND v.is_demo))
         AND (
             NOT $11::boolean
             OR ST_DWithin(o.location_public, origin.point, $12::float8, false)

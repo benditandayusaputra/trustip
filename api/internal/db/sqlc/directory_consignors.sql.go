@@ -21,7 +21,8 @@ WITH origin AS (
     CROSS JOIN viewer
     JOIN consignor_profiles AS cp ON cp.organization_id = o.id
     WHERE o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $6::uuid AND v.is_demo)
+        AND ($6::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $6::uuid AND v.is_demo))
         AND (NOT $7::boolean OR cp.distribution_permit_no <> '')
         AND (NOT $8::boolean OR cp.halal_cert_no <> '')
         AND (NOT $9::boolean OR cp.can_provide_sample)
@@ -177,7 +178,8 @@ WITH origin AS (
     LEFT JOIN org_stats AS st ON st.organization_id = o.id
     LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $11::uuid AND v.is_demo)
+        AND ($11::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $11::uuid AND v.is_demo))
         AND (
             NOT $12::boolean
             OR ST_DWithin(o.location_public, origin.point, $13::float8, false)
@@ -391,7 +393,8 @@ WITH origin AS (
     LEFT JOIN files AS pf ON pf.id = p.photo_file_id
     WHERE p.is_seeking_stores AND NOT p.is_archived
         AND o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $11::uuid AND v.is_demo)
+        AND ($11::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $11::uuid AND v.is_demo))
         AND ($12::text = '' OR o.id = NULLIF($12::text, '')::uuid)
         AND (
             NOT $13::boolean

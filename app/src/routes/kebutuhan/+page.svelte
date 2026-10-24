@@ -15,7 +15,9 @@
 	import { directory as id } from '#lib/i18n/directory.js';
 
 	const session = getAccountSession();
-	const isConsignor = $derived(session.account?.membership?.organization_type === 'CONSIGNOR');
+	const canRespond = $derived(
+		session.status === 'signedOut' || session.account?.membership?.organization_type === 'CONSIGNOR'
+	);
 	const query = $derived(boardQueryFrom(page.url.searchParams));
 	const origin = $derived<Place>({
 		kind: query.origin,
@@ -36,7 +38,7 @@
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<PageHeading icon={Megaphone}>{id.needBoard.title}</PageHeading>
-	<NeedBoardView {query} canRespond={isConsignor} onchange={show}>
+	<NeedBoardView {query} {canRespond} onchange={show}>
 		{#snippet place()}
 			<PlacePicker
 				place={origin}

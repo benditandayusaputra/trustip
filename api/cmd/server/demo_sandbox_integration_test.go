@@ -48,3 +48,16 @@ func TestClaimInvitation_RealStoreCannotClaimADemoInvitation(t *testing.T) {
 
 	requireCode(t, got, "NOT_FOUND")
 }
+
+func TestDirectoryStores_VisitorSeesDemoStores(t *testing.T) {
+	consignor, store := listedStoreScene(t)
+	store.owner.markDemo(store.id)
+	visitor := &browser{t: t, server: consignor.server, now: consignor.now}
+
+	got := visitor.get(directoryStoresPath)
+
+	requireCode(t, got, "OK")
+	if !strings.Contains(string(got.body), store.id) {
+		t.Fatalf("visitor = %s", got.body)
+	}
+}

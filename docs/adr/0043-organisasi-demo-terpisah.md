@@ -8,8 +8,8 @@ Bila organisasi nyata bisa bermitra dengan organisasi demo, segel kemitraan camp
 
 ## Keputusan
 
-1. Organisasi demo hanya melihat dan menjangkau organisasi demo, organisasi nyata hanya melihat dan menjangkau organisasi nyata. Pengunjung tanpa masuk dianggap pihak nyata.
-2. Aturan itu ditegakkan di SQL dengan satu predikat yang sama: `o.is_demo` harus sama dengan `is_demo` milik pemirsa. Tempatnya: daftar dan hitungan Cari Mitra (toko, penitip, produk), Papan Kebutuhan, pihak Ajuan langsung, klaim undangan, dan penitip yang diberi tahu tentang Kebutuhan baru.
+1. Organisasi demo hanya melihat dan menjangkau organisasi demo, organisasi nyata hanya melihat dan menjangkau organisasi nyata. Pengunjung tanpa masuk melihat keduanya, karena melihat tidak membuat hubungan dagang dan data live sebagian besar berisi organisasi demo. Mengajukan kerja sama tetap harus masuk lebih dulu.
+2. Aturan itu ditegakkan di SQL dengan satu predikat yang sama: `o.is_demo` harus sama dengan `is_demo` milik pemirsa, kecuali pemirsa adalah pengunjung (ID nol). Tempatnya: daftar dan hitungan Cari Mitra (toko, penitip, produk), Papan Kebutuhan, pihak Ajuan langsung, klaim undangan, dan penitip yang diberi tahu tentang Kebutuhan baru.
 3. Target di luar lingkup dibalas 404, sama dengan organisasi yang tidak terdaftar.
 4. Halaman publik (profil, produk, Kebutuhan, verifikasi segel) tidak disaring, karena tidak membuat hubungan dagang.
 

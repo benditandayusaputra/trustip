@@ -9,7 +9,8 @@ WITH origin AS (
     CROSS JOIN viewer
     JOIN consignor_profiles AS cp ON cp.organization_id = o.id
     WHERE o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
+        AND (@viewer_id::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo))
         AND (NOT @has_permit::boolean OR cp.distribution_permit_no <> '')
         AND (NOT @has_halal::boolean OR cp.halal_cert_no <> '')
         AND (NOT @can_sample::boolean OR cp.can_provide_sample)
@@ -97,7 +98,8 @@ WITH origin AS (
     LEFT JOIN org_stats AS st ON st.organization_id = o.id
     LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
+        AND (@viewer_id::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo))
         AND (
             NOT @within_radius::boolean
             OR ST_DWithin(o.location_public, origin.point, @radius_meters::float8, false)
@@ -186,7 +188,8 @@ WITH origin AS (
     LEFT JOIN files AS pf ON pf.id = p.photo_file_id
     WHERE p.is_seeking_stores AND NOT p.is_archived
         AND o.type = 'CONSIGNOR' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo)
+        AND (@viewer_id::uuid = '00000000-0000-0000-0000-000000000000'::uuid
+            OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo))
         AND (@consignor_id::text = '' OR o.id = NULLIF(@consignor_id::text, '')::uuid)
         AND (
             NOT @within_radius::boolean
