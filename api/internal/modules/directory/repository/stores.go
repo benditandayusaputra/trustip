@@ -71,7 +71,7 @@ func (r *Directory) CountStoresWithin(ctx context.Context, query domain.StoreQue
 			PricingModel: filters.PricingModel, HasMaxCommission: filters.HasMaxCommission,
 			MaxCommissionBps: int64(filters.MaxCommissionBPS), WithoutPermit: filters.WithoutPermit,
 			WithoutHalal: filters.WithoutHalal, HasOpenNeed: filters.HasOpenNeed, Query: filters.Text,
-			ViewerID: query.ViewerID,
+			ViewerID: query.ViewerID, Now: query.Now,
 		})
 	if err != nil {
 		return nil, fmt.Errorf("count directory stores: %w", err)
@@ -120,7 +120,7 @@ func storeListParams(query domain.StoreQuery) sqlc.ListDirectoryStoresParams {
 		CategoryIds: nonNull(filters.CategoryIDs), PricingModel: filters.PricingModel,
 		HasMaxCommission: filters.HasMaxCommission, MaxCommissionBps: int64(filters.MaxCommissionBPS),
 		WithoutPermit: filters.WithoutPermit, WithoutHalal: filters.WithoutHalal, HasOpenNeed: filters.HasOpenNeed,
-		Query:     filters.Text,
+		Query: filters.Text, Now: query.Now,
 		SortOrder: string(query.Sort), RatedFrom: ratedFromSettlements,
 	}
 }

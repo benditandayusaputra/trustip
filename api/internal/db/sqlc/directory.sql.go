@@ -111,13 +111,13 @@ WITH origin AS (
             NOT $12::boolean
             OR EXISTS (
                 SELECT 1 FROM needs AS n
-                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > $13::timestamptz
             )
         )
         AND (
-            $13::text = ''
-            OR o.name ILIKE '%' || replace(replace(replace($13::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR o.description ILIKE '%' || replace(replace(replace($13::text, '\', '\\'), '%', '\%'), '_', '\_')
+            $14::text = ''
+            OR o.name ILIKE '%' || replace(replace(replace($14::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR o.description ILIKE '%' || replace(replace(replace($14::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
         )
 )
@@ -146,6 +146,7 @@ type CountDirectoryStoresByRadiusParams struct {
 	WithoutPermit    bool
 	WithoutHalal     bool
 	HasOpenNeed      bool
+	Now              time.Time
 	Query            string
 }
 
@@ -168,6 +169,7 @@ func (q *Queries) CountDirectoryStoresByRadius(ctx context.Context, arg CountDir
 		arg.WithoutPermit,
 		arg.WithoutHalal,
 		arg.HasOpenNeed,
+		arg.Now,
 		arg.Query,
 	)
 	if err != nil {
@@ -245,7 +247,7 @@ SELECT
     )::text[] AS accepted_category_ids,
     ARRAY(
         SELECT DISTINCT n.category_id::text FROM needs AS n
-        WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+        WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > $1::timestamptz
     )::text[] AS need_category_ids,
     (city.code IS NOT NULL)::boolean AS has_city,
     COALESCE(ST_Y(city.centroid::geometry), 0)::float8 AS city_latitude,
@@ -253,11 +255,12 @@ SELECT
 FROM organizations AS o
 LEFT JOIN consignor_profiles AS cp ON cp.organization_id = o.id
 LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
-LEFT JOIN cities AS city ON city.code = $1::text
-WHERE o.id = $2::uuid
+LEFT JOIN cities AS city ON city.code = $2::text
+WHERE o.id = $3::uuid
 `
 
 type GetDirectoryViewerParams struct {
+	Now            time.Time
 	CityCode       string
 	OrganizationID string
 }
@@ -280,7 +283,7 @@ type GetDirectoryViewerRow struct {
 }
 
 func (q *Queries) GetDirectoryViewer(ctx context.Context, arg GetDirectoryViewerParams) (GetDirectoryViewerRow, error) {
-	row := q.db.QueryRow(ctx, getDirectoryViewer, arg.CityCode, arg.OrganizationID)
+	row := q.db.QueryRow(ctx, getDirectoryViewer, arg.Now, arg.CityCode, arg.OrganizationID)
 	var i GetDirectoryViewerRow
 	err := row.Scan(
 		&i.Type,
@@ -485,12 +488,12 @@ WITH origin AS (
         )::text[] AS accepted_category_names,
         ARRAY(
             SELECT DISTINCT n.category_id::text FROM needs AS n
-            WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+            WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > $9::timestamptz
         )::text[] AS need_category_ids,
-        (o.id = $9::uuid)::boolean AS is_self,
+        (o.id = $10::uuid)::boolean AS is_self,
         EXISTS (
             SELECT 1 FROM partnerships AS pa
-            WHERE pa.store_org_id = o.id AND pa.consignor_org_id = $9::uuid AND pa.status = 'ACTIVE'
+            WHERE pa.store_org_id = o.id AND pa.consignor_org_id = $10::uuid AND pa.status = 'ACTIVE'
         )::boolean AS is_partner
     FROM organizations AS o
     CROSS JOIN origin
@@ -498,38 +501,38 @@ WITH origin AS (
     LEFT JOIN org_stats AS st ON st.organization_id = o.id
     LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE o.type = 'STORE' AND o.status = 'ACTIVE' AND o.is_listed
-        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $9::uuid AND v.is_demo)
+        AND o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = $10::uuid AND v.is_demo)
         AND (
-            NOT $10::boolean
-            OR ST_DWithin(o.location_public, origin.point, $11::float8, false)
+            NOT $11::boolean
+            OR ST_DWithin(o.location_public, origin.point, $12::float8, false)
         )
-        AND ($12::text = '' OR sp.store_type = $12::text)
+        AND ($13::text = '' OR sp.store_type = $13::text)
         AND (
-            cardinality($13::uuid[]) = 0
+            cardinality($14::uuid[]) = 0
             OR EXISTS (
                 SELECT 1 FROM store_accepted_categories AS sac
-                WHERE sac.organization_id = o.id AND sac.category_id = ANY ($13::uuid[])
+                WHERE sac.organization_id = o.id AND sac.category_id = ANY ($14::uuid[])
             )
         )
         AND (
-            $14::text = ''
-            OR ($14::text = 'FIXED_DEPOSIT' AND sp.accepts_fixed_deposit)
-            OR ($14::text = 'COMMISSION' AND sp.accepts_commission)
+            $15::text = ''
+            OR ($15::text = 'FIXED_DEPOSIT' AND sp.accepts_fixed_deposit)
+            OR ($15::text = 'COMMISSION' AND sp.accepts_commission)
         )
-        AND (NOT $15::boolean OR sp.commission_min_bps <= $16::bigint)
-        AND (NOT $17::boolean OR NOT sp.requires_distribution_permit)
-        AND (NOT $18::boolean OR NOT sp.requires_halal)
+        AND (NOT $16::boolean OR sp.commission_min_bps <= $17::bigint)
+        AND (NOT $18::boolean OR NOT sp.requires_distribution_permit)
+        AND (NOT $19::boolean OR NOT sp.requires_halal)
         AND (
-            NOT $19::boolean
+            NOT $20::boolean
             OR EXISTS (
                 SELECT 1 FROM needs AS n
-                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > $9::timestamptz
             )
         )
         AND (
-            $20::text = ''
-            OR o.name ILIKE '%' || replace(replace(replace($20::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
-            OR o.description ILIKE '%' || replace(replace(replace($20::text, '\', '\\'), '%', '\%'), '_', '\_')
+            $21::text = ''
+            OR o.name ILIKE '%' || replace(replace(replace($21::text, '\', '\\'), '%', '\%'), '_', '\_') || '%'
+            OR o.description ILIKE '%' || replace(replace(replace($21::text, '\', '\\'), '%', '\%'), '_', '\_')
                 || '%'
         )
 ), ranked AS (
@@ -542,11 +545,11 @@ WITH origin AS (
         listed.on_time_payment_bps, listed.active_partner_count, listed.distance_meters,
         listed.accepted_category_ids, listed.accepted_category_names, listed.need_category_ids, listed.is_self,
         listed.is_partner,
-        CASE $21::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
-        CASE $21::text
+        CASE $22::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
+        CASE $22::text
             WHEN 'NEAREST' THEN listed.distance_meters
             WHEN 'REPUTATION' THEN -CASE
-                WHEN listed.settlements_counted >= $22::bigint THEN listed.on_time_payment_bps ELSE -1
+                WHEN listed.settlements_counted >= $23::bigint THEN listed.on_time_payment_bps ELSE -1
             END
             ELSE -extract(epoch FROM listed.created_at)
         END::float8 AS sort_number
@@ -573,6 +576,7 @@ type ListDirectoryStoresParams struct {
 	OriginLongitude  float64
 	OriginLatitude   float64
 	HasOrigin        bool
+	Now              time.Time
 	ViewerID         string
 	WithinRadius     bool
 	RadiusMeters     float64
@@ -632,6 +636,7 @@ func (q *Queries) ListDirectoryStores(ctx context.Context, arg ListDirectoryStor
 		arg.OriginLongitude,
 		arg.OriginLatitude,
 		arg.HasOrigin,
+		arg.Now,
 		arg.ViewerID,
 		arg.WithinRadius,
 		arg.RadiusMeters,

@@ -28,7 +28,7 @@ SELECT
     )::text[] AS accepted_category_ids,
     ARRAY(
         SELECT DISTINCT n.category_id::text FROM needs AS n
-        WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+        WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > @now::timestamptz
     )::text[] AS need_category_ids,
     (city.code IS NOT NULL)::boolean AS has_city,
     COALESCE(ST_Y(city.centroid::geometry), 0)::float8 AS city_latitude,
@@ -68,7 +68,7 @@ WITH origin AS (
             NOT @has_open_need::boolean
             OR EXISTS (
                 SELECT 1 FROM needs AS n
-                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > @now::timestamptz
             )
         )
         AND (
@@ -119,7 +119,7 @@ WITH origin AS (
         )::text[] AS accepted_category_names,
         ARRAY(
             SELECT DISTINCT n.category_id::text FROM needs AS n
-            WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+            WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > @now::timestamptz
         )::text[] AS need_category_ids,
         (o.id = @viewer_id::uuid)::boolean AS is_self,
         EXISTS (
@@ -157,7 +157,7 @@ WITH origin AS (
             NOT @has_open_need::boolean
             OR EXISTS (
                 SELECT 1 FROM needs AS n
-                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > now()
+                WHERE n.store_org_id = o.id AND n.status = 'OPEN' AND n.expires_at > @now::timestamptz
             )
         )
         AND (

@@ -72,7 +72,9 @@ func TestCountNeedsWithin_BRDIR03_CountsOpenNeedsPerRadius(t *testing.T) {
 func TestListStores_FRNED04_CardCarriesTheOpenNeedCategories(t *testing.T) {
 	scene := needWorld(t)
 
-	cards := scene.list(domain.StoreQuery{Listing: nearest(), Filters: domain.StoreFilters{HasOpenNeed: true}})
+	cards := scene.list(domain.StoreQuery{
+		Listing: nearest(), Filters: domain.StoreFilters{HasOpenNeed: true}, Now: base(),
+	})
 
 	if len(cards) != 3 || len(cards[0].NeedCategoryIDs) != 1 || cards[0].NeedCategoryIDs[0] != snackCategoryID {
 		t.Fatalf("cards = %+v", cards)

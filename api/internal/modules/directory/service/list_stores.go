@@ -40,10 +40,10 @@ func (uc *ListStores) Execute(
 	now := uc.clock.Now()
 	page, err := browseFrom(ctx, browsing, search.Search, source[domain.StoreCard]{
 		count: func(ctx context.Context, listing domain.Listing) (map[int]int, error) {
-			return uc.stores.CountStoresWithin(ctx, domain.StoreQuery{Listing: listing, Filters: filters})
+			return uc.stores.CountStoresWithin(ctx, domain.StoreQuery{Listing: listing, Filters: filters, Now: now})
 		},
 		list: func(ctx context.Context, listing domain.Listing) ([]domain.StoreCard, error) {
-			return uc.stores.ListStores(ctx, domain.StoreQuery{Listing: listing, Filters: filters})
+			return uc.stores.ListStores(ctx, domain.StoreQuery{Listing: listing, Filters: filters, Now: now})
 		},
 		score: func(card domain.StoreCard) domain.StoreCard { return browsing.viewer.MatchStore(card, now) },
 	})

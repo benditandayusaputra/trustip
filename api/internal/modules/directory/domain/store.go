@@ -39,6 +39,7 @@ type StoreFilters struct {
 type StoreSearch struct {
 	Search
 	Filters StoreFilters
+	Now     time.Time
 }
 
 func NewStoreSearch(form StoreSearchForm) (StoreSearch, error) {
@@ -64,6 +65,7 @@ func NewStoreSearch(form StoreSearchForm) (StoreSearch, error) {
 type StoreQuery struct {
 	Listing
 	Filters StoreFilters
+	Now     time.Time
 }
 
 type CommissionRange struct {
