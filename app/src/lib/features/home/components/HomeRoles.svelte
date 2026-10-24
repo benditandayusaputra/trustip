@@ -13,7 +13,10 @@
 	<header class="flex flex-col gap-2">
 		<p class="section-label">{text.rolesEyebrow}</p>
 		<h2 id="beranda-peran" class="section-title">{text.rolesTitle}</h2>
-		<p class="max-w-reading text-base text-text-muted">{text.rolesIntro} {text.audienceDetail}</p>
+		<p class="reading-text text-base text-text-muted">
+			{text.rolesIntro}
+			{text.audienceDetail}
+		</p>
 	</header>
 	<div class="grid gap-4 md:grid-cols-2">
 		{#each text.roles as role, index (role.title)}
@@ -24,7 +27,7 @@
 				>
 				<div class="flex flex-col gap-2">
 					<h3 class="text-xl">{role.title}</h3>
-					<p class="text-base text-text-muted">{role.body}</p>
+					<p class="reading-text text-base text-text-muted">{role.body}</p>
 				</div>
 				<ul class="flex flex-col gap-2 text-sm text-text-muted">
 					{#each role.benefits as benefit (benefit)}

@@ -96,6 +96,12 @@
 		line-height: var(--leading-tight);
 	}
 
+	.reading-text {
+		text-align: justify;
+		hyphens: auto;
+		text-wrap: wrap;
+	}
+
 	.section-title {
 		font-size: var(--text-kpi-compact);
 	}

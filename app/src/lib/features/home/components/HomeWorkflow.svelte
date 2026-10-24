@@ -19,12 +19,12 @@
 	<header class="flex flex-col gap-2">
 		<p class="section-label">{text.stepsEyebrow}</p>
 		<h2 id="beranda-cara-judul" class="section-title">{text.stepsTitle}</h2>
-		<p class="max-w-reading text-base text-text-muted">{text.stepsIntro}</p>
+		<p class="reading-text text-base text-text-muted">{text.stepsIntro}</p>
 	</header>
-	<ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+	<ol class="grid gap-4 md:grid-cols-2">
 		{#each text.steps as step, index (step.title)}
 			{@const Icon = icons[index] ?? Store}
-			<li class="surface-card flex flex-col gap-4 p-5 md:last:col-span-2 lg:last:col-span-1">
+			<li class="surface-card flex flex-col gap-4 p-5 md:last:col-span-2">
 				<div class="flex items-center justify-between gap-4">
 					<span
 						class="inline-flex size-11 items-center justify-center rounded-pill bg-accent-surface text-lg font-semibold text-accent"
@@ -35,7 +35,7 @@
 				<div class="flex flex-col gap-2">
 					<h3 class="text-lg">{step.title}</h3>
 					<p class="text-xs font-semibold text-accent">{step.actor}</p>
-					<p class="text-sm text-text-muted">{step.body}</p>
+					<p class="reading-text text-sm text-text-muted">{step.body}</p>
 				</div>
 			</li>
 		{/each}

@@ -118,6 +118,7 @@
 	--product-grid-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
 	--auth-panel-height: 640px;
 	--directory-columns: 320px minmax(0, 1fr);
+	--home-example-columns: minmax(0, 7fr) minmax(0, 5fr);
 	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 	--store-results-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 	--directory-map-height: 26rem;
