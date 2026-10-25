@@ -121,7 +121,7 @@ export const home = {
 		],
 		example: {
 			title: 'Satu catatan, dua pihak',
-			partners: 'Roti Pak Anton → Warung Bu Sri',
+			partners: 'Roti Mas Bendi → Warung Mbak Zara',
 			pricing: 'Contoh harga: jual Rp2.000 · setor Rp1.750 per roti.',
 			product: 'Roti manis',
 			units: '20 dititip · 2 tersisa · 18 terjual',

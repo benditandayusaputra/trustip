@@ -21,14 +21,14 @@ test('directory input survives account loading and More navigation reaches produ
 	const search = page.getByLabel('Cari nama atau deskripsi toko');
 	try {
 		await page.goto('/cari/toko');
-		await search.fill('Warung Bu Sri');
-		await expect(search).toHaveValue('Warung Bu Sri');
+		await search.fill('Warung Mbak Zara');
+		await expect(search).toHaveValue('Warung Mbak Zara');
 	} finally {
 		account.resolve(undefined);
 	}
 	await expect(page.locator('summary')).toHaveText('Akun', { timeout: networkTimeoutMs });
-	await expect(search).toHaveValue('Warung Bu Sri');
-	await expect(page.getByRole('heading', { name: 'Warung Bu Sri', exact: true })).toBeVisible({
+	await expect(search).toHaveValue('Warung Mbak Zara');
+	await expect(page.getByRole('heading', { name: 'Warung Mbak Zara', exact: true })).toBeVisible({
 		timeout: networkTimeoutMs
 	});
 	await page.setViewportSize({ width: 390, height: 844 });

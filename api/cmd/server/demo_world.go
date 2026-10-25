@@ -56,6 +56,7 @@ type demoConsignor struct {
 	DeliveryDays        []string `json:"delivery_days"`
 	PreferredStoreTypes []string `json:"preferred_store_types"`
 	CanProvideSample    bool     `json:"can_provide_sample"`
+	PaymentInfo         string   `json:"payment_info"`
 }
 
 type demoStore struct {

@@ -67,7 +67,7 @@ test('demo is available from the home page and fills only its own sign-in form',
 	await page.goto('/');
 	await page.getByRole('link', { name: 'Coba akun demo', exact: true }).click();
 	await expect(page).toHaveURL(/\/demo$/u);
-	await page.getByRole('button', { name: 'Isi sebagai toko (Warung Bu Sri)' }).click();
+	await page.getByRole('button', { name: 'Isi sebagai Zara (toko)' }).click();
 	await expect(page.getByLabel('Email')).toHaveValue('toko@demo.trustip.id');
 	await expect(page.getByLabel('Kata sandi')).toHaveValue('Coba-Demo-2026');
 });

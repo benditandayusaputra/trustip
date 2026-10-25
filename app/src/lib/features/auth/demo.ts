@@ -1,10 +1,15 @@
+type DemoPersona = 'bendi' | 'zara' | 'jessica';
+
 export interface DemoAccount {
-	role: 'consignor' | 'store';
+	persona: DemoPersona;
 	email: string;
 	password: string;
 }
 
+const demoPassword = 'Coba-Demo-2026';
+
 export const demoAccounts: readonly DemoAccount[] = [
-	{ role: 'consignor', email: 'penitip@demo.trustip.id', password: 'Coba-Demo-2026' },
-	{ role: 'store', email: 'toko@demo.trustip.id', password: 'Coba-Demo-2026' }
+	{ persona: 'bendi', email: 'penitip@demo.trustip.id', password: demoPassword },
+	{ persona: 'zara', email: 'toko@demo.trustip.id', password: demoPassword },
+	{ persona: 'jessica', email: 'minimarket@demo.trustip.id', password: demoPassword }
 ];

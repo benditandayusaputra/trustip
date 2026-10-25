@@ -165,17 +165,34 @@ func (s *demoSeeder) describe(ctx context.Context, owner actor.Actor, organizati
 		}
 	}
 	if organization.Consignor != nil {
-		profile := organization.Consignor
-		_, err = s.use.org.EditConsignor.Execute(ctx, owner, orgservice.UpdateConsignorProfileCommand{
-			OrganizationID: organizationID, Form: orgdomain.ConsignorProfileForm{
-				DeliveryRadius:      orgdomain.DeliveryRadius{Given: true, Kilometres: profile.DeliveryRadiusKm},
-				DeliveryDays:        profile.DeliveryDays,
-				PreferredStoreTypes: profile.PreferredStoreTypes, CanProvideSample: profile.CanProvideSample,
-			},
-		})
+		err = s.describeConsignor(ctx, owner, *organization.Consignor)
 	}
 	if err != nil {
 		return fmt.Errorf("describe demo organization %s: %w", organization.Key, err)
+	}
+	return nil
+}
+
+func (s *demoSeeder) describeConsignor(ctx context.Context, owner actor.Actor, profile demoConsignor) error {
+	organizationID := owner.Membership.OrganizationID
+	_, err := s.use.org.EditConsignor.Execute(ctx, owner, orgservice.UpdateConsignorProfileCommand{
+		OrganizationID: organizationID, Form: orgdomain.ConsignorProfileForm{
+			DeliveryRadius:      orgdomain.DeliveryRadius{Given: true, Kilometres: profile.DeliveryRadiusKm},
+			DeliveryDays:        profile.DeliveryDays,
+			PreferredStoreTypes: profile.PreferredStoreTypes, CanProvideSample: profile.CanProvideSample,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("edit consignor profile: %w", err)
+	}
+	if profile.PaymentInfo == "" {
+		return nil
+	}
+	_, err = s.use.org.EditPayment.Execute(ctx, owner, orgservice.UpdatePaymentInfoCommand{
+		OrganizationID: organizationID, Form: orgdomain.PaymentInfoForm{Info: profile.PaymentInfo},
+	})
+	if err != nil {
+		return fmt.Errorf("edit payment info: %w", err)
 	}
 	return nil
 }

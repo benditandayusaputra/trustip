@@ -112,11 +112,29 @@ export const common = {
 			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.',
 			demo: {
 				title: 'Coba akun demo',
-				body: 'Berisi data contoh 30 hari di Lowokwaru, Malang, dan disetel ulang tiap malam pukul 03.00.',
+				body: 'Tiga akun contoh dengan data 30 hari di Lowokwaru, Malang. Data disetel ulang tiap malam pukul 03.00.',
 				email: 'Email',
-				password: 'Kata sandi',
-				consignor: 'Isi sebagai penitip (Roti Pak Anton)',
-				store: 'Isi sebagai toko (Warung Bu Sri)'
+				password: 'Kata sandi semua akun',
+				accounts: {
+					bendi: {
+						initial: 'B',
+						name: 'Bendi',
+						role: 'Penitip · Roti Mas Bendi',
+						fill: 'Isi sebagai Bendi (penitip)'
+					},
+					zara: {
+						initial: 'Z',
+						name: 'Zara',
+						role: 'Toko · Warung Mbak Zara',
+						fill: 'Isi sebagai Zara (toko)'
+					},
+					jessica: {
+						initial: 'J',
+						name: 'Jessica',
+						role: 'Toko · Minimarket Berkah, menunggu jawaban ajuan dari Bendi',
+						fill: 'Isi sebagai Jessica (toko)'
+					}
+				}
 			}
 		},
 		validation: {

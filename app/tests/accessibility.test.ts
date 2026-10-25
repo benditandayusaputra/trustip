@@ -127,7 +127,7 @@ async function audit(page: Page, paths: string[]): Promise<Finding[]> {
 async function visitorPages(page: Page): Promise<string[]> {
 	const store = await firstLink(page, '/cari/toko', /^\/t\//u);
 	const need = await firstLink(page, '/kebutuhan', /^\/kebutuhan\/[0-9a-f-]{36}$/u);
-	const product = await firstLink(page, '/u/roti-pak-anton', /^\/p\//u);
+	const product = await firstLink(page, '/u/roti-mas-bendi', /^\/p\//u);
 	return [
 		'/',
 		'/masuk',
@@ -141,7 +141,7 @@ async function visitorPages(page: Page): Promise<string[]> {
 		'/kebutuhan',
 		store,
 		need,
-		'/u/roti-pak-anton',
+		'/u/roti-mas-bendi',
 		product,
 		'/verifikasi/AAAA-AAAA-AAAA-AAAA',
 		'/undangan/TIDAKADA'
@@ -269,7 +269,7 @@ test(
 		await tabTo(page, 'Lewati ke konten');
 		await page.keyboard.press('Enter');
 		await expect(page.locator('main#konten')).toBeFocused();
-		await tabTo(page, 'Isi sebagai toko (Warung Bu Sri)');
+		await tabTo(page, 'Isi sebagai Zara (toko)');
 		await page.keyboard.press('Enter');
 		await expect(page.getByLabel('Email')).toHaveValue('toko@demo.trustip.id');
 		await expect(page.getByLabel('Kata sandi')).toHaveValue(demoPassword);

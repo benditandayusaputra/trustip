@@ -7,11 +7,12 @@
   "setup_days_ago": 35,
   "organizations": [
     {
-      "key": "anton", "type": "CONSIGNOR", "name": "Roti Pak Anton", "owner": "Anton Prasetyo",
+      "key": "anton", "type": "CONSIGNOR", "name": "Roti Mas Bendi", "owner": "Bendi",
       "email": "penitip@demo.trustip.id", "north_km": 0.6, "east_km": -0.4, "address": "Jl. Kendalsari 12",
       "description": "Roti manis dan roti tawar dipanggang tiap subuh, diantar pagi ke warung dan kantin sekitar Lowokwaru.",
       "consignor": { "delivery_radius_km": 10, "delivery_days": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
-        "preferred_store_types": ["GROCERY_STALL", "CANTEEN", "CAFE", "BAKERY"], "can_provide_sample": true }
+        "preferred_store_types": ["GROCERY_STALL", "CANTEEN", "CAFE", "BAKERY"], "can_provide_sample": true,
+        "payment_info": "Rekening contoh 0000-1234-5678 a.n. Bendi (data demo).\nBoleh juga tunai saat roti diantar." }
     },
     {
       "key": "rina", "type": "CONSIGNOR", "name": "Keripik Bu Rina", "owner": "Rina Kusumawati",
@@ -28,7 +29,7 @@
         "preferred_store_types": ["GROCERY_STALL", "CAFE"], "can_provide_sample": false }
     },
     {
-      "key": "sri", "type": "STORE", "name": "Warung Bu Sri", "owner": "Sri Wahyuni",
+      "key": "sri", "type": "STORE", "name": "Warung Mbak Zara", "owner": "Zara",
       "email": "toko@demo.trustip.id", "north_km": 0.2, "east_km": 0.3, "address": "Jl. Bunga Kumis Kucing 3",
       "description": "Warung kelontong dekat kos mahasiswa, ramai pagi dan malam.",
       "store": { "store_type": "GROCERY_STALL", "categories": ["Roti dan kue basah", "Keripik dan kerupuk", "Sambal dan bumbu", "Minuman"],
@@ -56,8 +57,8 @@
         "fixed_deposit": true, "commission": true, "commission_min_bps": 1500, "commission_max_bps": 2500, "opening_hours": "14.00-23.00" }
     },
     {
-      "key": "berkah", "type": "STORE", "name": "Minimarket Berkah", "owner": "Siti Aminah",
-      "email": "minimarket.berkah@demo.trustip.id", "north_km": -1.2, "east_km": 2.9, "address": "Jl. MT Haryono 120",
+      "key": "berkah", "type": "STORE", "name": "Minimarket Berkah", "owner": "Jessica",
+      "email": "minimarket@demo.trustip.id", "north_km": -1.2, "east_km": 2.9, "address": "Jl. MT Haryono 120",
       "description": "Minimarket keluarga dengan rak khusus produk UMKM.",
       "store": { "store_type": "LOCAL_MINIMARKET", "categories": ["Keripik dan kerupuk", "Roti dan kue basah", "Minuman"],
         "fixed_deposit": true, "commission": true, "commission_min_bps": 1500, "commission_max_bps": 2500, "opening_hours": "07.00-22.00" }
@@ -177,7 +178,7 @@
       "items": [ { "product": "roti_cokelat", "model": "FIXED_DEPOSIT", "retail": 5000, "deposit": 4000, "qty": 20 },
                  { "product": "roti_keju", "model": "FIXED_DEPOSIT", "retail": 6000, "deposit": 4800, "qty": 12 } ],
       "drops": { "from": 30, "until": 1, "every": 1, "weekend_permille": 1400 },
-      "counts": { "from": 30, "until": 1, "every": 1, "sell_permille": 850, "return_rest": true, "reason": "UNSOLD" },
+      "counts": { "from": 30, "until": 2, "every": 1, "sell_permille": 850, "return_rest": true, "reason": "UNSOLD" },
       "pay_after_days": 1, "confirm_after_days": 1 },
     { "key": "anton_kantin", "consignor": "anton", "store": "kantin", "schedule": "ON_COUNT", "rhythm": "DAILY",
       "payment_terms_days": 2, "notes": "Kantin tutup Sabtu dan Minggu.",
@@ -234,10 +235,10 @@
   ],
   "proposals": [
     { "from": "berkah", "to": "anton", "days_ago": 1, "schedule": "WEEKLY", "rhythm": "DAILY", "payment_terms_days": 7,
-      "message": "Pak Anton, minimarket kami cari roti untuk rak depan. Bisa titip tiap pagi?",
+      "message": "Mas Bendi, minimarket kami cari roti untuk rak depan. Bisa titip tiap pagi?",
       "items": [ { "product": "roti_cokelat", "model": "FIXED_DEPOSIT", "retail": 5000, "deposit": 4000 } ] },
     { "from": "d_arjuno", "to": "sri", "days_ago": 2, "schedule": "MONTHLY", "rhythm": "EACH_VISIT", "payment_terms_days": 14,
-      "message": "Bu Sri, kopi bubuk kami cocok untuk pelanggan kos. Boleh dicoba sebulan?",
+      "message": "Mbak Zara, kopi bubuk kami cocok untuk pelanggan kos. Boleh dicoba sebulan?",
       "items": [ { "product": "kopi_robusta", "model": "COMMISSION", "retail": 25000, "commission_bps": 2000 } ] },
     { "from": "anton", "to": "dedi", "days_ago": 20, "schedule": "ON_COUNT", "rhythm": "DAILY", "payment_terms_days": 2,
       "message": "Pak Dedi, roti kami bisa jadi oleh-oleh untuk tamu dari luar kota.",

@@ -19,18 +19,31 @@
 >
 	<h2 id="coba-demo-judul" class="text-lg font-semibold text-text">{text.title}</h2>
 	<p class="text-base text-text-muted">{text.body}</p>
-	<ul class="flex flex-col gap-4">
+	<p class="text-sm text-text-muted">
+		{text.password}: <span class="font-semibold text-text">{demoAccounts[0]?.password}</span>
+	</p>
+	<ul class="flex flex-col gap-2">
 		{#each demoAccounts as account (account.email)}
-			<li class="flex flex-col gap-2">
-				<p class="text-sm text-text-muted">
-					{text.email}: <span class="font-semibold text-text">{account.email}</span> · {text.password}:
-					<span class="font-semibold text-text">{account.password}</span>
-				</p>
+			{@const persona = text.accounts[account.persona]}
+			<li class="flex flex-col gap-4 rounded-control border border-border p-4">
+				<div class="flex items-center gap-4">
+					<span
+						class="flex size-11 shrink-0 items-center justify-center rounded-pill bg-accent-surface font-semibold text-accent"
+						aria-hidden="true">{persona.initial}</span
+					>
+					<span class="flex min-w-0 flex-col gap-1">
+						<span class="font-semibold text-text">{persona.name}</span>
+						<span class="text-sm text-text-muted">{persona.role}</span>
+						<span class="text-sm wrap-anywhere text-text-muted">
+							{text.email}: <span class="font-medium text-text">{account.email}</span>
+						</span>
+					</span>
+				</div>
 				<Button
 					variant="secondary"
 					onclick={() => {
 						onpick(account);
-					}}>{text[account.role]}</Button
+					}}>{persona.fill}</Button
 				>
 			</li>
 		{/each}

@@ -31,7 +31,7 @@ Foto data contoh di `api/cmd/server/demo_photos` diambil dari Wikimedia Commons 
 | Pusat Oleh-oleh Batu Asri | [Toko oleh-oleh pantai bidadari.jpg](https://commons.wikimedia.org/wiki/File:Toko_oleh-oleh_pantai_bidadari.jpg) | Bbbgvor | CC0 |
 | Rajutan Ibu-ibu Merjosari | [Kwadrat babuni 1.jpg](https://commons.wikimedia.org/wiki/File:Kwadrat_babuni_1.jpg) | Valki77 | CC BY-SA 4.0 |
 | Roti Keju Manis | [Sheng Kee Bakery Hot Dog Cheese Bun (27583230501).jpg](https://commons.wikimedia.org/wiki/File:Sheng_Kee_Bakery_Hot_Dog_Cheese_Bun_(27583230501).jpg) | Willis Lam | CC BY-SA 2.0 |
-| Roti Pak Anton | [Tefa culinery bakery.jpg](https://commons.wikimedia.org/wiki/File:Tefa_culinery_bakery.jpg) | Sena | CC0 |
+| Roti Mas Bendi | [Tefa culinery bakery.jpg](https://commons.wikimedia.org/wiki/File:Tefa_culinery_bakery.jpg) | Sena | CC0 |
 | Roti Sobek Cokelat | [Pain au chocolat Luc Viatour.jpg](https://commons.wikimedia.org/wiki/File:Pain_au_chocolat_Luc_Viatour.jpg) | Luc Viatour | CC BY-SA 3.0 |
 | Roti Tawar Kupas | [Roti Tawar Tefa Culinary.jpg](https://commons.wikimedia.org/wiki/File:Roti_Tawar_Tefa_Culinary.jpg) | Yuliaisyah | CC BY 4.0 |
 | Sambal Bawang | [Sambal bawang dayak (𝘌𝘭𝘦𝘶𝘵𝘩𝘦𝘳𝘪𝘯𝘦 𝘣𝘶𝘭𝘣𝘰𝘴𝘢).jpg](https://commons.wikimedia.org/wiki/File:Sambal_bawang_dayak_(%F0%9D%98%8C%F0%9D%98%AD%F0%9D%98%A6%F0%9D%98%B6%F0%9D%98%B5%F0%9D%98%A9%F0%9D%98%A6%F0%9D%98%B3%F0%9D%98%AA%F0%9D%98%AF%F0%9D%98%A6_%F0%9D%98%A3%F0%9D%98%B6%F0%9D%98%AD%F0%9D%98%A3%F0%9D%98%B0%F0%9D%98%B4%F0%9D%98%A2).jpg) | Photograph by: Gabriel D. Aquila Eleutherine bulbosa spicy chili condiment maker: Amena (my aunt) | CC0 |
@@ -44,7 +44,7 @@ Foto data contoh di `api/cmd/server/demo_photos` diambil dari Wikimedia Commons 
 | Toko Oleh-oleh Pak Dedi | [Rak toko oleh-oleh edamame.jpg](https://commons.wikimedia.org/wiki/File:Rak_toko_oleh-oleh_edamame.jpg) | Astari28 | CC BY-SA 4.0 |
 | Toko Roti dan Kue Sumbersari | [Toko roti dan kue Holland Bakery Jakarta.jpg](https://commons.wikimedia.org/wiki/File:Toko_roti_dan_kue_Holland_Bakery_Jakarta.jpg) | Cun Cun | CC BY-SA 4.0 |
 | Toko Serba Ada Singosari | [Giant Cimanggis.jpg](https://commons.wikimedia.org/wiki/File:Giant_Cimanggis.jpg) | Chongkian | CC BY-SA 4.0 |
-| Warung Bu Sri | [Warung Kelontong.jpg](https://commons.wikimedia.org/wiki/File:Warung_Kelontong.jpg) | SATELITBM | CC BY-SA 4.0 |
+| Warung Mbak Zara | [Warung Kelontong.jpg](https://commons.wikimedia.org/wiki/File:Warung_Kelontong.jpg) | SATELITBM | CC BY-SA 4.0 |
 | Warung Kopi Tlogomas | [Sisi Dalam Warung Kopi Bu Ayu Barat Stadion Candra Di Muka Kebumen.jpg](https://commons.wikimedia.org/wiki/File:Sisi_Dalam_Warung_Kopi_Bu_Ayu_Barat_Stadion_Candra_Di_Muka_Kebumen.jpg) | DARMAS BS 9 | CC BY-SA 4.0 |
 | Warung Makan Bu Har | [Warung Makan Di Ambal Kebumen.jpg](https://commons.wikimedia.org/wiki/File:Warung_Makan_Di_Ambal_Kebumen.jpg) | SATELIT BM9 | CC BY-SA 4.0 |
 
