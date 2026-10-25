@@ -6,7 +6,6 @@
 	import { directory as id } from '#lib/i18n/directory.js';
 	import ConsignorTraits from './ConsignorTraits.svelte';
 	import ContactActions from './ContactActions.svelte';
-	import LazyReportListing from './LazyReportListing.svelte';
 	import MatchReasons from './MatchReasons.svelte';
 	import MatchSummary from './MatchSummary.svelte';
 
@@ -17,9 +16,11 @@
 	let { card }: Props = $props();
 
 	const text = id.consignorDirectory;
+	const shownCategories = 2;
+	const hiddenCategories = $derived(card.categories.length - shownCategories);
 </script>
 
-<article class="surface-card flex flex-col gap-4 p-4">
+<article class="surface-card list-card">
 	<header class="flex items-start gap-4">
 		{#if card.logo_url}
 			<img
@@ -38,17 +39,17 @@
 			>
 		{/if}
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
-			<h2 class="text-lg font-semibold text-text">
-				<a href="/u/{card.slug}" class="hover:text-accent">{card.name}</a>
+			<h2 class="truncate text-lg font-semibold text-text" title={card.name}>
+				<a href="/u/{card.slug}" class="list-card-link hover:text-accent">{card.name}</a>
 			</h2>
-			<p class="text-sm text-text-muted">
+			<p class="truncate text-sm text-text-muted">
 				{text.productCount(card.product_count)}
 				{#if card.distance_m !== null}
 					· <span class="font-mono">{text.approximate(formatDistance(card.distance_m))}</span>
 				{/if}
 				· {card.district ? `${card.district}, ` : ''}{card.city_name}
 			</p>
-			<p class="text-sm text-text-muted">
+			<p class="truncate text-sm text-text-muted">
 				{id.directory.joined(formatBusinessDate(card.joined_on))}
 			</p>
 		</div>
@@ -63,19 +64,20 @@
 		{#if card.is_partner}
 			<Badge tone="success" label={id.directory.partner} />
 		{/if}
-		{#each card.categories as category (category.id)}
+		{#each card.categories.slice(0, shownCategories) as category (category.id)}
 			<Badge tone="neutral" label={category.name} />
 		{/each}
+		{#if hiddenCategories > 0}
+			<Badge tone="neutral" label={id.directory.more(hiddenCategories)} />
+		{/if}
 	</div>
 	<ConsignorTraits traits={card.traits} />
 	{#if card.match}
 		<MatchReasons reasons={card.match.reasons} isApproximate />
 	{/if}
 	{#if !card.is_self}
-		<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
-		<LazyReportListing
-			target={{ target_type: 'ORGANIZATION', target_id: card.id }}
-			name={card.name}
-		/>
+		<div class="list-card-actions">
+			<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
+		</div>
 	{/if}
 </article>

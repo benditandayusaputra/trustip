@@ -6,7 +6,6 @@
 	import { directory as directoryText } from '#lib/i18n/directory.js';
 	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import ContactActions from './ContactActions.svelte';
-	import LazyReportListing from './LazyReportListing.svelte';
 	import MatchReasons from './MatchReasons.svelte';
 	import MatchSummary from './MatchSummary.svelte';
 
@@ -19,6 +18,8 @@
 	let { card }: Props = $props();
 
 	const text = id.directory;
+	const shownCategories = 2;
+	const hiddenCategories = $derived(card.accepted_categories.length - shownCategories);
 	const storeTypes = id.storeProfile.storeTypes;
 	const minimum = $derived(card.terms.commission_min_bps);
 	const maximum = $derived(card.terms.commission_max_bps);
@@ -29,8 +30,8 @@
 	);
 </script>
 
-<article class="surface-card flex min-w-0 flex-col gap-4 p-5">
-	<header class="flex flex-wrap items-start gap-4">
+<article class="surface-card list-card">
+	<header class="flex items-start gap-4">
 		{#if card.logo_url}
 			<img
 				src={card.logo_url}
@@ -49,10 +50,10 @@
 			</div>
 		{/if}
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
-			<h2 class="text-lg font-semibold text-text">
-				<a href="/t/{card.slug}" class="break-words hover:text-accent">{card.name}</a>
+			<h2 class="truncate text-lg font-semibold text-text" title={card.name}>
+				<a href="/t/{card.slug}" class="list-card-link hover:text-accent">{card.name}</a>
 			</h2>
-			<p class="text-sm text-text-muted">
+			<p class="truncate text-sm text-text-muted">
 				{card.store_type ? storeTypes[card.store_type] : ''}
 				{#if card.distance_m !== null}
 					· <span class="font-mono">{formatDistance(card.distance_m)}</span>
@@ -73,25 +74,28 @@
 		{#if card.open_need_category_ids.length > 0}
 			<Badge tone="pending" label={text.openNeed} />
 		{/if}
-		{#each card.accepted_categories as category (category.id)}
+		{#each card.accepted_categories.slice(0, shownCategories) as category (category.id)}
 			<Badge tone="neutral" label={category.name} />
 		{/each}
+		{#if hiddenCategories > 0}
+			<Badge tone="neutral" label={text.more(hiddenCategories)} />
+		{/if}
 	</div>
 	<div class="flex flex-col gap-1 text-sm text-text-muted">
 		{#if minimum !== null && maximum !== null}
-			<p>{text.commissionRange(formatBasisPoints(minimum), formatBasisPoints(maximum))}</p>
+			<p class="truncate">
+				{text.commissionRange(formatBasisPoints(minimum), formatBasisPoints(maximum))}
+			</p>
 		{/if}
-		<p>{reputation} · {text.activePartners(card.reputation.active_partners)}</p>
-		<p>{text.joined(formatBusinessDate(card.joined_on))}</p>
+		<p class="truncate">{reputation} · {text.activePartners(card.reputation.active_partners)}</p>
+		<p class="truncate">{text.joined(formatBusinessDate(card.joined_on))}</p>
 	</div>
 	{#if card.match}
 		<MatchReasons reasons={card.match.reasons} />
 	{/if}
 	{#if !card.is_self}
-		<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
-		<LazyReportListing
-			target={{ target_type: 'ORGANIZATION', target_id: card.id }}
-			name={card.name}
-		/>
+		<div class="list-card-actions">
+			<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
+		</div>
 	{/if}
 </article>

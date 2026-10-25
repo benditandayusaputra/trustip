@@ -5,7 +5,6 @@
 	import { formatBasisPoints, formatDate, formatDistance, formatRupiah } from '#lib/i18n/format.js';
 	import { directory as directoryText } from '#lib/i18n/directory.js';
 	import { organization as organizationText } from '#lib/i18n/organization.js';
-	import LazyReportListing from './LazyReportListing.svelte';
 
 	const id = { ...directoryText, ...organizationText };
 
@@ -22,22 +21,27 @@
 	);
 </script>
 
-<article class="surface-card flex flex-col gap-4 p-5">
-	<Megaphone class="size-6 text-accent" aria-hidden="true" />
-	<header class="flex flex-col gap-1">
-		<h2 class="text-lg font-semibold text-text">
-			<a href="/kebutuhan/{card.id}" class="hover:text-accent">{card.title}</a>
-		</h2>
-		<p class="text-sm text-text-muted">
-			{card.store.name}
-			{#if card.store.store_type}
-				· {id.storeProfile.storeTypes[card.store.store_type]}
-			{/if}
-			{#if card.distance_m !== null}
-				· <span class="font-mono">{formatDistance(card.distance_m)}</span>
-			{/if}
-			· {card.store.city_name}
-		</p>
+<article class="surface-card list-card">
+	<header class="flex items-start gap-4">
+		<span
+			class="flex size-12 shrink-0 items-center justify-center rounded-control bg-accent-surface"
+			><Megaphone class="size-6 text-accent" aria-hidden="true" /></span
+		>
+		<div class="flex min-w-0 flex-1 flex-col gap-1">
+			<h2 class="line-clamp-2 text-lg font-semibold text-text" title={card.title}>
+				<a href="/kebutuhan/{card.id}" class="list-card-link hover:text-accent">{card.title}</a>
+			</h2>
+			<p class="truncate text-sm text-text-muted">
+				{card.store.name}
+				{#if card.store.store_type}
+					· {id.storeProfile.storeTypes[card.store.store_type]}
+				{/if}
+				{#if card.distance_m !== null}
+					· <span class="font-mono">{formatDistance(card.distance_m)}</span>
+				{/if}
+				· {card.store.city_name}
+			</p>
+		</div>
 	</header>
 	<div class="flex flex-wrap gap-2">
 		<Badge tone="neutral" label={card.category.name} />
@@ -46,7 +50,7 @@
 		{/if}
 	</div>
 	{#if card.description}
-		<p class="text-base text-text">{card.description}</p>
+		<p class="line-clamp-2 text-base text-text" title={card.description}>{card.description}</p>
 	{/if}
 	<ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted">
 		{#if card.est_qty_per_week !== null}
@@ -61,13 +65,12 @@
 		<li>{text.expiresAt(formatDate(card.expires_at))}</li>
 	</ul>
 	{#if canRespond && !card.is_own}
-		<a
-			href={respondHref}
-			class="inline-flex min-h-11 items-center self-start rounded-control bg-primary px-4 font-semibold text-on-accent"
-			>{text.respond}</a
-		>
-	{/if}
-	{#if !card.is_own}
-		<LazyReportListing target={{ target_type: 'NEED', target_id: card.id }} name={card.title} />
+		<div class="list-card-actions">
+			<a
+				href={respondHref}
+				class="inline-flex min-h-11 items-center rounded-control bg-primary px-4 font-semibold text-on-accent"
+				>{text.respond}</a
+			>
+		</div>
 	{/if}
 </article>

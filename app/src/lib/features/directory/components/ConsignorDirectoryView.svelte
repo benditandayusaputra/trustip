@@ -14,6 +14,7 @@
 		type ConsignorTab
 	} from '../consignor-query';
 	import { DirectoryList } from '../state.svelte';
+	import { forVisitor, isRandomOrder } from '../visitor';
 	import ConsignorCard from './ConsignorCard.svelte';
 	import ConsignorFilters from './ConsignorFilters.svelte';
 	import DirectoryResults from './DirectoryResults.svelte';
@@ -21,11 +22,12 @@
 
 	interface Props {
 		query: ConsignorQuery;
+		isVisitor?: boolean;
 		place: Snippet;
 		onchange: (query: ConsignorQuery) => void;
 	}
 
-	let { query, place, onchange }: Props = $props();
+	let { query, isVisitor = false, place, onchange }: Props = $props();
 
 	const text = id.consignorDirectory;
 	const products = new DirectoryList<DirectoryProductCard>(apiClient, '/api/v1/directory/products');
@@ -38,7 +40,7 @@
 	let typed = $derived(query.text);
 	const typingDelayMs = 300;
 	const maxSearchLength = 80;
-	const search = $derived(consignorSearchParams(query).toString());
+	const search = $derived(consignorSearchParams(forVisitor(query, isVisitor)).toString());
 
 	onMount(() => {
 		listCategories(apiClient())
@@ -48,6 +50,7 @@
 
 	$effect(() => {
 		const list = query.tab === 'produk' ? products : consignors;
+		list.shuffle = isRandomOrder(query, isVisitor);
 		void list.load(search);
 	});
 
@@ -78,7 +81,7 @@
 			bind:value={typed}
 		/>{/snippet}
 	{#snippet filters()}
-		<ConsignorFilters {query} {categories} {place} onchange={change} />
+		<ConsignorFilters {query} {categories} {isVisitor} {place} onchange={change} />
 	{/snippet}
 
 	<Tabs
@@ -96,6 +99,7 @@
 				<DirectoryResults
 					list={products}
 					query={search}
+					{isVisitor}
 					failedTitle={text.productsFailed}
 					emptyMessage={text.productsEmpty}
 					onclear={clear}
@@ -108,6 +112,7 @@
 				<DirectoryResults
 					list={consignors}
 					query={search}
+					{isVisitor}
 					failedTitle={text.consignorsFailed}
 					emptyMessage={text.consignorsEmpty}
 					onclear={clear}

@@ -5,22 +5,24 @@
 	import type { Category } from '#lib/api/organizations.js';
 	import { directory as directoryText } from '#lib/i18n/directory.js';
 	import { organization as organizationText } from '#lib/i18n/organization.js';
-	import { anyCategory, radiusChoices, type StoreQuery } from '../query';
+	import { anyCategory, radiusChoices, sortChoices, type StoreQuery } from '../query';
 
 	const id = { ...directoryText, ...organizationText };
 
 	interface Props {
 		query: StoreQuery;
 		categories: Category[];
+		isVisitor?: boolean;
 		place: Snippet;
 		onchange: (changes: Partial<StoreQuery>) => void;
 	}
 
-	let { query, categories, place, onchange }: Props = $props();
+	let { query, categories, isVisitor = false, place, onchange }: Props = $props();
 
 	const text = id.directory;
 	const ownCategories = 'own';
 	const radiusOptions = radiusChoices.map((value) => ({ value, label: text.radii[value] }));
+	const sortOptions = sortChoices.map((value) => ({ value, label: text.sorts[value] }));
 	const storeTypeOptions = [
 		{ value: '', label: text.anyStoreType },
 		...Object.entries(id.storeProfile.storeTypes).map(([value, label]) => ({ value, label }))
@@ -41,9 +43,19 @@
 	<legend class="sr-only">{text.filters}</legend>
 	<div class="flex flex-col gap-4">{@render place()}</div>
 	<Select
+		label={text.sort}
+		options={sortOptions}
+		value={query.sort}
+		onchange={(sort: string) => {
+			onchange({ sort: sort as StoreQuery['sort'] });
+		}}
+	/>
+	<Select
 		label={text.radius}
 		options={radiusOptions}
-		value={query.radius}
+		value={isVisitor ? 'all' : query.radius}
+		disabled={isVisitor}
+		hint={isVisitor ? text.visitorRadius : undefined}
 		onchange={(radius: string) => {
 			onchange({ radius: radius as StoreQuery['radius'] });
 		}}

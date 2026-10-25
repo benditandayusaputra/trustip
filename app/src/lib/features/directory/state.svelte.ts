@@ -1,5 +1,6 @@
 import type { ApiClient } from '#lib/api/client.js';
 import { listDirectory, type DirectoryPath, type DirectorySearch } from '#lib/api/directory.js';
+import { shuffled } from './visitor';
 
 export class DirectoryList<T> {
 	items = $state<T[]>([]);
@@ -8,6 +9,7 @@ export class DirectoryList<T> {
 	failure = $state('');
 	nextCursor = $state<string | null>(null);
 	busy = $state(false);
+	shuffle = $state(false);
 	#query = '';
 	#generation = 0;
 	readonly #client: () => ApiClient;
@@ -31,7 +33,7 @@ export class DirectoryList<T> {
 			if (generation !== this.#generation) {
 				return;
 			}
-			this.items = page.items;
+			this.items = this.#ordered(page.items);
 			this.search = page.search;
 			this.nextCursor = page.nextCursor;
 			this.status = 'ready';
@@ -54,10 +56,14 @@ export class DirectoryList<T> {
 				query: this.#query,
 				cursor: this.nextCursor
 			});
-			this.items = [...this.items, ...page.items];
+			this.items = [...this.items, ...this.#ordered(page.items)];
 			this.nextCursor = page.nextCursor;
 		} finally {
 			this.busy = false;
 		}
+	}
+
+	#ordered(items: T[]): T[] {
+		return this.shuffle ? shuffled(items) : items;
 	}
 }

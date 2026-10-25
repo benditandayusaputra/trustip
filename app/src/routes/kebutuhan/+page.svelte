@@ -4,6 +4,8 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
+	import { positionOf } from '#lib/features/directory/visitor.js';
+	import { locateDevice } from '#lib/features/organization/geolocation.js';
 	import NeedBoardView from '#lib/features/directory/components/NeedBoardView.svelte';
 	import {
 		boardQueryFrom,
@@ -15,8 +17,9 @@
 	import { directory as id } from '#lib/i18n/directory.js';
 
 	const session = getAccountSession();
+	const isVisitor = $derived(session.status === 'signedOut');
 	const canRespond = $derived(
-		session.status === 'signedOut' || session.account?.membership?.organization_type === 'CONSIGNOR'
+		isVisitor || session.account?.membership?.organization_type === 'CONSIGNOR'
 	);
 	const query = $derived(boardQueryFrom(page.url.searchParams));
 	const origin = $derived<Place>({
@@ -24,6 +27,19 @@
 		lat: query.lat,
 		lng: query.lng,
 		cityCode: query.cityCode
+	});
+	let askedPosition = false;
+
+	$effect(() => {
+		if (!isVisitor || askedPosition || query.origin !== 'ORGANIZATION') {
+			return;
+		}
+		askedPosition = true;
+		locateDevice()
+			.then((point) => {
+				show({ ...query, ...positionOf(point) });
+			})
+			.catch(() => undefined);
 	});
 
 	function show(next: BoardQuery) {
@@ -38,10 +54,11 @@
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<PageHeading icon={Megaphone}>{id.needBoard.title}</PageHeading>
-	<NeedBoardView {query} {canRespond} onchange={show}>
+	<NeedBoardView {query} {isVisitor} {canRespond} onchange={show}>
 		{#snippet place()}
 			<PlacePicker
 				place={origin}
+				{isVisitor}
 				onchange={(chosen: Place) => {
 					show({
 						...query,

@@ -14,6 +14,7 @@
 		value?: string;
 		name?: string;
 		required?: boolean;
+		disabled?: boolean;
 		hint?: string | undefined;
 		error?: string | undefined;
 		onchange?: (value: string) => void;
@@ -25,6 +26,7 @@
 		value = $bindable(''),
 		name,
 		required = false,
+		disabled = false,
 		hint,
 		error,
 		onchange
@@ -39,6 +41,7 @@
 			id={inputId}
 			{name}
 			{required}
+			{disabled}
 			bind:value
 			onchange={() => onchange?.(value)}
 			aria-invalid={error ? true : undefined}

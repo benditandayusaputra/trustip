@@ -11,11 +11,12 @@
 	interface Props {
 		query: ConsignorQuery;
 		categories: Category[];
+		isVisitor?: boolean;
 		place: Snippet;
 		onchange: (changes: Partial<ConsignorQuery>) => void;
 	}
 
-	let { query, categories, place, onchange }: Props = $props();
+	let { query, categories, isVisitor = false, place, onchange }: Props = $props();
 
 	const text = id.consignorDirectory;
 	const shared = id.directory;
@@ -46,13 +47,15 @@
 	}
 </script>
 
-<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
+<fieldset class="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
 	<legend class="sr-only">{text.filters}</legend>
 	{@render place()}
 	<Select
 		label={shared.radius}
 		options={radiusOptions}
-		value={query.radius}
+		value={isVisitor ? 'all' : query.radius}
+		disabled={isVisitor}
+		hint={isVisitor ? shared.visitorRadius : undefined}
 		onchange={(radius: string) => {
 			onchange({ radius: radius as ConsignorQuery['radius'] });
 		}}

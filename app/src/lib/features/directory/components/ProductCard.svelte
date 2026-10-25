@@ -6,7 +6,6 @@
 	import { directory as id } from '#lib/i18n/directory.js';
 	import ConsignorTraits from './ConsignorTraits.svelte';
 	import ContactActions from './ContactActions.svelte';
-	import LazyReportListing from './LazyReportListing.svelte';
 	import MatchReasons from './MatchReasons.svelte';
 	import MatchSummary from './MatchSummary.svelte';
 
@@ -19,7 +18,7 @@
 	const text = id.consignorDirectory;
 </script>
 
-<article class="surface-card flex flex-col gap-4 p-4">
+<article class="surface-card list-card">
 	{#if card.photo_url}
 		<img
 			src={card.photo_url}
@@ -37,8 +36,12 @@
 	{/if}
 	<header class="flex items-start gap-4">
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
-			<h2 class="text-lg font-semibold text-text">{card.name}</h2>
-			<p class="text-sm text-text-muted">
+			<h2 class="line-clamp-2 text-lg font-semibold text-text" title={card.name}>
+				<a href="/p/{card.consignor.slug}/{card.sku}" class="list-card-link hover:text-accent"
+					>{card.name}</a
+				>
+			</h2>
+			<p class="truncate text-sm text-text-muted">
 				{text.madeBy(card.consignor.name)}
 				{#if card.distance_m !== null}
 					· <span class="font-mono">{text.approximate(formatDistance(card.distance_m))}</span>
@@ -66,12 +69,13 @@
 		<MatchReasons reasons={card.match.reasons} isApproximate />
 	{/if}
 	{#if !card.is_self}
-		<ContactActions
-			organizationId={card.consignor.id}
-			name={card.consignor.name}
-			productId={card.id}
-			canPropose={!card.is_partner}
-		/>
-		<LazyReportListing target={{ target_type: 'PRODUCT', target_id: card.id }} name={card.name} />
+		<div class="list-card-actions">
+			<ContactActions
+				organizationId={card.consignor.id}
+				name={card.consignor.name}
+				productId={card.id}
+				canPropose={!card.is_partner}
+			/>
+		</div>
 	{/if}
 </article>

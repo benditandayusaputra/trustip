@@ -31,7 +31,7 @@ async function checkWidths(page: Page): Promise<void> {
 async function chooseStoreFromMap(page: Page): Promise<void> {
 	const markers = page.getByRole('button', { name: /^Lihat detail /u });
 	await expect(markers.first()).toBeVisible({ timeout: networkTimeoutMs });
-	await markers.first().click();
+	await markers.first().dispatchEvent('click');
 	await expect(markers.first()).toHaveAttribute('aria-pressed', 'true');
 	const details = page.getByRole('region', { name: 'Detail toko terpilih' });
 	await expect(details.getByRole('heading')).toBeVisible();

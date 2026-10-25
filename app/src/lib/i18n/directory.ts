@@ -6,6 +6,7 @@ export const directory = {
 			HERE: 'Lokasi saya sekarang',
 			CITY: 'Kota tertentu'
 		},
+		visitorNoPlace: 'Tanpa titik asal (acak)',
 		province: 'Provinsi',
 		city: 'Kota atau kabupaten',
 		choose: 'Pilih',
@@ -69,6 +70,10 @@ export const directory = {
 			radiusKm === null ? 'Diperluas ke semua jarak' : `Diperluas ke ${String(radiusKm)} km`,
 		noOrigin: 'Lokasi usaha belum diatur. Toko diurutkan menurut kota.',
 		setLocation: 'Atur lokasi usaha',
+		randomOrder:
+			'Lokasi Anda belum diketahui, jadi daftar ditampilkan acak. Izinkan akses lokasi atau pilih kota di Filter untuk melihat yang terdekat.',
+		visitorRadius: 'Pengunjung melihat semua jarak.',
+		more: (count: number) => `+${String(count)} lagi`,
 		empty: 'Belum ada toko yang cocok dengan saringan ini.',
 		clearFilters: 'Hapus saringan',
 		failed: 'Daftar toko tidak bisa dimuat.',

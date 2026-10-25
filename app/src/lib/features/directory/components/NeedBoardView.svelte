@@ -10,17 +10,19 @@
 	import { boardSearchParams, defaultBoardQuery, type BoardQuery } from '../board-query';
 	import { radiusChoices } from '../query';
 	import { DirectoryList } from '../state.svelte';
+	import { forVisitor, isRandomOrder } from '../visitor';
 	import DirectoryResults from './DirectoryResults.svelte';
 	import NeedBoardCard from './NeedBoardCard.svelte';
 
 	interface Props {
 		query: BoardQuery;
+		isVisitor?: boolean;
 		canRespond: boolean;
 		place: Snippet;
 		onchange: (query: BoardQuery) => void;
 	}
 
-	let { query, canRespond, place, onchange }: Props = $props();
+	let { query, isVisitor = false, canRespond, place, onchange }: Props = $props();
 
 	const text = id.needBoard;
 	const typingDelayMs = 300;
@@ -28,7 +30,7 @@
 	const needs = new DirectoryList<Card>(apiClient, '/api/v1/directory/needs');
 	let categories = $state<Category[]>([]);
 	let typed = $derived(query.text);
-	const search = $derived(boardSearchParams(query).toString());
+	const search = $derived(boardSearchParams(forVisitor(query, isVisitor)).toString());
 	const radiusOptions = radiusChoices.map((value) => ({ value, label: id.directory.radii[value] }));
 	const sortOptions = Object.entries(text.sorts).map(([value, label]) => ({ value, label }));
 	const categoryOptions = $derived([
@@ -43,6 +45,7 @@
 	});
 
 	$effect(() => {
+		needs.shuffle = isRandomOrder(query, isVisitor);
 		void needs.load(search);
 	});
 
@@ -71,13 +74,15 @@
 			bind:value={typed}
 		/>{/snippet}
 	{#snippet filters()}
-		<fieldset class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
+		<fieldset class="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
 			<legend class="sr-only">{text.filters}</legend>
 			{@render place()}
 			<Select
 				label={id.directory.radius}
 				options={radiusOptions}
-				value={query.radius}
+				value={isVisitor ? 'all' : query.radius}
+				disabled={isVisitor}
+				hint={isVisitor ? id.directory.visitorRadius : undefined}
 				onchange={(radius: string) => {
 					change({ radius: radius as BoardQuery['radius'] });
 				}}
@@ -104,6 +109,7 @@
 	<DirectoryResults
 		list={needs}
 		query={search}
+		{isVisitor}
 		failedTitle={text.failed}
 		emptyMessage={text.empty}
 		onclear={() => {

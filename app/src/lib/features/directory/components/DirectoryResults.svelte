@@ -12,6 +12,7 @@
 	interface Props {
 		list: DirectoryList<T>;
 		query: string;
+		isVisitor?: boolean;
 		failedTitle: string;
 		emptyMessage: string;
 		card: Snippet<[T]>;
@@ -19,7 +20,16 @@
 		onclear: () => void;
 	}
 
-	let { list, query, failedTitle, emptyMessage, card, results, onclear }: Props = $props();
+	let {
+		list,
+		query,
+		isVisitor = false,
+		failedTitle,
+		emptyMessage,
+		card,
+		results,
+		onclear
+	}: Props = $props();
 
 	const text = id.directory;
 	let isOnline = $state(true);
@@ -35,7 +45,9 @@
 	{#if search?.is_expanded}
 		<p role="status" class="text-sm text-accent">{text.expanded(search.effective_radius_km)}</p>
 	{/if}
-	{#if search && !search.origin.is_known}
+	{#if isVisitor && list.shuffle}
+		<p role="status" class="text-sm text-text-muted">{text.randomOrder}</p>
+	{:else if search && !search.origin.is_known && !isVisitor}
 		<p role="status" class="text-sm text-text-muted">
 			{text.noOrigin}
 			<a href="/app/pengaturan" class="font-semibold text-accent">{text.setLocation}</a>
@@ -60,7 +72,7 @@
 		{#if results}
 			{@render results(list.items)}
 		{:else}
-			<ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+			<ul class="list-grid">
 				{#each list.items as item (item.id)}
 					<li>{@render card(item)}</li>
 				{/each}

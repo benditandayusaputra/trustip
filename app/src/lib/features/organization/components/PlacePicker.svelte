@@ -8,10 +8,11 @@
 
 	interface Props {
 		place: Place;
+		isVisitor?: boolean;
 		onchange: (place: Place) => void;
 	}
 
-	let { place, onchange }: Props = $props();
+	let { place, isVisitor = false, onchange }: Props = $props();
 
 	const text = id.placePicker;
 	const regions = new RegionChoice(apiClient);
@@ -19,7 +20,12 @@
 	let provinceCode = $state('');
 	let locating = $state(false);
 	let locateFailed = $state(false);
-	const kindOptions = Object.entries(text.kinds).map(([value, label]) => ({ value, label }));
+	const kindOptions = $derived(
+		Object.entries(text.kinds).map(([value, label]) => ({
+			value,
+			label: isVisitor && value === 'ORGANIZATION' ? text.visitorNoPlace : label
+		}))
+	);
 	const provinceOptions = $derived([
 		{ value: '', label: text.choose },
 		...regions.provinces.map((province) => ({ value: province.code, label: province.name }))
