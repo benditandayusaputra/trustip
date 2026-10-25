@@ -103,6 +103,7 @@
 		? session.account?.membership?.organization_type
 		: undefined}
 	currentPath={page.url.pathname}
+	workspace={placement === 'member'}
 	pendingPath={pendingPagePath(navigating.to?.url, page.url)}
 	actions={toolbar}
 	children={content}

@@ -3,6 +3,7 @@
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import Calculator from '@lucide/svelte/icons/calculator';
 	import Package from '@lucide/svelte/icons/package';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import Search from '@lucide/svelte/icons/search';
 	import { common as text } from '#lib/i18n/common.js';
 	import { navigationFor, isCurrent, type OrganizationType } from './navigation';
@@ -13,7 +14,10 @@
 	const navigation = $derived(navigationFor(organizationType));
 	const related = [
 		{ href: '/app/hitung', label: text.nav.count, icon: Calculator },
-		{ href: '/app/titipan', label: text.nav.drops, icon: Package }
+		{ href: '/app/titipan', label: text.nav.drops, icon: Package },
+		{ href: '/kebutuhan', label: text.nav.needsBoard, icon: Megaphone },
+		{ href: '/cari/toko', label: text.nav.findStores, icon: Search },
+		{ href: '/cari/penitip', label: text.nav.findConsignors, icon: Search }
 	];
 	const current = $derived(
 		[...navigation.primary, ...navigation.more, ...related].find((item) =>

@@ -77,7 +77,9 @@ export const dashboard = {
 					? `Di ${partner}, sekitar ${units(unsold, 'unit')} diperkirakan tidak laku dalam ${String(days)} hari.`
 					: `Di ${partner}, kedaluwarsa dalam ${String(days)} hari. Penjualan saat ini cukup untuk menghabiskannya.`,
 			LOW_STOCK: (partner: string, days: number) =>
-				`Di ${partner}, stok cukup sekitar ${String(days)} hari lagi.`,
+				days < 1
+					? `Di ${partner}, stok diperkirakan habis hari ini.`
+					: `Di ${partner}, stok cukup sekitar ${String(days)} hari lagi.`,
 			SETTLEMENT_OVERDUE: (partner: string, days: number, amount: string) =>
 				`${amount} dari ${partner} lewat ${String(days)} hari dari jatuh tempo.`,
 			NOT_COUNTED: (days: number, count: number) =>

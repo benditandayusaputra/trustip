@@ -48,4 +48,20 @@ describe('insight cards', () => {
 			'/app/hitung/baru?mitra=p1&produk=roti&kembali=4'
 		);
 	});
+
+	it('INS-03 says the stock runs out today when less than a day of sales is left', () => {
+		const low: Insight = {
+			...match,
+			kind: 'LOW_STOCK',
+			action: 'ASK_RESTOCK',
+			subject: { ...match.subject, counterpart_name: 'Warung Mbak Zara', product_name: 'Roti' }
+		};
+
+		expect(cardOf(low, 0, 'CONSIGNOR').body).toBe(
+			'Di Warung Mbak Zara, stok diperkirakan habis hari ini.'
+		);
+		expect(cardOf({ ...low, days: 2 }, 0, 'CONSIGNOR').body).toBe(
+			'Di Warung Mbak Zara, stok cukup sekitar 2 hari lagi.'
+		);
+	});
 });

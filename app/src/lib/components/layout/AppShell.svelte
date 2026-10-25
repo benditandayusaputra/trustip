@@ -17,17 +17,32 @@
 		children: Snippet;
 		actions?: Snippet;
 		pendingPath?: string | undefined;
+		workspace?: boolean;
 	}
 
-	let { organizationType, currentPath, children, actions, pendingPath }: Props = $props();
+	let {
+		organizationType,
+		currentPath,
+		children,
+		actions,
+		pendingPath,
+		workspace = false
+	}: Props = $props();
 
 	const navigation = $derived(organizationType ? navigationFor(organizationType) : undefined);
+	const isPublic = $derived(!organizationType && !workspace);
 </script>
 
 <SkipLink />
 <div class="flex min-h-dvh">
 	{#if organizationType && navigation}
 		<Sidebar items={[...navigation.primary, ...navigation.more]} {currentPath} {organizationType} />
+	{:else if workspace}
+		<div
+			class="workspace-sidebar sticky top-0 hidden h-dvh w-(--sidebar-width) shrink-0 p-5 lg:block"
+		>
+			<div class="px-2 py-2"><Brand href="/app" /></div>
+		</div>
 	{/if}
 	<div class="flex min-w-0 flex-1 flex-col">
 		<header class="workspace-header flex items-center px-4 py-4 lg:px-8">
@@ -35,11 +50,13 @@
 				{#if organizationType}
 					<div class="lg:hidden"><Brand href="/app" /></div>
 					<WorkspaceBreadcrumb {organizationType} {currentPath} />
+				{:else if workspace}
+					<div class="lg:hidden"><Brand href="/app" /></div>
 				{:else}
 					<Brand compact />
 				{/if}
 				<nav aria-label={text.layout.publicNavigation} class="flex flex-wrap items-center gap-2">
-					{#if !organizationType}
+					{#if isPublic}
 						<a href="/cari/toko" class="hidden text-text-muted hover:text-text md:inline">
 							{text.nav.findStores}
 						</a>
@@ -47,20 +64,20 @@
 							{text.nav.needsBoard}
 						</a>
 					{/if}
-					{#if !organizationType}<PublicMenu />{/if}<ThemePicker />{@render actions?.()}
+					{#if isPublic}<PublicMenu />{/if}<ThemePicker />{@render actions?.()}
 				</nav>
 			</div>
 		</header>
 		<main
 			id="konten"
 			tabindex="-1"
-			class="workspace-main mx-auto w-full max-w-content flex-1 px-4 pt-8 lg:px-8 lg:pb-8 {organizationType
-				? 'pb-(--toast-offset)'
-				: 'pb-8'}"
+			class="workspace-main mx-auto w-full max-w-content flex-1 px-4 pt-8 lg:px-8 lg:pb-8 {isPublic
+				? 'pb-8'
+				: 'pb-(--toast-offset)'}"
 		>
 			<NavigationContent {pendingPath}>{@render children()}</NavigationContent>
 		</main>
-		{#if !organizationType}
+		{#if isPublic}
 			<footer class="border-t border-border bg-surface px-4 py-6">
 				<nav
 					aria-label={text.layout.footerNavigation}

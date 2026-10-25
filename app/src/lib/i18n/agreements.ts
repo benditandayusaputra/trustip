@@ -44,7 +44,8 @@ export const agreements = {
 			PAYMENT_REJECTED: 'Pembayaran ditolak',
 			PARTNERSHIP_ENDED: 'Kemitraan berakhir'
 		} as Record<string, string | undefined>,
-		by: (user: string, organization: string) => `${user}, ${organization}`,
+		by: (user: string, organization: string) =>
+			[user, organization].filter((name) => name !== '').join(', ') || 'Sistem Trustip',
 		verifyTitle: 'Verifikasi segel',
 		notFound: 'Kode tidak ditemukan',
 		notFoundBody:
