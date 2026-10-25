@@ -82,6 +82,12 @@
 	.metric-card .metric-icon {
 		border-radius: var(--radius-pill);
 	}
+	.chart-mark {
+		transition: opacity var(--duration-fast);
+	}
+	.chart-mark:hover {
+		opacity: 0.75;
+	}
 	.metric-card .metric-value {
 		letter-spacing: var(--letter-spacing-heading);
 	}

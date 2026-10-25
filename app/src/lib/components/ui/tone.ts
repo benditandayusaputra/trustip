@@ -15,3 +15,23 @@ export const edgeTone: Record<Tone, string> = {
 	success: 'border-l-success',
 	danger: 'border-l-danger'
 };
+
+export type ChartTone = 'primary' | 'success' | 'warning';
+
+export const chartStroke: Record<ChartTone, string> = {
+	primary: 'stroke-primary',
+	success: 'stroke-success',
+	warning: 'stroke-warning'
+};
+
+export const chartFill: Record<ChartTone, string> = {
+	primary: 'fill-primary',
+	success: 'fill-success',
+	warning: 'fill-warning'
+};
+
+export const chartDot: Record<ChartTone, string> = {
+	primary: 'bg-primary',
+	success: 'bg-success',
+	warning: 'bg-warning'
+};

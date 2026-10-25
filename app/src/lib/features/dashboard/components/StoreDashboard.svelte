@@ -1,8 +1,10 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import DashboardFigures from './DashboardFigures.svelte';
 	import DashboardSkeleton from '#lib/components/ui/DashboardSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
+	import type { SalesReport } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import { DashboardState, SalesOverview } from '../state.svelte';
@@ -16,9 +18,11 @@
 	interface Props {
 		isOwner: boolean;
 		range: DateRange;
+		chart: Snippet;
+		split: Snippet<[SalesReport['summary']]>;
 	}
 
-	let { isOwner, range }: Props = $props();
+	let { isOwner, range, chart, split }: Props = $props();
 
 	const text = id.dashboard;
 	const suggestionPreview = 3;
@@ -50,6 +54,14 @@
 			<TaskList tasks={taskLinksOf(board.dashboard, storeTasks)} />
 		</div>
 	</div>
+	{#if isOwner}
+		<div class="grid items-stretch gap-6 lg:grid-cols-12">
+			<div class="min-w-0 lg:col-span-8">{@render chart()}</div>
+			<div class="min-w-0 lg:col-span-4">
+				{#if summary}{@render split(summary)}{/if}
+			</div>
+		</div>
+	{/if}
 	<InsightList insights={board.insights} side="STORE" previewCount={suggestionPreview} />
 	<OpportunityList side="STORE" previewCount={listPreview} />
 	{#if isOwner}

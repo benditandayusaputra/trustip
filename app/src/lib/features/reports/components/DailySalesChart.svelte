@@ -9,7 +9,7 @@
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { formatBusinessDate, formatRupiah } from '#lib/i18n/format.js';
 	import { reports as id } from '#lib/i18n/reports.js';
-	import { areaShape } from '#lib/domain/chart.js';
+	import { columnChart } from '#lib/domain/chart.js';
 	import { dayCells } from '../rows';
 	import { SalesReportView } from '../state.svelte';
 
@@ -28,10 +28,14 @@
 		{ key: 'sold' as const, label: text.soldUnits, numeric: true },
 		{ key: 'gross' as const, label: text.gross, numeric: true }
 	];
-	const chartBox = { width: 640, height: 192 };
 	let asTable = $state(false);
-	const shape = $derived(
-		areaShape(daily.report?.rows.map((row) => row.split.gross) ?? [], chartBox)
+	const shape = $derived(columnChart(daily.report?.rows.map((row) => row.split.gross) ?? []));
+	const points = $derived(
+		(daily.report?.rows ?? []).map((row) => ({
+			key: row.key,
+			label: formatBusinessDate(row.key),
+			valueLabel: formatRupiah(row.split.gross)
+		}))
 	);
 
 	$effect(() => {
@@ -52,7 +56,7 @@
 		{#if asTable}
 			<ResponsiveTable caption={text.dailyChart} {columns} rows={dayCells(report)} rowKey="key" />
 		{:else}
-			{#await import('#lib/components/ui/AreaChart.svelte')}
+			{#await import('./ColumnChart.svelte')}
 				<Skeleton shape="chart" />
 			{:then chart}
 				<chart.default
@@ -61,8 +65,7 @@
 						formatBusinessDate(report.to)
 					)}
 					{shape}
-					width={chartBox.width}
-					height={chartBox.height}
+					{points}
 					ceilingLabel={formatRupiah(shape.ceiling)}
 					firstLabel={formatBusinessDate(report.from)}
 					lastLabel={formatBusinessDate(report.to)}

@@ -5,7 +5,7 @@
 	import Select from '#lib/components/ui/Select.svelte';
 	import DashboardSkeleton from '#lib/components/ui/DashboardSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import type { SalesNarrowing } from '#lib/api/reports.js';
+	import type { SalesNarrowing, SalesReport } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import { dashboard as id } from '#lib/i18n/dashboard.js';
 	import { DashboardState, SalesOverview } from '../state.svelte';
@@ -25,9 +25,10 @@
 		isOwner: boolean;
 		range: DateRange;
 		chart: Snippet<[SalesNarrowing, Snippet]>;
+		split: Snippet<[SalesReport['summary']]>;
 	}
 
-	let { isOwner, range, chart }: Props = $props();
+	let { isOwner, range, chart, split }: Props = $props();
 
 	const text = id.dashboard;
 	const suggestionPreview = 3;
@@ -61,8 +62,9 @@
 	{/snippet}
 	{#if isOwner}
 		<div class="grid items-start gap-6 lg:grid-cols-12">
-			<div class="lg:col-span-4 lg:col-start-9 lg:row-start-1">
+			<div class="flex flex-col gap-6 lg:col-span-4 lg:col-start-9 lg:row-start-1">
 				<TaskList tasks={taskLinksOf(board.dashboard, consignorTasks)} />
+				{#if summary}{@render split(summary)}{/if}
 			</div>
 			<div class="min-w-0 lg:col-span-8 lg:row-start-1">
 				{@render chart(narrowingOf(chartChoice), chartControls)}

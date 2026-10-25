@@ -16,6 +16,7 @@
 	import { reportRows, salesCsv, summaryCards } from '../rows';
 	import { SalesReportView } from '../state.svelte';
 	import DailySalesChart from './DailySalesChart.svelte';
+	import SalesCharts from './SalesCharts.svelte';
 
 	interface Props {
 		organizationType: 'STORE' | 'CONSIGNOR';
@@ -95,6 +96,7 @@
 		</EmptyState>
 	{:else}
 		<DailySalesChart range={view.range} />
+		<SalesCharts range={view.range} {isStore} />
 		<ResponsiveTable caption={text.salesTitle} {columns} rows={reportRows(report)} rowKey="key" />
 		<Button
 			variant="secondary"

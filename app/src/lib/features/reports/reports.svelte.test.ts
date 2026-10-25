@@ -143,6 +143,24 @@ describe('Sales report', () => {
 		await expectAccessible(container);
 	});
 
+	it('FR-RPT-05 adds the split, partner, and product charts next to the daily chart', async () => {
+		vi.useFakeTimers({ now: new Date('2026-11-20T05:00:00Z'), toFake: ['Date'] });
+		const requested = serve();
+		const { container } = await render(ReportsHarness, {});
+
+		await expect.element(page.getByRole('heading', { name: 'Pembagian omzet' })).toBeVisible();
+		await expect.element(page.getByRole('heading', { name: 'Omzet per penitip' })).toBeVisible();
+		await expect
+			.element(page.getByRole('heading', { name: 'Terjual dan dikembalikan per produk' }))
+			.toBeVisible();
+		await expect.element(page.getByText('18 terjual · 2 kembali')).toBeVisible();
+		await expect.element(page.getByText('87,5% dari omzet')).toBeVisible();
+		expect(requested).toContain(
+			'/api/v1/reports/sales?from=2026-11-14&to=2026-11-20&group_by=PRODUCT'
+		);
+		await expectAccessible(container);
+	});
+
 	it('FR-RPT-08 exports the rows on screen as CSV', async () => {
 		vi.useFakeTimers({ now: new Date('2026-11-20T05:00:00Z'), toFake: ['Date'] });
 		serve();

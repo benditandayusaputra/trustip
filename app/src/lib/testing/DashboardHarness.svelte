@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { SalesNarrowing } from '#lib/api/reports.js';
+	import type { SalesNarrowing, SalesReport } from '#lib/api/reports.js';
 	import ConsignorDashboard from '#lib/features/dashboard/components/ConsignorDashboard.svelte';
 	import StoreDashboard from '#lib/features/dashboard/components/StoreDashboard.svelte';
 
@@ -14,10 +14,18 @@
 	const range = { from: '2026-10-22', to: '2026-11-20' };
 </script>
 
+{#snippet split(figures: SalesReport['summary'])}
+	<p>split {figures.split.gross}</p>
+{/snippet}
+
 {#if side === 'STORE'}
-	<StoreDashboard {isOwner} {range} />
+	<StoreDashboard {isOwner} {range} {split}>
+		{#snippet chart()}
+			<p>chart all</p>
+		{/snippet}
+	</StoreDashboard>
 {:else}
-	<ConsignorDashboard {isOwner} {range}>
+	<ConsignorDashboard {isOwner} {range} {split}>
 		{#snippet chart(narrowing: SalesNarrowing, controls: Snippet)}
 			{@render controls()}
 			<p>chart {narrowing.partnerId ?? narrowing.productId ?? 'all'}</p>
