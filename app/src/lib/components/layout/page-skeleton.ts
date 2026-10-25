@@ -10,6 +10,8 @@ const exact: Record<string, PageSkeletonKind> = {
 	'/onboarding': 'form',
 	'/privasi': 'article',
 	'/ketentuan': 'article',
+	'/panduan': 'article',
+	'/faq': 'article',
 	'/luring': 'detail',
 	'/app': 'store-dashboard',
 	'/app/toko': 'store-dashboard',

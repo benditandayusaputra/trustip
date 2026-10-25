@@ -135,6 +135,8 @@ async function visitorPages(page: Page): Promise<string[]> {
 		'/demo',
 		'/privasi',
 		'/ketentuan',
+		'/panduan',
+		'/faq',
 		'/luring',
 		'/cari/toko',
 		'/cari/penitip',

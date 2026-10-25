@@ -56,6 +56,8 @@
 		aria-label={text.menu}
 		class="absolute right-0 z-10 mt-2 flex w-max flex-col gap-2 rounded-card border border-border bg-surface p-2 shadow-raised"
 	>
+		<a href="/panduan" class="secondary-link">{id.nav.guide}</a>
+		<a href="/faq" class="secondary-link">{id.nav.faq}</a>
 		<Button
 			variant="secondary"
 			{busy}

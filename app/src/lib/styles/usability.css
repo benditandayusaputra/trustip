@@ -41,6 +41,15 @@
 	.secondary-disclosure[open] > summary {
 		margin-bottom: var(--spacing-4);
 	}
+	.faq-item > summary {
+		font-size: var(--text-base);
+	}
+	.faq-chevron {
+		transition: transform var(--duration-fast);
+	}
+	.faq-item[open] .faq-chevron {
+		transform: rotate(180deg);
+	}
 	.settings-navigation {
 		position: sticky;
 		top: 0;

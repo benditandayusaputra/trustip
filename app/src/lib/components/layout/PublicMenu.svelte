@@ -4,6 +4,8 @@
 	import Store from '@lucide/svelte/icons/store';
 	import PackageSearch from '@lucide/svelte/icons/package-search';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
+	import BookOpen from '@lucide/svelte/icons/book-open';
+	import CircleQuestionMark from '@lucide/svelte/icons/circle-question-mark';
 	import ThemePicker from '../ui/ThemePicker.svelte';
 	import { common as text } from '#lib/i18n/common.js';
 	let menu: HTMLDetailsElement;
@@ -20,7 +22,9 @@
 	const links = [
 		{ href: '/cari/toko', label: text.nav.findStores, icon: Store },
 		{ href: '/cari/penitip', label: text.nav.findConsignors, icon: PackageSearch },
-		{ href: '/kebutuhan', label: text.nav.needsBoard, icon: Megaphone }
+		{ href: '/kebutuhan', label: text.nav.needsBoard, icon: Megaphone },
+		{ href: '/panduan', label: text.nav.guide, icon: BookOpen },
+		{ href: '/faq', label: text.nav.faq, icon: CircleQuestionMark }
 	];
 </script>
 

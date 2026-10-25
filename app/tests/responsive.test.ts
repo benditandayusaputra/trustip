@@ -9,6 +9,8 @@ const publicPaths = [
 	'/daftar',
 	'/demo',
 	'/privasi',
+	'/panduan',
+	'/faq',
 	'/cari/toko',
 	'/halaman-tidak-ada'
 ];

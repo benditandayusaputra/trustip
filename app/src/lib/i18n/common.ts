@@ -40,6 +40,8 @@ export const common = {
 		findStores: 'Cari toko',
 		findConsignors: 'Cari produk dan penitip',
 		needsBoard: 'Kebutuhan toko',
+		guide: 'Panduan',
+		faq: 'FAQ',
 		signIn: 'Masuk',
 		signUp: 'Daftar',
 		privacy: 'Kebijakan privasi',

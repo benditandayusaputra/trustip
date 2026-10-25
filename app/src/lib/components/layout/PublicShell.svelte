@@ -3,6 +3,7 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import Store from '@lucide/svelte/icons/store';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
+	import BookOpen from '@lucide/svelte/icons/book-open';
 	import SkipLink from './SkipLink.svelte';
 	import NavigationContent from './NavigationContent.svelte';
 	import PublicMenu from './PublicMenu.svelte';
@@ -32,6 +33,9 @@
 				</a>
 				<a href="/kebutuhan" class="public-nav-link hidden md:inline-flex">
 					<Megaphone class="size-4" aria-hidden="true" />{id.nav.needsBoard}
+				</a>
+				<a href="/panduan" class="public-nav-link hidden lg:inline-flex">
+					<BookOpen class="size-4" aria-hidden="true" />{id.nav.guide}
 				</a>
 				<div class="hidden md:block"><ThemePicker /></div>
 				{#if actions}

@@ -63,6 +63,9 @@
 						<a href="/kebutuhan" class="hidden text-text-muted hover:text-text md:inline">
 							{text.nav.needsBoard}
 						</a>
+						<a href="/panduan" class="hidden text-text-muted hover:text-text lg:inline">
+							{text.nav.guide}
+						</a>
 					{/if}
 					{#if isPublic}<PublicMenu />{/if}<ThemePicker />{@render actions?.()}
 				</nav>

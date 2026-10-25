@@ -20,6 +20,7 @@ export const publicFooter = {
 			label: 'Mulai di Trustip',
 			links: [
 				{ label: 'Cara kerja', href: '/#beranda-cara' },
+				{ label: 'Panduan pemakaian', href: '/panduan' },
 				{ label: 'Buat akun usaha', href: '/daftar' },
 				{ label: 'Jelajahi demo', href: '/demo' }
 			]
@@ -28,6 +29,7 @@ export const publicFooter = {
 			title: 'Informasi',
 			label: common.layout.footerNavigation,
 			links: [
+				{ label: 'Pertanyaan umum (FAQ)', href: '/faq' },
 				{ label: common.nav.privacy, href: '/privasi' },
 				{ label: common.nav.terms, href: '/ketentuan' }
 			]
