@@ -1,6 +1,12 @@
 -- name: ResetDemoData :exec
 SELECT reset_demo_data();
 
+-- name: ListDemoFiles :many
+SELECT f.visibility, f.storage_key
+FROM files AS f
+JOIN organizations AS o ON o.id = f.organization_id
+WHERE o.is_demo;
+
 -- name: ListUnpaidSettlements :many
 SELECT s.id, s.consignor_share_amount, s.issued_at
 FROM settlements AS s
@@ -30,4 +36,7 @@ SELECT
     (SELECT count(*) FROM settlements WHERE status = 'ISSUED')::bigint AS unpaid_settlements,
     (SELECT count(*) FROM settlements WHERE status = 'ISSUED' AND due_date < (@today::text)::date)::bigint
         AS overdue_settlements,
-    (SELECT count(*) FROM organizations WHERE is_demo)::bigint AS demo_organizations;
+    (SELECT count(*) FROM organizations WHERE is_demo)::bigint AS demo_organizations,
+    (
+        SELECT count(*) FROM files AS f JOIN organizations AS o ON o.id = f.organization_id WHERE o.is_demo
+    )::bigint AS demo_files;

@@ -69,3 +69,26 @@ func TestRead_KeyThatIsNotAGeneratedKeyIsNotFound(t *testing.T) {
 		}
 	}
 }
+
+func TestDelete_RemovesTheFileAndToleratesAMissingOne(t *testing.T) {
+	disk := storage.NewDisk(t.TempDir())
+	key, err := disk.Put(t.Context(), storage.Public, []byte("logo"), "jpg")
+	if err != nil {
+		t.Fatalf("put: %v", err)
+	}
+
+	first := disk.Delete(storage.Public, key)
+	second := disk.Delete(storage.Public, key)
+
+	if _, err := disk.Read(storage.Public, key); first != nil || second != nil || !errors.Is(err, storage.ErrNotFound) {
+		t.Fatalf("first = %v, second = %v, read = %v", first, second, err)
+	}
+}
+
+func TestDelete_KeyThatIsNotAGeneratedKeyIsRefused(t *testing.T) {
+	disk := storage.NewDisk(t.TempDir())
+
+	if err := disk.Delete(storage.Public, "../secret.txt"); !errors.Is(err, storage.ErrNotFound) {
+		t.Fatalf("err = %v", err)
+	}
+}

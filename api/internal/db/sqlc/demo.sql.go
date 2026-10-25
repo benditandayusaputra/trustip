@@ -23,7 +23,10 @@ SELECT
     (SELECT count(*) FROM settlements WHERE status = 'ISSUED')::bigint AS unpaid_settlements,
     (SELECT count(*) FROM settlements WHERE status = 'ISSUED' AND due_date < ($1::text)::date)::bigint
         AS overdue_settlements,
-    (SELECT count(*) FROM organizations WHERE is_demo)::bigint AS demo_organizations
+    (SELECT count(*) FROM organizations WHERE is_demo)::bigint AS demo_organizations,
+    (
+        SELECT count(*) FROM files AS f JOIN organizations AS o ON o.id = f.organization_id WHERE o.is_demo
+    )::bigint AS demo_files
 `
 
 type GetDemoShapeRow struct {
@@ -38,6 +41,7 @@ type GetDemoShapeRow struct {
 	UnpaidSettlements  int64
 	OverdueSettlements int64
 	DemoOrganizations  int64
+	DemoFiles          int64
 }
 
 func (q *Queries) GetDemoShape(ctx context.Context, today string) (GetDemoShapeRow, error) {
@@ -55,8 +59,41 @@ func (q *Queries) GetDemoShape(ctx context.Context, today string) (GetDemoShapeR
 		&i.UnpaidSettlements,
 		&i.OverdueSettlements,
 		&i.DemoOrganizations,
+		&i.DemoFiles,
 	)
 	return i, err
+}
+
+const listDemoFiles = `-- name: ListDemoFiles :many
+SELECT f.visibility, f.storage_key
+FROM files AS f
+JOIN organizations AS o ON o.id = f.organization_id
+WHERE o.is_demo
+`
+
+type ListDemoFilesRow struct {
+	Visibility string
+	StorageKey string
+}
+
+func (q *Queries) ListDemoFiles(ctx context.Context) ([]ListDemoFilesRow, error) {
+	rows, err := q.db.Query(ctx, listDemoFiles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDemoFilesRow{}
+	for rows.Next() {
+		var i ListDemoFilesRow
+		if err := rows.Scan(&i.Visibility, &i.StorageKey); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listPendingPayments = `-- name: ListPendingPayments :many

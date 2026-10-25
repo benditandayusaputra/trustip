@@ -9,6 +9,7 @@ import (
 	"github.com/benditandayusaputra/trustip/api/internal/db/sqlc"
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/actor"
 	authdomain "github.com/benditandayusaputra/trustip/api/internal/modules/auth/domain"
+	filedomain "github.com/benditandayusaputra/trustip/api/internal/modules/file/domain"
 	orgdomain "github.com/benditandayusaputra/trustip/api/internal/modules/org/domain"
 	orgservice "github.com/benditandayusaputra/trustip/api/internal/modules/org/service"
 	productdomain "github.com/benditandayusaputra/trustip/api/internal/modules/product/domain"
@@ -53,6 +54,9 @@ func (s *demoSeeder) foundOrganizations(ctx context.Context) error {
 		if err := s.describe(ctx, owner, organization); err != nil {
 			return err
 		}
+		if err := s.showLogo(ctx, owner, organization, index); err != nil {
+			return err
+		}
 		s.cast.owners[organization.Key] = owner
 	}
 	return nil
@@ -94,15 +98,8 @@ func (s *demoSeeder) register(ctx context.Context, organization demoOrganization
 func (s *demoSeeder) found(
 	ctx context.Context, newcomer actor.Actor, organization demoOrganization, index int,
 ) (actor.Actor, error) {
-	point := s.world.locate(organization)
-	profile := orgdomain.ProfileForm{
-		Name: organization.Name, Description: organization.Description, WhatsApp: demoWhatsApp(index),
-		CityCode: firstOf(organization.CityCode, s.world.CityCode), Address: organization.Address,
-		District: firstOf(organization.District, s.world.District),
-		Location: orgdomain.LocationInput{Given: true, Latitude: point.Latitude, Longitude: point.Longitude},
-	}
 	created, err := s.use.org.Create.Execute(ctx, newcomer, orgdomain.OnboardingForm{
-		Type: organization.Type, ProfileForm: profile,
+		Type: organization.Type, ProfileForm: s.profileForm(organization, index),
 	})
 	if err != nil {
 		return actor.Actor{}, fmt.Errorf("found demo organization %s: %w", organization.Key, err)
@@ -115,6 +112,35 @@ func (s *demoSeeder) found(
 		OrganizationID: created.ID, OrganizationType: actor.OrganizationType(organization.Type), Role: actor.Owner,
 	}
 	return newcomer, nil
+}
+
+func (s *demoSeeder) profileForm(organization demoOrganization, index int) orgdomain.ProfileForm {
+	point := s.world.locate(organization)
+	return orgdomain.ProfileForm{
+		Name: organization.Name, Description: organization.Description, WhatsApp: demoWhatsApp(index),
+		CityCode: firstOf(organization.CityCode, s.world.CityCode), Address: organization.Address,
+		District: firstOf(organization.District, s.world.District),
+		Location: orgdomain.LocationInput{Given: true, Latitude: point.Latitude, Longitude: point.Longitude},
+	}
+}
+
+func (s *demoSeeder) showLogo(
+	ctx context.Context, owner actor.Actor, organization demoOrganization, index int,
+) error {
+	logoID, err := s.photos.put(ctx, owner, filedomain.Logo, organizationPhotos+organization.Key)
+	if err != nil || logoID == "" {
+		return err
+	}
+	_, err = s.use.org.EditProfile.Execute(ctx, owner, orgservice.UpdateProfileCommand{
+		OrganizationID: owner.Membership.OrganizationID,
+		Form: orgdomain.ProfileUpdateForm{
+			ProfileForm: s.profileForm(organization, index), LogoFileID: logoID,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("show logo of demo organization %s: %w", organization.Key, err)
+	}
+	return nil
 }
 
 func firstOf(preferred, fallback string) string {
@@ -130,6 +156,9 @@ func (s *demoSeeder) describe(ctx context.Context, owner actor.Actor, organizati
 	if organization.Store != nil {
 		var form orgdomain.StoreProfileForm
 		if form, err = s.storeForm(*organization.Store); err == nil {
+			form.PhotoFileIDs, err = s.storePhotos(ctx, owner, organization.Key)
+		}
+		if err == nil {
 			_, err = s.use.org.EditStore.Execute(ctx, owner, orgservice.UpdateStoreProfileCommand{
 				OrganizationID: organizationID, Form: form,
 			})
@@ -149,6 +178,14 @@ func (s *demoSeeder) describe(ctx context.Context, owner actor.Actor, organizati
 		return fmt.Errorf("describe demo organization %s: %w", organization.Key, err)
 	}
 	return nil
+}
+
+func (s *demoSeeder) storePhotos(ctx context.Context, owner actor.Actor, key string) ([]string, error) {
+	photoID, err := s.photos.put(ctx, owner, filedomain.StorePhoto, organizationPhotos+key)
+	if err != nil || photoID == "" {
+		return nil, err
+	}
+	return []string{photoID}, nil
 }
 
 func (s *demoSeeder) storeForm(store demoStore) (orgdomain.StoreProfileForm, error) {
@@ -192,10 +229,15 @@ func (s *demoSeeder) createProduct(ctx context.Context, product demoProduct) err
 		return err
 	}
 	owner := s.cast.owners[product.Owner]
+	photoID, err := s.photos.put(ctx, owner, filedomain.ProductPhoto, productPhotos+product.Key)
+	if err != nil {
+		return err
+	}
 	created, err := s.use.product.Create.Execute(ctx, owner, productdomain.ProductForm{
 		Name: product.Name, CategoryID: categoryID, Unit: product.Unit, NetContent: product.NetContent,
-		Prices:    productdomain.SuggestedPrices{Retail: product.Retail, Deposit: product.Deposit},
-		ShelfLife: productdomain.ShelfLife{Given: product.ShelfLifeDays > 0, Days: product.ShelfLifeDays},
+		PhotoFileID: photoID,
+		Prices:      productdomain.SuggestedPrices{Retail: product.Retail, Deposit: product.Deposit},
+		ShelfLife:   productdomain.ShelfLife{Given: product.ShelfLifeDays > 0, Days: product.ShelfLifeDays},
 	})
 	if err != nil {
 		return fmt.Errorf("create: %w", err)

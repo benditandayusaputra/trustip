@@ -19,7 +19,7 @@ const (
 )
 
 func demoSecretsOf(cfg config.Config) demoSecrets {
-	return demoSecrets{peppers: cfg.PasswordPeppers, sealKeys: cfg.SealKeys}
+	return demoSecrets{peppers: cfg.PasswordPeppers, sealKeys: cfg.SealKeys, fileDir: cfg.FileStorageDir}
 }
 
 func runDemoCommand(cfg config.Config, base *slog.Logger) error {

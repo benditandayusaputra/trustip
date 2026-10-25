@@ -81,3 +81,24 @@ func (d *Disk) readInside(area Area, key string) ([]byte, error) {
 	data, err := root.ReadFile(key)
 	return data, errors.Join(err, root.Close())
 }
+
+func (d *Disk) Delete(area Area, key string) error {
+	if !keyFormat.MatchString(key) {
+		return ErrNotFound
+	}
+	root, err := os.OpenRoot(filepath.Join(d.root, string(area)))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("open %s area: %w", area, err)
+	}
+	err = root.Remove(key)
+	if errors.Is(err, fs.ErrNotExist) {
+		err = nil
+	}
+	if err = errors.Join(err, root.Close()); err != nil {
+		return fmt.Errorf("delete %s file: %w", area, err)
+	}
+	return nil
+}

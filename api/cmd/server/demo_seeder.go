@@ -30,6 +30,7 @@ const hoursPerDay = 24
 type demoSecrets struct {
 	peppers  security.SecretRing
 	sealKeys security.ActiveKeyring
+	fileDir  string
 }
 
 type demoUseCases struct {
@@ -71,6 +72,7 @@ type demoSeeder struct {
 	now    time.Time
 	drops  []demoReview
 	counts []demoReview
+	photos demoPhotos
 }
 
 type quietFeed struct{}
@@ -92,6 +94,7 @@ func newDemoSeeder(pool *database.Pool, secrets demoSecrets, now time.Time) (*de
 	return &demoSeeder{
 		use: buildDemoUseCases(pool, manual, secrets.sealKeys), world: world, clock: manual, pool: pool,
 		hasher: passwordHasher{hasher: hasher}, users: authrepository.NewUsers(pool), today: today, now: now,
+		photos: newDemoPhotos(pool, manual, secrets.fileDir),
 		cast: demoCast{
 			owners: map[string]actor.Actor{}, products: map[string]string{}, categories: map[string]string{},
 			needs: map[string]string{}, partnerships: map[string]string{}, proposals: map[int]string{},
@@ -140,8 +143,15 @@ func (s *demoSeeder) queries(ctx context.Context) *sqlc.Queries {
 }
 
 func (s *demoSeeder) Run(ctx context.Context) error {
+	stale, err := s.queries(ctx).ListDemoFiles(ctx)
+	if err != nil {
+		return fmt.Errorf("list demo files: %w", err)
+	}
 	if err := s.queries(ctx).ResetDemoData(ctx); err != nil {
 		return fmt.Errorf("reset demo data: %w", err)
+	}
+	if err := s.photos.forget(stale); err != nil {
+		return err
 	}
 	steps := []func(context.Context) error{
 		s.loadCategories, s.foundOrganizations, s.createProducts, s.playHistory, s.finish,

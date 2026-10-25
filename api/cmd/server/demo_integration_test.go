@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -22,11 +24,16 @@ func TestDemoSeed_Spec25_SeedsThirtyDaysThenResetLeavesNoDemoRows(t *testing.T) 
 	pool := dbtest.MigratedPool(t)
 	now := time.Date(2026, 10, 9, 3, 0, 0, 0, time.UTC)
 
-	seed := resetDemo(pool, demoSecrets{peppers: testPepper{}, sealKeys: testSealKeys{}})
+	fileDir := t.TempDir()
+	seed := resetDemo(pool, demoSecrets{peppers: testPepper{}, sealKeys: testSealKeys{}, fileDir: fileDir})
 	if err := seed(t.Context(), now); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
 	seeded := readDemoShape(t, pool, now)
+	stored, err := os.ReadDir(filepath.Join(fileDir, "public"))
+	if err != nil {
+		t.Fatalf("read stored photos: %v", err)
+	}
 	if err := sqlc.New(pool.Querier(t.Context())).ResetDemoData(t.Context()); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
@@ -40,6 +47,7 @@ func TestDemoSeed_Spec25_SeedsThirtyDaysThenResetLeavesNoDemoRows(t *testing.T) 
 		"overdue settlements":          seeded.OverdueSettlements > 0,
 		"unpaid but not overdue":       seeded.UnpaidSettlements > seeded.OverdueSettlements,
 		"28 demo organizations":        seeded.DemoOrganizations == 28,
+		"photos stored once each":      seeded.DemoFiles > 0 && int64(len(stored)) == seeded.DemoFiles,
 		"reset removes every demo row": reset == sqlc.GetDemoShapeRow{},
 	}
 	for name, holds := range checks {
