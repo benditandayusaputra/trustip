@@ -106,3 +106,32 @@ Regresi browser: 14 pengujian navigasi, akun, beranda, dan tema lulus; 18 penguj
 Pemeriksaan memakai Chromium pada ukuran viewport yang disebutkan. Safari, Firefox, perangkat fisik, dan pembaca layar belum diperiksa dalam putaran ini. Screenshot akun dapat memperlihatkan keadaan verifikasi captcha yang sedang berjalan; uji regresi ukuran menunggu widget benar-benar terpasang. Foto produk demo tidak tersedia pada sebagian data sehingga placeholder ikon dipertahankan. Konten uji lama yang menyerupai markup ditampilkan sebagai teks; data tersebut tidak diubah melalui QA ini.
 
 Pembatasan laju API sempat aktif saat pemindaian berulang. Halaman yang terdampak diulang sesudah jendela pembatasan pulih, dan hasil akhir tidak mengandung respons 429. Respons 401 pada percobaan sesi pengunjung tanpa login merupakan keadaan yang diharapkan.
+
+## Putaran 25 Oktober 2026: persiapan video lomba
+
+Pemeriksaan memakai situs live dan build pengembangan lokal dengan Chromium pada 1440 px dan 390 px, untuk akun toko, akun penitip, dan pengunjung. Setiap halaman diperiksa otomatis untuk overflow horizontal, gambar gagal dimuat, peringatan di area isi, dan galat konsol, lalu ditinjau dari tangkapan layar. Sebanyak 41 tampilan aplikasi dari kedua peran, 12 halaman publik, dan 5 tampilan HP dimuat tanpa overflow dan tanpa galat aplikasi.
+
+| Temuan | Perbaikan |
+| --- | --- |
+| Tombol tambah di Hitung Sisa, Titipan Masuk, dan Kebutuhan tampil sebagai teks dengan ikon di atasnya, berbeda dari Produk, Ajuan, dan Mitra | Semua tombol tambah di kepala halaman memakai gaya tombol utama yang sama. Tindakan pendamping, seperti Hitung sisa di halaman mitra dan Catat titipan baru di rekap, memakai tombol sekunder |
+| Kartu angka stok di dasbor gelap sendiri dan setiap kartu angka punya garis aksen bawah yang tampak terpotong | Semua kartu angka putih tanpa garis aksen |
+| Laporan hanya punya satu grafik, dan grafik area tampak anjlok pada hari yang belum ada penjualannya | Grafik kolom harian, donat Pembagian omzet, batang omzet per mitra, dan batang terjual dibanding dikembalikan per produk (ADR 0056). Dasbor toko mendapat grafik harian dan donat, dasbor penitip mendapat donat |
+| Saat sesi dimuat, halaman aplikasi sempat menampilkan header publik lalu melompat ke sidebar | Kerangka ruang kerja dengan sidebar biru tampil sejak awal |
+| Jejak segel peristiwa sistem tertulis ", · tanggal" | Ditulis "Sistem Trustip" |
+| Seluruh baris "Jumlah yang dibayar" memakai huruf monospace | Label huruf biasa, nominal tebal monospace |
+| Judul kolom angka di tabel memakai huruf monospace | Judul kolom memakai huruf biasa rata kanan |
+| Produk terlaris di HP memotong nama produk karena nominal di sampingnya | Nominal pindah ke bawah nama di HP |
+| Jejak halaman di Papan Kebutuhan dan Cari menulis "Ringkasan usaha" | Label dan ikon mengikuti halaman |
+| Kartu "Tercatat bersama" di sidebar terpotong pada layar setinggi 900 px | Kartu hanya tampil pada layar setinggi 68rem ke atas |
+| Saran menulis "stok cukup sekitar 0 hari lagi" | Ditulis "stok diperkirakan habis hari ini" |
+| Kategori toko di Pengaturan memanjang satu kolom, kartu Stok selebar layar | Dua kolom mulai tablet |
+| Setiap halaman mencatat 404 untuk `/favicon.ico` di konsol | Ikon tersedia |
+| Kolom demo yang sempit memotong teks akun per huruf | Tiap akun bertumpuk dengan tombol isi selebar kartu |
+| Stok roti demo nol saat dibuka, rekening penitip demo kosong, dan nama akun belum sesuai tim | Akun Bendi, Zara, dan Jessica dengan stok roti siap dihitung dan info rekening contoh (ADR 0057) |
+
+Halaman baru Panduan dan FAQ diperiksa pada kedua lebar tanpa overflow, dengan uji komponen dan pemeriksaan axe.
+
+Dua hal belum diselesaikan di kode aplikasi:
+
+1. Fungsi Vercel berjalan di `iad1`, sedangkan API di Melbourne, sehingga satu panggilan API dari peramban butuh 0,6 sampai 1 detik dan halaman aplikasi butuh beberapa detik untuk terisi. Wilayah fungsi `sin1` di `app/vite.config.ts` perlu ikut dideploy.
+2. Footer publik menampilkan "Versi API dev" karena citra API dibangun tanpa informasi versi git.
