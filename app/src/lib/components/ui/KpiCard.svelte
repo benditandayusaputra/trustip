@@ -10,7 +10,6 @@
 		tone?: Tone;
 		loading?: boolean;
 		fullOnMobile?: boolean;
-		featured?: boolean;
 	}
 
 	let {
@@ -20,10 +19,8 @@
 		icon,
 		tone = 'info',
 		loading = false,
-		fullOnMobile = false,
-		featured = false
+		fullOnMobile = false
 	}: Props = $props();
-	const iconTone = $derived(featured ? 'bg-sidebar-badge text-sidebar-accent' : badgeTone[tone]);
 	const maximumNarrowCharacters = 8;
 	const maximumLargeCharacters = 10;
 	const mobileSpan = $derived(
@@ -35,15 +32,12 @@
 </script>
 
 <div
-	data-featured={featured}
-	class="metric-card flex min-w-0 flex-col gap-4 rounded-card border {featured
-		? 'border-featured bg-featured'
-		: 'border-border bg-surface'} p-4 compact:p-5 {mobileSpan}"
+	class="metric-card flex min-w-0 flex-col gap-4 rounded-card border border-border bg-surface p-4 compact:p-5 {mobileSpan}"
 >
 	<div class="flex items-start justify-between gap-2">
 		<p class="metric-label text-sm font-medium">{label}</p>
 		{#if icon}
-			<span class="metric-icon flex size-11 shrink-0 items-center justify-center {iconTone}">
+			<span class="metric-icon flex size-11 shrink-0 items-center justify-center {badgeTone[tone]}">
 				{@render icon()}
 			</span>
 		{/if}

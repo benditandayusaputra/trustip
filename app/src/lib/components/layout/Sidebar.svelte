@@ -52,7 +52,7 @@
 		{/each}
 	</nav>
 	<div
-		class="mt-auto flex flex-col gap-2 rounded-card border border-sidebar-border bg-sidebar-hover p-4"
+		class="sidebar-note mt-auto flex-col gap-2 rounded-card border border-sidebar-border bg-sidebar-hover p-4"
 	>
 		<ShieldCheck class="mb-2 size-6 text-sidebar-accent" aria-hidden="true" />
 		<p class="text-sm font-semibold">{id.layout.secureTitle}</p>

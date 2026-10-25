@@ -79,34 +79,6 @@
 		overflow: hidden;
 		box-shadow: var(--shadow-card);
 	}
-	.metric-card::after {
-		position: absolute;
-		inset-inline: var(--spacing-5);
-		bottom: 0;
-		height: var(--spacing-1);
-		border-radius: var(--radius-pill) var(--radius-pill) 0 0;
-		background: var(--color-accent-surface);
-		content: '';
-	}
-	.metric-card[data-featured='true'] {
-		border-color: var(--color-featured);
-		background: var(--color-featured);
-		color: var(--color-sidebar-text);
-	}
-	.metric-card[data-featured='true'] .metric-label,
-	.metric-card[data-featured='true'] .metric-caption {
-		color: var(--color-sidebar-muted);
-	}
-	.metric-card[data-featured='true'] .metric-value {
-		color: var(--color-sidebar-text);
-	}
-	.metric-card[data-featured='true'] .metric-icon {
-		background: var(--color-sidebar-badge);
-		color: var(--color-sidebar-accent);
-	}
-	.metric-card[data-featured='true']::after {
-		background: var(--color-primary);
-	}
 	.metric-card .metric-icon {
 		border-radius: var(--radius-pill);
 	}

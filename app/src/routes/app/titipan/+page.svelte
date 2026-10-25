@@ -18,7 +18,7 @@
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<PageHeading icon={Package}>{id.drops.historyTitle}</PageHeading>
 		{#if isStore}
-			<a href="/app/titipan/baru" class="gap-2 font-semibold text-accent"
+			<a href="/app/titipan/baru" class="action-link"
 				><Plus class="size-5" aria-hidden="true" />{id.drops.recordDrop}</a
 			>
 		{/if}

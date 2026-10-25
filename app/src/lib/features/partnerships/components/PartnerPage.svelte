@@ -80,10 +80,7 @@
 			<a href="/app/titipan/baru?mitra={partnershipId}" class="action-link">
 				<Plus class="size-5" aria-hidden="true" />{id.drops.recordDrop}
 			</a>
-			<a
-				href="/app/hitung/baru?mitra={partnershipId}"
-				class="inline-flex min-h-12 items-center gap-2 rounded-control border border-border-strong bg-surface px-5 font-semibold"
-			>
+			<a href="/app/hitung/baru?mitra={partnershipId}" class="secondary-link">
 				<Calculator class="size-5" aria-hidden="true" />{id.counts.count}
 			</a>
 		</div>
@@ -104,7 +101,7 @@
 				{@const isAmendable = canAmend && partnership.status === 'ACTIVE'}
 				<div class="flex flex-col gap-6">
 					{#if isAmendable}
-						<a href={amendHref} class="font-semibold text-accent">{id.agreement.amend}</a>
+						<a href={amendHref} class="secondary-link self-start">{id.agreement.amend}</a>
 					{/if}
 					{@render agreement()}
 					<PartnerCatalog

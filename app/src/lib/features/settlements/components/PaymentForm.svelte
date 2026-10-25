@@ -58,8 +58,11 @@
 		{/if}
 	</div>
 	<form onsubmit={handleSubmit} novalidate class="flex flex-col gap-5">
-		<p class="font-mono text-base text-text tabular-nums">
-			{text.amountToPay(formatRupiah(settlement.split.consignor_share))}
+		<p class="flex flex-wrap items-baseline justify-between gap-2 text-base text-text">
+			{text.amountToPay}
+			<span class="font-mono text-lg font-bold tabular-nums">
+				{formatRupiah(settlement.split.consignor_share)}
+			</span>
 		</p>
 		<Select
 			label={text.method}

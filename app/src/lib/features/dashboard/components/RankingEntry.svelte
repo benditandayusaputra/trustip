@@ -32,10 +32,11 @@
 	{/if}
 	<span class="flex min-w-0 flex-col gap-1">
 		<span class="font-semibold wrap-anywhere">{index + 1}. {row.label}</span>
+		<span class="font-mono tabular-nums md:hidden">{row.value}</span>
 		{#if row.product}<span class="text-sm text-accent">{id.dashboard.productDetail}</span>{/if}
 	</span>
 </div>
 <span class="flex shrink-0 items-center gap-4">
-	<span class="font-mono tabular-nums">{row.value}</span>
+	<span class="hidden font-mono tabular-nums md:inline">{row.value}</span>
 	{#if row.product}<ChevronRight class="size-5 text-text-muted" aria-hidden="true" />{/if}
 </span>

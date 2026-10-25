@@ -31,14 +31,6 @@
 	const fullOnMobile = $derived(['gross', 'profit', 'payable', 'share'].includes(metric));
 </script>
 
-<KpiCard
-	featured={metric === 'stock'}
-	{fullOnMobile}
-	{label}
-	{value}
-	{...caption && { caption }}
-	{tone}
-	{loading}
->
+<KpiCard {fullOnMobile} {label} {value} {...caption && { caption }} {tone} {loading}>
 	{#snippet icon()}<Icon class="size-5" aria-hidden="true" />{/snippet}
 </KpiCard>

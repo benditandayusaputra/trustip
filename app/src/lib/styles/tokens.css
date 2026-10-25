@@ -30,13 +30,11 @@
 	--color-text-muted: #52627a;
 	--color-on-accent: #ffffff;
 	--color-sidebar: var(--color-primary);
-	--color-featured: #152632;
 	--color-sidebar-hover: #1d4ed8;
 	--color-sidebar-muted: #eff6ff;
 	--color-sidebar-text: #ffffff;
 	--color-sidebar-border: #5e8af1;
 	--color-sidebar-accent: #ffffff;
-	--color-sidebar-badge: #1d4ed8;
 	--color-scrim: rgb(0 0 0 / 60%);
 
 	--font-*: initial;

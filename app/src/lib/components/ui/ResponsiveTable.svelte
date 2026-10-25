@@ -26,7 +26,11 @@
 		<thead>
 			<tr class="border-b border-border bg-surface-hover text-text-muted">
 				{#each columns as column (column.key)}
-					<th scope="col" class="px-4 py-4 font-medium {alignment(column)}">{column.label}</th>
+					<th
+						scope="col"
+						class="px-4 py-4 font-medium {column.numeric ? 'text-right' : 'text-left'}"
+						>{column.label}</th
+					>
 				{/each}
 			</tr>
 		</thead>

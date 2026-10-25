@@ -13,7 +13,7 @@
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<PageHeading icon={Megaphone}>{id.needs.listTitle}</PageHeading>
-		<a href="/app/kebutuhan/baru" class="gap-2 font-semibold text-accent"
+		<a href="/app/kebutuhan/baru" class="action-link"
 			><Plus class="size-5" aria-hidden="true" />{id.needs.post}</a
 		>
 	</div>

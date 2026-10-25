@@ -38,29 +38,33 @@
 		{/snippet}
 	</EmptyState>
 {:else}
-	{#each groups as group (group.productId)}
-		<Card title={group.productName}>
-			<p class="font-mono text-lg font-semibold text-text tabular-nums">
-				{text.total(formatInteger(group.balance), group.unit)}
-			</p>
-			<ul class="flex flex-col gap-2">
-				{#each group.holdings as holding (holding.partnership_id)}
-					<li class="flex flex-wrap items-center justify-between gap-2 text-sm">
-						<a href="/app/mitra/{holding.partnership_id}" class="font-semibold text-accent">
-							{holding.counterpart.name}
-						</a>
-						<span class="flex items-center gap-2">
-							<span class="font-mono text-text tabular-nums">{formatInteger(holding.balance)}</span>
-							<Badge tone={flagToneOf(holding.flag)} label={text.flags[holding.flag]} />
-						</span>
-						{#if holding.nearest_expiry}
-							<span class="w-full text-xs text-text-muted">
-								{text.nearestExpiry(formatBusinessDate(holding.nearest_expiry))}
+	<div class="grid items-stretch gap-4 md:grid-cols-2">
+		{#each groups as group (group.productId)}
+			<Card title={group.productName} fill>
+				<p class="font-mono text-lg font-semibold text-text tabular-nums">
+					{text.total(formatInteger(group.balance), group.unit)}
+				</p>
+				<ul class="flex flex-col gap-2">
+					{#each group.holdings as holding (holding.partnership_id)}
+						<li class="flex flex-wrap items-center justify-between gap-2 text-sm">
+							<a href="/app/mitra/{holding.partnership_id}" class="font-semibold text-accent">
+								{holding.counterpart.name}
+							</a>
+							<span class="flex items-center gap-2">
+								<span class="font-mono text-text tabular-nums"
+									>{formatInteger(holding.balance)}</span
+								>
+								<Badge tone={flagToneOf(holding.flag)} label={text.flags[holding.flag]} />
 							</span>
-						{/if}
-					</li>
-				{/each}
-			</ul>
-		</Card>
-	{/each}
+							{#if holding.nearest_expiry}
+								<span class="w-full text-xs text-text-muted">
+									{text.nearestExpiry(formatBusinessDate(holding.nearest_expiry))}
+								</span>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</Card>
+		{/each}
+	</div>
 {/if}

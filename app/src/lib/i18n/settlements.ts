@@ -56,7 +56,7 @@ export const settlements = {
 		method: 'Metode',
 		methods: { TRANSFER: 'Transfer', QRIS: 'QRIS', CASH: 'Tunai' },
 		paidOnLabel: 'Tanggal bayar',
-		amountToPay: (amount: string) => `Jumlah yang dibayar: ${amount}`,
+		amountToPay: 'Jumlah yang dibayar',
 		proof: 'Bukti bayar',
 		chooseProof: 'Pilih foto bukti',
 		proofAlt: 'Foto bukti bayar',

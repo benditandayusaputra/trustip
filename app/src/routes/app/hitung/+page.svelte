@@ -18,7 +18,7 @@
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<PageHeading icon={Calculator}>{id.counts.historyTitle}</PageHeading>
 		{#if isStore}
-			<a href="/app/hitung/baru" class="gap-2 font-semibold text-accent"
+			<a href="/app/hitung/baru" class="action-link"
 				><Plus class="size-5" aria-hidden="true" />{id.counts.count}</a
 			>
 		{/if}

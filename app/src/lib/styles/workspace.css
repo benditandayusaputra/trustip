@@ -44,6 +44,14 @@
 	.workspace-sidebar :focus-visible {
 		outline-color: var(--color-sidebar-accent);
 	}
+	.sidebar-note {
+		display: none;
+	}
+	@media (height >= 68rem) {
+		.sidebar-note {
+			display: flex;
+		}
+	}
 	.workspace-header {
 		min-height: var(--header-height);
 		background: var(--color-surface);

@@ -146,6 +146,24 @@
 		background: var(--color-primary-hover);
 	}
 
+	.secondary-link {
+		display: inline-flex;
+		min-height: var(--spacing-12);
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-2);
+		border: 1px solid var(--color-border-strong);
+		border-radius: var(--radius-control);
+		background: var(--color-surface);
+		padding-inline: var(--spacing-5);
+		color: var(--color-text);
+		font-weight: 650;
+	}
+
+	.secondary-link:hover {
+		background: var(--color-surface-hover);
+	}
+
 	html[data-appearance='dark'] .leaflet-tile-pane {
 		filter: var(--map-dark-filter);
 	}

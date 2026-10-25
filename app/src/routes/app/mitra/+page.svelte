@@ -13,10 +13,7 @@
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<PageHeading icon={Handshake}>{id.partners.title}</PageHeading>
-		<a
-			href="/app/ajuan/baru"
-			class="inline-flex min-h-12 items-center gap-2 rounded-control bg-primary px-5 font-semibold text-on-accent"
-		>
+		<a href="/app/ajuan/baru" class="action-link">
 			<Plus class="size-5" aria-hidden="true" />
 			{id.partners.invite}
 		</a>
