@@ -89,7 +89,7 @@
 		color: var(--color-accent);
 	}
 	.auth-presentation {
-		background: var(--color-featured);
+		background: var(--color-sidebar);
 		color: var(--color-sidebar-text);
 		position: relative;
 		overflow: hidden;
