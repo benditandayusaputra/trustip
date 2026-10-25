@@ -1,10 +1,11 @@
 <script lang="ts">
-	import Megaphone from '@lucide/svelte/icons/megaphone';
+	import Store from '@lucide/svelte/icons/store';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import type { NeedBoardCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatDate, formatDistance, formatRupiah } from '#lib/i18n/format.js';
 	import { directory as directoryText } from '#lib/i18n/directory.js';
 	import { organization as organizationText } from '#lib/i18n/organization.js';
+	import { categoryPhoto } from '../category-photo';
 
 	const id = { ...directoryText, ...organizationText };
 
@@ -22,35 +23,44 @@
 </script>
 
 <article class="surface-card list-card">
-	{#if card.store.logo_url}
-		<img
-			src={card.store.logo_url}
-			alt=""
-			width="400"
-			height="225"
-			loading="lazy"
-			decoding="async"
-			class="aspect-video w-full rounded-control object-cover"
-		/>
-	{:else}
-		<div class="flex aspect-video items-center justify-center rounded-control bg-accent-surface">
-			<Megaphone class="size-12 text-accent" aria-hidden="true" />
-		</div>
-	{/if}
+	<img
+		src={categoryPhoto(card.category.name)}
+		alt=""
+		width="400"
+		height="225"
+		loading="lazy"
+		decoding="async"
+		class="aspect-video w-full rounded-control bg-accent-surface object-cover"
+	/>
 	<header class="flex items-start gap-4">
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<h2 class="line-clamp-2 text-lg font-semibold text-text" title={card.title}>
 				<a href="/kebutuhan/{card.id}" class="list-card-link hover:text-accent">{card.title}</a>
 			</h2>
-			<p class="truncate text-sm text-text-muted">
-				{card.store.name}
-				{#if card.store.store_type}
-					· {id.storeProfile.storeTypes[card.store.store_type]}
+			<p class="flex min-w-0 items-center gap-2 text-sm text-text-muted">
+				{#if card.store.logo_url}
+					<img
+						src={card.store.logo_url}
+						alt=""
+						width="24"
+						height="24"
+						loading="lazy"
+						decoding="async"
+						class="size-6 shrink-0 rounded-pill object-cover"
+					/>
+				{:else}
+					<Store class="size-5 shrink-0 text-accent" aria-hidden="true" />
 				{/if}
-				{#if card.distance_m !== null}
-					· <span class="font-mono">{formatDistance(card.distance_m)}</span>
-				{/if}
-				· {card.store.city_name}
+				<span class="truncate">
+					{card.store.name}
+					{#if card.store.store_type}
+						· {id.storeProfile.storeTypes[card.store.store_type]}
+					{/if}
+					{#if card.distance_m !== null}
+						· <span class="font-mono">{formatDistance(card.distance_m)}</span>
+					{/if}
+					· {card.store.city_name}
+				</span>
 			</p>
 		</div>
 	</header>

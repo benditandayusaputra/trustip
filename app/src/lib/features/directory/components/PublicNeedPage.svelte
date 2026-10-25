@@ -8,6 +8,7 @@
 	import { needs as needsText } from '#lib/i18n/needs.js';
 	import { organization as organizationText } from '#lib/i18n/organization.js';
 	import { publicProfile as publicProfileText } from '#lib/i18n/public-profile.js';
+	import { categoryPhoto } from '../category-photo';
 	import LazyReportListing from './LazyReportListing.svelte';
 
 	const id = { ...directoryText, ...needsText, ...organizationText, ...publicProfileText };
@@ -29,6 +30,14 @@
 </script>
 
 <article class="flex flex-col gap-6">
+	<img
+		src={categoryPhoto(need.category)}
+		alt=""
+		width="800"
+		height="267"
+		decoding="async"
+		class="aspect-3/1 w-full rounded-card bg-accent-surface object-cover"
+	/>
 	<header class="trade-panel flex flex-col gap-4">
 		<p class="section-label">{text.needKind}</p>
 		<h1 class="text-xl font-semibold text-text">{need.title}</h1>

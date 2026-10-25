@@ -47,3 +47,22 @@ Foto data contoh di `api/cmd/server/demo_photos` diambil dari Wikimedia Commons 
 | Warung Bu Sri | [Warung Kelontong.jpg](https://commons.wikimedia.org/wiki/File:Warung_Kelontong.jpg) | SATELITBM | CC BY-SA 4.0 |
 | Warung Kopi Tlogomas | [Sisi Dalam Warung Kopi Bu Ayu Barat Stadion Candra Di Muka Kebumen.jpg](https://commons.wikimedia.org/wiki/File:Sisi_Dalam_Warung_Kopi_Bu_Ayu_Barat_Stadion_Candra_Di_Muka_Kebumen.jpg) | DARMAS BS 9 | CC BY-SA 4.0 |
 | Warung Makan Bu Har | [Warung Makan Di Ambal Kebumen.jpg](https://commons.wikimedia.org/wiki/File:Warung_Makan_Di_Ambal_Kebumen.jpg) | SATELIT BM9 | CC BY-SA 4.0 |
+
+## Foto kategori
+
+Foto contoh per kategori di `app/static/kategori` dipakai sebagai sampul kartu Kebutuhan.
+
+| Kategori | Berkas asli | Pembuat | Lisensi |
+|---|---|---|---|
+| Roti dan kue basah | [Kue basah Yogyakarta.jpg](https://commons.wikimedia.org/wiki/File:Kue_basah_Yogyakarta.jpg) | Dietrich Ayala | CC BY 2.0 |
+| Kue kering dan camilan | [Kue kering bazar Ramadhan Semarang.JPG](https://commons.wikimedia.org/wiki/File:Kue_kering_bazar_Ramadhan_Semarang.JPG) | Midori | CC BY 3.0 |
+| Keripik dan kerupuk | [Kerupuk udang.JPG](https://commons.wikimedia.org/wiki/File:Kerupuk_udang.JPG) | Midori | CC BY-SA 3.0 |
+| Sambal dan bumbu | [BUMBU SAMBAL BAWANG (tanpa tulisan).png](https://commons.wikimedia.org/wiki/File:BUMBU_SAMBAL_BAWANG_(tanpa_tulisan).png) | Windi Utari | CC BY-SA 4.0 |
+| Minuman | [Swee-Touch-Nee-Tea Discontinued Bottled Iced Tea.jpg](https://commons.wikimedia.org/wiki/File:Swee-Touch-Nee-Tea_Discontinued_Bottled_Iced_Tea.jpg) | Broadwaymoon22 | CC BY-SA 4.0 |
+| Makanan beku | [Frozen dimsum.JPG](https://commons.wikimedia.org/wiki/File:Frozen_dimsum.JPG) | Jerry Crimson Mann, aka Mcy jerry at en.wikipedia | CC BY-SA 3.0 |
+| Lauk siap saji | [Tuna Sambal Roa 1.jpg](https://commons.wikimedia.org/wiki/File:Tuna_Sambal_Roa_1.jpg) | Sofi Solihah | CC BY 4.0 |
+| Oleh-oleh khas daerah | [Tas Kanvas Oleh-oleh khas Jakarta Indonesia aiu craft.jpg](https://commons.wikimedia.org/wiki/File:Tas_Kanvas_Oleh-oleh_khas_Jakarta_Indonesia_aiu_craft.jpg) | Fecia | CC BY-SA 4.0 |
+| Kerajinan dan suvenir | [Koleksi kerajinan anyaman.jpg](https://commons.wikimedia.org/wiki/File:Koleksi_kerajinan_anyaman.jpg) | Irnabela | CC BY-SA 4.0 |
+| Fesyen dan aksesori | [Batik Trusmi Cirebon (23).jpg](https://commons.wikimedia.org/wiki/File:Batik_Trusmi_Cirebon_(23).jpg) | Fpangestuphotographer | CC BY-SA 4.0 |
+| Perawatan diri | [Bars of pure Marseille and Aleppo soap, 2024.jpg](https://commons.wikimedia.org/wiki/File:Bars_of_pure_Marseille_and_Aleppo_soap,_2024.jpg) | DimiTalen | CC0 |
+| Lainnya | [Suasana Pasar Ikan di Kabupaten Lamongan.jpg](https://commons.wikimedia.org/wiki/File:Suasana_Pasar_Ikan_di_Kabupaten_Lamongan.jpg) | A081000LIF | CC BY-SA 4.0 |

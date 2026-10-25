@@ -79,7 +79,7 @@ describe('Need board', () => {
 		await expectAccessible(container);
 	});
 
-	it('shows the store photo on the need card', async () => {
+	it('shows the category photo and the store photo on the need card', async () => {
 		const photo = 'https://api.example.test/files/0123456789abcdef0123456789abcdef.jpg';
 		serve({ [boardPath]: () => list([{ ...need, store: { ...need.store, logo_url: photo } }]) });
 		const { container } = await render(NeedBoardHarness, {});
@@ -87,7 +87,10 @@ describe('Need board', () => {
 		await expect
 			.element(page.getByRole('heading', { name: 'Butuh camilan kemasan kecil' }))
 			.toBeVisible();
-		expect(container.querySelector('article img')?.getAttribute('src')).toBe(photo);
+		const sources = [...container.querySelectorAll('article img')].map((image) =>
+			image.getAttribute('src')
+		);
+		expect(sources).toEqual(['/kategori/kue-kering-dan-camilan.jpg', photo]);
 	});
 
 	it('hides the answer link for stores and for the own need', async () => {
