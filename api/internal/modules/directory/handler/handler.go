@@ -50,7 +50,7 @@ func Mount(api fiber.Router, deps Deps) {
 	api.Get(productsPath, deps.Visit, searchLimit,
 		list(deps.ListProducts, consignorSearchForm, present.productCard))
 	api.Get(contactPath, deps.Authenticate, searchLimit, getContact(deps.GetContact))
-	api.Get(boardPath, deps.Visit, searchLimit, list(deps.ListNeeds, boardSearchForm, needCardOf))
+	api.Get(boardPath, deps.Visit, searchLimit, list(deps.ListNeeds, boardSearchForm, present.needCard))
 	mountProfiles(api, deps.Profiles, present)
 }
 

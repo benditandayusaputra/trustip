@@ -3398,6 +3398,7 @@ export interface components {
                 name: string;
                 city_name: string;
                 store_type: components["schemas"]["StoreType"] | null;
+                logo_url: string | null;
             };
             distance_m: number | null;
             is_own: boolean;

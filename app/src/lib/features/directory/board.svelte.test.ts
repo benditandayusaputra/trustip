@@ -23,7 +23,8 @@ const need = {
 		slug: 'kantin',
 		name: 'Kantin Kampus',
 		city_name: 'Kota Semarang',
-		store_type: 'CANTEEN'
+		store_type: 'CANTEEN',
+		logo_url: null
 	},
 	distance_m: 1200,
 	is_own: false
@@ -76,6 +77,17 @@ describe('Need board', () => {
 			.element(page.getByRole('link', { name: 'Tanggapi dengan Ajuan' }))
 			.toHaveAttribute('href', `/app/ajuan/baru?sasaran=${storeId}&kebutuhan=${need.id}`);
 		await expectAccessible(container);
+	});
+
+	it('shows the store photo on the need card', async () => {
+		const photo = 'https://api.example.test/files/0123456789abcdef0123456789abcdef.jpg';
+		serve({ [boardPath]: () => list([{ ...need, store: { ...need.store, logo_url: photo } }]) });
+		const { container } = await render(NeedBoardHarness, {});
+
+		await expect
+			.element(page.getByRole('heading', { name: 'Butuh camilan kemasan kecil' }))
+			.toBeVisible();
+		expect(container.querySelector('article img')?.getAttribute('src')).toBe(photo);
 	});
 
 	it('hides the answer link for stores and for the own need', async () => {

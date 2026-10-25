@@ -8324,7 +8324,7 @@ components:
         store:
           type: object
           additionalProperties: false
-          required: [id, slug, name, city_name, store_type]
+          required: [id, slug, name, city_name, store_type, logo_url]
           properties:
             id:
               type: string
@@ -8338,6 +8338,9 @@ components:
             store_type:
               allOf:
                 - $ref: "#/components/schemas/StoreType"
+              nullable: true
+            logo_url:
+              type: string
               nullable: true
         distance_m:
           type: integer

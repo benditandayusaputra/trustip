@@ -32,11 +32,12 @@ type NeedQuery struct {
 }
 
 type NeedStore struct {
-	ID        string
-	Slug      string
-	Name      string
-	CityName  string
-	StoreType string
+	ID             string
+	Slug           string
+	Name           string
+	CityName       string
+	StoreType      string
+	LogoStorageKey string
 }
 
 type NeedCard struct {

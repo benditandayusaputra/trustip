@@ -22,11 +22,22 @@
 </script>
 
 <article class="surface-card list-card">
+	{#if card.store.logo_url}
+		<img
+			src={card.store.logo_url}
+			alt=""
+			width="400"
+			height="225"
+			loading="lazy"
+			decoding="async"
+			class="aspect-video w-full rounded-control object-cover"
+		/>
+	{:else}
+		<div class="flex aspect-video items-center justify-center rounded-control bg-accent-surface">
+			<Megaphone class="size-12 text-accent" aria-hidden="true" />
+		</div>
+	{/if}
 	<header class="flex items-start gap-4">
-		<span
-			class="flex size-12 shrink-0 items-center justify-center rounded-control bg-accent-surface"
-			><Megaphone class="size-6 text-accent" aria-hidden="true" /></span
-		>
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<h2 class="line-clamp-2 text-lg font-semibold text-text" title={card.title}>
 				<a href="/kebutuhan/{card.id}" class="list-card-link hover:text-accent">{card.title}</a>

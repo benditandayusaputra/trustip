@@ -12,6 +12,7 @@ type needStoreResponse struct {
 	Name      string  `json:"name"`
 	CityName  string  `json:"city_name"`
 	StoreType *string `json:"store_type"`
+	LogoURL   *string `json:"logo_url"`
 }
 
 type needCardResponse struct {
@@ -30,14 +31,14 @@ type needCardResponse struct {
 	IsOwn                bool              `json:"is_own"`
 }
 
-func needCardOf(card domain.NeedCard) needCardResponse {
+func (p presenter) needCard(card domain.NeedCard) needCardResponse {
 	response := needCardResponse{
 		ID: card.ID, Title: card.Title, Description: card.Description, Category: categoryResponse(card.Category),
 		PreferredModel: optionalText(card.PreferredModel), ExpiresAt: card.ExpiresAt.UTC().Format(time.RFC3339),
 		CreatedAt: card.CreatedAt.UTC().Format(time.RFC3339), DistanceM: distanceOf(card.Distance), IsOwn: card.IsOwn,
 		Store: needStoreResponse{
 			ID: card.Store.ID, Slug: card.Store.Slug, Name: card.Store.Name, CityName: card.Store.CityName,
-			StoreType: optionalText(card.Store.StoreType),
+			StoreType: optionalText(card.Store.StoreType), LogoURL: p.fileURL(card.Store.LogoStorageKey),
 		},
 	}
 	if card.WeeklyQuantity > 0 {

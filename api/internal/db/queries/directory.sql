@@ -245,6 +245,7 @@ WITH origin AS (
         COALESCE(n.offered_commission_bps, -1)::bigint AS offered_commission_bps,
         n.expires_at, n.created_at, o.id AS store_id, o.slug AS store_slug, o.name AS store_name, o.city_name,
         COALESCE(sp.store_type, '')::text AS store_type,
+        COALESCE(f.storage_key, '')::text AS store_logo_storage_key,
         CASE WHEN @has_origin::boolean THEN ST_Distance(o.location_public, origin.point, false) ELSE -1 END::float8
             AS distance_meters,
         (o.id = @viewer_id::uuid)::boolean AS is_own
@@ -253,6 +254,7 @@ WITH origin AS (
     JOIN organizations AS o ON o.id = n.store_org_id
     CROSS JOIN origin
     LEFT JOIN store_profiles AS sp ON sp.organization_id = o.id
+    LEFT JOIN files AS f ON f.id = o.logo_file_id
     WHERE n.status = 'OPEN' AND n.expires_at > @now::timestamptz AND o.status = 'ACTIVE' AND o.is_listed
         AND (@viewer_id::uuid = '00000000-0000-0000-0000-000000000000'::uuid
             OR o.is_demo = EXISTS (SELECT 1 FROM organizations AS v WHERE v.id = @viewer_id::uuid AND v.is_demo))
@@ -272,7 +274,7 @@ WITH origin AS (
         listed.id, listed.title, listed.description, listed.category_id, listed.category_name,
         listed.est_qty_per_week, listed.max_retail_price, listed.preferred_model, listed.offered_commission_bps,
         listed.expires_at, listed.created_at, listed.store_id, listed.store_slug, listed.store_name,
-        listed.city_name, listed.store_type, listed.distance_meters, listed.is_own,
+        listed.city_name, listed.store_type, listed.store_logo_storage_key, listed.distance_meters, listed.is_own,
         CASE @sort_order::text WHEN 'CITY' THEN listed.city_name ELSE '' END::text AS sort_text,
         CASE @sort_order::text
             WHEN 'NEAREST' THEN listed.distance_meters
@@ -283,7 +285,7 @@ WITH origin AS (
 SELECT
     id, title, description, category_id, category_name, est_qty_per_week, max_retail_price, preferred_model,
     offered_commission_bps, expires_at, created_at, store_id, store_slug, store_name, city_name, store_type,
-    distance_meters, is_own, sort_text, sort_number
+    store_logo_storage_key, distance_meters, is_own, sort_text, sort_number
 FROM ranked
 WHERE @from_start::boolean OR (sort_text, sort_number, id) > (@after_text::text, @after_number::float8, @after_id::uuid)
 ORDER BY sort_text, sort_number, id

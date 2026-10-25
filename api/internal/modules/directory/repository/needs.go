@@ -62,7 +62,7 @@ func toNeedCard(row sqlc.ListDirectoryNeedsRow) domain.NeedCard {
 		HasOfferedCommission: row.OfferedCommissionBps >= 0, ExpiresAt: row.ExpiresAt, CreatedAt: row.CreatedAt,
 		Store: domain.NeedStore{
 			ID: row.StoreID, Slug: row.StoreSlug, Name: row.StoreName, CityName: row.CityName,
-			StoreType: row.StoreType,
+			StoreType: row.StoreType, LogoStorageKey: row.StoreLogoStorageKey,
 		},
 		Distance: distanceOf(row.DistanceMeters), IsOwn: row.IsOwn,
 		Position: domain.Position{Text: row.SortText, Number: row.SortNumber, ID: row.ID},
