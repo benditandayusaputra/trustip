@@ -39,7 +39,6 @@ const routes: Record<PageSkeletonKind, string[]> = {
 		'/luring',
 		'/kebutuhan/sample',
 		'/undangan/sample',
-		'/verifikasi/sample',
 		'/app/titipan/sample',
 		'/app/hitung/sample',
 		'/app/setoran/sample',

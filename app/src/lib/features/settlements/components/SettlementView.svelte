@@ -3,7 +3,6 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import SealPanel from '#lib/components/ui/SealPanel.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Settlement } from '#lib/api/settlements.js';
@@ -116,5 +115,4 @@
 			</li>
 		{/each}
 	</ul>
-	<SealPanel isValid={settlement.seal.is_valid} events={settlement.seal.events} />
 {/if}

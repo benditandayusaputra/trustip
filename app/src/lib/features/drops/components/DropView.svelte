@@ -3,7 +3,6 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import OfflineMark from '#lib/components/ui/OfflineMark.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import SealPanel from '#lib/components/ui/SealPanel.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime, formatInteger, formatRupiah } from '#lib/i18n/format.js';
@@ -89,5 +88,4 @@
 			{formatRupiah(drop.value_if_sold.consignor_share)}
 		</dd>
 	</dl>
-	<SealPanel isValid={drop.seal.is_valid} events={drop.seal.events} />
 {/if}

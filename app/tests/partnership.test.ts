@@ -66,8 +66,9 @@ async function storeAcceptsInvitation(page: Page, invitationPath: string): Promi
 
 async function agreementSeenOn(page: Page): Promise<string> {
 	await page.getByRole('tab', { name: 'Kesepakatan' }).click();
-	await expect(page.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
-	await expect(page.getByText('Rp1.750').filter({ visible: true }).first()).toBeVisible();
+	await expect(page.getByText('Rp1.750').filter({ visible: true }).first()).toBeVisible({
+		timeout: networkTimeoutMs
+	});
 	return (await page.getByText(/\/V1 · Versi 1/u).textContent()) ?? '';
 }
 
@@ -78,7 +79,9 @@ async function storeRecordsTwentyLoaves(page: Page): Promise<void> {
 	await expect(page.getByText('Rp35.000')).toBeVisible();
 	await page.getByRole('button', { name: 'Simpan Titipan Masuk' }).click();
 	await page.waitForURL(/\/app\/titipan\/[0-9a-f-]{36}$/u, { timeout: networkTimeoutMs });
-	await expect(page.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
+	await expect(page.getByText('Menunggu konfirmasi').first()).toBeVisible({
+		timeout: networkTimeoutMs
+	});
 }
 
 async function consignorGoesLive(consignor: Page): Promise<void> {
@@ -101,20 +104,6 @@ async function storeRecordsWhileConsignorWatches(store: Page, consignor: Page): 
 		timeout: liveNoticeMs
 	});
 	await recorded;
-}
-
-async function visitorVerifiesTheDropSeal(browser: Browser, store: Page): Promise<void> {
-	const codeLink = store.locator('a[href^="/verifikasi/"]').first();
-	const verificationPage = (await codeLink.getAttribute('href')) ?? '';
-	const visitor = await openAs(browser, 'Pixel 7');
-	await visitor.goto(verificationPage);
-	await expect(visitor.getByText('Segel sah')).toBeVisible();
-	await expect(visitor.getByText('Titipan Masuk dicatat')).toBeVisible();
-	await expect(visitor.getByText('Roti Uji (penitip) dan Warung Uji (toko)')).toBeVisible();
-	await expect(visitor.getByText('Rp35.000')).toHaveCount(0);
-	await visitor.goto('/verifikasi/AAAA-AAAA-AAAA-AAAA');
-	await expect(visitor.getByText('Kode tidak ditemukan')).toBeVisible();
-	await visitor.context().close();
 }
 
 interface ProductPageScene {
@@ -170,7 +159,9 @@ async function storeCountsTwoLeftAndReturned(page: Page, partnerPage: string): P
 	await page.getByRole('combobox', { name: 'Alasan pengembalian' }).selectOption('UNSOLD');
 	await page.getByRole('button', { name: 'Simpan Hitung Sisa' }).click();
 	await page.waitForURL(/\/app\/hitung\/[0-9a-f-]{36}$/u, { timeout: networkTimeoutMs });
-	await expect(page.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
+	await expect(page.getByText('Rp31.500').filter({ visible: true }).first()).toBeVisible({
+		timeout: networkTimeoutMs
+	});
 	return page.url();
 }
 
@@ -232,7 +223,6 @@ test(
 		await recordingScreensStayWithinBudget(store, partnerPage);
 		await store.goto(partnerPage);
 		await storeRecordsWhileConsignorWatches(store, consignor);
-		await visitorVerifiesTheDropSeal(browser, store);
 		await buyerFindsTheStoreOnTheProductPage(browser, { store, consignor, partnerPage });
 		const recapPage = await storeCountsTwoLeftAndReturned(store, partnerPage);
 		await expectRecap(store);
@@ -297,7 +287,9 @@ async function storeReviewsAStockChangedElsewhere(
 	await store.context().setOffline(false);
 
 	await fixReviewedCount(store);
-	await expect(store.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
+	await expect(store.getByRole('heading', { name: 'Hasil per produk' })).toBeVisible({
+		timeout: networkTimeoutMs
+	});
 }
 
 interface Devices {

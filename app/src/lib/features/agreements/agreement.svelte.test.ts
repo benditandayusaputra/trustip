@@ -61,13 +61,13 @@ afterEach(() => {
 });
 
 describe('Agreement page', () => {
-	it('FR-SIG-02 shows a valid seal with its trail and verification code', async () => {
+	it('FR-SIG-02 shows the approval trail and keeps the seal behind the scenes', async () => {
 		serve(agreement);
 		const { container } = await render(AgreementHarness, { partnershipId });
 
-		await expect.element(page.getByText('Segel sah')).toBeVisible();
-		await expect.element(page.getByText(/V7KA-DYAY-2Y4Z-3FGX/u)).toBeVisible();
 		await expect.element(page.getByText(/Disetujui Sri \(Warung Bu Sri\)/u)).toBeVisible();
+		await expect.element(page.getByText('Segel sah')).not.toBeInTheDocument();
+		await expect.element(page.getByText(/V7KA-DYAY-2Y4Z-3FGX/u)).not.toBeInTheDocument();
 		await expectAccessible(container);
 	});
 
@@ -79,10 +79,11 @@ describe('Agreement page', () => {
 		await expect.element(page.getByText('Rp250').first()).toBeInTheDocument();
 	});
 
-	it('R-SEC-33 warns both parties when the seal no longer matches', async () => {
+	it('R-SEC-33 keeps a mismatched seal off the screen', async () => {
 		serve({ ...agreement, seal: { ...agreement.seal, is_valid: false } });
 		await render(AgreementHarness, { partnershipId });
 
-		await expect.element(page.getByText('Segel tidak sah')).toBeVisible();
+		await expect.element(page.getByText(/Disetujui Sri \(Warung Bu Sri\)/u)).toBeVisible();
+		await expect.element(page.getByText('Segel tidak sah')).not.toBeInTheDocument();
 	});
 });

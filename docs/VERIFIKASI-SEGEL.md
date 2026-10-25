@@ -2,19 +2,29 @@
 
 Setiap peristiwa dagang di Trustip (Kesepakatan disetujui, Titipan Masuk, Hitung Sisa, Setoran, pembayaran, dan kemitraan berakhir) disegel. Segel membuktikan dua hal: isi dokumen tidak berubah sejak dicatat, dan akun mana yang menyetujuinya. Segel bukan tanda tangan elektronik tersertifikasi dari penyelenggara sertifikasi elektronik.
 
-## Memeriksa lewat halaman publik
+## Segel di belakang layar
 
-Buka `/verifikasi/<kode>` dengan kode verifikasi yang tercantum di jejak segel dokumen, misalnya `/verifikasi/V7KA-DYAY-2Y4Z-3FGX`. Huruf kecil dan tanpa tanda hubung juga diterima.
+Sejak ADR 0058, segel tidak tampil di antarmuka. Detail dokumen tidak lagi memuat tanda "Segel sah", jejak segel, atau kode verifikasi, dan halaman `/verifikasi/<kode>` sudah dihapus. Penyegelan dan pemeriksaannya tetap berjalan di server.
 
-Halaman menampilkan jenis dan nomor dokumen, nama kedua pihak, jenis peristiwa, waktu, dan status segel. Nilai uang, jumlah barang, dan syarat tidak pernah tampil. Kode yang tidak dikenal dijawab "Kode tidak ditemukan".
+## Memeriksa lewat rute publik API
 
-Status "Segel sah" berarti tiga pemeriksaan lulus:
+Tim pengelola mengambil kode verifikasi dari tabel `seals`, lalu memanggil:
+
+```
+GET /api/v1/public/seals/<kode>
+```
+
+Contoh kode: `V7KA-DYAY-2Y4Z-3FGX`. Huruf kecil dan tanpa tanda hubung juga diterima.
+
+Jawabannya memuat jenis dan nomor dokumen, nama kedua pihak, jenis peristiwa, waktu, dan status segel. Nilai uang, jumlah barang, dan syarat tidak pernah ikut. Kode yang tidak dikenal dijawab 404.
+
+Status sah berarti tiga pemeriksaan lulus:
 
 1. Hash entri yang dihitung ulang dari isi entri sama dengan hash yang tersimpan.
 2. Tanda tangan Ed25519 atas hash entri cocok dengan kunci publik platform.
 3. `prev_hash` entri sama dengan hash entri sebelumnya pada kemitraan yang sama, sehingga rantai tidak putus.
 
-Pemeriksaan isi dokumen terhadap `content_hash` dilakukan di halaman dokumen bagi kedua pihak kemitraan, karena isi dokumen tidak pernah dibuka untuk umum.
+Pemeriksaan isi dokumen terhadap `content_hash` dilakukan server setiap kali salah satu pihak kemitraan membuka dokumen. Hasilnya tidak tampil di antarmuka. Bila tidak cocok, server mencatat peristiwa keamanan `seal_invalid`.
 
 ## Kunci publik
 

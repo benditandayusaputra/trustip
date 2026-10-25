@@ -1,7 +1,7 @@
 {
 	"name": "Trustip",
 	"short_name": "Trustip",
-	"description": "Catatan titip jual yang tersegel untuk penitip dan toko",
+	"description": "Catatan titip jual bersama untuk penitip dan toko",
 	"lang": "id",
 	"dir": "ltr",
 	"start_url": "/",

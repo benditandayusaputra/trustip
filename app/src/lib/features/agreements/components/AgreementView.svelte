@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import SealPanel from '#lib/components/ui/SealPanel.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
@@ -46,7 +45,6 @@
 	<p class="font-mono text-sm text-text-muted">
 		{agreement.number} · {text.version(agreement.version)}
 	</p>
-	<SealPanel isValid={agreement.seal.is_valid} events={agreement.seal.events} />
 	<dl class="document-details grid grid-cols-2 gap-2 text-sm">
 		<dt class="text-text-muted">{terms.consignor}</dt>
 		<dd>{agreement.consignor.name}</dd>

@@ -113,20 +113,6 @@ const phases: GuidePhase[] = [
 		demo: 'Masuk sebagai Bendi, buka Laporan, lalu ganti rentang ke 30 hari.'
 	},
 	{
-		slug: 'segel',
-		title: 'Periksa segel catatan',
-		actor: 'Siapa saja',
-		summary:
-			'Setiap peristiwa dagang disegel tanda tangan digital, sehingga tidak bisa diubah diam-diam.',
-		steps: [
-			'Kesepakatan, Titipan Masuk, Hitung Sisa, Setoran, dan pembayaran disegel saat dicatat.',
-			'Detail dokumen menampilkan Segel sah, jejak segel, dan kode verifikasi.',
-			'Siapa pun bisa membuka kode itu di halaman verifikasi publik tanpa masuk. Nilai uang tidak ditampilkan di sana.'
-		],
-		tip: 'Segel membuktikan catatan tidak berubah sejak dicatat. Segel bukan tanda tangan elektronik tersertifikasi.',
-		demo: 'Buka detail Hitung Sisa mana pun, lalu tekan kode verifikasinya.'
-	},
-	{
 		slug: 'luring',
 		title: 'Tetap mencatat tanpa sinyal',
 		actor: 'Toko',
@@ -146,7 +132,7 @@ export const guide = {
 	eyebrow: 'Panduan',
 	headline: 'Dari mencari mitra sampai setoran diterima',
 	intro:
-		'Ikuti sembilan tahap ini untuk memakai Trustip dari awal. Setiap tahap menyebut siapa yang mengerjakannya, menu yang dipakai, dan cara mencobanya dengan akun demo.',
+		'Ikuti delapan tahap ini untuk memakai Trustip dari awal. Setiap tahap menyebut siapa yang mengerjakannya, menu yang dipakai, dan cara mencobanya dengan akun demo.',
 	tryDemo: 'Coba akun demo',
 	register: 'Buat akun usaha',
 	contents: 'Daftar isi',
@@ -167,8 +153,7 @@ export const guide = {
 		'Buka Ajuan dan terima ajuan dari Minimarket Berkah. Kesepakatan Dagang dengan Jessica langsung terbentuk.',
 		'Keluar, lalu masuk sebagai Zara. Di Beranda, tekan Hitung pada Roti Mas Bendi, isi sisa, lalu simpan.',
 		'Dari rekap Hitung Sisa, buka Setoran yang terbit lalu catat bayar tunai.',
-		'Masuk lagi sebagai Bendi, tekan Sesuai pada Hitung Sisa, lalu Uang diterima pada pembayaran.',
-		'Buka kode verifikasi dari jejak segel untuk menunjukkan Segel sah di halaman publik.'
+		'Masuk lagi sebagai Bendi, tekan Sesuai pada Hitung Sisa, lalu Uang diterima pada pembayaran.'
 	],
 	faqTitle: 'Masih ada pertanyaan?',
 	faqBody:

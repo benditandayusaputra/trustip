@@ -267,13 +267,13 @@ describe('Drop form', () => {
 });
 
 describe('Drop detail', () => {
-	it('FR-DRP-05 shows the number, the batch, the totals, and the seal', async () => {
+	it('FR-DRP-05 shows the number, the batch, and the totals, without the seal', async () => {
 		serve({ [`GET /api/v1/drops/${dropId}`]: () => envelope(drop) });
 		const { container } = await render(DropsHarness, { view: 'detail', targetId: dropId });
 
 		await expect.element(page.getByText('TM-202611-0007', { exact: true })).toBeVisible();
 		await expect.element(page.getByText('Menunggu konfirmasi')).toBeVisible();
-		await expect.element(page.getByText('Segel sah')).toBeVisible();
+		await expect.element(page.getByText('Segel sah')).not.toBeInTheDocument();
 		await expectAccessible(container);
 	});
 });

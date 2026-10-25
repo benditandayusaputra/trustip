@@ -29,7 +29,7 @@ const patterns: [RegExp, PageSkeletonKind][] = [
 	[/^\/(t|u)\//u, 'profile'],
 	[/\/(baru|perubahan)$/u, 'form'],
 	[/^\/app\/produk\/[^/]+$/u, 'form'],
-	[/^\/(kebutuhan|verifikasi|undangan)\//u, 'detail'],
+	[/^\/(kebutuhan|undangan)\//u, 'detail'],
 	[/^\/app\/[^/]+\//u, 'detail'],
 	[/^\/app\//u, 'list']
 ];

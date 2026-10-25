@@ -18,14 +18,3 @@ export async function readPublic<T>(read: () => Promise<T>): Promise<T> {
 		throw failure;
 	}
 }
-
-export async function findPublic<T>(read: () => Promise<T>): Promise<T | null> {
-	try {
-		return await read();
-	} catch (failure) {
-		if (isNotFound(failure)) {
-			return null;
-		}
-		throw failure;
-	}
-}

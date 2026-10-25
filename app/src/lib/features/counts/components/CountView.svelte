@@ -4,7 +4,6 @@
 	import OfflineMark from '#lib/components/ui/OfflineMark.svelte';
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
-	import SealPanel from '#lib/components/ui/SealPanel.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
 	import { formatDateTime, formatInteger, formatRupiah } from '#lib/i18n/format.js';
@@ -87,7 +86,6 @@
 	{/if}
 	<h2 class="text-lg font-semibold text-text">{text.lines}</h2>
 	<ResponsiveTable caption={text.lines} {columns} rows={lineRows(count)} rowKey="id" />
-	<SealPanel isValid={count.seal.is_valid} events={count.seal.events} />
 	<div class="flex flex-wrap gap-4">
 		{#if count.settlement}
 			<a href="/app/setoran/{count.settlement.id}" class="action-link">

@@ -295,13 +295,13 @@ describe('Count form', () => {
 });
 
 describe('Count recap', () => {
-	it('FR-CNT-05 shows gross, store share, and what to pay, with the seal', async () => {
+	it('FR-CNT-05 shows gross, store share, and what to pay, without the seal', async () => {
 		serve();
 		const { container } = await render(CountsHarness, { view: 'recap', targetId: countId });
 
 		await expect.element(page.getByText('HS-202611-0001')).toBeVisible();
 		await expect.element(page.getByText('Rp31.500').first()).toBeInTheDocument();
-		await expect.element(page.getByText('Segel sah')).toBeVisible();
+		await expect.element(page.getByText('Segel sah')).not.toBeInTheDocument();
 		await expect.element(page.getByRole('link', { name: 'Catat titipan baru' })).toBeVisible();
 		await expectAccessible(container);
 	});

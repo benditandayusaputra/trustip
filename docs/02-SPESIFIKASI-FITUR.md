@@ -770,7 +770,6 @@ Halaman yang bisa dibuka tanpa masuk. Tujuannya tiga: membuat toko dan penitip b
 | Penitip | Nama, deskripsi, kecamatan dan kota, lokasi publik, produk, legalitas yang dinyatakan, jumlah toko mitra | Alamat lengkap, lokasi persis, nomor WhatsApp, angka penjualan |
 | Produk | Nama, foto, deskripsi, komposisi, harga jual saran | Harga setor, komisi, stok per toko |
 | "Tersedia di" | Nama dan alamat toko | Jumlah stok, syarat kemitraan |
-| Verifikasi segel | Jenis dan nomor dokumen, nama kedua pihak, jenis peristiwa, waktu, status segel | Nilai uang, jumlah barang, syarat |
 
 **Aturan**
 
@@ -804,8 +803,8 @@ Setiap peristiwa dagang disegel supaya kedua pihak yakin catatan tidak diubah se
 | ID | Kebutuhan | Prioritas |
 |---|---|:-:|
 | FR-SIG-01 | Setiap peristiwa berikut membuat satu entri segel: Kesepakatan disetujui, Titipan Masuk dicatat, dikonfirmasi, atau dibatalkan, Hitung Sisa dicatat atau dikonfirmasi, Setoran terbit, pembayaran dicatat, dikonfirmasi, atau ditolak, dan kemitraan berakhir | P0 |
-| FR-SIG-02 | Halaman setiap dokumen menampilkan tanda "Segel sah" atau "Segel tidak sah" dan jejak peristiwanya: apa, oleh siapa, kapan, beserta kode verifikasi | P0 |
-| FR-SIG-03 | Halaman publik `/verifikasi/<kode>` menampilkan apakah sebuah segel sah, tanpa perlu masuk | P0 |
+| FR-SIG-02 | Server memeriksa segel setiap kali dokumen dibuka. Status segel, jejak segel, dan kode verifikasi tidak tampil di antarmuka (ADR 0058) | P0 |
+| FR-SIG-03 | Rute publik API `GET /api/v1/public/seals/<kode>` menjawab apakah sebuah segel sah, tanpa perlu masuk. Tidak ada halaman verifikasi di app (ADR 0058) | P0 |
 | FR-SIG-04 | Kunci publik dan cara memeriksa segel secara mandiri diterbitkan | P0 |
 | FR-SIG-05 | Tugas harian memeriksa keutuhan rantai segel tiap kemitraan | P0 |
 | FR-SIG-06 | Kode QR segel pada PDF Kesepakatan dan Setoran | P1 |
@@ -818,14 +817,14 @@ Setiap peristiwa dagang disegel supaya kedua pihak yakin catatan tidak diubah se
 - **BR-SIG-03** Segel dibuat dalam transaksi yang sama dengan peristiwanya. Bila segel gagal dibuat, peristiwanya batal.
 - **BR-SIG-04** Entri segel tidak bisa diubah. Entri tidak bisa dihapus, kecuali milik kemitraan antar organisasi demo saat data demo disetel ulang.
 - **BR-SIG-05** Kode verifikasi adalah 16 karakter pertama hash entri dalam base32, ditulis berkelompok empat. Permintaan ulang idempoten tidak membuat entri baru.
-- **BR-SIG-06** Halaman verifikasi publik hanya menampilkan jenis dan nomor dokumen, nama kedua pihak, jenis peristiwa, waktu, dan status segel. Nilai uang, jumlah barang, dan syarat tidak tampil.
+- **BR-SIG-06** Rute verifikasi publik hanya mengembalikan jenis dan nomor dokumen, nama kedua pihak, jenis peristiwa, waktu, dan status segel. Nilai uang, jumlah barang, dan syarat tidak tampil.
 - **BR-SIG-07** Segel membuktikan dokumen tidak berubah sejak dicatat dan akun mana yang menyetujuinya. Antarmuka dan proposal tidak menyebutnya tanda tangan elektronik tersertifikasi.
 
 **Kriteria penerimaan**
 
-- WHEN toko menyimpan Hitung Sisa THE SYSTEM SHALL membuat entri segel dalam transaksi yang sama dan menampilkan "Segel sah" di rekapnya.
-- WHEN isi sebuah dokumen di basis data berbeda dari hash yang disegel THE SYSTEM SHALL menampilkan "Segel tidak sah" kepada kedua pihak dan mencatat peristiwa keamanan.
-- WHEN pengunjung membuka `/verifikasi/<kode>` dengan kode yang tidak dikenal THE SYSTEM SHALL menampilkan "Kode tidak ditemukan".
+- WHEN toko menyimpan Hitung Sisa THE SYSTEM SHALL membuat entri segel dalam transaksi yang sama tanpa menampilkan segel di rekapnya.
+- WHEN isi sebuah dokumen di basis data berbeda dari hash yang disegel THE SYSTEM SHALL mencatat peristiwa keamanan `seal_invalid` tanpa menampilkan status segel di antarmuka.
+- WHEN rute verifikasi publik menerima kode yang tidak dikenal THE SYSTEM SHALL menjawab 404.
 
 ## 19. PWA
 
@@ -1179,7 +1178,6 @@ Area publik dan area aplikasi dipisah supaya tidak bentrok alamat.
 | `/u/[slug]` | Profil penitip |
 | `/p/[slug]/[sku]` | Halaman produk |
 | `/undangan/[kode]` | Undangan kerja sama |
-| `/verifikasi/[kode]` | Pemeriksaan segel dokumen |
 | `/privasi`, `/ketentuan` | Kebijakan |
 | `/luring` | Halaman saat tanpa koneksi |
 
@@ -1237,7 +1235,7 @@ Navigasi bawah di HP. Penitip: Beranda, Cari, Mitra, Setoran, Lainnya. Toko: Ber
 | Aksi yang tidak bisa dibatalkan | Dialog konfirmasi yang menyebut akibatnya |
 | Uang | Selalu berformat Rupiah. Isian uang memberi pemisah ribuan otomatis |
 | Jumlah | Tombol tambah dan kurang yang besar, papan angka di HP |
-| Status | Warna tetap dan selalu disertai teks: abu (draf, berakhir), biru (dikirim, terbit), kuning (menunggu, belum terkirim), hijau (sesuai, lunas, segel sah), merah (ditolak, lewat tempo, segel tidak sah) |
+| Status | Warna tetap dan selalu disertai teks: abu (draf, berakhir), biru (dikirim, terbit), kuning (menunggu, belum terkirim), hijau (sesuai, lunas), merah (ditolak, lewat tempo) |
 | Luring | Pita "Tanpa koneksi. Catatan disimpan di perangkat dan dikirim saat sinyal kembali." Aksi yang butuh koneksi dinonaktifkan dengan keterangan |
 
 **Prinsip layar pencatatan**
@@ -1315,7 +1313,7 @@ Akun demo: satu OWNER penitip (Roti Pak Anton) dan satu OWNER toko (Warung Bu Sr
 | 2.20 | Toko mengisi Hitung Sisa di HP. Rekap: terjual, omzet, untung toko, harus setor. Catat bayar, penitip menekan Uang diterima |
 | 3.05 | Laporan penjualan toko dan penitip, lalu kartu saran kedaluwarsa |
 | 3.35 | Pembeli memindai QR: halaman produk dan "Tersedia di" |
-| 3.55 | PWA terpasang di HP: mode pesawat dinyalakan, toko tetap mengisi Hitung Sisa, sinyal kembali dan catatan terkirim sendiri. Lalu halaman verifikasi segel |
+| 3.55 | PWA terpasang di HP: mode pesawat dinyalakan, toko tetap mengisi Hitung Sisa, sinyal kembali dan catatan terkirim sendiri |
 | 4.15 | Batasan dan rencana pengembangan |
 
 ## 26. Rencana uji

@@ -57,7 +57,7 @@ const groups: FaqGroup[] = [
 			{
 				question: 'Bisakah catatan yang salah diubah?',
 				answer:
-					'Toko bisa membatalkan Titipan Masuk dalam 15 menit selama stoknya belum berubah. Catatan yang sudah tersegel tidak bisa diubah diam-diam oleh siapa pun, termasuk pengelola Trustip.'
+					'Toko bisa membatalkan Titipan Masuk dalam 15 menit selama stoknya belum berubah. Catatan yang sudah tersimpan tidak bisa diubah diam-diam oleh siapa pun, termasuk pengelola Trustip.'
 			},
 			{
 				question: 'Apa itu Kebutuhan Toko?',
@@ -96,11 +96,6 @@ const groups: FaqGroup[] = [
 		slug: 'keamanan',
 		title: 'Keamanan dan data',
 		items: [
-			{
-				question: 'Apa itu segel?',
-				answer:
-					'Tanda tangan digital yang dibuat setiap kali peristiwa dagang dicatat. Bila isi catatan berubah, segel menjadi tidak sah. Siapa pun bisa memeriksa kode segel di halaman verifikasi.'
-			},
 			{
 				question: 'Siapa yang bisa melihat data usaha saya?',
 				answer:

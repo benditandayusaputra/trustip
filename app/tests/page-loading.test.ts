@@ -144,8 +144,7 @@ test('new product keeps typed values while its category field is loading', async
 const publicPages = [
 	['/t/skeleton-preview', 'profile'],
 	['/u/skeleton-preview', 'profile'],
-	['/p/skeleton-preview/SKU', 'product'],
-	['/verifikasi/skeleton-preview', 'detail']
+	['/p/skeleton-preview/SKU', 'product']
 ] as const;
 
 for (const [path, kind] of publicPages) {

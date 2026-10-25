@@ -118,7 +118,7 @@ export const proposals = {
 		accept: 'Terima',
 		acceptTitle: 'Terima Ajuan ini?',
 		acceptBody:
-			'Kemitraan dan Kesepakatan versi 1 langsung berlaku dengan syarat di atas dan disegel. Perubahan berikutnya harus lewat Ajuan perubahan.',
+			'Kemitraan dan Kesepakatan versi 1 langsung berlaku dengan syarat di atas. Perubahan berikutnya harus lewat Ajuan perubahan.',
 		accepted: 'Ajuan diterima. Kesepakatan berlaku.',
 		decline: 'Tolak',
 		declineTitle: 'Tolak Ajuan ini?',

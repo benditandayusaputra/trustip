@@ -65,8 +65,8 @@ const privacy: LegalDocument = {
 		{
 			heading: 'Segel dokumen',
 			points: [
-				'Setiap catatan dagang disegel dengan tanda tangan digital supaya tidak bisa diubah diam-diam.',
-				'Halaman verifikasi segel bisa dibuka siapa saja, tetapi hanya menampilkan jenis dan nomor dokumen, nama kedua pihak, jenis peristiwa, waktu, dan status segel. Nilai uang tidak pernah tampil.'
+				'Setiap catatan dagang disegel dengan tanda tangan digital di server supaya tidak bisa diubah diam-diam.',
+				'Segel bekerja di belakang layar. Server memeriksanya setiap kali catatan dibuka dan mencatat peristiwa keamanan bila isinya tidak cocok.'
 			]
 		},
 		{

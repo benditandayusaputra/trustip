@@ -64,7 +64,7 @@ export const home = {
 			{
 				title: 'Catatan dua pihak tidak sama',
 				body: 'Nota kertas di dua tempat memicu selisih hitungan, telat bayar, sampai konflik.',
-				solution: 'Periksa catatan bersama, konfirmasi, dan segel dokumennya.'
+				solution: 'Periksa catatan bersama lalu konfirmasi angkanya.'
 			},
 			{
 				title: 'Retur tidak tercatat',

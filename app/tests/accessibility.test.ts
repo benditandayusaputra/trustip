@@ -145,7 +145,6 @@ async function visitorPages(page: Page): Promise<string[]> {
 		need,
 		'/u/roti-mas-bendi',
 		product,
-		'/verifikasi/AAAA-AAAA-AAAA-AAAA',
 		'/undangan/TIDAKADA'
 	];
 }

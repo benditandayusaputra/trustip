@@ -751,8 +751,8 @@ Setiap peristiwa dagang yang sudah terjadi disegel supaya tidak ada pihak, terma
 - **R-SEC-30** Segel dibuat di dalam transaksi yang sama dengan peristiwanya. Nomor urut dan `prev_hash` diambil sambil mengunci baris kemitraan, sehingga rantainya tidak bercabang.
 - **R-SEC-31** Tabel `seals` hanya bisa ditambah. Pemicu basis data menolak ubah, dan menolak hapus kecuali untuk kemitraan antar organisasi demo yang disetel ulang tiap malam.
 - **R-SEC-32** Kunci privat (benih Ed25519 32 byte) hanya ada di variabel lingkungan API (`SEAL_PRIVATE_KEY_V1`). Kunci publik diterbitkan di rute publik dan di `docs/VERIFIKASI-SEGEL.md` bersama cara memeriksa segel secara mandiri.
-- **R-SEC-33** Saat dokumen dibuka, server menghitung ulang `content_hash` dan membandingkannya dengan segel terakhir. Hasilnya tampil sebagai "Segel sah" atau "Segel tidak sah". Tugas harian memeriksa keutuhan rantai tiap kemitraan dan mencatat peristiwa keamanan bila ada yang putus.
-- **R-SEC-34** Halaman verifikasi publik hanya menampilkan jenis dokumen, nomor, nama kedua pihak, jenis peristiwa, waktu, dan status segel. Nilai uang tidak pernah tampil.
+- **R-SEC-33** Saat dokumen dibuka, server menghitung ulang `content_hash` dan membandingkannya dengan segel terakhir. Hasilnya tidak tampil di antarmuka (ADR 0058); ketidakcocokan dicatat sebagai peristiwa keamanan `seal_invalid`. Tugas harian memeriksa keutuhan rantai tiap kemitraan dan mencatat peristiwa keamanan bila ada yang putus.
+- **R-SEC-34** Rute verifikasi publik API hanya mengembalikan jenis dokumen, nomor, nama kedua pihak, jenis peristiwa, waktu, dan status segel. Nilai uang tidak pernah tampil.
 - **R-SEC-35** Bukti bayar ikut terkunci: hash SHA-256 berkasnya masuk ke isi yang disegel.
 
 Batas yang harus ditulis jujur di proposal: segel membuktikan dokumen tidak berubah sejak dicatat platform dan siapa akun yang menyetujuinya. Segel bukan tanda tangan elektronik tersertifikasi dari penyelenggara sertifikasi elektronik.

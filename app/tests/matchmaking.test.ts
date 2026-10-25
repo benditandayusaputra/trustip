@@ -109,8 +109,9 @@ test(
 		await accept(consignor);
 		await consignor.getByRole('link', { name: 'Lihat kemitraan' }).click();
 		await consignor.getByRole('tab', { name: 'Kesepakatan' }).click();
-		await expect(consignor.getByText('Segel sah')).toBeVisible({ timeout: networkTimeoutMs });
-		await expect(consignor.getByText('Rp1.750').filter({ visible: true }).first()).toBeVisible();
+		await expect(consignor.getByText('Rp1.750').filter({ visible: true }).first()).toBeVisible({
+			timeout: networkTimeoutMs
+		});
 	}
 );
 

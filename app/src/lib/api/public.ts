@@ -14,11 +14,6 @@ export function getPublicConsignor(client: ApiClient, slug: string): Promise<Pub
 
 export type PublicProduct = components['schemas']['PublicProduct'];
 export type PublicNeed = components['schemas']['PublicNeed'];
-export type SealVerification = components['schemas']['SealVerification'];
-
-export function verifySeal(client: ApiClient, code: string): Promise<SealVerification> {
-	return client.get<SealVerification>(`/api/v1/public/seals/${encodeURIComponent(code)}`);
-}
 
 export function getPublicNeed(client: ApiClient, needId: string): Promise<PublicNeed> {
 	return client.get<PublicNeed>(`/api/v1/public/needs/${encodeURIComponent(needId)}`);
