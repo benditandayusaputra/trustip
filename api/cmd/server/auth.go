@@ -37,9 +37,12 @@ type authComponents struct {
 	passwords    service.PasswordVerifier
 	users        service.UserCreator
 	accounts     service.AccountReader
+	profiles     service.AccountProfileStore
+	owners       service.PasswordOwnerStore
 	credentials  service.CredentialStore
 	sessions     service.SessionRotator
 	userSessions service.UserSessionRevoker
+	others       service.OtherSessionRevoker
 	tokens       service.TokenIssuer
 	memberships  service.MembershipFinder
 	audit        service.AuditTrail
@@ -63,9 +66,12 @@ func buildAuthComponents(cfg config.Config, pool *database.Pool, clock service.C
 		passwords:    passwordHasher{hasher: hasher},
 		users:        users,
 		accounts:     users,
+		profiles:     users,
+		owners:       users,
 		credentials:  users,
 		sessions:     sessions,
 		userSessions: sessions,
+		others:       sessions,
 		tokens:       newTokenIssuer(cfg.JWTKeys),
 		memberships:  orgrepository.NewMemberships(pool),
 		audit:        newAuditTrail(auditrepository.NewRecords(pool)),
@@ -94,15 +100,26 @@ func cookiePolicy(environment config.Environment) authhandler.CookiePolicy {
 	return authhandler.LocalCookies()
 }
 
-func authDeps(components authComponents, securityLog *slog.Logger, limiterClock ratelimit.Clock) authhandler.Deps {
+type authRoutes struct {
+	securityLog  *slog.Logger
+	clock        ratelimit.Clock
+	writeLimiter httpserver.RateLimiter
+}
+
+func authDeps(components authComponents, routes authRoutes) authhandler.Deps {
+	limiterClock := routes.clock
 	perMinute := ratelimit.Rule{Limit: loginsPerMinute, Window: time.Minute}
 	perHour := ratelimit.Rule{Limit: loginsPerHour, Window: time.Hour}
 	return authhandler.Deps{
-		Authenticate: httpserver.Authenticate(newAccessVerifier(components), components.cookies.AccessName()),
-		Account:      service.NewGetAccount(components.accounts),
-		Register:     newRegisterUser(components),
-		Login:        newLoginUser(components),
-		Refresh:      newRefreshSession(components),
+		Authenticate:   httpserver.Authenticate(newAccessVerifier(components), components.cookies.AccessName()),
+		Account:        service.NewGetAccount(components.accounts),
+		UpdateAccount:  newUpdateAccount(components),
+		ChangePassword: newChangePassword(components),
+		WriteLimiter:   routes.writeLimiter,
+		PasswordLimits: passwordLimiters(limiterClock),
+		Register:       newRegisterUser(components),
+		Login:          newLoginUser(components),
+		Refresh:        newRefreshSession(components),
 		LogOut: authhandler.SessionEnders{
 			ThisDevice: service.NewLogOut(logoutDeps(components)),
 			AllDevices: service.NewLogOutEverywhere(logoutDeps(components)),
@@ -117,7 +134,7 @@ func authDeps(components authComponents, securityLog *slog.Logger, limiterClock 
 		RefreshLimiter:  ratelimit.New(ratelimit.Rule{Limit: refreshesPerMinute, Window: time.Minute}, limiterClock),
 		RefreshLimitKey: byRefreshFamily(components.cookies),
 		Cookies:         components.cookies,
-		SecurityLog:     securityLog,
+		SecurityLog:     routes.securityLog,
 	}
 }
 

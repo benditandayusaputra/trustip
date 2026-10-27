@@ -802,6 +802,7 @@ Penghitung di memori (satu proses API), ember token per kunci, dengan pembersiha
 | Cari Mitra dan Papan Kebutuhan | 60 per menit | IP |
 | Unggah | 20 per jam | Organisasi |
 | Laporkan | 5 per jam | Pengguna |
+| Ubah kata sandi | 5 per menit dan 20 per jam | Pengguna |
 | Verifikasi segel publik | 30 per menit | IP |
 | Tiket SSE | 10 per menit, maksimal 3 koneksi | Pengguna |
 | Laporan galat klien | 10 per menit | IP |

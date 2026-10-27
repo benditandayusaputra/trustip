@@ -3,6 +3,7 @@
 	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import AccountCard from '#lib/features/account/components/AccountCard.svelte';
+	import type { AccountProfile } from '#lib/api/account.js';
 	import OrganizationSettings from '#lib/features/organization/components/OrganizationSettings.svelte';
 	import { organization as id } from '#lib/i18n/organization.js';
 
@@ -17,7 +18,14 @@
 <section class="mx-auto flex w-full max-w-profile flex-col gap-6">
 	<PageHeading icon={UserRound}>{id.settings.profileTitle}</PageHeading>
 	{#if account}
-		<AccountCard {account} />
+		{#key account.id}
+			<AccountCard
+				{account}
+				onsaved={(saved: AccountProfile) => {
+					session.account = saved;
+				}}
+			/>
+		{/key}
 		{#if account.membership}
 			<OrganizationSettings
 				organizationId={account.membership.organization_id}

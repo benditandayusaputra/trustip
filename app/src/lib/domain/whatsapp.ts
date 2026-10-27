@@ -1,4 +1,11 @@
 const digitsOnly = /^\d{8,15}$/u;
+const countryCode = '62';
+
+export function localWhatsApp(normalized: string): string {
+	return normalized.startsWith(countryCode)
+		? `0${normalized.slice(countryCode.length)}`
+		: normalized;
+}
 
 export function whatsAppChatUrl(number: string, message = ''): string | undefined {
 	if (!digitsOnly.test(number)) {

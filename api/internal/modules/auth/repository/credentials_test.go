@@ -106,7 +106,10 @@ func TestGetAccount_KnownAndUnknownUser(t *testing.T) {
 	account, err := users.GetAccount(t.Context(), savedUserID)
 	_, missing := users.GetAccount(t.Context(), "0192f0c4-7b1e-7c3a-9d2e-0000000000ff")
 
-	if err != nil || account != (domain.Account{ID: savedUserID, Email: "sari@contoh.id", FullName: "Sari Wulandari"}) {
+	want := domain.Account{
+		ID: savedUserID, Email: "sari@contoh.id", FullName: "Sari Wulandari", WhatsApp: "6281234567890",
+	}
+	if err != nil || account != want {
 		t.Fatalf("account = %+v, err = %v", account, err)
 	}
 	if apperror.From(missing).Code() != apperror.CodeNotFound {

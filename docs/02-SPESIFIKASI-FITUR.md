@@ -75,6 +75,7 @@ Setiap pengguna menjadi anggota tepat satu **organisasi**. Organisasi bertipe `C
 | Lihat laporan dan angka gabungan | Ya | Tidak | Ya | Tidak |
 | Akhiri kemitraan | Ya | Tidak | Ya | Tidak |
 | Laporkan profil atau unggahan | Ya | Ya | Ya | Ya |
+| Ubah akun sendiri: nama, WhatsApp, foto, dan kata sandi | Ya | Ya | Ya | Ya |
 
 **Aturan otorisasi**
 
@@ -101,6 +102,8 @@ Setiap pengguna menjadi anggota tepat satu **organisasi**. Organisasi bertipe `C
 | FR-AUTH-10 | Hapus akun dan data pribadi atas permintaan | P1 |
 | FR-AUTH-11 | Masuk dengan akun Google | P2 |
 | FR-AUTH-12 | Captcha pada daftar, masuk, akun demo, dan lupa kata sandi | P0 |
+| FR-AUTH-13 | Halaman Profil: ubah nama, nomor WhatsApp, dan foto profil akun sendiri | P0 |
+| FR-AUTH-14 | Ubah kata sandi dengan kata sandi saat ini; sesi di perangkat lain berakhir | P0 |
 
 **Validasi**
 
@@ -1197,7 +1200,7 @@ Area publik dan area aplikasi dipisah supaya tidak bentrok alamat.
 | `/app/laporan` | Laporan penjualan dan Setoran |
 | `/app/pemberitahuan` | Semua pemberitahuan |
 | `/app/antrean` | Catatan luring yang belum terkirim |
-| `/app/profil` | Data akun, profil dan lokasi usaha, profil toko atau penitip |
+| `/app/profil` | Data akun (nama, WhatsApp, foto, ubah sandi), profil dan lokasi usaha, profil toko atau penitip |
 | `/app/pengaturan` | Tampilan, tampil di Cari Mitra, info pembayaran, keluar dari semua perangkat, anggota (P1) |
 
 **Aplikasi, khusus Penitip**

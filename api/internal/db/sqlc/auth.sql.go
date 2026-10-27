@@ -12,6 +12,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countOwnAvatarFiles = `-- name: CountOwnAvatarFiles :one
+SELECT count(*)::integer
+FROM files
+WHERE id = $1::uuid AND organization_id = $2::uuid AND created_by = $3::uuid
+    AND purpose = 'AVATAR'
+`
+
+type CountOwnAvatarFilesParams struct {
+	ID             string
+	OrganizationID string
+	CreatedBy      string
+}
+
+func (q *Queries) CountOwnAvatarFiles(ctx context.Context, arg CountOwnAvatarFilesParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countOwnAvatarFiles, arg.ID, arg.OrganizationID, arg.CreatedBy)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createSession = `-- name: CreateSession :exec
 INSERT INTO sessions (id, user_id, family_id, token_hash, expires_at, created_at)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -108,21 +128,30 @@ func (q *Queries) FindUserByEmail(ctx context.Context, email string) (FindUserBy
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, email, full_name
-FROM users
-WHERE id = $1
+SELECT u.id, u.email, u.full_name, u.whatsapp, COALESCE(f.id::text, '')::text AS avatar_file_id
+FROM users AS u
+LEFT JOIN files AS f ON f.id = u.avatar_file_id
+WHERE u.id = $1
 `
 
 type GetAccountRow struct {
-	ID       string
-	Email    string
-	FullName string
+	ID           string
+	Email        string
+	FullName     string
+	Whatsapp     string
+	AvatarFileID string
 }
 
 func (q *Queries) GetAccount(ctx context.Context, id string) (GetAccountRow, error) {
 	row := q.db.QueryRow(ctx, getAccount, id)
 	var i GetAccountRow
-	err := row.Scan(&i.ID, &i.Email, &i.FullName)
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FullName,
+		&i.Whatsapp,
+		&i.AvatarFileID,
+	)
 	return i, err
 }
 
@@ -142,6 +171,32 @@ func (q *Queries) LockLoginAttempts(ctx context.Context, id string) (LockLoginAt
 	row := q.db.QueryRow(ctx, lockLoginAttempts, id)
 	var i LockLoginAttemptsRow
 	err := row.Scan(&i.FailedLoginCount, &i.LockedUntil)
+	return i, err
+}
+
+const lockPasswordOwner = `-- name: LockPasswordOwner :one
+SELECT email, full_name, password_hash, pepper_version
+FROM users
+WHERE id = $1
+FOR UPDATE
+`
+
+type LockPasswordOwnerRow struct {
+	Email         string
+	FullName      string
+	PasswordHash  string
+	PepperVersion string
+}
+
+func (q *Queries) LockPasswordOwner(ctx context.Context, id string) (LockPasswordOwnerRow, error) {
+	row := q.db.QueryRow(ctx, lockPasswordOwner, id)
+	var i LockPasswordOwnerRow
+	err := row.Scan(
+		&i.Email,
+		&i.FullName,
+		&i.PasswordHash,
+		&i.PepperVersion,
+	)
 	return i, err
 }
 
@@ -189,6 +244,39 @@ type MarkSessionRotatedParams struct {
 func (q *Queries) MarkSessionRotated(ctx context.Context, arg MarkSessionRotatedParams) error {
 	_, err := q.db.Exec(ctx, markSessionRotated, arg.RotatedAt, arg.ID)
 	return err
+}
+
+const revokeOtherUserSessions = `-- name: RevokeOtherUserSessions :many
+UPDATE sessions
+SET revoked_at = $1
+WHERE user_id = $2 AND family_id <> $3::uuid AND revoked_at IS NULL
+RETURNING family_id
+`
+
+type RevokeOtherUserSessionsParams struct {
+	RevokedAt    pgtype.Timestamptz
+	UserID       string
+	KeepFamilyID string
+}
+
+func (q *Queries) RevokeOtherUserSessions(ctx context.Context, arg RevokeOtherUserSessionsParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, revokeOtherUserSessions, arg.RevokedAt, arg.UserID, arg.KeepFamilyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var family_id string
+		if err := rows.Scan(&family_id); err != nil {
+			return nil, err
+		}
+		items = append(items, family_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const revokeSessionFamily = `-- name: RevokeSessionFamily :exec
@@ -271,4 +359,36 @@ type SavePasswordParams struct {
 func (q *Queries) SavePassword(ctx context.Context, arg SavePasswordParams) error {
 	_, err := q.db.Exec(ctx, savePassword, arg.PasswordHash, arg.PepperVersion, arg.ID)
 	return err
+}
+
+const updateAccountProfile = `-- name: UpdateAccountProfile :execrows
+UPDATE users
+SET
+    full_name = $1::text,
+    whatsapp = $2::text,
+    avatar_file_id = NULLIF($3::text, '')::uuid,
+    updated_at = $4::timestamptz
+WHERE id = $5::uuid
+`
+
+type UpdateAccountProfileParams struct {
+	FullName     string
+	Whatsapp     string
+	AvatarFileID string
+	UpdatedAt    time.Time
+	ID           string
+}
+
+func (q *Queries) UpdateAccountProfile(ctx context.Context, arg UpdateAccountProfileParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateAccountProfile,
+		arg.FullName,
+		arg.Whatsapp,
+		arg.AvatarFileID,
+		arg.UpdatedAt,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

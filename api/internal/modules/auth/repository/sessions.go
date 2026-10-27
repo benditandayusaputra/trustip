@@ -90,6 +90,21 @@ func (r *Sessions) RevokeUser(ctx context.Context, userID string, at time.Time) 
 	return slices.Compact(families), nil
 }
 
+func (r *Sessions) RevokeOtherSessions(
+	ctx context.Context, userID, keepFamily string, at time.Time,
+) ([]string, error) {
+	families, err := sqlc.New(r.pool.Querier(ctx)).RevokeOtherUserSessions(ctx, sqlc.RevokeOtherUserSessionsParams{
+		UserID:       userID,
+		KeepFamilyID: keepFamily,
+		RevokedAt:    optionalTime(at),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("revoke other sessions of %s: %w", userID, err)
+	}
+	slices.Sort(families)
+	return slices.Compact(families), nil
+}
+
 func timeOrZero(value pgtype.Timestamptz) time.Time {
 	if !value.Valid {
 		return time.Time{}

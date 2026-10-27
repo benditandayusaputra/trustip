@@ -32,6 +32,8 @@ const (
 	FieldAmountMismatch    FieldCode = "PAYMENT_AMOUNT_MISMATCH"
 	FieldProofRequired     FieldCode = "PROOF_REQUIRED"
 	FieldContactInText     FieldCode = "CONTACT_NOT_ALLOWED"
+	FieldWrongCurrent      FieldCode = "WRONG_PASSWORD"
+	FieldSameAsCurrent     FieldCode = "SAME_AS_CURRENT"
 )
 
 type Param struct {
@@ -67,6 +69,8 @@ func fieldMessages() map[FieldCode]string {
 		FieldPeriodSettled:     "Tanggal ini sudah masuk Setoran {no}.",
 		FieldAmountMismatch:    "Jumlah harus sama dengan sisa Setoran ({Rp}).",
 		FieldProofRequired:     "Unggah bukti untuk pembayaran transfer atau QRIS.",
+		FieldWrongCurrent:      "Kata sandi saat ini salah.",
+		FieldSameAsCurrent:     "Kata sandi baru harus berbeda dari yang sekarang.",
 		FieldContactInText: "Nomor telepon dan tautan tidak boleh ada di teks. " +
 			"Calon mitra menghubungi lewat tombol yang tersedia.",
 	}

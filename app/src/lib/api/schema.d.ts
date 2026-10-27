@@ -145,6 +145,22 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        patch: operations["updateCurrentAccount"];
+        trace?: never;
+    };
+    "/api/v1/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -1671,6 +1687,32 @@ export interface components {
             email: string;
             membership: components["schemas"]["Membership"] | null;
         };
+        AccountProfile: {
+            /** Format: uuid */
+            id: string;
+            full_name: string;
+            email: string;
+            /** @description Nomor WhatsApp akun dalam bentuk 62 diikuti angka */
+            whatsapp: string;
+            avatar: components["schemas"]["ImageRef"] | null;
+            membership: components["schemas"]["Membership"] | null;
+        };
+        AccountProfileResponse: {
+            code: components["schemas"]["SuccessCode"];
+            message: string;
+            data: components["schemas"]["AccountProfile"];
+            meta: components["schemas"]["ResponseMeta"];
+        };
+        AccountUpdateRequest: {
+            full_name: string;
+            whatsapp: string;
+            /** @description Berkas AVATAR yang diunggah pengguna ini, atau null untuk menghapus foto */
+            avatar_file_id: string | null;
+        };
+        PasswordChangeRequest: {
+            current_password: string;
+            new_password: string;
+        };
         /** @enum {string} */
         OrganizationType: "CONSIGNOR" | "STORE";
         Membership: {
@@ -1843,7 +1885,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            purpose: "LOGO" | "STORE_PHOTO" | "PAYMENT_QR" | "PRODUCT_PHOTO" | "PAYMENT_PROOF";
+            purpose: "LOGO" | "STORE_PHOTO" | "PAYMENT_QR" | "PRODUCT_PHOTO" | "PAYMENT_PROOF" | "AVATAR";
             /** @enum {string} */
             visibility: "PUBLIC" | "PRIVATE";
             /** @enum {string} */
@@ -3767,17 +3809,89 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Akun pengguna yang sedang masuk */
+            /** @description Akun pengguna yang sedang masuk, dengan nomor WhatsApp dan foto profil */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["RequestId"];
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AccountResponse"];
+                    "application/json": components["schemas"]["AccountProfileResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    updateCurrentAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Nama, nomor WhatsApp, dan foto profil akun tersimpan */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountProfileResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["CrossSite"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    changePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeRequest"];
+            };
+        };
+        responses: {
+            /** @description Kata sandi diganti dan sesi di perangkat lain berakhir */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestId"];
+                    "RateLimit-Limit": components["headers"]["RateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["RateLimitRemaining"];
+                    "RateLimit-Reset": components["headers"]["RateLimitReset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmptyResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["CrossSite"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["Unprocessable"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["ServiceUnavailable"];
@@ -4133,7 +4247,7 @@ export interface operations {
                     /** Format: binary */
                     file: string;
                     /** @enum {string} */
-                    purpose: "LOGO" | "STORE_PHOTO" | "PAYMENT_QR" | "PRODUCT_PHOTO" | "PAYMENT_PROOF";
+                    purpose: "LOGO" | "STORE_PHOTO" | "PAYMENT_QR" | "PRODUCT_PHOTO" | "PAYMENT_PROOF" | "AVATAR";
                 };
             };
         };

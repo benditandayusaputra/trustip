@@ -31,6 +31,7 @@ const (
 	PaymentQR    Purpose = "PAYMENT_QR"
 	ProductPhoto Purpose = "PRODUCT_PHOTO"
 	PaymentProof Purpose = "PAYMENT_PROOF"
+	Avatar       Purpose = "AVATAR"
 )
 
 type Visibility string
@@ -56,6 +57,7 @@ func purposeRules() map[Purpose]purposeRule {
 		PaymentQR:    {visibility: Private, allowedFor: consignors, action: policy.EditProfile},
 		ProductPhoto: {visibility: Public, allowedFor: consignors, action: policy.ManageProducts},
 		PaymentProof: {visibility: Private, allowedFor: stores, action: policy.RecordPayments},
+		Avatar:       {visibility: Private, allowedFor: bothTypes, action: policy.EditOwnAccount},
 	}
 }
 

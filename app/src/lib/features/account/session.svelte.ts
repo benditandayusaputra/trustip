@@ -1,6 +1,6 @@
 import { createContext } from 'svelte';
 import type { ApiClient } from '#lib/api/client.js';
-import { getAccount } from '#lib/api/account.js';
+import { getAccount, type AccountProfile } from '#lib/api/account.js';
 import { ApiError } from '#lib/api/errors.js';
 import { logOut, logOutEverywhere } from '#lib/api/sessions.js';
 import type { OrganizationType } from '#lib/api/organizations.js';
@@ -20,7 +20,7 @@ export function isPlacedFor(account: Account, placement: Placement): boolean {
 }
 
 export class AccountSession {
-	account = $state<Account | undefined>();
+	account = $state<AccountProfile | undefined>();
 	status = $state<AccountStatus>('loading');
 	failure = $state('');
 	readonly #client: () => ApiClient;

@@ -6,6 +6,8 @@ type Action string
 
 const (
 	SignedIn                Action = "SIGNED_IN"
+	AccountUpdated          Action = "ACCOUNT_UPDATED"
+	PasswordChanged         Action = "PASSWORD_CHANGED"
 	OrganizationCreated     Action = "ORGANIZATION_CREATED"
 	ProfileUpdated          Action = "PROFILE_UPDATED"
 	StoreProfileUpdated     Action = "STORE_PROFILE_UPDATED"

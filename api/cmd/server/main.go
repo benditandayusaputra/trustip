@@ -153,10 +153,10 @@ func newServer(base *slog.Logger, deps serverDeps) *httpserver.Server {
 		Limiter:     deps.limiter,
 		AppOrigin:   deps.appOrigin,
 	})
-	authhandler.Mount(server.API(), authDeps(deps.auth, securityLog, deps.clock))
+	writeLimiter := newWriteLimiter(deps.clock)
+	authhandler.Mount(server.API(), authDeps(deps.auth, authRoutes{securityLog, deps.clock, writeLimiter}))
 	authenticate := httpserver.Authenticate(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName())
 	visit := httpserver.AuthenticateIfPresent(newAccessVerifier(deps.auth), deps.auth.cookies.AccessName())
-	writeLimiter := newWriteLimiter(deps.clock)
 	orghandler.Mount(server.API(), orgDeps(deps.org, orgRoutes{
 		authenticate: authenticate,
 		filesBaseURL: deps.files.publicBaseURL,

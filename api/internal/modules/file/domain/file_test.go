@@ -35,7 +35,9 @@ func TestParsePurpose_NFR09_EachPurposeBelongsToTheRightOrganizationType(t *test
 		{"PAYMENT_QR", actor.Store, false},
 		{"PRODUCT_PHOTO", actor.Consignor, true},
 		{"PRODUCT_PHOTO", actor.Store, false},
-		{"AVATAR", actor.Store, false},
+		{"AVATAR", actor.Store, true},
+		{"AVATAR", actor.Consignor, true},
+		{"SELFIE", actor.Store, false},
 		{"", actor.Store, false},
 	}
 	for _, tc := range cases {
@@ -51,7 +53,9 @@ func TestParsePurpose_NFR09_EachPurposeBelongsToTheRightOrganizationType(t *test
 }
 
 func TestVisibility_NFR09_PaymentQRIsPrivateAndProfileImagesArePublic(t *testing.T) {
-	want := map[Purpose]Visibility{Logo: Public, StorePhoto: Public, PaymentQR: Private, ProductPhoto: Public}
+	want := map[Purpose]Visibility{
+		Logo: Public, StorePhoto: Public, PaymentQR: Private, ProductPhoto: Public, Avatar: Private,
+	}
 	for purpose, visibility := range want {
 		if got := purpose.Visibility(); got != visibility {
 			t.Errorf("%s = %s, want %s", purpose, got, visibility)
@@ -99,7 +103,8 @@ func TestRequiredAction_FRPRD01_ProductPhotosFollowProductManagement(t *testing.
 		"LOGO":          policy.EditProfile,
 		"STORE_PHOTO":   policy.EditProfile,
 		"PAYMENT_QR":    policy.EditProfile,
-		"AVATAR":        policy.EditProfile,
+		"AVATAR":        policy.EditOwnAccount,
+		"SELFIE":        policy.EditProfile,
 	}
 	for raw, want := range cases {
 		if got := RequiredAction(raw); got != want {

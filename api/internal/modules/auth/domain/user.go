@@ -11,10 +11,12 @@ import (
 var ErrEmailTaken = errors.New("email is already registered")
 
 type Account struct {
-	ID         string
-	Email      string
-	FullName   string
-	Membership actor.Membership
+	ID           string
+	Email        string
+	FullName     string
+	WhatsApp     string
+	AvatarFileID string
+	Membership   actor.Membership
 }
 
 type StoredPassword struct {

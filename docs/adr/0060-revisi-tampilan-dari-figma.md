@@ -19,7 +19,7 @@ Setelah revisi ADR 0059, tim mengekspor desain Figma untuk bagian yang belum pun
 
 ## Yang tidak diikuti
 
-- Foto profil, nomor HP akun, dan ubah kata sandi di desain Profil tidak dibuat karena API akun belum menyediakannya.
+- Foto profil, nomor HP akun, dan ubah kata sandi di desain Profil belum dibuat karena API akun belum menyediakannya. Ketiganya menyusul di ADR 0061.
 - Logo di desain Figma berbeda antarbagian (kubus dan tumpukan), jadi logo yang disetujui 10 Oktober 2026 tetap dipakai.
 - Huruf tebal di isi pemberitahuan tidak dibuat karena teks berasal dari server sebagai teks biasa.
 

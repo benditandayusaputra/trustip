@@ -5,6 +5,7 @@ import type {
 	ProfileUpdateRequest
 } from '#lib/api/organizations.js';
 import type { OnboardingErrors, OnboardingField, OnboardingValues, ProfileValues } from './schema';
+import { localWhatsApp } from '#lib/domain/whatsapp.js';
 
 const fieldsFromServer: Record<string, OnboardingField | undefined> = {
 	type: 'type',
@@ -55,14 +56,6 @@ export function toProfileValues(organization: Organization): ProfileValues {
 }
 
 const provinceCodeLength = 2;
-const countryCode = '62';
-
-function localWhatsApp(normalized: string): string {
-	return normalized.startsWith(countryCode)
-		? `0${normalized.slice(countryCode.length)}`
-		: normalized;
-}
-
 export function toProfileUpdateRequest(
 	values: ProfileValues,
 	logoFileId: string | null

@@ -56,6 +56,34 @@ WHERE user_id = @user_id AND revoked_at IS NULL
 RETURNING family_id;
 
 -- name: GetAccount :one
-SELECT id, email, full_name
+SELECT u.id, u.email, u.full_name, u.whatsapp, COALESCE(f.id::text, '')::text AS avatar_file_id
+FROM users AS u
+LEFT JOIN files AS f ON f.id = u.avatar_file_id
+WHERE u.id = @id;
+
+-- name: CountOwnAvatarFiles :one
+SELECT count(*)::integer
+FROM files
+WHERE id = @id::uuid AND organization_id = @organization_id::uuid AND created_by = @created_by::uuid
+    AND purpose = 'AVATAR';
+
+-- name: UpdateAccountProfile :execrows
+UPDATE users
+SET
+    full_name = @full_name::text,
+    whatsapp = @whatsapp::text,
+    avatar_file_id = NULLIF(@avatar_file_id::text, '')::uuid,
+    updated_at = @updated_at::timestamptz
+WHERE id = @id::uuid;
+
+-- name: LockPasswordOwner :one
+SELECT email, full_name, password_hash, pepper_version
 FROM users
-WHERE id = @id;
+WHERE id = @id
+FOR UPDATE;
+
+-- name: RevokeOtherUserSessions :many
+UPDATE sessions
+SET revoked_at = @revoked_at
+WHERE user_id = @user_id AND family_id <> @keep_family_id::uuid AND revoked_at IS NULL
+RETURNING family_id;

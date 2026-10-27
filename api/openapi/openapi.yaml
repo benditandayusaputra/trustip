@@ -238,16 +238,99 @@ paths:
       tags: [auth]
       responses:
         "200":
-          description: Akun pengguna yang sedang masuk
+          description: Akun pengguna yang sedang masuk, dengan nomor WhatsApp dan foto profil
           headers:
             X-Request-Id:
               $ref: "#/components/headers/RequestId"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountResponse"
+                $ref: "#/components/schemas/AccountProfileResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+    patch:
+      operationId: updateCurrentAccount
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUpdateRequest"
+      responses:
+        "200":
+          description: Nama, nomor WhatsApp, dan foto profil akun tersimpan
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountProfileResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/CrossSite"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/v1/me/password:
+    post:
+      operationId: changePassword
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordChangeRequest"
+      responses:
+        "200":
+          description: Kata sandi diganti dan sesi di perangkat lain berakhir
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+            RateLimit-Limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            RateLimit-Reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/CrossSite"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/RateLimited"
         "500":
@@ -662,7 +745,7 @@ paths:
                   format: binary
                 purpose:
                   type: string
-                  enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO, PAYMENT_PROOF]
+                  enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO, PAYMENT_PROOF, AVATAR]
       responses:
         "201":
           description: Gambar dikode ulang dan disimpan
@@ -4317,6 +4400,68 @@ components:
           nullable: true
           allOf:
             - $ref: "#/components/schemas/Membership"
+    AccountProfile:
+      type: object
+      additionalProperties: false
+      required: [id, full_name, email, whatsapp, avatar, membership]
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        email:
+          type: string
+        whatsapp:
+          type: string
+          description: Nomor WhatsApp akun dalam bentuk 62 diikuti angka
+        avatar:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ImageRef"
+        membership:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Membership"
+    AccountProfileResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, meta]
+      properties:
+        code:
+          $ref: "#/components/schemas/SuccessCode"
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/AccountProfile"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    AccountUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [full_name, whatsapp, avatar_file_id]
+      properties:
+        full_name:
+          type: string
+          minLength: 2
+          maxLength: 80
+        whatsapp:
+          type: string
+        avatar_file_id:
+          type: string
+          nullable: true
+          description: Berkas AVATAR yang diunggah pengguna ini, atau null untuk menghapus foto
+    PasswordChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [current_password, new_password]
+      properties:
+        current_password:
+          type: string
+        new_password:
+          type: string
+          minLength: 10
+          maxLength: 128
     OrganizationType:
       type: string
       enum: [CONSIGNOR, STORE]
@@ -4736,7 +4881,7 @@ components:
           format: uuid
         purpose:
           type: string
-          enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO, PAYMENT_PROOF]
+          enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO, PAYMENT_PROOF, AVATAR]
         visibility:
           type: string
           enum: [PUBLIC, PRIVATE]

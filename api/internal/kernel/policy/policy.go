@@ -24,6 +24,7 @@ const (
 	ViewReports        Action = "VIEW_REPORTS"
 	EndPartnerships    Action = "END_PARTNERSHIPS"
 	ReportListings     Action = "REPORT_LISTINGS"
+	EditOwnAccount     Action = "EDIT_OWN_ACCOUNT"
 )
 
 type Grant int
@@ -59,6 +60,7 @@ func Table() map[Action]Grants {
 		ViewReports:        ownersOnly(),
 		EndPartnerships:    ownersOnly(),
 		ReportListings:     everyone(),
+		EditOwnAccount:     everyone(),
 	}
 }
 

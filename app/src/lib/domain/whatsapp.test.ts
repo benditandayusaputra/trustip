@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { whatsAppChatUrl, whatsAppMessageUrl } from './whatsapp';
+import { localWhatsApp, whatsAppChatUrl, whatsAppMessageUrl } from './whatsapp';
 
 describe('whatsAppChatUrl', () => {
 	it('R-SEC-64 builds the chat link only from a normalized number', () => {
@@ -21,5 +21,12 @@ describe('whatsAppMessageUrl', () => {
 			'https://wa.me/6281234567890?text=Setoran%20ST-1%20Rp1.000%20%26%20terima%20kasih'
 		);
 		expect(whatsAppMessageUrl('bad', 'x')).toBeUndefined();
+	});
+});
+
+describe('localWhatsApp', () => {
+	it('shows the stored 62 number the way people type it', () => {
+		expect(localWhatsApp('6281311112222')).toBe('081311112222');
+		expect(localWhatsApp('081311112222')).toBe('081311112222');
 	});
 });

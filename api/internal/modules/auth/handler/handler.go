@@ -18,6 +18,7 @@ const (
 	logoutPath    = sessionsPath + "/logout"
 	logoutAllPath = sessionsPath + "/logout-all"
 	mePath        = "/me"
+	passwordPath  = mePath + "/password"
 	accountPath   = httpserver.APIPrefix + mePath
 )
 
@@ -36,6 +37,11 @@ type LoginLimiters struct {
 	PerEmailHour   httpserver.RateLimiter
 }
 
+type PasswordLimiters struct {
+	PerUserMinute httpserver.RateLimiter
+	PerUserHour   httpserver.RateLimiter
+}
+
 type SessionEnders struct {
 	ThisDevice SessionEnder
 	AllDevices SessionEnder
@@ -44,6 +50,8 @@ type SessionEnders struct {
 type Deps struct {
 	Authenticate    fiber.Handler
 	Account         AccountGetter
+	UpdateAccount   AccountUpdater
+	ChangePassword  PasswordChanger
 	Register        Registrar
 	Login           Authenticator
 	Refresh         Refresher
@@ -52,6 +60,8 @@ type Deps struct {
 	LoginLimiters   LoginLimiters
 	RefreshLimiter  httpserver.RateLimiter
 	RefreshLimitKey httpserver.RateLimitKey
+	WriteLimiter    httpserver.RateLimiter
+	PasswordLimits  PasswordLimiters
 	Cookies         CookiePolicy
 	SecurityLog     *slog.Logger
 }
@@ -61,6 +71,13 @@ func Mount(api fiber.Router, deps Deps) {
 		return httpserver.RateLimit(limiter, keyOf, deps.SecurityLog)
 	}
 	api.Get(mePath, deps.Authenticate, currentAccount(deps.Account))
+	api.Patch(mePath, deps.Authenticate, limit(deps.WriteLimiter, httpserver.BySignedInUser),
+		updateAccount(deps.UpdateAccount))
+	api.Post(passwordPath, deps.Authenticate,
+		limit(deps.PasswordLimits.PerUserMinute, httpserver.BySignedInUser),
+		limit(deps.PasswordLimits.PerUserHour, httpserver.BySignedInUser),
+		changePassword(deps.ChangePassword),
+	)
 	api.Post(usersPath, limit(deps.SignupLimiter, httpserver.ByClientIP), register(deps.Register))
 	api.Post(sessionsPath,
 		limit(deps.LoginLimiters.PerIPMinute, httpserver.ByClientIP),
