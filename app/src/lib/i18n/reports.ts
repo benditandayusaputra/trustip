@@ -44,7 +44,7 @@ export const reports = {
 		overdue: 'Lewat tempo',
 		tally: (count: string, amount: string) => `${count} · ${amount}`,
 		settlementsEmpty: 'Belum ada Setoran yang terbit pada rentang ini.',
-		toSettlements: 'Lihat Setoran',
+		settlementList: 'Daftar Setoran',
 		dailyChart: 'Penjualan harian',
 		chartCaption: (from: string, to: string) => `Omzet per hari, ${from} sampai ${to}`,
 		showTable: 'Lihat sebagai tabel',

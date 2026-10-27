@@ -20,7 +20,7 @@
 	const hiddenCategories = $derived(card.categories.length - shownCategories);
 </script>
 
-<article class="surface-card list-card">
+<article class="surface-card list-card org-row">
 	<header class="flex items-start gap-4">
 		{#if card.logo_url}
 			<img
@@ -53,31 +53,31 @@
 				{id.directory.joined(formatBusinessDate(card.joined_on))}
 			</p>
 		</div>
-		{#if card.match}
-			<MatchSummary match={card.match} />
-		{/if}
 	</header>
-	<div class="flex flex-wrap gap-2">
-		{#if card.is_self}
-			<Badge tone="neutral" label={id.directory.self} />
-		{/if}
-		{#if card.is_partner}
-			<Badge tone="success" label={id.directory.partner} />
-		{/if}
-		{#each card.categories.slice(0, shownCategories) as category (category.id)}
-			<Badge tone="neutral" label={category.name} />
-		{/each}
-		{#if hiddenCategories > 0}
-			<Badge tone="neutral" label={id.directory.more(hiddenCategories)} />
+	<div class="flex min-w-0 flex-col gap-2">
+		<div class="flex flex-wrap gap-2">
+			{#if card.is_self}
+				<Badge tone="neutral" label={id.directory.self} />
+			{/if}
+			{#if card.is_partner}
+				<Badge tone="success" label={id.directory.partner} />
+			{/if}
+			{#each card.categories.slice(0, shownCategories) as category (category.id)}
+				<Badge tone="neutral" label={category.name} />
+			{/each}
+			{#if hiddenCategories > 0}
+				<Badge tone="neutral" label={id.directory.more(hiddenCategories)} />
+			{/if}
+		</div>
+		<ConsignorTraits traits={card.traits} />
+		{#if card.match}
+			<MatchReasons reasons={card.match.reasons} isApproximate />
 		{/if}
 	</div>
-	<ConsignorTraits traits={card.traits} />
-	{#if card.match}
-		<MatchReasons reasons={card.match.reasons} isApproximate />
-	{/if}
-	{#if !card.is_self}
-		<div class="list-card-actions">
+	<div class="list-card-actions flex flex-col gap-2 md:items-end">
+		{#if card.match}<MatchSummary match={card.match} />{/if}
+		{#if !card.is_self}
 			<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
-		</div>
-	{/if}
+		{/if}
+	</div>
 </article>

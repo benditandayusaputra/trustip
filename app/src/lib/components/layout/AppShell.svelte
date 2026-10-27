@@ -7,9 +7,11 @@
 	import PublicMenu from './PublicMenu.svelte';
 	import Brand from './Brand.svelte';
 	import WorkspaceBreadcrumb from './WorkspaceBreadcrumb.svelte';
+	import PublicLinks from './PublicLinks.svelte';
 	import ThemePicker from '../ui/ThemePicker.svelte';
 	import { common as text } from '#lib/i18n/common.js';
-	import { navigationFor, type OrganizationType } from './navigation';
+	import { bottomNavigationOf, navigationFor, type OrganizationType } from './navigation';
+	import { PageTitle, setPageTitle } from './page-title.svelte';
 
 	interface Props {
 		organizationType?: OrganizationType | undefined;
@@ -31,12 +33,14 @@
 
 	const navigation = $derived(organizationType ? navigationFor(organizationType) : undefined);
 	const isPublic = $derived(!organizationType && !workspace);
+	const bottomNavigation = $derived(navigation ? bottomNavigationOf(navigation) : undefined);
+	setPageTitle(new PageTitle(() => organizationType !== undefined));
 </script>
 
 <SkipLink />
 <div class="flex min-h-dvh">
 	{#if organizationType && navigation}
-		<Sidebar items={[...navigation.primary, ...navigation.more]} {currentPath} {organizationType} />
+		<Sidebar {navigation} {currentPath} {organizationType} />
 	{:else if workspace}
 		<div
 			class="workspace-sidebar sticky top-0 hidden h-dvh w-(--sidebar-width) shrink-0 p-5 lg:block"
@@ -45,10 +49,9 @@
 		</div>
 	{/if}
 	<div class="flex min-w-0 flex-1 flex-col">
-		<header class="workspace-header flex items-center px-4 py-4 lg:px-8">
+		<header class="workspace-header flex items-center px-4 py-2 lg:px-8">
 			<div class="mx-auto flex w-full max-w-content flex-wrap items-center justify-between gap-4">
 				{#if organizationType}
-					<div class="lg:hidden"><Brand href="/app" /></div>
 					<WorkspaceBreadcrumb {organizationType} {currentPath} />
 				{:else if workspace}
 					<div class="lg:hidden"><Brand href="/app" /></div>
@@ -56,18 +59,8 @@
 					<Brand compact />
 				{/if}
 				<nav aria-label={text.layout.publicNavigation} class="flex flex-wrap items-center gap-2">
-					{#if isPublic}
-						<a href="/cari/toko" class="hidden text-text-muted hover:text-text md:inline">
-							{text.nav.findStores}
-						</a>
-						<a href="/kebutuhan" class="hidden text-text-muted hover:text-text md:inline">
-							{text.nav.needsBoard}
-						</a>
-						<a href="/panduan" class="hidden text-text-muted hover:text-text lg:inline">
-							{text.nav.guide}
-						</a>
-					{/if}
-					{#if isPublic}<PublicMenu />{/if}<ThemePicker />{@render actions?.()}
+					{#if isPublic}<PublicLinks {currentPath} /><PublicMenu />{/if}<ThemePicker
+					/>{@render actions?.()}
 				</nav>
 			</div>
 		</header>
@@ -93,6 +86,6 @@
 		{/if}
 	</div>
 </div>
-{#if navigation}
-	<BottomNav primary={navigation.primary} more={navigation.more} {currentPath} />
+{#if bottomNavigation}
+	<BottomNav primary={bottomNavigation.primary} more={bottomNavigation.more} {currentPath} />
 {/if}

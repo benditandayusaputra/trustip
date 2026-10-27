@@ -20,9 +20,7 @@
 			: '/cari/toko'}
 		class="action-link text-sm"
 	>
-		{session.account?.membership?.organization_type === 'STORE'
-			? id.nav.count
-			: id.layout.searchPartners}
+		{session.account?.membership?.organization_type === 'STORE' ? id.nav.count : id.nav.findStores}
 		<ArrowUpRight class="size-4" aria-hidden="true" />
 	</a>
 </div>

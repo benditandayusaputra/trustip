@@ -14,17 +14,17 @@
 
 <div class="flex min-w-0 flex-col gap-5">
 	<div class="sticky-filters">
-		<div class="filter-toolbar flex flex-col gap-4">
-			<div class="flex flex-wrap items-end gap-4">
-				<div class="sm:basis-0 min-w-0 flex-1 basis-full">{@render searchControls()}</div>
+		<div class="filter-toolbar flex max-w-(--search-panel-width) flex-col gap-2">
+			<div class="flex flex-wrap items-end gap-2">
+				<div class="min-w-0 flex-1 basis-full md:basis-0">{@render searchControls()}</div>
 				<button
 					type="button"
 					aria-expanded={open}
 					aria-controls={panelId}
 					onclick={() => (open = !open)}
-					class="inline-flex min-h-12 items-center gap-2 rounded-control border border-border-strong bg-surface px-4 font-semibold text-text hover:bg-surface-hover"
+					class="inline-flex min-h-11 items-center gap-2 rounded-control border border-border-strong bg-surface px-4 text-sm font-semibold text-text hover:bg-surface-hover"
 				>
-					<SlidersHorizontal class="size-5" aria-hidden="true" />{text.layout.filters}
+					<SlidersHorizontal class="size-4" aria-hidden="true" />{text.layout.filters}
 					<ChevronDown class="size-4 {open ? 'rotate-180' : ''}" aria-hidden="true" />
 				</button>
 			</div>

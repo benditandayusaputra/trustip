@@ -10,7 +10,6 @@
 	import { DashboardState, SalesOverview } from '../state.svelte';
 	import { rankedByGross, storeTasks, taskLinksOf } from '../views';
 	import InsightList from './InsightList.svelte';
-	import OpportunityList from './OpportunityList.svelte';
 	import QuickCountList from './QuickCountList.svelte';
 	import RankingList from './RankingList.svelte';
 	import TaskList from './TaskList.svelte';
@@ -63,7 +62,6 @@
 		</div>
 	{/if}
 	<InsightList insights={board.insights} side="STORE" previewCount={suggestionPreview} />
-	<OpportunityList side="STORE" previewCount={listPreview} />
 	{#if isOwner}
 		<RankingList
 			title={text.rankingProducts}

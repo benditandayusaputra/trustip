@@ -22,7 +22,7 @@ export const home = {
 		rolesIntro: 'Dua peran usaha, satu tempat untuk bekerja sama.',
 		roles: [
 			{
-				title: 'Saya pemilik produk',
+				title: 'Saya penitip produk',
 				body: 'Titipkan produk ke mitra dan pantau perkembangannya tanpa menanyakan catatan satu per satu.',
 				benefits: [
 					'Cari toko yang menerima titipan',

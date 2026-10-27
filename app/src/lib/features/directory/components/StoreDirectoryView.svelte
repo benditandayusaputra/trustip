@@ -48,10 +48,11 @@
 </script>
 
 <div class="flex min-w-0 flex-col gap-6">
-	<p class="max-w-reading text-base text-text-muted">{text.introduction}</p>
 	<section class="sticky-filters" aria-label={text.searchPanel}>
-		<div class="flex flex-col gap-4 rounded-card border border-border bg-surface p-4 compact:p-5">
-			<div class="flex flex-wrap items-end gap-4">
+		<div
+			class="flex max-w-(--search-panel-width) flex-col gap-2 rounded-card border border-border bg-surface p-4"
+		>
+			<div class="flex flex-wrap items-end gap-2">
 				<div class="min-w-0 flex-1 basis-full md:basis-0">
 					<StoreSearch {query} onchange={change} />
 				</div>
@@ -61,9 +62,9 @@
 						aria-expanded={filtersOpen}
 						aria-controls={filtersId}
 						onclick={() => (filtersOpen = !filtersOpen)}
-						class="inline-flex min-h-12 items-center gap-2 rounded-control border border-border-strong px-4 font-semibold text-text hover:bg-surface-hover"
+						class="inline-flex min-h-11 items-center gap-2 rounded-control border border-border-strong px-4 text-sm font-semibold text-text hover:bg-surface-hover"
 					>
-						<SlidersHorizontal class="size-5" aria-hidden="true" />{text.filterToggle}
+						<SlidersHorizontal class="size-4" aria-hidden="true" />{text.filterToggle}
 						{#if active > 0}<span
 								class="rounded-pill bg-accent-surface px-2 py-1 text-sm whitespace-nowrap text-accent"
 								>{text.activeFilters(active)}</span
@@ -79,7 +80,8 @@
 								type="button"
 								aria-pressed={view === value}
 								onclick={() => (view = value)}
-								class="min-h-11 rounded-control px-4 font-semibold transition-none {view === value
+								class="min-h-11 rounded-control px-4 text-sm font-semibold transition-none {view ===
+								value
 									? 'bg-primary text-on-accent'
 									: 'text-text hover:bg-surface-hover'}">{label}</button
 							>
@@ -122,7 +124,7 @@
 		{#snippet card(store: DirectoryStoreCard)}<StoreCard card={store} />{/snippet}
 		{#snippet results(items: DirectoryStoreCard[])}
 			{#if view === 'map'}<StoreMap stores={items} />
-			{:else}<ul class="list-grid">
+			{:else}<ul class="org-row-list">
 					{#each items as store (store.id)}<li><StoreCard card={store} /></li>{/each}
 				</ul>{/if}
 		{/snippet}

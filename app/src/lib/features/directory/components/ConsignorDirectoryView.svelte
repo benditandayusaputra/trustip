@@ -107,6 +107,11 @@
 					{#snippet card(product: DirectoryProductCard)}
 						<ProductCard card={product} />
 					{/snippet}
+					{#snippet results(items: DirectoryProductCard[])}
+						<ul class="grid grid-cols-(--product-grid-columns) gap-4">
+							{#each items as product (product.id)}<li><ProductCard card={product} /></li>{/each}
+						</ul>
+					{/snippet}
 				</DirectoryResults>
 			{:else}
 				<DirectoryResults
@@ -119,6 +124,13 @@
 				>
 					{#snippet card(consignor: DirectoryConsignorCard)}
 						<ConsignorCard card={consignor} />
+					{/snippet}
+					{#snippet results(items: DirectoryConsignorCard[])}
+						<ul class="org-row-list">
+							{#each items as consignor (consignor.id)}<li>
+									<ConsignorCard card={consignor} />
+								</li>{/each}
+						</ul>
 					{/snippet}
 				</DirectoryResults>
 			{/if}

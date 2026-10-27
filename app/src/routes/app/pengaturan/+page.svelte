@@ -3,6 +3,7 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import { getAccountSession } from '#lib/features/account/session.svelte.js';
 	import OrganizationSettings from '#lib/features/organization/components/OrganizationSettings.svelte';
+	import SessionEnd from '#lib/features/account/components/SessionEnd.svelte';
 	import { organization as id } from '#lib/i18n/organization.js';
 
 	const session = getAccountSession();
@@ -21,4 +22,5 @@
 			canEdit={membership.role === 'OWNER'}
 		/>
 	{/if}
+	<div class="self-start"><SessionEnd everywhere /></div>
 </section>

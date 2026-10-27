@@ -111,14 +111,16 @@
 	--home-art-mobile-height: 220px;
 	--home-art-height: 300px;
 	--sidebar-width: 256px;
-	--header-height: 88px;
+	--header-height: 72px;
 	--textarea-height: 112px;
-	--product-grid-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+	--product-grid-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
 	--auth-panel-height: 640px;
 	--directory-columns: 320px minmax(0, 1fr);
 	--home-example-columns: minmax(0, 7fr) minmax(0, 5fr);
 	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 	--store-results-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+	--org-row-columns: minmax(0, 5fr) minmax(0, 6fr) auto;
+	--search-panel-width: 48rem;
 	--directory-map-height: 26rem;
 	--map-marker-size: 44px;
 	--qr-code-size: 192px;

@@ -26,11 +26,12 @@ async function boundsOf(locator: Locator) {
 
 async function inspectLayout(page: Page, side: 'STORE' | 'CONSIGNOR') {
 	await expect(page.getByRole('link', { name: /Roti Sobek.*Lihat detail/u })).toBeVisible();
-	const opportunities = await boundsOf(section(page, 'Peluang'));
+	await expect(page.getByRole('heading', { name: 'Peluang', exact: true })).toHaveCount(0);
+	const reminders = await boundsOf(section(page, 'Pengingat'));
 	const products = await boundsOf(section(page, 'Produk terlaris'));
-	expect(opportunities.width).toBe(products.width);
-	expect(opportunities.y).toBeLessThan(products.y);
-	const suggestions = section(page, 'Saran').locator('li');
+	expect(reminders.width).toBe(products.width);
+	expect(reminders.y).toBeLessThan(products.y);
+	const suggestions = section(page, 'Pengingat').locator('li');
 	const heights = await suggestions.evaluateAll((items) =>
 		items.map((item) => item.getBoundingClientRect().height)
 	);

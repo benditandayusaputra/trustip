@@ -637,8 +637,7 @@ Catatan pembulatan: 67.500 × 0,175 = 11.812,5 dibulatkan setengah ke atas menja
 | Perlu tindakan | Titipan dan hitungan menunggu konfirmasi, pembayaran menunggu konfirmasi, Ajuan yang menunggu giliran saya |
 | Grafik | Penjualan harian 30 hari, bisa disaring per toko atau produk |
 | Peringkat | Toko dan produk terlaris |
-| Saran | Maksimal 5 kartu teratas |
-| Peluang | Kebutuhan Toko terdekat yang cocok, dan toko yang disarankan |
+| Saran | Maksimal 5 kartu teratas, tampil dengan judul Pengingat |
 
 ### 15.2 Dasbor Toko (P0)
 
@@ -648,7 +647,8 @@ Catatan pembulatan: 67.500 × 0,175 = 11.812,5 dibulatkan setengah ke atas menja
 | Hitung cepat | Mitra yang belum dihitung hari ini, dengan tombol Hitung |
 | Perlu tindakan | Setoran belum dibayar, pembayaran ditolak, Ajuan yang menunggu giliran saya, Kebutuhan yang akan habis masa tayang |
 | Terlaris | 5 produk titipan terlaris 30 hari |
-| Peluang | Produk dan penitip yang disarankan, tanggapan baru atas Kebutuhan |
+
+Bagian Peluang dihapus dari kedua dasbor (ADR 0059). Toko dan penitip yang cocok tetap ditemukan lewat Cari dan saran INS-10.
 
 ### 15.3 Mesin saran (fitur pintar)
 
@@ -1218,7 +1218,7 @@ Area publik dan area aplikasi dipisah supaya tidak bentrok alamat.
 
 **Admin** (P1): `/admin/laporan`, `/admin/organisasi`.
 
-Navigasi bawah di HP. Penitip: Beranda, Cari, Mitra, Setoran, Lainnya. Toko: Beranda, Hitung, Titipan, Cari, Lainnya.
+Navigasi bawah di HP. Penitip: Beranda, Cari, Mitra, Laporan, Lainnya. Toko: Beranda, Hitung, Titipan, Cari, Lainnya.
 
 ## 24. Standar UX dan pesan sistem
 

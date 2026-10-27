@@ -16,8 +16,6 @@ export const directory = {
 	directory: {
 		storesTitle: 'Cari toko',
 		filters: 'Saring toko',
-		introduction:
-			'Temukan toko yang cocok untuk produk Anda. Cari nama toko atau gunakan filter untuk mempersempit pilihan.',
 		filterToggle: 'Filter',
 		searchPanel: 'Pencarian toko',
 		filterHint:

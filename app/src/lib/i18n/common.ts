@@ -13,13 +13,10 @@ export const common = {
 		filters: 'Filter dan urutan',
 		menu: 'Menu navigasi',
 		openMenu: 'Buka menu navigasi',
-		breadcrumb: 'Jejak halaman',
+		back: 'Kembali',
 		managementGroup: 'Kelola usaha',
-		secureTitle: 'Tercatat bersama.',
-		secureBody: 'Setiap langkah jelas untuk Anda dan mitra.',
 		overview: 'Ringkasan usaha',
 		dashboardIntro: 'Pantau titipan dan langkah berikutnya bersama mitra.',
-		searchPartners: 'Cari mitra',
 		organizations: { STORE: 'Ruang kerja toko', CONSIGNOR: 'Ruang kerja penitip' }
 	},
 	nav: {
@@ -152,6 +149,7 @@ export const common = {
 		openMenu: 'Buka menu akun',
 		greeting: (name: string) => `Halo, ${name}`,
 		menu: 'Akun',
+		manageProfile: 'Kelola profil',
 		logOut: 'Keluar',
 		logOutEverywhere: 'Keluar dari semua perangkat',
 		confirmEverywhereTitle: 'Keluar dari semua perangkat?',

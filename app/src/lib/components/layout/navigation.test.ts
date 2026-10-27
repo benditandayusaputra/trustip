@@ -1,31 +1,42 @@
 import { describe, expect, it } from 'vitest';
-import { isCurrent, navigationFor } from './navigation';
+import { bottomNavigationOf, isCurrent, navigationFor } from './navigation';
+
+const labels = (items: { label: string }[]) => items.map((item) => item.label);
 
 describe('navigationFor', () => {
-	it('gives a consignor Beranda, Cari, Mitra, Setoran before Lainnya', () => {
-		expect(navigationFor('CONSIGNOR').primary.map((item) => item.label)).toEqual([
+	it('gives a consignor a workspace group and a product-focused management group', () => {
+		const navigation = navigationFor('CONSIGNOR');
+		expect(labels(navigation.workspace)).toEqual(['Beranda', 'Cari', 'Mitra', 'Laporan']);
+		expect(labels(navigation.manage)).toEqual(['Produk', 'Ajuan', 'Stok', 'Pengaturan']);
+	});
+
+	it('gives a store Laporan in its workspace group', () => {
+		expect(labels(navigationFor('STORE').workspace)).toEqual([
 			'Beranda',
+			'Hitung',
+			'Titipan',
 			'Cari',
-			'Mitra',
-			'Setoran'
+			'Laporan'
 		]);
 	});
 
-	it('gives a store Beranda, Hitung, Titipan, Cari before Lainnya', () => {
-		expect(navigationFor('STORE').primary.map((item) => item.label)).toEqual([
+	it('leaves notifications to the bell and settlements to Laporan', () => {
+		for (const type of ['CONSIGNOR', 'STORE'] as const) {
+			const navigation = navigationFor(type);
+			const hrefs = [...navigation.workspace, ...navigation.manage].map((item) => item.href);
+			expect(hrefs).not.toContain('/app/pemberitahuan');
+			expect(hrefs).not.toContain('/app/setoran');
+		}
+	});
+
+	it('keeps four bottom tabs before Lainnya', () => {
+		expect(labels(bottomNavigationOf(navigationFor('STORE')).primary)).toEqual([
 			'Beranda',
 			'Hitung',
 			'Titipan',
 			'Cari'
 		]);
-	});
-
-	it('keeps products only for consignors and needs only for stores', () => {
-		const consignorMore = navigationFor('CONSIGNOR').more.map((item) => item.href);
-		const storeMore = navigationFor('STORE').more.map((item) => item.href);
-		expect(consignorMore).toContain('/app/produk');
-		expect(storeMore).not.toContain('/app/produk');
-		expect(storeMore).toContain('/app/kebutuhan');
+		expect(labels(bottomNavigationOf(navigationFor('CONSIGNOR')).more)).toContain('Produk');
 	});
 });
 

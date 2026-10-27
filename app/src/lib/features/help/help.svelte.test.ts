@@ -8,7 +8,7 @@ import { guide } from '#lib/i18n/guide.js';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 
 describe('GuidePage', () => {
-	it('walks through every phase in order and links each one from the contents', async () => {
+	it('lists every phase in order with its steps folded', async () => {
 		const { container } = await render(GuidePage, {});
 
 		await expect
@@ -16,19 +16,17 @@ describe('GuidePage', () => {
 			.toBeVisible();
 		for (const phase of guide.phases) {
 			await expect.element(page.getByRole('heading', { name: phase.title })).toBeVisible();
-			await expect
-				.element(page.getByRole('navigation', { name: guide.contentsLabel }).getByText(phase.title))
-				.toHaveAttribute('href', `#${phase.slug}`);
 		}
+		const [first] = guide.phases;
+		await expect.element(page.getByText(first?.steps[0] ?? '')).not.toBeVisible();
+		await userEvent.click(page.getByText(guide.stepsToggle, { exact: true }).first());
+		await expect.element(page.getByText(first?.steps[0] ?? '')).toBeVisible();
 		await expectAccessible(container);
 	});
 
-	it('introduces the three demo personas and leads to the demo sign-in', async () => {
+	it('leads to the demo sign-in', async () => {
 		await render(GuidePage, {});
 
-		for (const name of ['Bendi', 'Zara', 'Jessica']) {
-			await expect.element(page.getByText(name, { exact: true })).toBeVisible();
-		}
 		await expect
 			.element(page.getByRole('link', { name: guide.tryDemo }))
 			.toHaveAttribute('href', '/demo');

@@ -17,7 +17,6 @@
 		taskLinksOf
 	} from '../views';
 	import InsightList from './InsightList.svelte';
-	import OpportunityList from './OpportunityList.svelte';
 	import RankingList from './RankingList.svelte';
 	import TaskList from './TaskList.svelte';
 
@@ -75,7 +74,6 @@
 		<p class="text-sm text-text-muted">{text.ownerOnly}</p>
 	{/if}
 	<InsightList insights={board.insights} side="CONSIGNOR" previewCount={suggestionPreview} />
-	<OpportunityList side="CONSIGNOR" previewCount={listPreview} />
 	{#if isOwner}
 		<div class="flex flex-col gap-6">
 			<RankingList

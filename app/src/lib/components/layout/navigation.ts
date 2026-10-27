@@ -23,50 +23,77 @@ export interface NavItem {
 	icon: Component<{ class?: string; 'aria-hidden'?: 'true' }>;
 }
 
-interface Navigation {
-	primary: NavItem[];
-	more: NavItem[];
+export interface Navigation {
+	workspace: NavItem[];
+	manage: NavItem[];
 }
 
-const shared: NavItem[] = [
-	{ href: '/app/ajuan', label: id.nav.proposals, icon: FileSignature },
-	{ href: '/app/stok', label: id.nav.stock, icon: Warehouse },
-	{ href: '/app/laporan', label: id.nav.reports, icon: ChartColumn },
-	{ href: '/app/pemberitahuan', label: id.nav.notifications, icon: Bell },
-	{ href: '/app/antrean', label: id.nav.outbox, icon: CloudUpload },
-	{ href: '/app/pengaturan', label: id.nav.settings, icon: Settings }
-];
+const reports: NavItem = { href: '/app/laporan', label: id.nav.reports, icon: ChartColumn };
+const partners: NavItem = { href: '/app/mitra', label: id.nav.partners, icon: Handshake };
+const proposals: NavItem = { href: '/app/ajuan', label: id.nav.proposals, icon: FileSignature };
+const stock: NavItem = { href: '/app/stok', label: id.nav.stock, icon: Warehouse };
+const settings: NavItem = { href: '/app/pengaturan', label: id.nav.settings, icon: Settings };
 
 const byType: Record<OrganizationType, Navigation> = {
 	CONSIGNOR: {
-		primary: [
+		workspace: [
 			{ href: '/app/penitip', label: id.nav.home, icon: House },
 			{ href: '/cari/toko', label: id.nav.search, icon: Search },
-			{ href: '/app/mitra', label: id.nav.partners, icon: Handshake },
-			{ href: '/app/setoran', label: id.nav.settlements, icon: Wallet }
+			partners,
+			reports
 		],
-		more: [{ href: '/app/produk', label: id.nav.products, icon: PackageOpen }, ...shared]
+		manage: [
+			{ href: '/app/produk', label: id.nav.products, icon: PackageOpen },
+			proposals,
+			stock,
+			settings
+		]
 	},
 	STORE: {
-		primary: [
+		workspace: [
 			{ href: '/app/toko', label: id.nav.home, icon: House },
 			{ href: '/app/hitung', label: id.nav.count, icon: Calculator },
 			{ href: '/app/titipan', label: id.nav.drops, icon: Package },
-			{ href: '/cari/penitip', label: id.nav.search, icon: Search }
+			{ href: '/cari/penitip', label: id.nav.search, icon: Search },
+			reports
 		],
-		more: [
-			{ href: '/app/mitra', label: id.nav.partners, icon: Handshake },
-			{ href: '/app/setoran', label: id.nav.settlements, icon: Wallet },
+		manage: [
+			partners,
 			{ href: '/app/kebutuhan', label: id.nav.needs, icon: Megaphone },
-			...shared
+			proposals,
+			stock,
+			{ href: '/app/antrean', label: id.nav.outbox, icon: CloudUpload },
+			settings
 		]
 	}
 };
+
+export const sectionsOutsideNavigation: NavItem[] = [
+	{ href: '/app/hitung', label: id.nav.count, icon: Calculator },
+	{ href: '/app/titipan', label: id.nav.drops, icon: Package },
+	{ href: '/app/setoran', label: id.nav.settlements, icon: Wallet },
+	{ href: '/app/pemberitahuan', label: id.nav.notifications, icon: Bell },
+	{ href: '/app/antrean', label: id.nav.outbox, icon: CloudUpload },
+	{ href: '/kebutuhan', label: id.nav.needsBoard, icon: Megaphone },
+	{ href: '/cari/toko', label: id.nav.findStores, icon: Search },
+	{ href: '/cari/penitip', label: id.nav.findConsignors, icon: Search }
+];
 
 export function navigationFor(type: OrganizationType): Navigation {
 	return byType[type];
 }
 
 export function isCurrent(href: string, currentPath: string): boolean {
-	return currentPath === href || currentPath.startsWith(`${href}/`);
+	const path = href.split('?')[0] ?? href;
+	return currentPath === path || currentPath.startsWith(`${path}/`);
+}
+
+const bottomTabs = 4;
+
+export function bottomNavigationOf(navigation: Navigation): {
+	primary: NavItem[];
+	more: NavItem[];
+} {
+	const all = [...navigation.workspace, ...navigation.manage];
+	return { primary: all.slice(0, bottomTabs), more: all.slice(bottomTabs) };
 }

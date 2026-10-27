@@ -15,7 +15,7 @@ test('FR-PUB-01 NFR-17 R-PERF-08 home page explains the problem, how it works, a
 		'href',
 		'/daftar'
 	);
-	await expect(page.getByRole('heading', { name: 'Saya pemilik produk' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Saya penitip produk' })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'Saya pemilik toko' })).toBeVisible();
 	const workflow = page.getByRole('region', { name: 'Cara kerja', exact: true });
 	await expect(workflow.getByRole('listitem')).toHaveCount(5);

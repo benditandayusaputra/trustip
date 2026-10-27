@@ -1,8 +1,6 @@
 <script lang="ts">
-	import Wallet from '@lucide/svelte/icons/wallet';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import DateField from '#lib/components/ui/DateField.svelte';
-	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
@@ -55,11 +53,7 @@
 {:else if state.status === 'failed' || !state.report}
 	<Alert title={text.loadFailed}>{state.failure}</Alert>
 {:else if state.report.rows.length === 0}
-	<EmptyState icon={Wallet} message={text.settlementsEmpty}>
-		{#snippet action()}
-			<a href="/app/setoran" class="font-semibold text-accent">{text.toSettlements}</a>
-		{/snippet}
-	</EmptyState>
+	<p class="text-sm text-text-muted">{text.settlementsEmpty}</p>
 {:else}
 	{@const total = settlementCells(state.report.total)}
 	<div class="grid grid-cols-2 gap-4 md:grid-cols-4">

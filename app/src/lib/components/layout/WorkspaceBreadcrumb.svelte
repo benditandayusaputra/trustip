@@ -1,52 +1,67 @@
 <script lang="ts">
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
-	import Calculator from '@lucide/svelte/icons/calculator';
-	import Package from '@lucide/svelte/icons/package';
-	import Megaphone from '@lucide/svelte/icons/megaphone';
-	import Search from '@lucide/svelte/icons/search';
 	import { common as text } from '#lib/i18n/common.js';
-	import { navigationFor, isCurrent, type OrganizationType } from './navigation';
+	import {
+		navigationFor,
+		isCurrent,
+		sectionsOutsideNavigation,
+		type OrganizationType
+	} from './navigation';
+	import { getPageTitle } from './page-title.svelte';
 	let {
 		organizationType,
 		currentPath
 	}: { organizationType: OrganizationType; currentPath: string } = $props();
+	const pageTitle = getPageTitle();
 	const navigation = $derived(navigationFor(organizationType));
-	const related = [
-		{ href: '/app/hitung', label: text.nav.count, icon: Calculator },
-		{ href: '/app/titipan', label: text.nav.drops, icon: Package },
-		{ href: '/kebutuhan', label: text.nav.needsBoard, icon: Megaphone },
-		{ href: '/cari/toko', label: text.nav.findStores, icon: Search },
-		{ href: '/cari/penitip', label: text.nav.findConsignors, icon: Search }
-	];
-	const current = $derived(
-		[...navigation.primary, ...navigation.more, ...related].find((item) =>
-			isCurrent(item.href, currentPath)
-		)
+	const items = $derived([...navigation.workspace, ...navigation.manage]);
+	const section = $derived(items.find((item) => isCurrent(item.href, currentPath)));
+	const entry = $derived(pageTitle?.entry);
+	const backHref = $derived(entry?.backHref ?? (section ? undefined : items[0]?.href));
+	const parent = $derived(
+		backHref === undefined
+			? undefined
+			: [...items, ...sectionsOutsideNavigation].find((item) => isCurrent(item.href, backHref))
 	);
-	const Icon = $derived(current?.icon ?? LayoutDashboard);
-	const searchHref = $derived(organizationType === 'STORE' ? '/cari/penitip' : '/cari/toko');
+	const Icon = $derived(entry?.icon ?? section?.icon ?? LayoutDashboard);
 </script>
 
-<nav aria-label={text.layout.breadcrumb} class="hidden min-w-0 items-center gap-4 lg:flex">
-	<span
-		class="flex size-11 items-center justify-center rounded-control border border-border text-text-muted"
-	>
-		<Icon class="size-5" aria-hidden="true" />
-	</span>
-	<div class="flex flex-col gap-1">
-		<p class="text-xs text-text-muted">{text.layout.organizations[organizationType]}</p>
-		<p class="flex items-center gap-2 text-sm font-semibold text-text">
-			<a href="/app" class="hover:text-accent">{text.layout.navigationGroup}</a><ChevronRight
-				class="size-4 text-text-muted"
-				aria-hidden="true"
-			/>{#if current && current.href !== currentPath}<a
-					href={current.href}
-					class="hover:text-accent">{current.label}</a
-				>{:else}<span aria-current="page">{current?.label ?? text.layout.overview}</span>{/if}
+<div class="flex min-w-0 items-center gap-2">
+	{#if backHref}
+		<a
+			href={backHref}
+			aria-label={text.layout.back}
+			class="flex size-11 shrink-0 items-center justify-center rounded-control border border-border text-text hover:border-accent hover:text-accent"
+			><ChevronLeft class="size-5" aria-hidden="true" /></a
+		>
+	{:else}
+		<span
+			class="flex size-11 shrink-0 items-center justify-center rounded-control border border-border text-accent"
+			><Icon class="size-5" aria-hidden="true" /></span
+		>
+	{/if}
+	<div class="flex min-w-0 flex-col">
+		<p class="hidden text-xs text-text-muted compact:block">
+			{text.layout.organizations[organizationType]}
 		</p>
+		<div class="flex min-w-0 items-center gap-1 text-base font-semibold">
+			{#if backHref && parent}
+				<a href={backHref} class="hidden shrink-0 text-text hover:text-accent compact:inline"
+					>{parent.label}</a
+				><ChevronRight
+					class="hidden size-4 shrink-0 text-text-muted compact:block"
+					aria-hidden="true"
+				/>
+			{/if}
+			{#if entry}
+				<h1 class="truncate {backHref ? 'text-text' : 'text-accent'}">{@render entry.title()}</h1>
+			{:else}
+				<span aria-current="page" class="truncate text-accent"
+					>{section?.label ?? text.layout.overview}</span
+				>
+			{/if}
+		</div>
 	</div>
-</nav>
-<a href={searchHref} class="workspace-search hidden xl:inline-flex">
-	<Search class="size-4" aria-hidden="true" />{text.layout.searchPartners}
-</a>
+</div>

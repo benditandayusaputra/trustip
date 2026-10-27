@@ -30,7 +30,7 @@
 	);
 </script>
 
-<article class="surface-card list-card">
+<article class="surface-card list-card org-row">
 	<header class="flex items-start gap-4">
 		{#if card.logo_url}
 			<img
@@ -63,39 +63,41 @@
 			</p>
 		</div>
 	</header>
-	{#if card.match}<MatchSummary match={card.match} compact />{/if}
-	<div class="flex flex-wrap gap-2">
-		{#if card.is_self}
-			<Badge tone="neutral" label={text.self} />
-		{/if}
-		{#if card.is_partner}
-			<Badge tone="success" label={text.partner} />
-		{/if}
-		{#if card.open_need_category_ids.length > 0}
-			<Badge tone="pending" label={text.openNeed} />
-		{/if}
-		{#each card.accepted_categories.slice(0, shownCategories) as category (category.id)}
-			<Badge tone="neutral" label={category.name} />
-		{/each}
-		{#if hiddenCategories > 0}
-			<Badge tone="neutral" label={text.more(hiddenCategories)} />
-		{/if}
-	</div>
-	<div class="flex flex-col gap-1 text-sm text-text-muted">
-		{#if minimum !== null && maximum !== null}
-			<p class="truncate">
-				{text.commissionRange(formatBasisPoints(minimum), formatBasisPoints(maximum))}
-			</p>
-		{/if}
-		<p class="truncate">{reputation} · {text.activePartners(card.reputation.active_partners)}</p>
-		<p class="truncate">{text.joined(formatBusinessDate(card.joined_on))}</p>
-	</div>
-	{#if card.match}
-		<MatchReasons reasons={card.match.reasons} />
-	{/if}
-	{#if !card.is_self}
-		<div class="list-card-actions">
-			<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
+	<div class="flex min-w-0 flex-col gap-2">
+		<div class="flex flex-wrap gap-2">
+			{#if card.is_self}
+				<Badge tone="neutral" label={text.self} />
+			{/if}
+			{#if card.is_partner}
+				<Badge tone="success" label={text.partner} />
+			{/if}
+			{#if card.open_need_category_ids.length > 0}
+				<Badge tone="pending" label={text.openNeed} />
+			{/if}
+			{#each card.accepted_categories.slice(0, shownCategories) as category (category.id)}
+				<Badge tone="neutral" label={category.name} />
+			{/each}
+			{#if hiddenCategories > 0}
+				<Badge tone="neutral" label={text.more(hiddenCategories)} />
+			{/if}
 		</div>
-	{/if}
+		<div class="flex flex-col gap-1 text-sm text-text-muted">
+			{#if minimum !== null && maximum !== null}
+				<p class="truncate">
+					{text.commissionRange(formatBasisPoints(minimum), formatBasisPoints(maximum))}
+				</p>
+			{/if}
+			<p class="truncate">{reputation} · {text.activePartners(card.reputation.active_partners)}</p>
+			<p class="truncate">{text.joined(formatBusinessDate(card.joined_on))}</p>
+		</div>
+		{#if card.match}
+			<MatchReasons reasons={card.match.reasons} />
+		{/if}
+	</div>
+	<div class="list-card-actions flex flex-col gap-2 md:items-end">
+		{#if card.match}<MatchSummary match={card.match} />{/if}
+		{#if !card.is_self}
+			<ContactActions organizationId={card.id} name={card.name} canPropose={!card.is_partner} />
+		{/if}
+	</div>
 </article>

@@ -6,9 +6,23 @@
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
+
+	const backTargets = [
+		['/t/', '/cari/toko'],
+		['/u/', '/cari/penitip'],
+		['/p/', '/cari/penitip'],
+		['/kebutuhan/', '/kebutuhan']
+	];
+	const backHref = $derived(
+		backTargets.find(([prefix]) => page.url.pathname.startsWith(prefix ?? ''))?.[1]
+	);
 </script>
 
-<PublicShell pendingPath={pendingPagePath(navigating.to?.url, page.url)}>
+<PublicShell
+	pendingPath={pendingPagePath(navigating.to?.url, page.url)}
+	currentPath={page.url.pathname}
+	{backHref}
+>
 	{@render children()}
 	{#snippet footerNote()}
 		<ApiVersion />

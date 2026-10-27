@@ -89,6 +89,11 @@
 {:else}
 	{@const proposal = record.proposal}
 	{@const terms = proposal.revision.terms}
+	{#if proposal.revision.items.length > 0}
+		<h2 class="text-xl font-semibold text-text">
+			{proposal.revision.items.map((item) => item.product_name).join(', ')}
+		</h2>
+	{/if}
 	<div class="flex flex-wrap items-center gap-2">
 		<span class="font-mono text-sm text-text-muted">{proposal.number}</span>
 		<Badge

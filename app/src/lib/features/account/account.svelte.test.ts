@@ -123,6 +123,21 @@ describe('AccountGate', () => {
 });
 
 describe('AccountMenu', () => {
+	it('offers only Kelola profil and Keluar', async () => {
+		serve({ 'GET /api/v1/me': () => ok(sari) });
+		await render(AccountHarness, { onsignedout: vi.fn() });
+
+		await userEvent.click(page.getByLabelText('Buka menu akun'));
+		const menu = page.getByRole('navigation', { name: 'Akun' });
+
+		await expect
+			.element(menu.getByRole('link', { name: 'Kelola profil' }))
+			.toHaveAttribute('href', '/app/pengaturan');
+		await expect.element(menu.getByRole('button', { name: 'Keluar', exact: true })).toBeVisible();
+		await expect.element(menu.getByRole('link')).toHaveLength(1);
+		await expect.element(menu.getByRole('button')).toHaveLength(1);
+	});
+
 	it('FR-AUTH-03 logs out this device', async () => {
 		const calls = serve({
 			'GET /api/v1/me': () => ok(sari),
@@ -208,9 +223,8 @@ describe('AccountMenu', () => {
 			'POST /api/v1/sessions/logout-all': () => ok(null)
 		});
 		const onsignedout = vi.fn();
-		await render(AccountHarness, { onsignedout });
+		await render(AccountHarness, { onsignedout, everywhere: true });
 
-		await userEvent.click(page.getByLabelText('Buka menu akun'));
 		await userEvent.click(page.getByRole('button', { name: 'Keluar dari semua perangkat' }));
 		const dialog = page.getByRole('dialog', { name: 'Keluar dari semua perangkat?' });
 		await expect.element(dialog).toBeVisible();

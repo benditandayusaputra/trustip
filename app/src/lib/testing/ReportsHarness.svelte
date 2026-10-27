@@ -8,4 +8,6 @@
 	let { organizationType = 'STORE' }: Props = $props();
 </script>
 
-<ReportsPage {organizationType} />
+<ReportsPage {organizationType}>
+	{#snippet settlements()}<p>daftar setoran</p>{/snippet}
+</ReportsPage>

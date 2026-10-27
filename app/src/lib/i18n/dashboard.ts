@@ -38,27 +38,19 @@ export const dashboard = {
 		rankingStores: 'Toko terlaris',
 		rankingProducts: 'Produk terlaris',
 		rankingEmpty: 'Belum ada penjualan 30 hari terakhir.',
-		insightsTitle: 'Saran',
-		insightsHint: 'Utamakan saran penting untuk stok dan setoran Anda.',
-		allInsights: (count: number) => `Lihat semua saran (${String(count)})`,
-		fewerInsights: 'Tampilkan lebih sedikit saran',
+		insightsTitle: 'Pengingat',
+		insightsHint: 'Utamakan pengingat penting untuk stok dan setoran Anda.',
+		allInsights: (count: number) => `Lihat semua pengingat (${String(count)})`,
+		fewerInsights: 'Tampilkan lebih sedikit pengingat',
 		allRows: (count: number) => `Lihat semua (${String(count)})`,
 		fewerRows: 'Tampilkan lebih sedikit',
-		noInsights: 'Belum ada saran. Saran muncul dari stok, hitungan, dan Setoran Anda.',
+		noInsights: 'Belum ada pengingat. Pengingat muncul dari stok, hitungan, dan Setoran Anda.',
 		levels: { HIGH: 'Penting', MEDIUM: 'Perlu dilihat', LOW: 'Info' },
 		quickCountTitle: 'Hitung cepat',
 		quickCountEmpty: 'Semua mitra berstok sudah dihitung hari ini.',
 		quickCountRow: (count: number) => `${units(count, 'unit')} tercatat`,
 		count: 'Hitung',
-		ownerOnly: 'Angka penjualan hanya tampil untuk pemilik usaha.',
-		opportunitiesTitle: 'Peluang',
-		opportunitiesEmpty:
-			'Belum ada peluang baru. Lengkapi lokasi dan kategori agar saran lebih tepat.',
-		opportunitiesFailed: 'Peluang tidak bisa dimuat.',
-		nearbyNeed: (store: string, distance: string) =>
-			distance === '' ? `Kebutuhan ${store}` : `Kebutuhan ${store}, ${distance}`,
-		suggestedPartner: (score: number) => `Skor kecocokan ${String(score)} dari 100`,
-		needResponses: (count: number) => `${String(count)} tanggapan`
+		ownerOnly: 'Angka penjualan hanya tampil untuk pemilik usaha.'
 	},
 	insights: {
 		titles: {
@@ -90,7 +82,7 @@ export const dashboard = {
 			COUNT_WITH_RETURNS: 'Hitung dan kembalikan',
 			COUNT: 'Hitung Sisa',
 			REMIND_STORE: 'Ingatkan toko',
-			VIEW_DROP_SUGGESTION: 'Lihat saran jumlah titip',
+			VIEW_DROP_SUGGESTION: 'Lihat usulan jumlah titip',
 			ASK_RESTOCK: 'Minta kirim',
 			REMIND_PAYMENT: 'Ingatkan bayar',
 			RECORD_PAYMENT: 'Catat bayar',

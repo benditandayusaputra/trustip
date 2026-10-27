@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { reports as id } from '#lib/i18n/reports.js';
 	import DailyRecapView from './DailyRecapView.svelte';
@@ -7,9 +8,10 @@
 
 	interface Props {
 		organizationType: 'STORE' | 'CONSIGNOR';
+		settlements: Snippet;
 	}
 
-	let { organizationType }: Props = $props();
+	let { organizationType, settlements }: Props = $props();
 
 	const text = id.reports;
 	const tabs = $derived(
@@ -27,6 +29,8 @@
 				<DailyRecapView />
 			{:else if key === 'settlements'}
 				<SettlementReportView />
+				<h2 class="text-lg font-semibold text-text">{text.settlementList}</h2>
+				{@render settlements()}
 			{:else}
 				<SalesReportView {organizationType} />
 			{/if}
