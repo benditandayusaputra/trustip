@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import Toaster from '#lib/components/ui/Toaster.svelte';
 	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
 	import type { AccountProfile } from '#lib/api/account.js';
@@ -7,7 +8,7 @@
 	let { account: initial }: { account: AccountProfile } = $props();
 
 	setToaster(new ToastQueue());
-	let account = $state(initial);
+	let account = $state(untrack(() => initial));
 </script>
 
 <AccountCard
