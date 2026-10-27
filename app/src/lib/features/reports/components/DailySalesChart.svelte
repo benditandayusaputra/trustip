@@ -7,7 +7,12 @@
 	import { apiClient } from '#lib/api/client.js';
 	import type { SalesNarrowing } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
-	import { formatBusinessDate, formatRupiah } from '#lib/i18n/format.js';
+	import {
+		dayOfMonth,
+		formatBusinessDate,
+		formatRupiah,
+		formatShortMonth
+	} from '#lib/i18n/format.js';
 	import { reports as id } from '#lib/i18n/reports.js';
 	import { columnChart } from '#lib/domain/chart.js';
 	import { dayCells } from '../rows';
@@ -31,11 +36,16 @@
 	let asTable = $state(false);
 	const shape = $derived(columnChart(daily.report?.rows.map((row) => row.split.gross) ?? []));
 	const points = $derived(
-		(daily.report?.rows ?? []).map((row) => ({
-			key: row.key,
-			label: formatBusinessDate(row.key),
-			valueLabel: formatRupiah(row.split.gross)
-		}))
+		(daily.report?.rows ?? []).map((row, index) => {
+			const tick = dayOfMonth(row.key);
+			return {
+				key: row.key,
+				label: formatBusinessDate(row.key),
+				valueLabel: formatRupiah(row.split.gross),
+				tick,
+				tickNote: index === 0 || tick === '1' ? formatShortMonth(row.key) : ''
+			};
+		})
 	);
 
 	$effect(() => {
@@ -67,8 +77,6 @@
 					{shape}
 					{points}
 					ceilingLabel={formatRupiah(shape.ceiling)}
-					firstLabel={formatBusinessDate(report.from)}
-					lastLabel={formatBusinessDate(report.to)}
 				/>
 			{/await}
 		{/if}

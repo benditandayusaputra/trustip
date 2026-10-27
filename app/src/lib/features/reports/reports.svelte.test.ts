@@ -19,9 +19,12 @@ function report(groupBy: string) {
 		group_by: groupBy,
 		summary: figures,
 		rows: [
-			groupBy === 'DAY'
-				? { key: '2026-11-20', label: '2026-11-20', ...figures }
-				: { key: 'a', label: 'Roti Pak Anton', ...figures }
+			...(groupBy === 'DAY'
+				? [
+						{ key: '2026-11-30', label: '2026-11-30', ...figures },
+						{ key: '2026-12-01', label: '2026-12-01', ...figures }
+					]
+				: [{ key: 'a', label: 'Roti Pak Anton', ...figures }])
 		]
 	};
 }
@@ -142,6 +145,9 @@ describe('Sales report', () => {
 		const { container } = await render(ReportsHarness, {});
 
 		await expect.element(page.getByRole('img', { name: /Omzet per hari/u })).toBeVisible();
+		await expect.element(page.getByText('30', { exact: true })).toBeVisible();
+		await expect.element(page.getByText('Nov', { exact: true })).toBeVisible();
+		await expect.element(page.getByText('Des', { exact: true })).toBeVisible();
 		expect(requested).toContain('/api/v1/reports/sales?from=2026-11-14&to=2026-11-20&group_by=DAY');
 		await userEvent.click(page.getByRole('button', { name: 'Lihat sebagai tabel' }));
 

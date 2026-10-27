@@ -111,7 +111,7 @@ Titipan Masuk dan Hitung Sisa memakai baris produk dan kontrol jumlah besar. Rin
 | Isian | Tinggi minimal 48 px, teks 16 px, border kuat dan fokus terlihat |
 | Jumlah | Tombol tambah/kurang 48 px, papan angka, label yang jelas |
 | Badge | Teks status, warna semantik dan latar yang sesuai |
-| Grafik | SVG buatan sendiri tanpa pustaka: kolom biru untuk omzet harian, donat untuk pembagian omzet, batang mendatar (bisa bertumpuk) untuk perbandingan mitra dan produk. Grid halus, tooltip per kolom atau batang, nilai tertulis sebagai teks, alternatif tabel untuk grafik harian |
+| Grafik | SVG buatan sendiri tanpa pustaka: kolom biru untuk omzet harian dengan tanggal di bawah setiap kolom (nama bulan pada kolom pertama dan awal bulan; grafik bisa digeser ke samping bila tanggal tidak muat), donat untuk pembagian omzet, batang mendatar (bisa bertumpuk) untuk perbandingan mitra dan produk. Grid halus, tooltip per kolom atau batang, nilai tertulis sebagai teks, alternatif tabel untuk grafik harian |
 | Peta | Terang pada light, filter gelap hanya pada dark; kontrol dan atribusi selalu terbaca |
 | Dialog, lembar bawah, toast | Token tema; fokus dan tindakan sesuai keadaan |
 | Skeleton | Pola daftar, kartu, detail, formulir, laporan, profil, dan dasbor mengikuti susunan isi; warna kedua tema dan animasi menghormati preferensi pengurangan gerak |

@@ -39,6 +39,16 @@ export function formatBusinessDate(isoDate: string): string {
 	return businessDate.format(new Date(`${isoDate}T00:00:00Z`));
 }
 
+const shortMonth = new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' });
+
+export function formatShortMonth(isoDate: string): string {
+	return shortMonth.format(new Date(`${isoDate}T00:00:00Z`));
+}
+
+export function dayOfMonth(isoDate: string): string {
+	return String(Number(isoDate.split('-').at(-1)));
+}
+
 export function formatDateTime(instant: string): string {
 	return dateTime.format(new Date(instant));
 }
