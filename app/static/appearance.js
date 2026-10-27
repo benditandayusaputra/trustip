@@ -1,21 +1,20 @@
 const appearanceStorageKey = 'trustip-appearance';
-const appearanceChoices = new Set(['system', 'light', 'dark']);
+const appearanceChoices = new Set(['light', 'dark']);
+const defaultAppearance = 'light';
 const appearanceRoot = document.documentElement;
-const appearanceMedia = window.matchMedia('(prefers-color-scheme: dark)');
 
 function readAppearance() {
 	try {
-		return localStorage.getItem(appearanceStorageKey) ?? 'system';
+		return localStorage.getItem(appearanceStorageKey) ?? defaultAppearance;
 	} catch {
-		return 'system';
+		return defaultAppearance;
 	}
 }
 
 function applyAppearance(preference) {
-	const chosen = appearanceChoices.has(preference) ? preference : 'system';
-	const resolved = appearanceMedia.matches ? 'dark' : 'light';
+	const chosen = appearanceChoices.has(preference) ? preference : defaultAppearance;
 	appearanceRoot.dataset.preference = chosen;
-	appearanceRoot.dataset.appearance = chosen === 'system' ? resolved : chosen;
+	appearanceRoot.dataset.appearance = chosen;
 	syncAppearanceControls(chosen);
 	const themeMeta = document.querySelector('meta[name="theme-color"]');
 	themeMeta?.setAttribute(
@@ -26,14 +25,23 @@ function applyAppearance(preference) {
 }
 
 function syncAppearanceControls(chosen) {
-	for (const picker of document.querySelectorAll('[data-appearance-picker]')) {
-		if (picker instanceof HTMLSelectElement) {
-			picker.value = chosen;
-		}
-	}
 	for (const toggle of document.querySelectorAll('[data-appearance-toggle]')) {
 		if (toggle instanceof HTMLInputElement) {
-			toggle.checked = appearanceRoot.dataset.appearance === 'dark';
+			toggle.checked = chosen === 'dark';
+		}
+	}
+	for (const choice of document.querySelectorAll('[data-appearance-choice]')) {
+		choice.setAttribute(
+			'aria-pressed',
+			String(choice.getAttribute('data-appearance-choice') === chosen)
+		);
+	}
+}
+
+function closeAppearanceMenus(keep) {
+	for (const menu of document.querySelectorAll('details[data-appearance-menu][open]')) {
+		if (menu !== keep) {
+			menu.removeAttribute('open');
 		}
 	}
 }
@@ -51,16 +59,27 @@ function saveAppearance(chosen) {
 }
 
 applyAppearance(readAppearance());
-appearanceMedia.addEventListener('change', () =>
-	applyAppearance(appearanceRoot.dataset.preference)
-);
 document.addEventListener('change', (event) => {
-	const picker = event.target;
-	if (picker instanceof HTMLSelectElement && picker.hasAttribute('data-appearance-picker')) {
-		saveAppearance(picker.value);
+	const toggle = event.target;
+	if (toggle instanceof HTMLInputElement && toggle.hasAttribute('data-appearance-toggle')) {
+		saveAppearance(toggle.checked ? 'dark' : 'light');
 	}
-	if (picker instanceof HTMLInputElement && picker.hasAttribute('data-appearance-toggle')) {
-		saveAppearance(picker.checked ? 'dark' : 'light');
+});
+document.addEventListener('click', (event) => {
+	const target = event.target instanceof Element ? event.target : null;
+	const choice = target?.closest('[data-appearance-choice]');
+	if (choice) {
+		saveAppearance(choice.getAttribute('data-appearance-choice'));
+		closeAppearanceMenus(null);
+		return;
+	}
+	closeAppearanceMenus(target?.closest('details[data-appearance-menu]') ?? null);
+});
+document.addEventListener('keydown', (event) => {
+	const open = document.querySelector('details[data-appearance-menu][open]');
+	if (event.key === 'Escape' && open) {
+		closeAppearanceMenus(null);
+		open.querySelector('summary')?.focus();
 	}
 });
 document.addEventListener('DOMContentLoaded', () =>

@@ -12,7 +12,7 @@ HP selebar 360 piksel menjadi sasaran utama, dengan dukungan 320 piksel, tablet,
 
 ## 2. Tema dan palet
 
-Pilihan tema: Sistem, Terang, Gelap, lewat tombol Mode di header. Pengaturan menyediakan sakelar Tampilan terang/gelap. Bawaan mengikuti sistem. Preferensi disimpan di perangkat dan diterapkan sebelum tampilan pertama tanpa melonggarkan CSP. Perubahan sistem hanya mengubah tema bila pilihan Sistem aktif. Penggantian tema tidak mengubah akun, data, ataupun hak akses.
+Pilihan tema hanya Terang dan Gelap, lewat tombol Mode di header yang membuka menu berlatar padat (bukan pilihan bawaan peramban), atau dua tombol di menu HP. Pengaturan menyediakan sakelar Tampilan terang/gelap. Bawaan Terang, termasuk di perangkat yang memakai mode gelap; preferensi lama Sistem dibaca sebagai Terang. Preferensi disimpan di perangkat dan diterapkan sebelum tampilan pertama tanpa melonggarkan CSP. Penggantian tema tidak mengubah akun, data, ataupun hak akses.
 
 | Token | Terang | Gelap | Penggunaan |
 |---|---|---|---|

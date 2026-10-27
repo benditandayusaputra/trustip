@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mockDashboard } from './dashboard-fixture';
+import { chooseTheme } from './theme';
 
 function deferred() {
 	let release: () => void = () => undefined;
@@ -20,8 +21,8 @@ test('loading honors both themes and reduced motion on a narrow screen', async (
 		await route.fallback();
 	});
 	await page.goto('/app/laporan');
-	for (const theme of ['light', 'dark']) {
-		await page.getByLabel('Tema tampilan').selectOption(theme);
+	for (const theme of ['light', 'dark'] as const) {
+		await chooseTheme(page, theme);
 		await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
 		const animations = await page
 			.locator('[data-loading-shape] > div')

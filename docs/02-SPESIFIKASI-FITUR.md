@@ -1280,7 +1280,7 @@ Navigasi bawah di HP. Penitip: Beranda, Cari, Mitra, Laporan, Lainnya. Toko: Ber
 
 Arah tampilan ditetapkan di `DESIGN.md`. Ringkasnya:
 
-- Tema mengikuti sistem dengan pilihan Terang dan Gelap yang tersimpan di perangkat. Primary biru `#2563EB`; latar terang `#F6F8FC` dan gelap `#0B1220`. Semua warna mengikuti token semantik pada `DESIGN.md`.
+- Tema bawaan Terang dengan pilihan Terang dan Gelap yang tersimpan di perangkat. Primary biru `#2563EB`; latar terang `#F0F9FF` dan gelap `#0D1522`. Semua warna mengikuti token semantik pada `DESIGN.md`.
 - Huruf Inter untuk teks dan JetBrains Mono untuk semua angka uang dan jumlah, disajikan dari server sendiri.
 - Teks isi 16 piksel di HP. Angka kunci 32 piksel tebal.
 - Bahasa: kalimat aktif, sapaan "Anda", tanpa istilah akuntansi. Pakai "hak penitip" dan "harus setor", bukan "utang dagang".

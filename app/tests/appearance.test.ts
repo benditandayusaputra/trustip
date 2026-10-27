@@ -29,7 +29,6 @@ test('explicit theme persists across navigation, reload and browser tabs', async
 	await chooseTheme(second, 'light');
 	await expectAppearance(second, 'light');
 	await expectAppearance(page, 'light');
-	await expect(page.getByLabel('Tema tampilan').first()).toHaveValue('light');
 });
 
 test('saved theme is applied before the first page body is parsed', async ({ page }) => {
@@ -64,28 +63,26 @@ test('theme controls work when browser storage is unavailable', async ({ page })
 	await expectAppearance(page, 'light');
 });
 
-test.describe('system appearance with a dark device preference', () => {
-	test('system preference follows device changes and an explicit choice overrides them', async ({
-		page
-	}) => {
+test.describe('a device that prefers dark', () => {
+	test('still opens in light until the user chooses dark', async ({ page }) => {
 		await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
 		await page.goto('/');
-		await expectAppearance(page, 'dark');
-		await page.emulateMedia({ colorScheme: 'light' });
 		await expectAppearance(page, 'light');
 		await chooseTheme(page, 'dark');
 		await page.emulateMedia({ colorScheme: 'light' });
 		await expectAppearance(page, 'dark');
-		await chooseTheme(page, 'system');
-		await expectAppearance(page, 'light');
 	});
-	test('an invalid saved preference falls back to the device theme', async ({ page }) => {
-		await page.addInitScript((key) => {
-			localStorage.setItem(key, 'unknown');
-		}, storageKey);
-		await page.emulateMedia({ colorScheme: 'dark' });
-		await page.goto('/');
-		await expectAppearance(page, 'dark');
-		await expect(page.getByLabel('Tema tampilan').first()).toHaveValue('system');
+	test('an old system or unknown saved preference falls back to light', async ({ page }) => {
+		for (const saved of ['system', 'unknown']) {
+			await page.addInitScript(
+				(stored) => {
+					localStorage.setItem(stored.key, stored.value);
+				},
+				{ key: storageKey, value: saved }
+			);
+			await page.emulateMedia({ colorScheme: 'dark' });
+			await page.goto('/');
+			await expectAppearance(page, 'light');
+		}
 	});
 });

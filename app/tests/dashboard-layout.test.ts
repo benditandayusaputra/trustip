@@ -2,6 +2,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page, type Locator } from '@playwright/test';
 import { dashboardBoard, mockDashboard } from './dashboard-fixture';
+import { chooseTheme } from './theme';
 
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core'), 'utf8');
 
@@ -58,8 +59,8 @@ for (const side of ['STORE', 'CONSIGNOR'] as const) {
 		await mockDashboard(page, side);
 		await page.goto(side === 'STORE' ? '/app/toko' : '/app/penitip');
 		await expect(page.getByRole('link', { name: /Roti Sobek.*Lihat detail/u })).toBeVisible();
-		for (const theme of ['light', 'dark']) {
-			await page.getByLabel('Tema tampilan').selectOption(theme);
+		for (const theme of ['light', 'dark'] as const) {
+			await chooseTheme(page, theme);
 			for (const width of [320, 390, 768, 1024, 1440]) {
 				await page.setViewportSize({ width, height: 900 });
 				await expect

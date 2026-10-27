@@ -16,7 +16,11 @@ async function checkPage(page: Page): Promise<void> {
 	await expect(page.getByLabel('Kata sandi')).toHaveValue('');
 	await expect(page.locator('header img')).toHaveAttribute('src', '/icons/icon-192.png');
 	for (const theme of themes) {
-		await page.emulateMedia({ colorScheme: theme });
+		await page.evaluate((chosen) => {
+			localStorage.setItem('trustip-appearance', chosen);
+		}, theme);
+		await page.reload();
+		await expect(page.locator('html')).toHaveAttribute('data-appearance', theme);
 		for (const width of widths) {
 			await page.setViewportSize({ width, height: 900 });
 			await expect

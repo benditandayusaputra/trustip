@@ -2,6 +2,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { networkTimeoutMs } from './session';
+import { useSavedTheme } from './theme';
 
 declare global {
 	interface Window {
@@ -74,6 +75,7 @@ async function findingsOn(page: Page, path: string): Promise<Finding[]> {
 async function openPage(browser: Browser, colorScheme: 'light' | 'dark' = 'light'): Promise<Page> {
 	const context = await browser.newContext({ baseURL: appOrigin, bypassCSP: true, colorScheme });
 	const page = await context.newPage();
+	await useSavedTheme(page, colorScheme);
 	page.on('response', (response) => {
 		if (response.status() === 429 || response.status() >= 500) {
 			failedRequests.push(response.url());
