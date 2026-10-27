@@ -49,9 +49,7 @@
 
 <div class="flex min-w-0 flex-col gap-6">
 	<section class="sticky-filters" aria-label={text.searchPanel}>
-		<div
-			class="flex max-w-(--search-panel-width) flex-col gap-2 rounded-card border border-border bg-surface p-4"
-		>
+		<div class="flex flex-col gap-2 rounded-card border border-border bg-surface p-4">
 			<div class="flex flex-wrap items-end gap-2">
 				<div class="min-w-0 flex-1 basis-full md:basis-0">
 					<StoreSearch {query} onchange={change} />

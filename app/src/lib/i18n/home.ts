@@ -14,8 +14,7 @@ export const home = {
 			consignor: 'Penitip',
 			consignorBody: 'Menyiapkan dan menitipkan produk',
 			store: 'Toko',
-			storeBody: 'Menjual dan mencatat sisanya',
-			synced: 'Tersinkronisasi'
+			storeBody: 'Menjual dan mencatat sisanya'
 		},
 		rolesTitle: 'Punya produk atau punya toko?',
 		rolesIntro: 'Dua peran usaha, satu tempat untuk bekerja sama.',

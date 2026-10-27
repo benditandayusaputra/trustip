@@ -15,10 +15,11 @@ Setelah revisi ADR 0059, tim mengekspor desain Figma untuk bagian yang belum pun
 5. Laporan Setoran memakai satu panel saringan untuk ringkasan dan daftar, tabel Ringkasan per Mitra, dan pencarian mitra atau nomor Setoran di perangkat.
 6. Masuk, Daftar, dan Demo memakai panel biru penuh setengah layar dengan tombol kembali dan merek; pilihan tema dan footer dihapus dari kerangka akun. Tombol akun demo berbunyi Coba sebagai.
 7. Pilihan tema di header berlabel Mode, judul header berwarna teks biasa setinggi 64 px, dan latar halaman terang menjadi `#F0F9FF`.
-8. Beranda mengikuti Figma: diagram Satu alur, dua mitra, panel bergradasi lembut, judul tanpa label kecil kecuali Begini hasilnya, dan paragraf rata kiri.
+8. Beranda mengikuti Figma: panel bergradasi lembut, judul tanpa label kecil kecuali Begini hasilnya, dan paragraf rata kiri.
 
 ## Yang tidak diikuti
 
+- Diagram hero Beranda dari Figma tidak dipakai atas permintaan tim; hero tetap memakai ilustrasi titip jual yang lama.
 - Foto profil, nomor HP akun, dan ubah kata sandi di desain Profil belum dibuat karena API akun belum menyediakannya. Ketiganya menyusul di ADR 0061.
 - Logo di desain Figma berbeda antarbagian (kubus dan tumpukan), jadi logo yang disetujui 10 Oktober 2026 tetap dipakai.
 - Huruf tebal di isi pemberitahuan tidak dibuat karena teks berasal dari server sebagai teks biasa.

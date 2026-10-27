@@ -14,7 +14,7 @@
 
 <div class="flex min-w-0 flex-col gap-5">
 	<div class="sticky-filters">
-		<div class="filter-toolbar flex max-w-(--search-panel-width) flex-col gap-2">
+		<div class="filter-toolbar flex flex-col gap-2">
 			<div class="flex flex-wrap items-end gap-2">
 				<div class="min-w-0 flex-1 basis-full md:basis-0">{@render searchControls()}</div>
 				<button

@@ -2,9 +2,8 @@
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Check from '@lucide/svelte/icons/check';
 	import ChefHat from '@lucide/svelte/icons/chef-hat';
-	import Hexagon from '@lucide/svelte/icons/hexagon';
 	import Store from '@lucide/svelte/icons/store';
-	import UserRound from '@lucide/svelte/icons/user-round';
+	import TradeIllustration from '#lib/components/ui/TradeIllustration.svelte';
 	import { home as id } from '#lib/i18n/home.js';
 
 	const text = id.home;
@@ -50,31 +49,7 @@
 	</div>
 	<figure class="hero-art flex min-w-0 flex-col gap-5 border border-border p-4 md:p-8">
 		<p class="section-label">{text.illustration.eyebrow}</p>
-		<div class="hero-sync relative flex flex-col rounded-card bg-surface p-4 compact:p-5">
-			<span
-				class="absolute top-4 right-4 inline-flex items-center gap-1 rounded-pill border border-success bg-success-surface px-2 py-1 text-xs font-semibold text-success"
-				><Check class="size-4" aria-hidden="true" />{text.illustration.synced}</span
-			>
-			<div
-				class="flex flex-1 items-end justify-around gap-2 pt-12 compact:gap-4"
-				aria-hidden="true"
-			>
-				<span class="flex flex-col items-center gap-1">
-					<span class="hero-sync-head bg-primary"><UserRound class="size-6" /></span>
-					<span class="hero-sync-body bg-primary"></span>
-				</span>
-				<span
-					class="mb-6 flex size-12 items-center justify-center rounded-control bg-illustration-parcel-top text-illustration-ink"
-					><Hexagon class="size-6" /></span
-				>
-				<span
-					class="flex flex-col items-center gap-1 rounded-control border-2 border-dashed border-accent p-2"
-				>
-					<span class="hero-sync-head bg-illustration-orange"><UserRound class="size-6" /></span>
-					<span class="hero-sync-body bg-illustration-parcel-side"></span>
-				</span>
-			</div>
-		</div>
+		<TradeIllustration />
 		<figcaption class="grid grid-cols-1 gap-4 compact:grid-cols-2">
 			<span class="sr-only">{text.illustration.caption}</span>
 			{#each parties as party (party.title)}
