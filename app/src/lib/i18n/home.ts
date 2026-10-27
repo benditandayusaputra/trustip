@@ -7,7 +7,6 @@ export const home = {
 		audienceDetail: 'Produsen rumahan, warung, kantin, dan toko oleh-oleh.',
 		intro:
 			'Trustip membantu pemilik produk menitipkan barang di toko, menyepakati harga, dan mencatat penjualan hingga pembayaran. Penitip dan toko melihat catatan yang sama.',
-		seeWorkflow: 'Lihat cara kerja',
 		highlights: ['Temukan mitra', 'Hitungan otomatis', 'Catatan bersama'],
 		illustration: {
 			eyebrow: 'Satu alur, dua mitra',
@@ -15,9 +14,9 @@ export const home = {
 			consignor: 'Penitip',
 			consignorBody: 'Menyiapkan dan menitipkan produk',
 			store: 'Toko',
-			storeBody: 'Menjual dan mencatat sisanya'
+			storeBody: 'Menjual dan mencatat sisanya',
+			synced: 'Tersinkronisasi'
 		},
-		rolesEyebrow: 'Untuk usaha Anda',
 		rolesTitle: 'Punya produk atau punya toko?',
 		rolesIntro: 'Dua peran usaha, satu tempat untuk bekerja sama.',
 		roles: [
@@ -47,7 +46,6 @@ export const home = {
 		register: 'Daftar gratis',
 		signIn: 'Masuk',
 		problemsTitle: 'Masalah titip jual hari ini',
-		problemsEyebrow: 'Lebih mudah dikelola',
 		problemsIntro:
 			'Dari mencari tempat titip sampai memeriksa catatan, Trustip membantu di setiap tahap.',
 		problems: [
@@ -73,7 +71,6 @@ export const home = {
 			}
 		],
 		stepsTitle: 'Cara kerja',
-		stepsEyebrow: 'Dari mitra sampai uang diterima',
 		stepsIntro:
 			'Lima langkah yang menghubungkan penitip dan toko. Setiap pihak tahu apa yang perlu dilakukan.',
 		paymentNote:
@@ -91,7 +88,7 @@ export const home = {
 			},
 			{
 				title: 'Catat titipan',
-				actor: 'Toko & penitip',
+				actor: 'Penitip & toko',
 				body: 'Toko mencatat produk dan jumlah yang masuk. Penitip memeriksa catatannya.'
 			},
 			{
@@ -101,7 +98,7 @@ export const home = {
 			},
 			{
 				title: 'Konfirmasi setoran',
-				actor: 'Toko & penitip',
+				actor: 'Penitip & toko',
 				body: 'Toko mencatat pembayaran. Penitip mengonfirmasi uang yang diterima.'
 			}
 		],
@@ -131,8 +128,7 @@ export const home = {
 			mustPayLabel: 'Harus setor',
 			mustPay: 'Rp31.500',
 			sameRecord: 'Toko dan penitip melihat hitungan yang sama.',
-			action: 'Lihat alurnya di akun demo',
-			disclaimer: 'Contoh hitungan untuk menjelaskan cara kerja.'
+			action: 'Lihat alurnya di akun demo'
 		}
 	}
 };

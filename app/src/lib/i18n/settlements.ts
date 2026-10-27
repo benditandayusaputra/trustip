@@ -8,6 +8,7 @@ export const settlements = {
 		noMatch: 'Tidak ada Setoran yang cocok dengan saringan ini.',
 		toCounts: 'Lihat Hitung Sisa',
 		loadMore: 'Muat lebih banyak',
+		showing: (count: number) => `Menampilkan ${String(count)} Setoran`,
 		filters: 'Saring Setoran',
 		status: 'Status',
 		age: 'Umur',

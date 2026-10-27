@@ -127,12 +127,12 @@ describe('AccountMenu', () => {
 		serve({ 'GET /api/v1/me': () => ok(sari) });
 		await render(AccountHarness, { onsignedout: vi.fn() });
 
-		await userEvent.click(page.getByLabelText('Buka menu akun'));
-		const menu = page.getByRole('navigation', { name: 'Akun' });
+		await userEvent.click(page.getByLabelText('Buka menu profil'));
+		const menu = page.getByRole('navigation', { name: 'Profil' });
 
 		await expect
 			.element(menu.getByRole('link', { name: 'Kelola profil' }))
-			.toHaveAttribute('href', '/app/pengaturan');
+			.toHaveAttribute('href', '/app/profil');
 		await expect.element(menu.getByRole('button', { name: 'Keluar', exact: true })).toBeVisible();
 		await expect.element(menu.getByRole('link')).toHaveLength(1);
 		await expect.element(menu.getByRole('button')).toHaveLength(1);
@@ -146,7 +146,7 @@ describe('AccountMenu', () => {
 		const onsignedout = vi.fn();
 		await render(AccountHarness, { onsignedout });
 
-		await userEvent.click(page.getByLabelText('Buka menu akun'));
+		await userEvent.click(page.getByLabelText('Buka menu profil'));
 		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
 
 		await vi.waitFor(() => {
@@ -167,7 +167,7 @@ describe('AccountMenu', () => {
 			await expect(cacheStore.get('/api/v1/me')).resolves.toBeDefined();
 		});
 
-		await userEvent.click(page.getByLabelText('Buka menu akun'));
+		await userEvent.click(page.getByLabelText('Buka menu profil'));
 		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
 
 		await vi.waitFor(() => {
@@ -185,7 +185,7 @@ describe('AccountMenu', () => {
 		const onsignedout = vi.fn();
 		await render(AccountHarness, { onsignedout });
 
-		await userEvent.click(page.getByLabelText('Buka menu akun'));
+		await userEvent.click(page.getByLabelText('Buka menu profil'));
 		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
 		const dialog = page.getByRole('dialog', { name: 'Masih ada 1 catatan belum terkirim' });
 		await expect.element(dialog).toBeVisible();
@@ -207,7 +207,7 @@ describe('AccountMenu', () => {
 		const onsignedout = vi.fn();
 		await render(AccountHarness, { onsignedout });
 
-		await userEvent.click(page.getByLabelText('Buka menu akun'));
+		await userEvent.click(page.getByLabelText('Buka menu profil'));
 		await userEvent.click(page.getByRole('button', { name: 'Keluar', exact: true }));
 		await userEvent.click(page.getByRole('button', { name: 'Simpan di perangkat' }));
 

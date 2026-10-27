@@ -13,6 +13,12 @@ export interface SettlementFilter {
 	age: '' | SettlementAge;
 }
 
+export interface SettlementNarrowing {
+	status: SettlementFilter['status'];
+	age: SettlementFilter['age'];
+	query: string;
+}
+
 const settlementsPath = '/api/v1/settlements';
 
 export function getSettlement(client: ApiClient, settlementId: string): Promise<Settlement> {

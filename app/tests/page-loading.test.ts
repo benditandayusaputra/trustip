@@ -70,6 +70,7 @@ const appPages = [
 	['/app/titipan/baru', 'form'],
 	['/app/laporan', 'report'],
 	['/app/pengaturan', 'form'],
+	['/app/profil', 'form'],
 	['/app/pemberitahuan', 'list'],
 	['/app/antrean', 'list']
 ] as const;

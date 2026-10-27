@@ -12,8 +12,9 @@
 	import { getPageTitle } from './page-title.svelte';
 	let {
 		organizationType,
-		currentPath
-	}: { organizationType: OrganizationType; currentPath: string } = $props();
+		currentPath,
+		focused = false
+	}: { organizationType: OrganizationType; currentPath: string; focused?: boolean } = $props();
 	const pageTitle = getPageTitle();
 	const navigation = $derived(navigationFor(organizationType));
 	const items = $derived([...navigation.workspace, ...navigation.manage]);
@@ -38,16 +39,18 @@
 		>
 	{:else}
 		<span
-			class="flex size-11 shrink-0 items-center justify-center rounded-control border border-border text-accent"
+			class="flex size-11 shrink-0 items-center justify-center rounded-control border border-border text-text-muted"
 			><Icon class="size-5" aria-hidden="true" /></span
 		>
 	{/if}
 	<div class="flex min-w-0 flex-col">
-		<p class="hidden text-xs text-text-muted compact:block">
-			{text.layout.organizations[organizationType]}
-		</p>
-		<div class="flex min-w-0 items-center gap-1 text-base font-semibold">
-			{#if backHref && parent}
+		{#if !focused}
+			<p class="hidden text-xs text-text-muted compact:block">
+				{text.layout.organizations[organizationType]}
+			</p>
+		{/if}
+		<div class="flex min-w-0 items-center gap-1 text-sm font-semibold">
+			{#if backHref && parent && !focused}
 				<a href={backHref} class="hidden shrink-0 text-text hover:text-accent compact:inline"
 					>{parent.label}</a
 				><ChevronRight
@@ -56,9 +59,9 @@
 				/>
 			{/if}
 			{#if entry}
-				<h1 class="truncate {backHref ? 'text-text' : 'text-accent'}">{@render entry.title()}</h1>
+				<h1 class="truncate text-text">{@render entry.title()}</h1>
 			{:else}
-				<span aria-current="page" class="truncate text-accent"
+				<span aria-current="page" class="truncate text-text"
 					>{section?.label ?? text.layout.overview}</span
 				>
 			{/if}

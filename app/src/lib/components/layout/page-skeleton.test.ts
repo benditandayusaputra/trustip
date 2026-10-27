@@ -11,6 +11,7 @@ const routes: Record<PageSkeletonKind, string[]> = {
 	form: [
 		'/onboarding',
 		'/app/pengaturan',
+		'/app/profil',
 		'/app/produk/baru',
 		'/app/produk/sample',
 		'/app/titipan/baru',

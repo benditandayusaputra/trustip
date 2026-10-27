@@ -10,7 +10,7 @@ describe('DemoAccounts', () => {
 		const { container } = await render(DemoAccounts, { onpick });
 
 		await expect.element(page.getByText('toko@demo.trustip.id')).toBeVisible();
-		await page.getByRole('button', { name: 'Isi sebagai Zara (toko)' }).click();
+		await page.getByRole('button', { name: 'Coba sebagai Zara (toko)' }).click();
 
 		expect(onpick).toHaveBeenCalledWith(expect.objectContaining({ email: 'toko@demo.trustip.id' }));
 		await expectAccessible(container);

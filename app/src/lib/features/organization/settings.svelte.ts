@@ -77,6 +77,18 @@ export class ProfileSettings {
 		}
 	}
 
+	async reset(): Promise<void> {
+		const shownProvince = this.values.provinceCode;
+		if (this.organization) {
+			this.#show(this.organization);
+		}
+		this.errors = {};
+		this.logoError = '';
+		if (this.values.provinceCode !== shownProvince) {
+			await this.regions.loadCities(this.values.provinceCode);
+		}
+	}
+
 	#show(organization: Organization): void {
 		this.organization = organization;
 		this.values = { ...emptyValues(), ...toProfileValues(organization), type: organization.type };

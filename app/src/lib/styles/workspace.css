@@ -87,21 +87,35 @@
 		position: relative;
 		overflow: hidden;
 	}
-	.auth-presentation .section-label {
-		color: var(--color-sidebar-accent);
+	.auth-presentation .brand {
+		color: var(--color-sidebar-text);
+	}
+	.auth-presentation .brand img {
+		border-radius: var(--radius-control);
+		background: var(--color-on-accent);
+	}
+	.auth-presentation :focus-visible {
+		outline-color: var(--color-sidebar-accent);
+	}
+	.auth-presentation .auth-eyebrow {
+		background: var(--color-sidebar-hover);
+		letter-spacing: var(--letter-spacing-label);
 	}
 	.auth-presentation .auth-copy {
 		color: var(--color-sidebar-muted);
 	}
-	.auth-presentation .auth-accent {
-		color: var(--color-sidebar-accent);
-	}
 	.auth-form {
+		margin-inline: auto;
+		width: 100%;
+		max-width: var(--container-auth-form);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-card);
 		background: var(--color-surface);
 		padding: var(--spacing-6);
 		box-shadow: var(--shadow-card);
+	}
+	.auth-form-wide {
+		max-width: var(--container-form);
 	}
 	.hero-art {
 		border-radius: var(--radius-card);
@@ -109,10 +123,6 @@
 		box-shadow: var(--shadow-card);
 	}
 	@media (width >= 1024px) {
-		.auth-presentation {
-			min-height: var(--auth-panel-height);
-			justify-content: center;
-		}
 		.auth-form {
 			padding: var(--spacing-8);
 		}

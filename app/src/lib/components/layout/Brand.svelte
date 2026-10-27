@@ -10,7 +10,6 @@
 
 <a
 	{href}
-	aria-label={text.brand}
 	class="brand inline-flex min-h-11 items-center gap-2 text-xl font-semibold tracking-(--letter-spacing-heading)"
 >
 	<img src="/icons/icon-192.png" alt="" width="32" height="32" class="size-8 shrink-0" />
@@ -20,6 +19,6 @@
 			></span
 		>
 	{:else}
-		<span class={compact ? 'hidden compact:inline' : ''}>{text.brand}</span>
+		<span class={compact ? 'sr-only compact:not-sr-only' : ''}>{text.brand}</span>
 	{/if}
 </a>

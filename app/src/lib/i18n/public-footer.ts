@@ -4,7 +4,7 @@ export const publicFooter = {
 	description:
 		'Platform titip jual untuk pemilik produk dan toko lokal. Temukan mitra, sepakati harga, dan kelola catatan bersama.',
 	note: 'Dari barang dititipkan sampai uang diterima.',
-	copyright: (year: number) => `© ${String(year)} ${common.brand}`,
+	copyright: (year: number) => `© ${String(year)} ${common.brand} · Tim Lumba-Lumba`,
 	groups: [
 		{
 			title: 'Jelajahi',

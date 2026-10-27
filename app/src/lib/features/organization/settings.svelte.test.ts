@@ -110,13 +110,16 @@ describe('OrganizationSettings', () => {
 		await expect.element(page.getByLabelText('Nama usaha')).toHaveValue('Warung Bu Tini');
 		await expect.element(page.getByLabelText('Nomor WhatsApp usaha')).toHaveValue('081234567890');
 		await expect.element(page.getByLabelText('Kabupaten atau kota')).toHaveValue('33.74');
+		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
 		await expectAccessible(container);
+		await userEvent.click(page.getByRole('button', { name: 'Edit profil' }));
 		await userEvent.upload(page.getByLabelText('Pilih gambar logo'), pngFile());
 		await expect.element(page.getByRole('img', { name: 'Logo Warung Bu Tini' })).toBeVisible();
 		await userEvent.fill(page.getByLabelText('Nama usaha'), 'Warung Bu Tini Jaya');
 		await userEvent.click(page.getByRole('button', { name: 'Simpan profil', exact: true }));
 
 		await expect.element(page.getByText('Profil usaha tersimpan.')).toBeVisible();
+		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
 		expect(sent[`PATCH /api/v1/organizations/${organizationId}`]).toMatchObject({
 			name: 'Warung Bu Tini Jaya',
 			city_code: '33.74',
@@ -131,6 +134,19 @@ describe('OrganizationSettings', () => {
 		await expect
 			.element(page.getByText('Hanya pemilik usaha yang bisa mengubah profil.'))
 			.toBeVisible();
+		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
+		await expect.element(page.getByRole('button', { name: 'Edit profil' })).not.toBeInTheDocument();
+	});
+
+	it('restores the saved profile when editing is cancelled', async () => {
+		serve({});
+		await render(SettingsHarness, { organizationId, canEdit: true });
+
+		await userEvent.click(page.getByRole('button', { name: 'Edit profil' }));
+		await userEvent.fill(page.getByLabelText('Nama usaha'), 'Nama sementara');
+		await userEvent.click(page.getByRole('button', { name: 'Batal' }));
+
+		await expect.element(page.getByLabelText('Nama usaha')).toHaveValue('Warung Bu Tini');
 		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
 	});
 
@@ -187,7 +203,11 @@ describe('OrganizationSettings', () => {
 
 	it('FR-ORG-08 shows how complete the profile is and what is still missing', async () => {
 		serve({});
-		const { container } = await render(SettingsHarness, { organizationId, canEdit: true });
+		const { container } = await render(SettingsHarness, {
+			organizationId,
+			canEdit: true,
+			view: 'preferences'
+		});
 
 		await expect.element(page.getByLabelText('Kelengkapan profil 50%')).toBeVisible();
 		await expect.element(page.getByText('Jenis toko (Wajib untuk tampil)')).toBeVisible();
@@ -207,7 +227,7 @@ describe('OrganizationSettings', () => {
 					{ status: 422 }
 				)
 		});
-		await render(SettingsHarness, { organizationId, canEdit: true });
+		await render(SettingsHarness, { organizationId, canEdit: true, view: 'preferences' });
 
 		const toggle = page.getByRole('switch', { name: 'Tampilkan usaha saya di Cari Mitra' });
 		await userEvent.click(toggle);
@@ -219,7 +239,7 @@ describe('OrganizationSettings', () => {
 	it('FR-ORG-06 lists a complete store', async () => {
 		const listed = { ...store, listing: { ...store.listing, is_listed: true } };
 		const sent = serve({ [listingPath]: () => envelope(listed) });
-		await render(SettingsHarness, { organizationId, canEdit: true });
+		await render(SettingsHarness, { organizationId, canEdit: true, view: 'preferences' });
 
 		await userEvent.click(page.getByRole('switch', { name: 'Tampilkan usaha saya di Cari Mitra' }));
 

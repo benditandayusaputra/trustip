@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { chooseTheme } from './theme';
 
 interface WebManifest {
 	name: string;
@@ -38,14 +39,14 @@ test('the service worker takes control and serves the offline page without a net
 	await expect
 		.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null))
 		.toBe(true);
-	await page.getByLabel('Tema tampilan').selectOption('dark');
+	await chooseTheme(page, 'dark');
 
 	await context.setOffline(true);
 	await page.goto('/kebutuhan');
 
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tanpa koneksi');
 	await expect(page.locator('html')).toHaveAttribute('data-appearance', 'dark');
-	await page.getByLabel('Tema tampilan').selectOption('light');
+	await chooseTheme(page, 'light');
 	await expect(page.locator('html')).toHaveAttribute('data-appearance', 'light');
 	await context.setOffline(false);
 });

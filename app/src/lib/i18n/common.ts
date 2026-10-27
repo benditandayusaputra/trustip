@@ -34,6 +34,7 @@ export const common = {
 		notifications: 'Pemberitahuan',
 		outbox: 'Antrean',
 		settings: 'Pengaturan',
+		profile: 'Profil',
 		findStores: 'Cari toko',
 		findConsignors: 'Cari produk dan penitip',
 		needsBoard: 'Kebutuhan toko',
@@ -111,7 +112,6 @@ export const common = {
 			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.',
 			demo: {
 				title: 'Coba akun demo',
-				body: 'Tiga akun contoh dengan data 30 hari di Lowokwaru, Malang. Data disetel ulang tiap malam pukul 03.00.',
 				email: 'Email',
 				password: 'Kata sandi semua akun',
 				accounts: {
@@ -119,19 +119,19 @@ export const common = {
 						initial: 'B',
 						name: 'Bendi',
 						role: 'Penitip · Roti Mas Bendi',
-						fill: 'Isi sebagai Bendi (penitip)'
+						fill: 'Coba sebagai Bendi (penitip)'
 					},
 					zara: {
 						initial: 'Z',
 						name: 'Zara',
 						role: 'Toko · Warung Mbak Zara',
-						fill: 'Isi sebagai Zara (toko)'
+						fill: 'Coba sebagai Zara (toko)'
 					},
 					jessica: {
 						initial: 'J',
 						name: 'Jessica',
-						role: 'Toko · Minimarket Berkah, menunggu jawaban ajuan dari Bendi',
-						fill: 'Isi sebagai Jessica (toko)'
+						role: 'Toko · Minimarket Berkah, menunggu jawaban ajuan',
+						fill: 'Coba sebagai Jessica (toko)'
 					}
 				}
 			}
@@ -146,10 +146,13 @@ export const common = {
 		opensInNewTab: '(tab baru)'
 	},
 	account: {
-		openMenu: 'Buka menu akun',
+		openMenu: 'Buka menu profil',
 		greeting: (name: string) => `Halo, ${name}`,
-		menu: 'Akun',
+		menu: 'Profil',
 		manageProfile: 'Kelola profil',
+		fullName: 'Nama lengkap',
+		email: 'Email',
+		roles: { OWNER: 'Pemilik usaha', STAFF: 'Staf' },
 		logOut: 'Keluar',
 		logOutEverywhere: 'Keluar dari semua perangkat',
 		confirmEverywhereTitle: 'Keluar dari semua perangkat?',
@@ -164,10 +167,16 @@ export const common = {
 			count > 0 ? `Pemberitahuan, ${String(count)} belum dibaca` : 'Pemberitahuan',
 		empty: 'Belum ada pemberitahuan. Kabar dari mitra akan muncul di sini.',
 		backToDashboard: 'Kembali ke dasbor',
-		markAll: 'Tandai semua dibaca',
-		loadMore: 'Muat lebih banyak',
+		markAll: 'Tandai semua telah dibaca',
+		markOne: 'Tandai dibaca',
+		markOneLabel: (title: string) => `Tandai dibaca: ${title}`,
+		loadMore: 'Muat pemberitahuan lebih lama',
 		loadFailed: 'Pemberitahuan tidak bisa dimuat.',
 		unread: 'Belum dibaca',
+		unreadCount: (count: number) => `${String(count)} belum dibaca`,
+		filter: 'Saring pemberitahuan',
+		all: 'Semua',
+		noUnread: 'Semua pemberitahuan sudah dibaca.',
 		markedAll: 'Semua pemberitahuan ditandai dibaca.',
 		arrived: 'Ada pemberitahuan baru dari mitra.',
 		open: 'Lihat'

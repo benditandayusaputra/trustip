@@ -14,12 +14,13 @@
 	<title>{id.settings.title}</title>
 </svelte:head>
 
-<section class="mx-auto flex w-full max-w-form flex-col gap-6">
-	<PageHeading icon={Settings}>{id.settings.profileTitle}</PageHeading>
+<section class="flex w-full flex-col gap-6">
+	<PageHeading icon={Settings}>{id.settings.title}</PageHeading>
 	{#if membership}
 		<OrganizationSettings
 			organizationId={membership.organization_id}
 			canEdit={membership.role === 'OWNER'}
+			view="preferences"
 		/>
 	{/if}
 	<div class="self-start"><SessionEnd everywhere /></div>

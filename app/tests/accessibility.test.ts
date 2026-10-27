@@ -181,6 +181,7 @@ async function storePages(page: Page): Promise<string[]> {
 		'/app/laporan',
 		'/app/pemberitahuan',
 		'/app/pengaturan',
+		'/app/profil',
 		'/app/antrean'
 	];
 }
@@ -270,7 +271,7 @@ test(
 		await tabTo(page, 'Lewati ke konten');
 		await page.keyboard.press('Enter');
 		await expect(page.locator('main#konten')).toBeFocused();
-		await tabTo(page, 'Isi sebagai Zara (toko)');
+		await tabTo(page, 'Coba sebagai Zara (toko)');
 		await page.keyboard.press('Enter');
 		await expect(page.getByLabel('Email')).toHaveValue('toko@demo.trustip.id');
 		await expect(page.getByLabel('Kata sandi')).toHaveValue(demoPassword);

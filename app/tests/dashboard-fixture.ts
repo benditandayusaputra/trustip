@@ -64,7 +64,7 @@ function salesReport(group: string) {
 		summary: sales,
 		rows: [
 			{
-				key: productId,
+				key: group === 'DAY' ? '2026-10-11' : productId,
 				label: group === 'PARTNER' ? 'Warung Bu Tini' : 'Roti Sobek (ROT-1)',
 				...sales,
 				...(group === 'PRODUCT' && {

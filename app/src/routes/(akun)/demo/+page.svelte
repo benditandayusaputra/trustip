@@ -13,21 +13,23 @@
 	<title>{text.demoTitle}</title>
 </svelte:head>
 
-<section class="flex flex-col gap-6">
-	<header class="flex flex-col gap-2">
-		<h1 class="text-xl font-semibold text-text">{text.demoTitle}</h1>
-		<p class="text-base text-text-muted">{text.demoIntro}</p>
+<section class="mx-auto flex w-full max-w-form flex-col gap-6">
+	<header class="flex flex-col gap-2 text-center">
+		<h1 class="text-xl font-bold text-text compact:text-kpi-compact">{text.demoTitle}</h1>
+		<p class="text-sm text-text-muted">{text.demoIntro}</p>
 	</header>
-	<DemoAccounts
-		onpick={(account: DemoAccount) => {
-			loginForm?.fill(account);
-		}}
-	/>
-	<LoginForm
-		bind:this={loginForm}
-		siteKey={PUBLIC_TURNSTILE_SITE_KEY}
-		onsignedin={() => {
-			window.location.assign('/app');
-		}}
-	/>
+	<div class="auth-form auth-form-wide flex flex-col gap-6">
+		<DemoAccounts
+			onpick={(account: DemoAccount) => {
+				loginForm?.fill(account);
+			}}
+		/>
+		<LoginForm
+			bind:this={loginForm}
+			siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+			onsignedin={() => {
+				window.location.assign('/app');
+			}}
+		/>
+	</div>
 </section>

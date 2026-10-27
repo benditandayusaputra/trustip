@@ -24,23 +24,39 @@
 		untrack(() => organization.payment)
 	);
 	const toaster = getToaster();
+	let editing = $state(false);
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		reportSection(await editor.save(organization.id), {
 			toaster,
 			savedMessage: text.saved,
-			onsaved
+			onsaved: (saved: Organization) => {
+				editing = false;
+				onsaved(saved);
+			}
 		});
+	}
+
+	function cancel() {
+		editing = false;
+		editor.info = organization.payment?.info ?? '';
+		editor.qr = organization.payment?.qr ?? null;
+		editor.errors = {};
 	}
 </script>
 
 <form onsubmit={handleSubmit} novalidate class="surface-card flex flex-col gap-5 p-5 compact:p-6">
-	<div class="flex flex-col gap-1">
-		<h2 class="text-lg font-semibold text-text">{text.title}</h2>
-		<p class="text-sm text-text-muted">{text.intro}</p>
+	<div class="flex flex-wrap items-start justify-between gap-4">
+		<div class="flex flex-col gap-1">
+			<h2 class="text-lg font-semibold text-text">{text.title}</h2>
+			<p class="text-sm text-text-muted">{text.intro}</p>
+		</div>
+		{#if canEdit && !editing}
+			<Button onclick={() => (editing = true)}>{text.edit}</Button>
+		{/if}
 	</div>
-	<fieldset disabled={!canEdit} class="flex flex-col gap-5">
+	<fieldset disabled={!canEdit || !editing} class="flex flex-col gap-5">
 		<TextArea
 			label={text.info}
 			name="payment_info"
@@ -58,6 +74,11 @@
 			busy={editor.isUploading}
 			onselect={(file: File) => void editor.chooseQr(file)}
 		/>
-		<Button type="submit" busy={editor.busy}>{text.save}</Button>
+		{#if editing}
+			<div class="form-footer">
+				<Button variant="secondary" onclick={cancel}>{id.settings.cancel}</Button>
+				<Button type="submit" busy={editor.busy}>{text.save}</Button>
+			</div>
+		{/if}
 	</fieldset>
 </form>

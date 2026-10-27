@@ -50,7 +50,7 @@
 	{:else if search && !search.origin.is_known && !isVisitor}
 		<p role="status" class="text-sm text-text-muted">
 			{text.noOrigin}
-			<a href="/app/pengaturan" class="font-semibold text-accent">{text.setLocation}</a>
+			<a href="/app/profil" class="font-semibold text-accent">{text.setLocation}</a>
 		</p>
 	{/if}
 	{#if list.status === 'loading'}

@@ -11,6 +11,7 @@ import Package from '@lucide/svelte/icons/package';
 import PackageOpen from '@lucide/svelte/icons/package-open';
 import Search from '@lucide/svelte/icons/search';
 import Settings from '@lucide/svelte/icons/settings';
+import UserRound from '@lucide/svelte/icons/user-round';
 import Warehouse from '@lucide/svelte/icons/warehouse';
 import Wallet from '@lucide/svelte/icons/wallet';
 import { common as id } from '#lib/i18n/common.js';
@@ -73,6 +74,7 @@ export const sectionsOutsideNavigation: NavItem[] = [
 	{ href: '/app/titipan', label: id.nav.drops, icon: Package },
 	{ href: '/app/setoran', label: id.nav.settlements, icon: Wallet },
 	{ href: '/app/pemberitahuan', label: id.nav.notifications, icon: Bell },
+	{ href: '/app/profil', label: id.nav.profile, icon: UserRound },
 	{ href: '/app/antrean', label: id.nav.outbox, icon: CloudUpload },
 	{ href: '/kebutuhan', label: id.nav.needsBoard, icon: Megaphone },
 	{ href: '/cari/toko', label: id.nav.findStores, icon: Search },
@@ -86,6 +88,12 @@ export function navigationFor(type: OrganizationType): Navigation {
 export function isCurrent(href: string, currentPath: string): boolean {
 	const path = href.split('?')[0] ?? href;
 	return currentPath === path || currentPath.startsWith(`${path}/`);
+}
+
+const focusPaths = ['/app/pemberitahuan', '/app/profil'];
+
+export function isFocusPage(currentPath: string): boolean {
+	return focusPaths.some((path) => isCurrent(path, currentPath));
 }
 
 const bottomTabs = 4;

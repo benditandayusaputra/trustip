@@ -15,6 +15,7 @@ export class Inbox {
 	failure = $state('');
 	nextCursor = $state<string | null>(null);
 	busy = $state(false);
+	unread = $state(0);
 	readonly #client: () => ApiClient;
 
 	constructor(client: () => ApiClient) {
@@ -24,8 +25,12 @@ export class Inbox {
 	async load(): Promise<void> {
 		this.status = 'loading';
 		try {
-			const page = await listNotifications(this.#client(), null);
+			const [page, unread] = await Promise.all([
+				listNotifications(this.#client(), null),
+				countUnread(this.#client()).catch(() => 0)
+			]);
 			this.items = page.items;
+			this.unread = Math.max(unread, page.items.filter((item) => !item.is_read).length);
 			this.nextCursor = page.hasMore ? page.nextCursor : null;
 			this.status = 'ready';
 		} catch (error) {
@@ -56,6 +61,7 @@ export class Inbox {
 		this.items = this.items.map((item) =>
 			item.id === notification.id ? { ...item, is_read: true } : item
 		);
+		this.unread = Math.max(0, this.unread - 1);
 	}
 
 	async readAll(): Promise<void> {
@@ -63,6 +69,7 @@ export class Inbox {
 		try {
 			await markAllRead(this.#client());
 			this.items = this.items.map((item) => ({ ...item, is_read: true }));
+			this.unread = 0;
 		} finally {
 			this.busy = false;
 		}

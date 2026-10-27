@@ -1,6 +1,6 @@
 @theme {
 	--color-*: initial;
-	--color-bg: #f6f8fc;
+	--color-bg: #f0f9ff;
 	--color-surface: #ffffff;
 	--color-surface-hover: #eef2f8;
 	--color-border: #e3e8f0;
@@ -89,6 +89,7 @@
 	--container-form: 640px;
 	--container-reading: 720px;
 	--container-auth-form: 480px;
+	--container-profile: 1072px;
 
 	--ease-*: initial;
 	--ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -111,16 +112,17 @@
 	--home-art-mobile-height: 220px;
 	--home-art-height: 300px;
 	--sidebar-width: 256px;
-	--header-height: 72px;
+	--header-height: 64px;
 	--textarea-height: 112px;
 	--product-grid-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
-	--auth-panel-height: 640px;
 	--directory-columns: 320px minmax(0, 1fr);
 	--home-example-columns: minmax(0, 7fr) minmax(0, 5fr);
+	--figure-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
 	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 	--store-results-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 	--org-row-columns: minmax(0, 5fr) minmax(0, 6fr) auto;
 	--search-panel-width: 48rem;
+	--profile-columns: minmax(0, 1fr) minmax(0, 2fr);
 	--directory-map-height: 26rem;
 	--map-marker-size: 44px;
 	--qr-code-size: 192px;

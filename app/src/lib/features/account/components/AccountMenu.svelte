@@ -25,7 +25,7 @@
 			aria-label={text.menu}
 			class="flex w-max flex-col gap-2 rounded-card border border-border bg-surface p-2 shadow-raised"
 		>
-			<a href="/app/pengaturan" class="secondary-link">{text.manageProfile}</a>
+			<a href="/app/profil" class="secondary-link">{text.manageProfile}</a>
 			<SessionEnd />
 		</nav>
 	</div>

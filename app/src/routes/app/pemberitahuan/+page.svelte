@@ -9,7 +9,7 @@
 	<title>{id.notifications.title}</title>
 </svelte:head>
 
-<section class="mx-auto flex w-full max-w-form flex-col gap-6">
+<section class="flex w-full flex-col gap-6">
 	<PageHeading icon={Bell}>{id.notifications.title}</PageHeading>
 	<NotificationList />
 </section>

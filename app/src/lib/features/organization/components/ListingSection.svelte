@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import CircleDashed from '@lucide/svelte/icons/circle-dashed';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Switch from '#lib/components/ui/Switch.svelte';
@@ -46,7 +45,7 @@
 			id="{meterId}-meter"
 			value={percent}
 			max={fullPercent}
-			class="h-2 w-full accent-accent"
+			class="h-2 w-full {percent === fullPercent ? 'accent-success' : 'accent-accent'}"
 		></progress>
 	</div>
 	{#if missing.length > 0}
@@ -63,11 +62,6 @@
 				</li>
 			{/each}
 		</ul>
-	{:else}
-		<p class="flex items-center gap-2 text-sm text-success">
-			<CircleCheck class="size-4" aria-hidden="true" />
-			{text.done}
-		</p>
 	{/if}
 	{#if canEdit}
 		<Switch

@@ -31,6 +31,11 @@ function syncAppearanceControls(chosen) {
 			picker.value = chosen;
 		}
 	}
+	for (const toggle of document.querySelectorAll('[data-appearance-toggle]')) {
+		if (toggle instanceof HTMLInputElement) {
+			toggle.checked = appearanceRoot.dataset.appearance === 'dark';
+		}
+	}
 }
 
 function saveAppearance(chosen) {
@@ -53,6 +58,9 @@ document.addEventListener('change', (event) => {
 	const picker = event.target;
 	if (picker instanceof HTMLSelectElement && picker.hasAttribute('data-appearance-picker')) {
 		saveAppearance(picker.value);
+	}
+	if (picker instanceof HTMLInputElement && picker.hasAttribute('data-appearance-toggle')) {
+		saveAppearance(picker.checked ? 'dark' : 'light');
 	}
 });
 document.addEventListener('DOMContentLoaded', () =>

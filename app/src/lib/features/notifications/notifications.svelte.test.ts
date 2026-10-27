@@ -59,7 +59,7 @@ describe('Notifications', () => {
 			.element(page.getByRole('link', { name: 'Pemberitahuan, 1 belum dibaca' }))
 			.toBeVisible();
 		await expect.element(page.getByText('Titipan masuk', { exact: true })).toBeVisible();
-		await expect.element(page.getByText(/Belum dibaca/u)).toBeVisible();
+		await expect.element(page.getByText('1 belum dibaca')).toBeVisible();
 		await expectAccessible(container);
 	});
 
@@ -95,11 +95,39 @@ describe('Notifications', () => {
 		});
 		await render(NotificationsHarness);
 
-		await userEvent.click(page.getByRole('button', { name: 'Tandai semua dibaca' }));
+		await userEvent.click(page.getByRole('button', { name: 'Tandai semua telah dibaca' }));
 
 		await expect.element(page.getByText('Semua pemberitahuan ditandai dibaca.')).toBeVisible();
-		await expect.element(page.getByText(/Belum dibaca/u)).not.toBeInTheDocument();
+		await expect.element(page.getByText('1 belum dibaca')).not.toBeInTheDocument();
+		await expect
+			.element(page.getByRole('button', { name: /Tandai dibaca/u }))
+			.not.toBeInTheDocument();
 		expect(calls).toContain('POST /api/v1/notifications/read-all');
+	});
+
+	it('FR-NTF-04 marks one notification read and filters the unread ones', async () => {
+		const read = {
+			...unread,
+			id: '0192f0c4-0000-7000-8000-000000000102',
+			title: 'Ajuan kerja sama',
+			is_read: true
+		};
+		const calls = serve({
+			'GET /api/v1/notifications/unread-count': () => ok({ count: 1 }),
+			'GET /api/v1/notifications': () => list([unread, read]),
+			[`POST /api/v1/notifications/${unread.id}/read`]: () => ok(null)
+		});
+		const { container } = await render(NotificationsHarness);
+
+		await userEvent.click(page.getByRole('button', { name: 'Belum dibaca' }));
+		await expect.element(page.getByText('Ajuan kerja sama')).not.toBeInTheDocument();
+		await expectAccessible(container);
+		await userEvent.click(page.getByRole('button', { name: 'Tandai dibaca: Titipan masuk' }));
+
+		await expect.element(page.getByText('Semua pemberitahuan sudah dibaca.')).toBeVisible();
+		expect(calls).toContain(`POST /api/v1/notifications/${unread.id}/read`);
+		await userEvent.click(page.getByRole('button', { name: 'Semua' }));
+		await expect.element(page.getByText('Ajuan kerja sama')).toBeVisible();
 	});
 
 	it('shows an empty state with a way back', async () => {

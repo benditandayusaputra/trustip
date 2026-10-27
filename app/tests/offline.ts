@@ -102,7 +102,7 @@ export async function fixReviewedCount(page: Page): Promise<void> {
 
 export async function signOutKeepingEntries(page: Page): Promise<void> {
 	await page.goto('/app/antrean');
-	await page.locator('summary', { hasText: 'Akun' }).click();
+	await page.getByRole('button', { name: 'Buka menu profil' }).click();
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
 	const dialog = page.getByRole('dialog', { name: /catatan belum terkirim$/u });
 	await expect(dialog).toBeVisible({ timeout: networkTimeoutMs });
@@ -112,7 +112,7 @@ export async function signOutKeepingEntries(page: Page): Promise<void> {
 
 export async function signOut(page: Page): Promise<void> {
 	await page.goto('/app/antrean');
-	await page.locator('summary', { hasText: 'Akun' }).click();
+	await page.getByRole('button', { name: 'Buka menu profil' }).click();
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
 	await page.waitForURL(/\/masuk/u, { timeout: networkTimeoutMs });
 }

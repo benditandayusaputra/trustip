@@ -127,7 +127,13 @@ describe('Sales report', () => {
 
 		await expect.element(page.getByText('2 · Rp45.500').first()).toBeVisible();
 		await expect.element(page.getByText('Lewat tempo').first()).toBeVisible();
+		await expect.element(page.getByText('Perhatian')).toBeVisible();
 		expect(requested).toContain('/api/v1/reports/settlements?from=2026-11-01&to=2026-11-20');
+		await userEvent.fill(page.getByLabelText('Cari mitra atau nomor Setoran'), 'kopi');
+		await expect
+			.element(page.getByText('Tidak ada mitra yang cocok dengan pencarian ini.'))
+			.toBeVisible();
+		await expect.element(page.getByText('daftar setoran kopi')).toBeVisible();
 	});
 
 	it('FR-RPT-05 draws the daily chart and offers it as a table', async () => {

@@ -24,15 +24,17 @@
 	interface Props {
 		organizationId: string;
 		canEdit: boolean;
+		view: 'profile' | 'preferences';
 	}
 
-	let { organizationId, canEdit }: Props = $props();
+	let { organizationId, canEdit, view }: Props = $props();
 
 	const text = id.settings;
 	const fields = id.onboarding;
 	const settings = new ProfileSettings(apiClient);
 	const toaster = getToaster();
 	let formElement: HTMLFormElement | undefined = $state();
+	let editing = $state(false);
 
 	$effect(() => {
 		void settings.load(organizationId);
@@ -49,6 +51,7 @@
 
 	function report(outcome: SaveOutcome) {
 		if (outcome.kind === 'saved') {
+			editing = false;
 			toaster.show({ tone: 'success', message: text.saved });
 			return;
 		}
@@ -71,37 +74,42 @@
 			</Button>
 		{/snippet}
 	</Alert>
+{:else if view === 'preferences'}
+	<ThemeSettings />
+	{#if settings.organization}
+		<ListingSection organization={settings.organization} {canEdit} onsaved={keep} />
+		{#if settings.organization.type === 'CONSIGNOR'}
+			<PaymentSection organization={settings.organization} {canEdit} onsaved={keep} />
+		{/if}
+	{:else}
+		<ContentSkeleton variant="form" />
+	{/if}
 {:else if settings.status === 'loading' || !settings.organization}
 	<ContentSkeleton variant="form" />
 {:else}
 	{@const organization = settings.organization}
-	<nav aria-label={text.navigation} class="settings-navigation">
-		<a href="#profil-usaha">{text.generalTab}</a>
-		<a href="#profil-peran"
-			>{organization.type === 'STORE' ? id.storeProfile.title : id.consignorProfile.title}</a
-		>
-		{#if organization.type === 'CONSIGNOR'}<a href="#pembayaran">{text.paymentTab}</a>{/if}
-		<a href="#publikasi">{text.listingTab}</a>
-		<a href="#tampilan">{text.appearance}</a>
-	</nav>
 	<form
-		id="profil-usaha"
 		bind:this={formElement}
 		onsubmit={handleSubmit}
 		novalidate
-		class="settings-target surface-card flex flex-col gap-5 p-5 compact:p-6"
+		class="surface-card flex flex-col gap-5 p-5 compact:p-6"
 	>
-		<header class="flex flex-col gap-2">
-			<h2 class="text-lg font-semibold">{text.general}</h2>
-			<p class="text-sm text-text-muted">{text.generalHint}</p>
+		<header class="flex flex-wrap items-start justify-between gap-4">
+			<div class="flex flex-col gap-2">
+				<h2 class="text-lg font-semibold">{text.general}</h2>
+				<p class="text-sm text-text-muted">
+					{text.typeLabel}:
+					<span class="font-semibold text-text">{fields.types[organization.type].label}</span>. {fields.typeFixed}
+				</p>
+			</div>
+			{#if canEdit && !editing}
+				<Button onclick={() => (editing = true)}>{text.edit}</Button>
+			{/if}
 		</header>
-		<p class="text-sm text-text-muted">
-			{text.typeLabel}: {fields.types[organization.type].label}. {fields.typeFixed}
-		</p>
 		{#if !canEdit}
 			<p role="status" class="text-sm text-warning">{text.ownersOnly}</p>
 		{/if}
-		<fieldset disabled={!canEdit} class="flex flex-col gap-5">
+		<fieldset disabled={!canEdit || !editing} class="flex flex-col gap-5">
 			<ImageField
 				label={text.logo}
 				chooseLabel={text.chooseLogo}
@@ -138,28 +146,23 @@
 				errors={settings.errors}
 				isConsignor={organization.type === 'CONSIGNOR'}
 			/>
-			<Button type="submit" busy={settings.busy}>{text.save}</Button>
+			{#if editing}
+				<div class="form-footer">
+					<Button
+						variant="secondary"
+						onclick={() => {
+							editing = false;
+							void settings.reset();
+						}}>{text.cancel}</Button
+					>
+					<Button type="submit" busy={settings.busy}>{text.save}</Button>
+				</div>
+			{/if}
 		</fieldset>
 	</form>
 	{#if organization.type === 'STORE'}
-		<section class="settings-target" id="profil-peran">
-			<StoreProfileSection {organization} {canEdit} onsaved={keep} />
-		</section>
+		<StoreProfileSection {organization} {canEdit} onsaved={keep} />
 	{:else}
-		<section class="settings-target" id="profil-peran">
-			<ConsignorProfileSection {organization} {canEdit} onsaved={keep} />
-		</section>
-		<section class="settings-target" id="pembayaran">
-			<PaymentSection {organization} {canEdit} onsaved={keep} />
-		</section>
+		<ConsignorProfileSection {organization} {canEdit} onsaved={keep} />
 	{/if}
 {/if}
-
-<section class="settings-target" id="publikasi">
-	{#if settings.organization}<ListingSection
-			organization={settings.organization}
-			{canEdit}
-			onsaved={keep}
-		/>{/if}
-</section>
-<section class="settings-target" id="tampilan"><ThemeSettings /></section>

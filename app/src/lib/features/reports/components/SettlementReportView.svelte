@@ -1,40 +1,117 @@
 <script lang="ts">
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import DateField from '#lib/components/ui/DateField.svelte';
-	import KpiCard from '#lib/components/ui/KpiCard.svelte';
-	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
+	import TextField from '#lib/components/ui/TextField.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
+	import type { SettlementNarrowing } from '#lib/api/settlements.js';
 	import type { RangePreset } from '#lib/domain/ranges.js';
+	import { formatInteger, formatRupiah } from '#lib/i18n/format.js';
 	import { reports as id } from '#lib/i18n/reports.js';
+	import { settlements as settlementText } from '#lib/i18n/settlements.js';
 	import { SettlementReportState } from '../recaps.svelte';
-	import { settlementCells } from '../rows';
+	import { settlementKinds as kinds } from '../rows';
+	import SettlementPartnerTable from './SettlementPartnerTable.svelte';
+
+	let {
+		narrowing = $bindable({ status: '', age: '', query: '' })
+	}: { narrowing?: SettlementNarrowing } = $props();
 
 	const text = id.reports;
+	const filterText = settlementText.settlements;
 	const state = new SettlementReportState(apiClient, () => new Date());
 	const presetOptions = Object.entries(text.presets).map(([value, label]) => ({ value, label }));
-	const columns = [
-		{ key: 'name' as const, label: text.partner },
-		{ key: 'issued' as const, label: text.issued, numeric: true },
-		{ key: 'paid' as const, label: text.settled, numeric: true },
-		{ key: 'unpaid' as const, label: text.unpaid, numeric: true },
-		{ key: 'overdue' as const, label: text.overdue, numeric: true }
+	const statusOptions = [
+		{ value: '', label: filterText.allStatuses },
+		{ value: 'ISSUED', label: filterText.statuses.ISSUED },
+		{ value: 'PAID', label: filterText.statuses.PAID }
 	];
+	const ageOptions = [
+		{ value: '', label: filterText.allAges },
+		...Object.entries(filterText.ages).map(([value, label]) => ({ value, label }))
+	];
+	const rows = $derived(
+		(state.report?.rows ?? []).filter((row) =>
+			row.name.toLocaleLowerCase('id').includes(narrowing.query.trim().toLocaleLowerCase('id'))
+		)
+	);
 
 	$effect(() => {
 		void state.load(state.range);
 	});
 </script>
 
-<fieldset class="filter-toolbar grid grid-cols-1 gap-4 md:grid-cols-3">
+{#if state.status === 'loading'}
+	<ContentSkeleton variant="report" />
+{:else if state.status === 'failed' || !state.report}
+	<Alert title={text.loadFailed}>{state.failure}</Alert>
+{:else}
+	{@const total = state.report.total}
+	<div class="grid grid-cols-(--figure-columns) gap-4">
+		{#each kinds as kind (kind.key)}
+			{@const figure = total[kind.key]}
+			{@const alarming = kind.key === 'overdue' && figure.count > 0}
+			<div
+				class="surface-card flex min-w-0 flex-col gap-2 p-5 {alarming
+					? 'border-danger bg-danger-surface'
+					: ''}"
+			>
+				<div class="flex items-center justify-between gap-2">
+					<p
+						class="text-xs font-semibold tracking-(--letter-spacing-label) uppercase {alarming
+							? 'text-danger'
+							: 'text-text-muted'}"
+					>
+						{kind.label}
+					</p>
+					{#if alarming}
+						<span
+							class="rounded-pill bg-surface px-2 text-xs font-semibold tracking-(--letter-spacing-label) text-danger uppercase"
+							>{text.attention}</span
+						>
+					{:else}
+						<span class="size-2 rounded-pill {kind.dot}" aria-hidden="true"></span>
+					{/if}
+				</div>
+				<p class="flex flex-wrap items-baseline gap-2 font-bold tabular-nums">
+					<span class="text-kpi-compact {kind.tone}">{formatInteger(figure.count)}</span>
+					<span class="text-text-muted" aria-hidden="true">·</span>
+					<span class="text-lg {kind.key === 'overdue' ? kind.tone : 'text-text'}"
+						>{formatRupiah(figure.amount)}</span
+					>
+				</p>
+				<p class="text-xs {alarming ? 'text-danger' : 'text-text-muted'}">
+					{text.settlementCaptions[kind.key]}
+				</p>
+			</div>
+		{/each}
+	</div>
+{/if}
+
+<fieldset class="filter-toolbar grid grid-cols-(--figure-columns) gap-4 p-5">
 	<legend class="sr-only">{text.filters}</legend>
+	<Select
+		label={filterText.status}
+		options={statusOptions}
+		value={narrowing.status}
+		onchange={(chosen: string) =>
+			(narrowing = { ...narrowing, status: chosen as SettlementNarrowing['status'] })}
+	/>
+	<Select
+		label={filterText.age}
+		options={ageOptions}
+		value={narrowing.age}
+		onchange={(chosen: string) =>
+			(narrowing = { ...narrowing, age: chosen as SettlementNarrowing['age'] })}
+	/>
 	<Select
 		label={text.range}
 		options={presetOptions}
 		value={state.preset}
 		onchange={(chosen: string) => (state.preset = chosen as RangePreset)}
 	/>
+	<TextField label={text.search} type="search" bind:value={narrowing.query} />
 	{#if state.preset === 'CUSTOM'}
 		<DateField
 			label={text.from}
@@ -48,24 +125,7 @@
 		/>
 	{/if}
 </fieldset>
-{#if state.status === 'loading'}
-	<ContentSkeleton variant="report" />
-{:else if state.status === 'failed' || !state.report}
-	<Alert title={text.loadFailed}>{state.failure}</Alert>
-{:else if state.report.rows.length === 0}
-	<p class="text-sm text-text-muted">{text.settlementsEmpty}</p>
-{:else}
-	{@const total = settlementCells(state.report.total)}
-	<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-		<KpiCard label={text.issued} value={total.issued} />
-		<KpiCard label={text.settled} value={total.paid} />
-		<KpiCard label={text.unpaid} value={total.unpaid} />
-		<KpiCard label={text.overdue} value={total.overdue} />
-	</div>
-	<ResponsiveTable
-		caption={text.tabs.settlements}
-		{columns}
-		rows={state.report.rows.map(settlementCells)}
-		rowKey="key"
-	/>
+
+{#if state.status === 'ready' && state.report}
+	<SettlementPartnerTable {rows} partnerCount={state.report.rows.length} />
 {/if}

@@ -15,6 +15,44 @@
 	.theme-control {
 		position: relative;
 	}
+	.theme-control:not(.theme-control-expanded) .theme-select {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+	}
+	.appearance-switch {
+		position: relative;
+		width: var(--spacing-12);
+		height: var(--spacing-8);
+		flex-shrink: 0;
+		appearance: none;
+		border: 1px solid var(--color-border-strong);
+		border-radius: var(--radius-pill);
+		background: var(--color-bg);
+		cursor: pointer;
+	}
+	.appearance-switch::after {
+		position: absolute;
+		top: 50%;
+		left: var(--spacing-1);
+		width: var(--spacing-6);
+		height: var(--spacing-6);
+		border-radius: var(--radius-pill);
+		background: var(--color-text-muted);
+		content: '';
+		translate: 0 -50%;
+		transition: translate var(--duration-fast) var(--ease-out);
+	}
+	.appearance-switch:checked {
+		border-color: var(--color-primary);
+		background: var(--color-primary);
+	}
+	.appearance-switch:checked::after {
+		background: var(--color-on-accent);
+		translate: var(--spacing-4) -50%;
+	}
 	.theme-control:has(select:focus-visible) {
 		outline: var(--focus-ring-width) solid var(--color-accent);
 		outline-offset: var(--focus-ring-offset);
@@ -49,35 +87,6 @@
 	}
 	.faq-item[open] .faq-chevron {
 		transform: rotate(180deg);
-	}
-	.settings-navigation {
-		position: sticky;
-		top: 0;
-		z-index: var(--z-nav);
-		background: var(--color-bg);
-		padding-block: var(--spacing-2);
-		display: flex;
-		gap: var(--spacing-2);
-		overflow-x: auto;
-		border-bottom: 1px solid var(--color-border);
-		padding-bottom: var(--spacing-2);
-	}
-	.settings-navigation a {
-		display: inline-flex;
-		min-height: var(--spacing-11);
-		align-items: center;
-		border-radius: var(--radius-control);
-		padding-inline: var(--spacing-4);
-		font-size: var(--text-sm);
-		font-weight: 500;
-		white-space: nowrap;
-	}
-	.settings-navigation a:hover {
-		background: var(--color-accent-surface);
-		color: var(--color-accent);
-	}
-	.settings-target {
-		scroll-margin-top: calc(var(--spacing-12) + var(--spacing-6));
 	}
 	.document-details {
 		border: 1px solid var(--color-border);
@@ -149,13 +158,6 @@
 		}
 	}
 	@media (width < 768px) {
-		.theme-control:not(.theme-control-expanded) .theme-select {
-			position: absolute;
-			inset: 0;
-			width: 100%;
-			height: 100%;
-			opacity: 0;
-		}
 		.theme-control:not(.theme-control-expanded) {
 			width: var(--spacing-11);
 			justify-content: center;

@@ -150,6 +150,18 @@ describe('Settlement list', () => {
 		await expectAccessible(container);
 	});
 
+	it('FR-RPT-06 follows the report filters and searches by partner or number', async () => {
+		const requested = serve({ 'GET /api/v1/settlements?status=ISSUED': list([summary]) });
+		await render(SettlementsHarness, {
+			view: 'list',
+			narrowing: { status: 'ISSUED', age: '', query: '0001' }
+		});
+
+		await expect.element(page.getByText('Menampilkan 1 Setoran')).toBeVisible();
+		await expect.element(page.getByRole('combobox', { name: 'Umur' })).not.toBeInTheDocument();
+		expect(requested).toContain('GET /api/v1/settlements?status=ISSUED');
+	});
+
 	it('explains that settlements come from counts when there are none', async () => {
 		serve({ 'GET /api/v1/settlements': list([]) });
 		await render(SettlementsHarness, { view: 'list' });

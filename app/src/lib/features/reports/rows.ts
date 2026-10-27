@@ -1,4 +1,4 @@
-import type { DailyRecap, SalesReport, SettlementReport } from '#lib/api/reports.js';
+import type { DailyRecap, SalesReport } from '#lib/api/reports.js';
 import {
 	formatBasisPoints,
 	formatBusinessDate,
@@ -81,33 +81,6 @@ export function recapCells(row: RecapRow): RecapCells {
 	};
 }
 
-export interface SettlementCells extends Record<string, string> {
-	key: string;
-	name: string;
-	issued: string;
-	paid: string;
-	unpaid: string;
-	overdue: string;
-}
-
-type SettlementRow = SettlementReport['total'];
-type Tally = SettlementRow['issued'];
-
-function tallyText(tally: Tally): string {
-	return id.reports.tally(formatInteger(tally.count), formatRupiah(tally.amount));
-}
-
-export function settlementCells(row: SettlementRow): SettlementCells {
-	return {
-		key: row.partner_id,
-		name: row.name,
-		issued: tallyText(row.issued),
-		paid: tallyText(row.paid),
-		unpaid: tallyText(row.unpaid),
-		overdue: tallyText(row.overdue)
-	};
-}
-
 export function salesCsv(report: SalesReport, isStore: boolean): string[][] {
 	const text = id.reports;
 	const header = [
@@ -146,3 +119,10 @@ export function dayCells(report: SalesReport): DayCells[] {
 		gross: formatRupiah(row.split.gross)
 	}));
 }
+
+export const settlementKinds = [
+	{ key: 'issued', label: id.reports.issued, tone: 'text-accent', dot: 'bg-accent' },
+	{ key: 'paid', label: id.reports.settled, tone: 'text-success', dot: 'bg-success' },
+	{ key: 'unpaid', label: id.reports.unpaid, tone: 'text-warning', dot: 'bg-warning-fill' },
+	{ key: 'overdue', label: id.reports.overdue, tone: 'text-danger', dot: 'bg-danger-fill' }
+] as const;

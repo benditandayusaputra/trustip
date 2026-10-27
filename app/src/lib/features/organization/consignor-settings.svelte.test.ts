@@ -105,7 +105,10 @@ describe('Consignor settings', () => {
 			'POST /api/v1/files': () => envelope({ id: qrId, url: `/api/v1/files/${qrId}` }, 201),
 			[path]: () => envelope(consignor)
 		});
-		await render(SettingsHarness, { organizationId, canEdit: true });
+		await render(SettingsHarness, { organizationId, canEdit: true, view: 'preferences' });
+
+		await expect.element(page.getByLabelText('Rekening tujuan')).toBeDisabled();
+		await userEvent.click(page.getByRole('button', { name: 'Edit', exact: true }));
 
 		await userEvent.fill(page.getByLabelText('Rekening tujuan'), 'BCA 1234567 a.n. Darmi');
 		const bytes = Uint8Array.from(atob(tinyPng), (char) => char.charCodeAt(0));
@@ -117,6 +120,7 @@ describe('Consignor settings', () => {
 		await userEvent.click(page.getByRole('button', { name: 'Simpan info pembayaran' }));
 
 		await expect.element(page.getByText('Info pembayaran tersimpan.')).toBeVisible();
+		await expect.element(page.getByLabelText('Rekening tujuan')).toBeDisabled();
 		expect(sent[path]).toEqual({
 			payment_info: 'BCA 1234567 a.n. Darmi',
 			payment_qr_file_id: qrId

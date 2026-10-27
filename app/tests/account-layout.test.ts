@@ -26,7 +26,9 @@ test('directory input survives account loading and More navigation reaches produ
 	} finally {
 		account.resolve(undefined);
 	}
-	await expect(page.locator('summary')).toHaveText('Akun', { timeout: networkTimeoutMs });
+	await expect(page.getByRole('button', { name: 'Buka menu profil' })).toBeVisible({
+		timeout: networkTimeoutMs
+	});
 	await expect(search).toHaveValue('Warung Mbak Zara');
 	await expect(page.getByRole('heading', { name: 'Warung Mbak Zara', exact: true })).toBeVisible({
 		timeout: networkTimeoutMs

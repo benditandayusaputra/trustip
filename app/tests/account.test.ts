@@ -49,8 +49,9 @@ test('FR-AUTH-04 FR-AUTH-06 a new business reaches its dashboard and settings', 
 	await expect(greeting).toBeVisible();
 	await expectTokensHiddenFromScripts(page);
 
-	await page.goto('/app/pengaturan');
+	await page.goto('/app/profil');
 	await expect(page.getByLabel('Nama usaha')).toHaveValue(business.name);
+	await page.getByRole('button', { name: 'Edit profil' }).click();
 	await page.getByLabel('Nama usaha').fill(`${business.name} Jaya`);
 	await page.getByRole('button', { name: 'Simpan profil', exact: true }).click();
 	await expect(page.getByText('Profil usaha tersimpan.')).toBeVisible();
@@ -63,7 +64,7 @@ test('FR-AUTH-04 FR-AUTH-06 a new business reaches its dashboard and settings', 
 	await expect(greeting).toBeVisible();
 	await expectTokensHiddenFromScripts(page);
 
-	await page.locator('summary', { hasText: 'Akun' }).click();
+	await page.getByRole('button', { name: 'Buka menu profil' }).click();
 	await page.getByRole('button', { name: 'Keluar', exact: true }).click();
 	await expect(page).toHaveURL(
 		new RegExp(`/masuk\\?lanjut=${encodeURIComponent(business.dashboard)}$`, 'u')

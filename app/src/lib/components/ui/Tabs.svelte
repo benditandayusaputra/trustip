@@ -10,10 +10,17 @@
 		label: string;
 		tabs: Tab[];
 		selected?: string;
+		centered?: boolean;
 		panel: Snippet<[string]>;
 	}
 
-	let { label, tabs, selected = $bindable(tabs[0]?.key ?? ''), panel }: Props = $props();
+	let {
+		label,
+		tabs,
+		selected = $bindable(tabs[0]?.key ?? ''),
+		centered = false,
+		panel
+	}: Props = $props();
 
 	const baseId = $props.id();
 	const stepByKey: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
@@ -37,7 +44,7 @@
 		role="tablist"
 		aria-label={label}
 		tabindex="-1"
-		class="segmented-tabs flex gap-1 overflow-x-auto"
+		class="segmented-tabs flex gap-1 overflow-x-auto {centered ? 'self-center' : ''}"
 		onkeydown={moveSelection}
 	>
 		{#each tabs as tab (tab.key)}

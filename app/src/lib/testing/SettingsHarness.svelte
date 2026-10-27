@@ -6,12 +6,13 @@
 	interface Props {
 		organizationId: string;
 		canEdit: boolean;
+		view?: 'profile' | 'preferences';
 	}
 
-	let { organizationId, canEdit }: Props = $props();
+	let { organizationId, canEdit, view = 'profile' }: Props = $props();
 
 	setToaster(new ToastQueue());
 </script>
 
-<OrganizationSettings {organizationId} {canEdit} />
+<OrganizationSettings {organizationId} {canEdit} {view} />
 <Toaster />

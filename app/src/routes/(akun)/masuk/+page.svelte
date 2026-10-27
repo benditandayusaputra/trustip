@@ -14,7 +14,7 @@
 	<title>{text.title}</title>
 </svelte:head>
 
-<section class="flex flex-col gap-6">
+<section class="auth-form flex flex-col gap-6">
 	<header class="flex flex-col gap-2">
 		<h1 class="text-kpi font-semibold text-text">{text.title}</h1>
 		<p class="text-base text-text-muted">{text.intro}</p>
@@ -25,7 +25,7 @@
 			window.location.assign(signedInPath(next, account));
 		}}
 	/>
-	<p class="border-t border-border pt-6 text-center text-base text-text-muted">
+	<p class="text-center text-base text-text-muted">
 		{text.noAccount}
 		<a href={registerHref(next)} class="inline-flex min-h-11 items-center font-semibold text-accent"
 			>{text.register}</a

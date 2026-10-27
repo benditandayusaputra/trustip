@@ -7,7 +7,7 @@
 	const year = new Date().getFullYear();
 </script>
 
-<footer class="border-t border-border bg-surface">
+<footer class="bg-bg">
 	<div class="mx-auto flex w-full max-w-content flex-col gap-8 px-4 py-8 lg:px-8">
 		<div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
 			<div class="flex flex-col items-start gap-4">
@@ -16,7 +16,9 @@
 			</div>
 			{#each text.groups as group (group.title)}
 				<nav aria-label={group.label} class="flex flex-col gap-2">
-					<h2 class="text-base font-semibold text-text">{group.title}</h2>
+					<h2 class="text-xs font-semibold tracking-(--letter-spacing-label) text-text uppercase">
+						{group.title}
+					</h2>
 					<ul>
 						{#each group.links as link (link.href)}
 							<li>
@@ -32,7 +34,7 @@
 			{/each}
 		</div>
 		<div
-			class="flex flex-col gap-2 border-t border-border pt-6 text-xs text-text-muted md:flex-row md:flex-wrap md:items-center md:justify-between"
+			class="flex flex-col gap-2 pt-6 text-xs text-text-muted md:flex-row md:flex-wrap md:items-center md:justify-between"
 		>
 			<p>{text.copyright(year)}</p>
 			<p>{text.note}</p>

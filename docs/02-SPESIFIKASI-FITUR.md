@@ -1197,7 +1197,8 @@ Area publik dan area aplikasi dipisah supaya tidak bentrok alamat.
 | `/app/laporan` | Laporan penjualan dan Setoran |
 | `/app/pemberitahuan` | Semua pemberitahuan |
 | `/app/antrean` | Catatan luring yang belum terkirim |
-| `/app/pengaturan` | Profil, lokasi, tampil di Cari Mitra, info pembayaran, anggota (P1) |
+| `/app/profil` | Data akun, profil dan lokasi usaha, profil toko atau penitip |
+| `/app/pengaturan` | Tampilan, tampil di Cari Mitra, info pembayaran, keluar dari semua perangkat, anggota (P1) |
 
 **Aplikasi, khusus Penitip**
 

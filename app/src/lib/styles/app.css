@@ -97,9 +97,33 @@
 	}
 
 	.reading-text {
-		text-align: justify;
-		hyphens: auto;
-		text-wrap: wrap;
+		text-wrap: pretty;
+	}
+
+	.soft-panel {
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-card);
+		background: linear-gradient(180deg, var(--color-accent-surface), var(--color-surface));
+	}
+
+	.hero-sync {
+		min-height: calc(var(--spacing-12) * 5);
+	}
+
+	.hero-sync-head {
+		display: flex;
+		width: var(--spacing-12);
+		height: var(--spacing-12);
+		align-items: center;
+		justify-content: center;
+		border-radius: var(--radius-pill);
+		color: var(--color-on-accent);
+	}
+
+	.hero-sync-body {
+		width: calc(var(--spacing-12) + var(--spacing-4));
+		height: calc(var(--spacing-12) + var(--spacing-2));
+		border-radius: var(--radius-card) var(--radius-card) var(--spacing-1) var(--spacing-1);
 	}
 
 	.section-title {

@@ -72,12 +72,13 @@ async function productWithPayload(page: Page): Promise<void> {
 }
 
 async function listStore(page: Page): Promise<void> {
-	await page.goto('/app/pengaturan');
+	await page.goto('/app/profil');
 	await page.getByLabel('Jenis toko').selectOption('BAKERY');
 	await page.getByRole('checkbox', { name: 'Roti dan kue basah' }).check();
 	await page.getByLabel('Syarat lain').fill(payload);
 	await page.getByRole('button', { name: 'Simpan profil toko' }).click();
 	await expect(page.getByText('Profil toko tersimpan.')).toBeVisible({ timeout: networkTimeoutMs });
+	await page.goto('/app/pengaturan');
 	await page.getByRole('switch', { name: 'Tampilkan usaha saya di Cari Mitra' }).click();
 	await expect(page.getByText('Usaha Anda tampil di Cari Mitra.')).toBeVisible({
 		timeout: networkTimeoutMs
@@ -130,14 +131,19 @@ test(
 		const consignor = await watchedPage(browser, watch);
 		await onboardWithPayload(consignor, /Penitip/u, `Roti ${payload}`);
 		await productWithPayload(consignor);
-		await visitAll(consignor, ['/app/penitip', '/app/produk', '/app/pengaturan']);
+		await visitAll(consignor, ['/app/penitip', '/app/produk', '/app/pengaturan', '/app/profil']);
 
 		const store = await watchedPage(browser, watch);
 		const storeStamp = `Toko ${Date.now().toString(36)}`;
 		await onboardWithPayload(store, /Toko/u, `${storeStamp} ${payload}`);
 		await listStore(store);
 		const needId = await needWithPayload(store, `Butuh roti ${Date.now().toString(36)}`);
-		await visitAll(store, ['/app/toko', `/app/kebutuhan/${needId}`, '/app/pengaturan']);
+		await visitAll(store, [
+			'/app/toko',
+			`/app/kebutuhan/${needId}`,
+			'/app/pengaturan',
+			'/app/profil'
+		]);
 		const proposalPath = await proposeWithPayload(consignor, storeStamp);
 		await visitAll(store, [proposalPath, '/app/ajuan']);
 		await visitAll(consignor, ['/kebutuhan', `/kebutuhan/${needId}`]);
