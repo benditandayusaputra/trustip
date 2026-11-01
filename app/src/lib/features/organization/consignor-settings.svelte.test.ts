@@ -71,7 +71,10 @@ afterEach(() => {
 describe('Consignor settings', () => {
 	it('BR-ORG-07 marks legal numbers as declared by the owner and saves the profile', async () => {
 		const path = `PATCH /api/v1/organizations/${organizationId}/consignor-profile`;
-		const sent = serve({ [path]: () => envelope(consignor) });
+		const sent = serve({
+			[path]: () => envelope(consignor),
+			[`PATCH /api/v1/organizations/${organizationId}`]: () => envelope(consignor)
+		});
 		const { container } = await render(SettingsHarness, { organizationId, canEdit: true });
 
 		await expect
@@ -79,15 +82,16 @@ describe('Consignor settings', () => {
 				page.getByText('Dinyatakan oleh pemilik usaha. Trustip tidak memverifikasinya.').first()
 			)
 			.toBeVisible();
+		await userEvent.click(page.getByRole('button', { name: 'Edit profil' }));
 		await userEvent.fill(page.getByLabelText('Jangkauan antar (km)', { exact: true }), '12');
 		await userEvent.click(page.getByRole('checkbox', { name: 'Kamis' }));
 		await userEvent.click(page.getByRole('checkbox', { name: 'Kafe atau kedai kopi' }));
 		await userEvent.fill(page.getByLabelText('NIB'), '1234567890123');
 		await userEvent.click(page.getByRole('switch', { name: 'Bisa mengirim sampel' }));
 		await expectAccessible(container);
-		await userEvent.click(page.getByRole('button', { name: 'Simpan profil penitip' }));
+		await userEvent.click(page.getByRole('button', { name: 'Simpan profil', exact: true }));
 
-		await expect.element(page.getByText('Profil penitip tersimpan.')).toBeVisible();
+		await expect.element(page.getByText('Profil usaha tersimpan.')).toBeVisible();
 		expect(sent[path]).toEqual({
 			delivery_radius_km: 12,
 			delivery_days: ['THU'],

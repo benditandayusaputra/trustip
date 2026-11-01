@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import Button from '#lib/components/ui/Button.svelte';
 	import NumberField from '#lib/components/ui/NumberField.svelte';
 	import Select from '#lib/components/ui/Select.svelte';
 	import Switch from '#lib/components/ui/Switch.svelte';
@@ -39,17 +38,14 @@
 		void editor.loadCategories();
 	});
 
-	async function handleSubmit(event: SubmitEvent) {
-		event.preventDefault();
-		reportSection(await editor.save(organization.id), {
-			toaster,
-			savedMessage: text.saved,
-			onsaved
-		});
+	export async function save(): Promise<boolean> {
+		const outcome = await editor.save(organization.id);
+		reportSection(outcome, { toaster, onsaved });
+		return outcome.kind === 'saved';
 	}
 </script>
 
-<form onsubmit={handleSubmit} novalidate class="surface-card flex flex-col gap-5 p-5 compact:p-6">
+<section class="surface-card flex flex-col gap-5 p-5 compact:p-6">
 	<h2 class="text-lg font-semibold text-text">{text.title}</h2>
 	<fieldset disabled={!canEdit} class="flex flex-col gap-5">
 		<Select
@@ -108,6 +104,5 @@
 				editor.removePhoto(photoId);
 			}}
 		/>
-		<Button type="submit" busy={editor.busy}>{text.save}</Button>
 	</fieldset>
-</form>
+</section>

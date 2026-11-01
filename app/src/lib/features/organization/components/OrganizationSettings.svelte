@@ -34,7 +34,10 @@
 	const settings = new ProfileSettings(apiClient);
 	const toaster = getToaster();
 	let formElement: HTMLFormElement | undefined = $state();
+	let details: { save: () => Promise<boolean> } | undefined = $state();
 	let editing = $state(false);
+	let saving = $state(false);
+	let revision = $state(0);
 
 	$effect(() => {
 		void settings.load(organizationId);
@@ -46,7 +49,28 @@
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
-		report(await settings.save());
+		saving = true;
+		try {
+			if (details && !(await details.save())) {
+				focusInvalid();
+				return;
+			}
+			report(await settings.save());
+		} finally {
+			saving = false;
+		}
+	}
+
+	function cancel() {
+		editing = false;
+		revision += 1;
+		void settings.reset();
+	}
+
+	function focusInvalid() {
+		void tick().then(() => {
+			formElement?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+		});
 	}
 
 	function report(outcome: SaveOutcome) {
@@ -56,9 +80,7 @@
 			return;
 		}
 		if (outcome.kind === 'invalid') {
-			void tick().then(() => {
-				formElement?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-			});
+			focusInvalid();
 			return;
 		}
 		toaster.show({ tone: 'danger', message: outcome.message });
@@ -88,81 +110,87 @@
 	<ContentSkeleton variant="form" />
 {:else}
 	{@const organization = settings.organization}
-	<form
-		bind:this={formElement}
-		onsubmit={handleSubmit}
-		novalidate
-		class="surface-card flex flex-col gap-5 p-5 compact:p-6"
-	>
-		<header class="flex flex-wrap items-start justify-between gap-4">
-			<div class="flex flex-col gap-2">
-				<h2 class="text-lg font-semibold">{text.general}</h2>
-				<p class="text-sm text-text-muted">
-					{text.typeLabel}:
-					<span class="font-semibold text-text">{fields.types[organization.type].label}</span>. {fields.typeFixed}
-				</p>
-			</div>
-			{#if canEdit && !editing}
-				<Button onclick={() => (editing = true)}>{text.edit}</Button>
-			{/if}
-		</header>
-		{#if !canEdit}
-			<p role="status" class="text-sm text-warning">{text.ownersOnly}</p>
-		{/if}
-		<fieldset disabled={!canEdit || !editing} class="flex flex-col gap-5">
-			<ImageField
-				label={text.logo}
-				chooseLabel={text.chooseLogo}
-				imageUrl={settings.logo?.url}
-				imageAlt={text.logoAlt(organization.name)}
-				hint={text.logoHint}
-				error={settings.logoError}
-				busy={settings.isUploading}
-				onselect={(file: File) => void settings.chooseLogo(file)}
-			/>
-			<TextField
-				label={fields.name}
-				name="name"
-				bind:value={settings.values.name}
-				error={settings.errors.name}
-			/>
-			<TextArea
-				label={fields.description}
-				name="description"
-				hint={fields.descriptionHint}
-				bind:value={settings.values.description}
-				error={settings.errors.description}
-			/>
-			<TextField
-				label={fields.whatsapp}
-				name="whatsapp"
-				type="tel"
-				bind:value={settings.values.whatsapp}
-				error={settings.errors.whatsapp}
-			/>
-			<LocationFields
-				regions={settings.regions}
-				values={settings.values}
-				errors={settings.errors}
-				isConsignor={organization.type === 'CONSIGNOR'}
-			/>
-			{#if editing}
-				<div class="form-footer">
-					<Button
-						variant="secondary"
-						onclick={() => {
-							editing = false;
-							void settings.reset();
-						}}>{text.cancel}</Button
-					>
-					<Button type="submit" busy={settings.busy}>{text.save}</Button>
+	<form bind:this={formElement} onsubmit={handleSubmit} novalidate class="flex flex-col gap-6">
+		<section class="surface-card flex flex-col gap-5 p-5 compact:p-6">
+			<header class="flex flex-wrap items-start justify-between gap-4">
+				<div class="flex flex-col gap-2">
+					<h2 class="text-lg font-semibold">{text.general}</h2>
+					<p class="text-sm text-text-muted">
+						{text.typeLabel}:
+						<span class="font-semibold text-text">{fields.types[organization.type].label}</span>. {fields.typeFixed}
+					</p>
 				</div>
+				{#if canEdit}
+					{#if editing}
+						<Button variant="secondary" disabled={saving} onclick={cancel}>{text.cancel}</Button>
+					{:else}
+						<Button onclick={() => (editing = true)}>{text.edit}</Button>
+					{/if}
+				{/if}
+			</header>
+			{#if !canEdit}
+				<p role="status" class="text-sm text-warning">{text.ownersOnly}</p>
 			{/if}
-		</fieldset>
+			<fieldset disabled={!canEdit || !editing} class="flex flex-col gap-5">
+				<ImageField
+					label={text.logo}
+					chooseLabel={text.chooseLogo}
+					imageUrl={settings.logo?.url}
+					imageAlt={text.logoAlt(organization.name)}
+					hint={text.logoHint}
+					error={settings.logoError}
+					busy={settings.isUploading}
+					onselect={(file: File) => void settings.chooseLogo(file)}
+				/>
+				<TextField
+					label={fields.name}
+					name="name"
+					bind:value={settings.values.name}
+					error={settings.errors.name}
+				/>
+				<TextArea
+					label={fields.description}
+					name="description"
+					hint={fields.descriptionHint}
+					bind:value={settings.values.description}
+					error={settings.errors.description}
+				/>
+				<TextField
+					label={fields.whatsapp}
+					name="whatsapp"
+					type="tel"
+					bind:value={settings.values.whatsapp}
+					error={settings.errors.whatsapp}
+				/>
+				<LocationFields
+					regions={settings.regions}
+					values={settings.values}
+					errors={settings.errors}
+					isConsignor={organization.type === 'CONSIGNOR'}
+				/>
+			</fieldset>
+		</section>
+		{#key revision}
+			{#if organization.type === 'STORE'}
+				<StoreProfileSection
+					bind:this={details}
+					{organization}
+					canEdit={canEdit && editing}
+					onsaved={keep}
+				/>
+			{:else}
+				<ConsignorProfileSection
+					bind:this={details}
+					{organization}
+					canEdit={canEdit && editing}
+					onsaved={keep}
+				/>
+			{/if}
+		{/key}
+		{#if editing}
+			<div class="form-footer">
+				<Button type="submit" busy={saving}>{text.save}</Button>
+			</div>
+		{/if}
 	</form>
-	{#if organization.type === 'STORE'}
-		<StoreProfileSection {organization} {canEdit} onsaved={keep} />
-	{:else}
-		<ConsignorProfileSection {organization} {canEdit} onsaved={keep} />
-	{/if}
 {/if}

@@ -24,10 +24,13 @@ export async function listedStore(page: Page, name: string): Promise<void> {
 	await onboard(page, { choice: /Toko/u, name, dashboard: '/app/toko' });
 	await expect(page).toHaveURL(/\/app\/toko$/u, { timeout: networkTimeoutMs });
 	await page.goto('/app/profil');
+	await page.getByRole('button', { name: 'Edit profil' }).click();
 	await page.getByLabel('Jenis toko').selectOption('BAKERY');
 	await page.getByRole('checkbox', { name: 'Roti dan kue basah' }).check();
-	await page.getByRole('button', { name: 'Simpan profil toko' }).click();
-	await expect(page.getByText('Profil toko tersimpan.')).toBeVisible({ timeout: networkTimeoutMs });
+	await page.getByRole('button', { name: 'Simpan profil', exact: true }).click();
+	await expect(page.getByText('Profil usaha tersimpan.')).toBeVisible({
+		timeout: networkTimeoutMs
+	});
 	await page.goto('/app/pengaturan');
 	await page.getByRole('switch', { name: 'Tampilkan usaha saya di Cari Mitra' }).click();
 	await expect(page.getByText('Usaha Anda tampil di Cari Mitra.')).toBeVisible({

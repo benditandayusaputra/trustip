@@ -8,6 +8,7 @@ const organizationId = '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c';
 const logoId = '0192f0c4-aa00-7e66-a1bb-4d2f3e5d6a90';
 const breadCategory = '01a1161e-0a30-752d-ab9b-7397976f0dba';
 const storeProfilePath = `PATCH /api/v1/organizations/${organizationId}/store-profile`;
+const profilePath = `PATCH /api/v1/organizations/${organizationId}`;
 const tinyPng =
 	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
@@ -102,8 +103,8 @@ describe('OrganizationSettings', () => {
 		const sent = serve({
 			'POST /api/v1/files': () =>
 				envelope({ id: logoId, url: 'http://localhost:8080/files/a.png' }, 201),
-			[`PATCH /api/v1/organizations/${organizationId}`]: (body) =>
-				envelope({ ...store, ...(body as object) })
+			[storeProfilePath]: () => envelope(store),
+			[profilePath]: (body) => envelope({ ...store, ...(body as object) })
 		});
 		const { container } = await render(SettingsHarness, { organizationId, canEdit: true });
 
@@ -111,8 +112,14 @@ describe('OrganizationSettings', () => {
 		await expect.element(page.getByLabelText('Nomor WhatsApp usaha')).toHaveValue('081234567890');
 		await expect.element(page.getByLabelText('Kabupaten atau kota')).toHaveValue('33.74');
 		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
+		await expect.element(page.getByLabelText('Jenis toko')).toBeDisabled();
+		await expect
+			.element(page.getByRole('button', { name: 'Simpan profil', exact: true }))
+			.not.toBeInTheDocument();
 		await expectAccessible(container);
 		await userEvent.click(page.getByRole('button', { name: 'Edit profil' }));
+		await expect.element(page.getByRole('button', { name: 'Batal' })).toBeVisible();
+		await expect.element(page.getByRole('button', { name: 'Edit profil' })).not.toBeInTheDocument();
 		await userEvent.upload(page.getByLabelText('Pilih gambar logo'), pngFile());
 		await expect.element(page.getByRole('img', { name: 'Logo Warung Bu Tini' })).toBeVisible();
 		await userEvent.fill(page.getByLabelText('Nama usaha'), 'Warung Bu Tini Jaya');
@@ -120,7 +127,8 @@ describe('OrganizationSettings', () => {
 
 		await expect.element(page.getByText('Profil usaha tersimpan.')).toBeVisible();
 		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
-		expect(sent[`PATCH /api/v1/organizations/${organizationId}`]).toMatchObject({
+		await expect.element(page.getByRole('button', { name: 'Edit profil' })).toBeVisible();
+		expect(sent[profilePath]).toMatchObject({
 			name: 'Warung Bu Tini Jaya',
 			city_code: '33.74',
 			logo_file_id: logoId
@@ -136,6 +144,9 @@ describe('OrganizationSettings', () => {
 			.toBeVisible();
 		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
 		await expect.element(page.getByRole('button', { name: 'Edit profil' })).not.toBeInTheDocument();
+		await expect
+			.element(page.getByRole('button', { name: 'Simpan profil', exact: true }))
+			.not.toBeInTheDocument();
 	});
 
 	it('restores the saved profile when editing is cancelled', async () => {
@@ -144,10 +155,13 @@ describe('OrganizationSettings', () => {
 
 		await userEvent.click(page.getByRole('button', { name: 'Edit profil' }));
 		await userEvent.fill(page.getByLabelText('Nama usaha'), 'Nama sementara');
+		await userEvent.fill(page.getByLabelText('Jam buka'), 'Sementara');
 		await userEvent.click(page.getByRole('button', { name: 'Batal' }));
 
 		await expect.element(page.getByLabelText('Nama usaha')).toHaveValue('Warung Bu Tini');
 		await expect.element(page.getByLabelText('Nama usaha')).toBeDisabled();
+		await expect.element(page.getByLabelText('Jam buka')).toHaveValue('');
+		await expect.element(page.getByRole('button', { name: 'Edit profil' })).toBeVisible();
 	});
 
 	it('offers a retry when the profile cannot be loaded', async () => {
@@ -161,10 +175,12 @@ describe('OrganizationSettings', () => {
 		const sent = serve({
 			'POST /api/v1/files': () =>
 				envelope({ id: logoId, url: 'http://localhost:8080/files/b.png' }, 201),
-			[storeProfilePath]: () => envelope(store)
+			[storeProfilePath]: () => envelope(store),
+			[profilePath]: () => envelope(store)
 		});
 		const { container } = await render(SettingsHarness, { organizationId, canEdit: true });
 
+		await userEvent.click(page.getByRole('button', { name: 'Edit profil' }));
 		await userEvent.selectOptions(page.getByLabelText('Jenis toko'), 'Toko kue dan roti');
 		await userEvent.click(page.getByRole('checkbox', { name: 'Roti dan kue basah' }));
 		await userEvent.click(page.getByRole('switch', { name: 'Menerima model Komisi' }));
@@ -173,9 +189,9 @@ describe('OrganizationSettings', () => {
 		await userEvent.upload(page.getByLabelText('Tambah foto toko'), pngFile());
 		await expect.element(page.getByRole('img', { name: 'Foto toko 1' })).toBeVisible();
 		await expectAccessible(container);
-		await userEvent.click(page.getByRole('button', { name: 'Simpan profil toko' }));
+		await userEvent.click(page.getByRole('button', { name: 'Simpan profil', exact: true }));
 
-		await expect.element(page.getByText('Profil toko tersimpan.')).toBeVisible();
+		await expect.element(page.getByText('Profil usaha tersimpan.')).toBeVisible();
 		expect(sent[storeProfilePath]).toMatchObject({
 			store_type: 'BAKERY',
 			accepted_category_ids: [breadCategory],
@@ -190,15 +206,17 @@ describe('OrganizationSettings', () => {
 		const sent = serve({});
 		await render(SettingsHarness, { organizationId, canEdit: true });
 
+		await userEvent.click(page.getByRole('button', { name: 'Edit profil' }));
 		await userEvent.click(page.getByRole('switch', { name: 'Menerima model Komisi' }));
 		await userEvent.fill(page.getByLabelText('Komisi terendah (%)', { exact: true }), '30');
 		await userEvent.fill(page.getByLabelText('Komisi tertinggi (%)', { exact: true }), '20');
-		await userEvent.click(page.getByRole('button', { name: 'Simpan profil toko' }));
+		await userEvent.click(page.getByRole('button', { name: 'Simpan profil', exact: true }));
 
 		await expect
 			.element(page.getByText('Komisi terendah tidak boleh melebihi yang tertinggi.'))
 			.toBeVisible();
 		expect(sent[storeProfilePath]).toBeUndefined();
+		expect(sent[profilePath]).toBeUndefined();
 	});
 
 	it('FR-ORG-08 shows how complete the profile is and what is still missing', async () => {

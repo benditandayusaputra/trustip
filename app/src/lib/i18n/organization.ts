@@ -89,9 +89,7 @@ export const organization = {
 		photosHint: 'Sampai 5 foto. JPG, PNG, atau WebP.',
 		addPhoto: 'Tambah foto toko',
 		photoAlt: (number: number) => `Foto toko ${String(number)}`,
-		removePhoto: (number: number) => `Hapus foto ${String(number)}`,
-		save: 'Simpan profil toko',
-		saved: 'Profil toko tersimpan.'
+		removePhoto: (number: number) => `Hapus foto ${String(number)}`
 	},
 	consignorProfile: {
 		title: 'Profil penitip',
@@ -113,9 +111,7 @@ export const organization = {
 		businessIdNo: 'NIB',
 		distributionPermitNo: 'Nomor izin edar (PIRT atau MD)',
 		halalCertNo: 'Nomor sertifikat halal',
-		canProvideSample: 'Bisa mengirim sampel',
-		save: 'Simpan profil penitip',
-		saved: 'Profil penitip tersimpan.'
+		canProvideSample: 'Bisa mengirim sampel'
 	},
 	payment: {
 		title: 'Info pembayaran',

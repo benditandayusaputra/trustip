@@ -32,13 +32,15 @@ export function explainSectionFailure<F extends string>(
 
 export interface SectionReport {
 	toaster: Toaster;
-	savedMessage: string;
+	savedMessage?: string;
 	onsaved: (organization: Organization) => void;
 }
 
 export function reportSection(outcome: SectionOutcome, report: SectionReport): void {
 	if (outcome.kind === 'saved') {
-		report.toaster.show({ tone: 'success', message: report.savedMessage });
+		if (report.savedMessage) {
+			report.toaster.show({ tone: 'success', message: report.savedMessage });
+		}
 		report.onsaved(outcome.organization);
 	} else if (outcome.kind === 'failed') {
 		report.toaster.show({ tone: 'danger', message: outcome.message });
