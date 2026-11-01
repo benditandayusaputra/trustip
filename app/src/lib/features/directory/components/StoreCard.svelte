@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Store from '@lucide/svelte/icons/store';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import StoreImage from '#lib/components/ui/StoreImage.svelte';
 	import type { DirectoryStoreCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatBusinessDate, formatDistance } from '#lib/i18n/format.js';
 	import { directory as directoryText } from '#lib/i18n/directory.js';
@@ -32,23 +32,7 @@
 
 <article class="surface-card list-card org-row">
 	<header class="flex items-start gap-4">
-		{#if card.logo_url}
-			<img
-				src={card.logo_url}
-				alt=""
-				width="48"
-				height="48"
-				loading="lazy"
-				decoding="async"
-				class="size-12 shrink-0 rounded-control object-cover"
-			/>
-		{:else}
-			<div
-				class="flex size-12 shrink-0 items-center justify-center rounded-control bg-accent-surface"
-			>
-				<Store class="size-6 text-accent" aria-hidden="true" />
-			</div>
-		{/if}
+		<StoreImage url={card.logo_url} class="size-12 rounded-control" />
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<h2 class="truncate text-lg font-semibold text-text" title={card.name}>
 				<a href="/t/{card.slug}" class="list-card-link hover:text-accent">{card.name}</a>

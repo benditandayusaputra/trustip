@@ -39,6 +39,7 @@
 		{kind}
 		place={text.place(store.district, store.city_name)}
 		logoUrl={store.logo_url}
+		isStore
 	/>
 	{#if store.description}
 		<p class="text-base whitespace-pre-line text-text">{store.description}</p>

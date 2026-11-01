@@ -80,7 +80,8 @@ describe('Need board', () => {
 	});
 
 	it('shows the category photo and the store photo on the need card', async () => {
-		const photo = 'https://api.example.test/files/0123456789abcdef0123456789abcdef.jpg';
+		const photo =
+			'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 		serve({ [boardPath]: () => list([{ ...need, store: { ...need.store, logo_url: photo } }]) });
 		const { container } = await render(NeedBoardHarness, {});
 

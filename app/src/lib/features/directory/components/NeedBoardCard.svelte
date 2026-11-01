@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Store from '@lucide/svelte/icons/store';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import StoreImage from '#lib/components/ui/StoreImage.svelte';
 	import type { NeedBoardCard } from '#lib/api/directory.js';
 	import { formatBasisPoints, formatDate, formatDistance, formatRupiah } from '#lib/i18n/format.js';
 	import { directory as directoryText } from '#lib/i18n/directory.js';
@@ -38,19 +38,7 @@
 				<a href="/kebutuhan/{card.id}" class="list-card-link hover:text-accent">{card.title}</a>
 			</h2>
 			<p class="flex min-w-0 items-center gap-2 text-sm text-text-muted">
-				{#if card.store.logo_url}
-					<img
-						src={card.store.logo_url}
-						alt=""
-						width="24"
-						height="24"
-						loading="lazy"
-						decoding="async"
-						class="size-6 shrink-0 rounded-pill object-cover"
-					/>
-				{:else}
-					<Store class="size-5 shrink-0 text-accent" aria-hidden="true" />
-				{/if}
+				<StoreImage url={card.store.logo_url} class="size-6 rounded-pill" />
 				<span class="truncate">
 					{card.store.name}
 					{#if card.store.store_type}
