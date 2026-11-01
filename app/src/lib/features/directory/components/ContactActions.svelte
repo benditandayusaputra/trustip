@@ -1,6 +1,6 @@
 <script lang="ts">
-	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import Button from '#lib/components/ui/Button.svelte';
+	import WhatsAppIcon from '#lib/components/ui/WhatsAppIcon.svelte';
 	import { page } from '$app/state';
 	import { apiClient } from '#lib/api/client.js';
 	import { getDirectoryContact } from '#lib/api/directory.js';
@@ -64,13 +64,15 @@
 			href={chatUrl}
 			target="_blank"
 			rel="noopener noreferrer"
-			class="inline-flex min-h-11 items-center gap-2 font-semibold text-accent"
+			class="inline-flex min-h-12 items-center gap-2 rounded-control border border-whatsapp bg-whatsapp px-5 font-semibold text-on-accent hover:bg-whatsapp-hover"
 		>
-			<MessageCircle class="size-5" aria-hidden="true" />
+			<WhatsAppIcon />
 			{text.openWhatsApp(name)}
 		</a>
 	{:else}
-		<Button variant="secondary" {busy} onclick={() => void revealChat()}>{text.askWhatsApp}</Button>
+		<Button variant="whatsapp" {busy} onclick={() => void revealChat()}
+			><WhatsAppIcon />{text.askWhatsApp}</Button
+		>
 	{/if}
 	{#if needsSignIn}
 		<a href={signInHref} class="inline-flex min-h-11 items-center font-semibold text-accent">

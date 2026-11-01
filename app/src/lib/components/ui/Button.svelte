@@ -3,7 +3,7 @@
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { common as id } from '#lib/i18n/common.js';
 
-	type Variant = 'primary' | 'secondary' | 'danger';
+	type Variant = 'primary' | 'secondary' | 'danger' | 'whatsapp';
 
 	interface Props {
 		children: Snippet;
@@ -26,7 +26,8 @@
 	const variants: Record<Variant, string> = {
 		primary: 'bg-primary text-on-accent border border-primary hover:bg-primary-hover',
 		secondary: 'bg-surface text-text border border-border hover:bg-surface-hover',
-		danger: 'bg-bg text-danger border border-danger'
+		danger: 'bg-bg text-danger border border-danger',
+		whatsapp: 'bg-whatsapp text-on-accent border border-whatsapp hover:bg-whatsapp-hover'
 	};
 </script>
 
