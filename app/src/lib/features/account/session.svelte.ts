@@ -32,7 +32,9 @@ export class AccountSession {
 	}
 
 	async load(): Promise<void> {
-		this.status = 'loading';
+		if (this.status !== 'ready') {
+			this.status = 'loading';
+		}
 		try {
 			this.account = await getAccount(this.#client());
 			this.status = 'ready';

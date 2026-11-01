@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { untrack, type Snippet } from 'svelte';
 	import { navigating, page } from '$app/state';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
@@ -16,6 +16,7 @@
 		setAccountSession,
 		type Placement
 	} from '../session.svelte';
+	import { getSessionSlot, hasSessionSlot, type SessionSlot } from '../session-slot';
 
 	interface Props {
 		placement: Placement;
@@ -28,11 +29,13 @@
 
 	let { placement, onsignedout, onmisplaced, actions, children, loading }: Props = $props();
 
-	const session = new AccountSession(apiClient);
+	const slot: SessionSlot = hasSessionSlot() ? getSessionSlot() : {};
+	slot.session ??= new AccountSession(apiClient);
+	const session = slot.session;
 	setAccountSession(session);
 
 	$effect(() => {
-		void session.load();
+		void untrack(() => session.load());
 	});
 
 	const currentRoute = $derived(page.route.id ?? page.url.pathname);
@@ -46,9 +49,6 @@
 	);
 	const isVisitor = $derived(session.status === 'signedOut' && placement === 'anyone');
 	const isOpenWhileLoading = $derived(session.status === 'loading' && placement === 'anyone');
-	const signInHref = $derived(
-		`/masuk?${new URLSearchParams({ lanjut: page.url.pathname + page.url.search }).toString()}`
-	);
 
 	$effect(() => {
 		if (session.status === 'signedOut' && placement !== 'anyone') {
@@ -64,14 +64,7 @@
 </script>
 
 {#snippet toolbar()}
-	{#if isVisitor}
-		<a
-			href={signInHref}
-			class="inline-flex min-h-11 items-center rounded-control border border-border-strong px-4 font-semibold"
-		>
-			{id.nav.signIn}
-		</a>
-	{:else if session.status === 'ready'}
+	{#if session.status === 'ready'}
 		<div class="flex flex-wrap items-center gap-2">
 			{#if isPlaced && actions}
 				{@render actions()}
@@ -105,6 +98,6 @@
 	currentPath={page.url.pathname}
 	workspace={placement === 'member'}
 	pendingPath={pendingPagePath(navigating.to?.url, page.url)}
-	actions={toolbar}
+	actions={placement === 'anyone' && session.status !== 'ready' ? undefined : toolbar}
 	children={content}
 />

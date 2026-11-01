@@ -6,12 +6,14 @@
 	import UpdateNotice from '#lib/features/system/UpdateNotice.svelte';
 	import Toaster from '#lib/components/ui/Toaster.svelte';
 	import { Toaster as ToastQueue, setToaster } from '#lib/components/ui/toast.svelte.js';
+	import { setSessionSlot } from '#lib/features/account/session-slot.js';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
 	let pageThemeColor = $state(themeColor);
 
 	setToaster(new ToastQueue());
+	setSessionSlot({});
 
 	function readThemeColor() {
 		pageThemeColor = getComputedStyle(document.documentElement)

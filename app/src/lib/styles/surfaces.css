@@ -30,6 +30,10 @@
 		background: var(--color-bg);
 		padding: var(--spacing-2) var(--spacing-4);
 	}
+	.public-header ~ main .sticky-filters {
+		top: var(--header-height);
+		max-height: calc(100dvh - var(--header-height));
+	}
 	@media (width >= 64rem) {
 		.sticky-filters {
 			margin-inline: calc(var(--spacing-8) * -1);

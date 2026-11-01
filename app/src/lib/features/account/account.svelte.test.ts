@@ -109,6 +109,23 @@ describe('AccountGate', () => {
 		expect(onsignedout).not.toHaveBeenCalled();
 	});
 
+	it('keeps the signed-in workspace while another area refreshes the same account', async () => {
+		await page.viewport(1280, 800);
+		serve({ 'GET /api/v1/me': () => ok(sari) });
+		const slot = {};
+		const workspace = await render(AccountHarness, { onsignedout: vi.fn(), slot });
+		await expect.element(page.getByRole('heading', { name: 'Halo, Sari Wulandari' })).toBeVisible();
+		await workspace.unmount();
+		vi.stubGlobal('fetch', () => new Promise<Response>(() => undefined));
+
+		await render(AccountHarness, { placement: 'anyone', onsignedout: vi.fn(), slot });
+
+		await expect.element(page.getByRole('heading', { name: 'Halo, Sari Wulandari' })).toBeVisible();
+		await expect
+			.element(page.getByRole('navigation', { name: 'Navigasi utama' }))
+			.toBeInTheDocument();
+	});
+
 	it('offers a retry when the account cannot be loaded', async () => {
 		let attempts = 0;
 		serve({

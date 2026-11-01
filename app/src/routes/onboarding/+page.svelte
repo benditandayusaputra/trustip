@@ -4,11 +4,13 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import AccountGate from '#lib/features/account/components/AccountGate.svelte';
+	import { getSessionSlot } from '#lib/features/account/session-slot.js';
 	import { safeNextPath, signInHref } from '#lib/features/auth/links.js';
 	import OnboardingWizard from '#lib/features/organization/components/OnboardingWizard.svelte';
 	import { organization as id } from '#lib/i18n/organization.js';
 
 	const next = $derived(safeNextPath(page.url.searchParams.get('lanjut')));
+	const slot = getSessionSlot();
 </script>
 
 <svelte:head>
@@ -24,6 +26,6 @@
 >
 	<section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
 		<PageHeading icon={Building2}>{id.onboarding.title}</PageHeading>
-		<OnboardingWizard onfounded={() => void goto(next, { replaceState: true })} />
+		<OnboardingWizard onfounded={() => void slot.session?.load()} />
 	</section>
 </AccountGate>
