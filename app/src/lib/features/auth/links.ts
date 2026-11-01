@@ -35,7 +35,8 @@ function withNext(path: string, next: string | null): string {
 }
 
 export function signedInPath(next: string | null, account: Account): string {
-	const path = safeNextPath(next);
+	const requested = safeNextPath(next);
+	const path = /^\/app(?:[/?#]|$)/u.test(requested) ? defaultLanding : requested;
 	if (!account.membership) {
 		return onboardingHref(path);
 	}

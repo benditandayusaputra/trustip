@@ -45,6 +45,15 @@ describe('login landing uses the new account', () => {
 	it('replaces the previous store dashboard with the consignor dashboard', () => {
 		expect(signedInPath('/app/toko?old=1', account)).toBe('/app/penitip');
 	});
+	it.each(['/app/pengaturan', '/app/titipan?mitra=7', '/app'])(
+		'opens the dashboard instead of the workspace page %s left by the previous session',
+		(next) => {
+			expect(signedInPath(next, account)).toBe('/app/penitip');
+		}
+	);
+	it('keeps a public destination such as a directory profile', () => {
+		expect(signedInPath('/t/toko-sari', account)).toBe('/t/toko-sari');
+	});
 	it('keeps a valid invitation destination', () => {
 		expect(signedInPath('/undangan/ABC', account)).toBe('/undangan/ABC');
 	});

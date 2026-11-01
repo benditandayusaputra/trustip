@@ -120,5 +120,6 @@ export async function signOut(page: Page): Promise<void> {
 export async function signInAgain(page: Page, email: string): Promise<void> {
 	await page.goto('/masuk?lanjut=%2Fapp%2Fantrean');
 	await signIn(page, email);
-	await page.waitForURL(/\/app\/antrean$/u, { timeout: networkTimeoutMs });
+	await page.waitForURL(/\/app\/(toko|penitip)$/u, { timeout: networkTimeoutMs });
+	await page.goto('/app/antrean');
 }
