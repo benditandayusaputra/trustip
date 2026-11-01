@@ -20,18 +20,25 @@
 
 	let { caption, shape, points, ceilingLabel }: Props = $props();
 
-	const chartHeight = 192;
 	const minimumColumnWidth = 24;
 	const columnRadius = 4;
 	const gridLines = ['0%', '25%', '50%', '75%'];
 </script>
 
-<figure class="flex flex-col gap-2">
+<figure class="flex flex-1 flex-col gap-2">
 	<figcaption class="text-sm text-text-muted">{caption}</figcaption>
 	<p class="font-mono text-xs text-text-muted tabular-nums">{ceilingLabel}</p>
-	<div class="overflow-x-auto">
-		<div class="flex flex-col gap-1 pb-1" style="min-width: {points.length * minimumColumnWidth}px">
-			<svg width="100%" height={chartHeight} role="img" aria-label={caption} class="block">
+	<div class="flex flex-1 flex-col overflow-x-auto">
+		<div
+			class="flex flex-1 flex-col gap-1 pb-1"
+			style="min-width: {points.length * minimumColumnWidth}px"
+		>
+			<svg
+				width="100%"
+				role="img"
+				aria-label={caption}
+				class="block min-h-(--chart-min-height) flex-1"
+			>
 				{#each gridLines as line (line)}
 					<line x1="0" x2="100%" y1={line} y2={line} stroke-width="1" class="stroke-border" />
 				{/each}

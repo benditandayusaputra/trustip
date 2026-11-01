@@ -60,7 +60,7 @@
 		/>
 	{/snippet}
 	{#if isOwner}
-		<div class="grid items-start gap-6 lg:grid-cols-12">
+		<div class="grid items-stretch gap-6 lg:grid-cols-12">
 			<div class="flex flex-col gap-6 lg:col-span-4 lg:col-start-9 lg:row-start-1">
 				<TaskList tasks={taskLinksOf(board.dashboard, consignorTasks)} />
 				{#if summary}{@render split(summary)}{/if}

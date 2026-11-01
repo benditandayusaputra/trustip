@@ -10,20 +10,23 @@
 		columns: Column[];
 		rows: Row[];
 		rowKey: Extract<keyof Row, string>;
+		fill?: boolean;
 	}
 
-	let { caption, columns, rows, rowKey }: Props = $props();
+	let { caption, columns, rows, rowKey, fill = false }: Props = $props();
 
 	const alignment = (column: Column) =>
 		column.numeric ? 'text-right font-mono font-medium tabular-nums' : 'text-left';
 </script>
 
 <div
-	class="table-surface hidden overflow-x-auto rounded-card border border-border bg-surface md:block"
+	class="table-surface hidden rounded-card border border-border bg-surface md:block {fill
+		? 'min-h-0 flex-1 overflow-auto'
+		: 'overflow-x-auto'}"
 >
 	<table class="w-full border-collapse text-sm text-text">
 		<caption class="sr-only">{caption}</caption>
-		<thead>
+		<thead class={fill ? 'sticky top-0' : ''}>
 			<tr class="border-b border-border bg-surface-hover text-text-muted">
 				{#each columns as column (column.key)}
 					<th
@@ -46,7 +49,10 @@
 	</table>
 </div>
 
-<ul class="flex flex-col gap-2 md:hidden" aria-label={caption}>
+<ul
+	class="flex flex-col gap-2 md:hidden {fill ? 'min-h-0 flex-1 overflow-y-auto' : ''}"
+	aria-label={caption}
+>
 	{#each rows as row (row[rowKey])}
 		<li class="rounded-card border border-border bg-surface p-4">
 			<dl class="grid grid-cols-2 gap-2">

@@ -116,6 +116,8 @@
 	--sidebar-width: 256px;
 	--header-height: 64px;
 	--textarea-height: 112px;
+	--chart-min-height: 192px;
+	--table-min-height: 288px;
 	--product-grid-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
 	--directory-columns: 320px minmax(0, 1fr);
 	--home-example-columns: minmax(0, 7fr) minmax(0, 5fr);

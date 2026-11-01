@@ -53,7 +53,7 @@
 	});
 </script>
 
-<Card title={text.dailyChart}>
+<Card title={text.dailyChart} fill>
 	{#if controls}
 		{@render controls()}
 	{/if}
@@ -64,7 +64,17 @@
 	{:else}
 		{@const report = daily.report}
 		{#if asTable}
-			<ResponsiveTable caption={text.dailyChart} {columns} rows={dayCells(report)} rowKey="key" />
+			<div class="relative min-h-(--table-min-height) flex-1">
+				<div class="absolute inset-0 flex flex-col">
+					<ResponsiveTable
+						caption={text.dailyChart}
+						{columns}
+						rows={dayCells(report)}
+						rowKey="key"
+						fill
+					/>
+				</div>
+			</div>
 		{:else}
 			{#await import('./ColumnChart.svelte')}
 				<Skeleton shape="chart" />
