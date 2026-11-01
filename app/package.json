@@ -51,7 +51,7 @@
 		"vitest-browser-svelte": "^3.1.0"
 	},
 	"engines": {
-		"node": ">=24"
+		"node": "24.x"
 	},
 	"overrides": {
 		"openapi-typescript": {
