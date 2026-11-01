@@ -15,9 +15,7 @@
 		<p class="text-sm text-text-muted">{id.layout.dashboardIntro}</p>
 	</div>
 	<a
-		href={session.account?.membership?.organization_type === 'STORE'
-			? '/app/hitung/baru'
-			: '/cari/toko'}
+		href={session.account?.membership?.organization_type === 'STORE' ? '/app/hitung' : '/cari/toko'}
 		class="action-link text-sm"
 	>
 		{session.account?.membership?.organization_type === 'STORE' ? id.nav.count : id.nav.findStores}
