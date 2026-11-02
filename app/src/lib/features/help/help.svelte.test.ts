@@ -24,12 +24,12 @@ describe('GuidePage', () => {
 		await expectAccessible(container);
 	});
 
-	it('leads to the demo sign-in', async () => {
+	it('leads to sign-up', async () => {
 		await render(GuidePage, {});
 
 		await expect
-			.element(page.getByRole('link', { name: guide.tryDemo }))
-			.toHaveAttribute('href', '/demo');
+			.element(page.getByRole('link', { name: guide.register }))
+			.toHaveAttribute('href', '/daftar');
 	});
 });
 

@@ -107,34 +107,7 @@ export const common = {
 			submit: 'Masuk',
 			noAccount: 'Belum punya akun?',
 			register: 'Daftar',
-			demoTitle: 'Jelajahi Trustip dengan data contoh',
-			demoIntro: 'Pilih peran demo, lalu masuk setelah menyelesaikan verifikasi keamanan.',
-			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.',
-			demo: {
-				title: 'Coba akun demo',
-				email: 'Email',
-				password: 'Kata sandi semua akun',
-				accounts: {
-					bendi: {
-						initial: 'B',
-						name: 'Bendi',
-						role: 'Penitip · Roti Mas Bendi',
-						fill: 'Coba sebagai Bendi (penitip)'
-					},
-					zara: {
-						initial: 'Z',
-						name: 'Zara',
-						role: 'Toko · Warung Mbak Zara',
-						fill: 'Coba sebagai Zara (toko)'
-					},
-					jessica: {
-						initial: 'J',
-						name: 'Jessica',
-						role: 'Toko · Minimarket Berkah, menunggu jawaban ajuan',
-						fill: 'Coba sebagai Jessica (toko)'
-					}
-				}
-			}
+			offline: 'Masuk butuh koneksi internet. Sambungkan lalu coba lagi.'
 		},
 		validation: {
 			required: 'Wajib diisi.',

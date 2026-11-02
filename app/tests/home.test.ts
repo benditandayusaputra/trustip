@@ -26,10 +26,6 @@ test('FR-PUB-01 NFR-17 R-PERF-08 home page explains the problem, how it works, a
 	await explain.press('Enter');
 	await expect(workflow).toBeFocused();
 	await expect(page).toHaveURL(/\/#beranda-cara$/u);
-	await expect(footer.getByRole('link', { name: 'Jelajahi demo' })).toHaveAttribute(
-		'href',
-		'/demo'
-	);
 	await expect(footer.getByRole('link', { name: 'Kebijakan privasi' })).toHaveAttribute(
 		'href',
 		'/privasi'

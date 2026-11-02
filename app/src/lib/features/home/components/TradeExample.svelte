@@ -33,7 +33,7 @@
 		<CheckCheck class="size-5 shrink-0" aria-hidden="true" />{text.sameRecord}
 	</p>
 	<a
-		href="/demo"
+		href="/panduan"
 		class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:underline"
 	>
 		{text.action}<ArrowRight class="size-4" aria-hidden="true" />

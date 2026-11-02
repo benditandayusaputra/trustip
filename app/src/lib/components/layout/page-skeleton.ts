@@ -6,7 +6,6 @@ const exact: Record<string, PageSkeletonKind> = {
 	'/': 'home',
 	'/masuk': 'auth',
 	'/daftar': 'auth',
-	'/demo': 'auth',
 	'/onboarding': 'form',
 	'/privasi': 'article',
 	'/ketentuan': 'article',

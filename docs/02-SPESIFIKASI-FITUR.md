@@ -96,7 +96,7 @@ Setiap pengguna menjadi anggota tepat satu **organisasi**. Organisasi bertipe `C
 | FR-AUTH-04 | Onboarding tiga langkah: pilih tipe usaha, isi profil, tentukan lokasi | P0 |
 | FR-AUTH-05 | Pengguna tanpa organisasi selalu diarahkan ke onboarding | P0 |
 | FR-AUTH-06 | Area aplikasi hanya bisa dibuka setelah masuk | P0 |
-| FR-AUTH-07 | Akun demo penitip dan toko pada halaman `/demo`, terpisah dari masuk dan registrasi sesuai arahan pengguna 10 Oktober 2026 | P0 |
+| FR-AUTH-07 | Akun demo penitip dan toko dibagikan lewat `docs/AKUN-DEMO.md` dan dipakai di halaman masuk biasa. Halaman `/demo` disembunyikan sejak 2 November 2026 (ADR 0062) | P0 |
 | FR-AUTH-08 | Persetujuan kebijakan privasi saat mendaftar | P0 |
 | FR-AUTH-09 | Lupa kata sandi lewat email | P1 |
 | FR-AUTH-10 | Hapus akun dan data pribadi atas permintaan | P1 |
@@ -754,7 +754,7 @@ Halaman yang bisa dibuka tanpa masuk. Tujuannya tiga: membuat toko dan penitip b
 
 | ID | Kebutuhan | Prioritas |
 |---|---|:-:|
-| FR-PUB-01 | Beranda: masalah, cara kerja, ajakan daftar dan coba demo | P0 |
+| FR-PUB-01 | Beranda: masalah, cara kerja, ajakan daftar | P0 |
 | FR-PUB-02 | Profil toko `/t/<slug>`: jenis, alamat, peta, jam buka, kategori diterima, syarat, Kebutuhan terbuka, reputasi, foto | P0 |
 | FR-PUB-03 | Profil penitip `/u/<slug>`: deskripsi, kota dan kecamatan, produk, legalitas yang dinyatakan, jumlah toko mitra | P0 |
 | FR-PUB-04 | Halaman produk `/p/<slug>/<sku>`: foto, deskripsi, komposisi, harga jual saran, pembuat, legalitas yang dinyatakan | P0 |
@@ -1173,7 +1173,7 @@ Area publik dan area aplikasi dipisah supaya tidak bentrok alamat.
 | Alamat | Isi |
 |---|---|
 | `/` | Beranda |
-| `/masuk`, `/daftar`, `/demo` | Masuk dan registrasi; akun demo pada halaman tersendiri |
+| `/masuk`, `/daftar` | Masuk dan registrasi |
 | `/cari/toko` | Direktori toko |
 | `/cari/penitip` | Direktori penitip dan produk |
 | `/kebutuhan`, `/kebutuhan/[id]` | Papan Kebutuhan dan rinciannya |
@@ -1304,7 +1304,7 @@ Wilayah: satu kecamatan yang dipilih tim (PRD bagian 18 butir 5), supaya jarak d
 | Setoran | Lunas, menunggu konfirmasi, belum dibayar, lewat tempo |
 | Pemicu saran | Batch kedaluwarsa, batch mendekati kedaluwarsa, stok segera habis, belum dihitung, saran jumlah titip, mitra yang cocok |
 
-Akun demo: satu OWNER penitip (Roti Pak Anton) dan satu OWNER toko (Warung Bu Sri). Alamat email dan kata sandinya ditulis di README dan tampil hanya pada halaman `/demo`, yang dibuka melalui ajakan demo di beranda. Data organisasi demo disetel ulang tiap malam.
+Akun demo: satu OWNER penitip (Roti Pak Anton) dan satu OWNER toko (Warung Bu Sri). Alamat email dan kata sandi semua akun demo ditulis di README dan `docs/AKUN-DEMO.md`. Halaman `/demo` disembunyikan (ADR 0062). Data organisasi demo disetel ulang tiap malam.
 
 **Skenario video (sekitar 4 menit 30 detik)**
 

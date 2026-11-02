@@ -9,7 +9,7 @@
 	import { apiClient } from '#lib/api/client.js';
 	import { watchOnline } from '#lib/offline/network.js';
 	import { common as id } from '#lib/i18n/common.js';
-	import { LoginForm, type LoginOutcome, type LoginValues } from '../login.svelte';
+	import { LoginForm, type LoginOutcome } from '../login.svelte';
 
 	interface Props {
 		siteKey: string;
@@ -27,11 +27,6 @@
 	let isOnline = $state(true);
 
 	onMount(() => watchOnline((online) => (isOnline = online)));
-
-	export function fill(values: LoginValues) {
-		form.values = { email: values.email, password: values.password };
-		form.errors = {};
-	}
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();

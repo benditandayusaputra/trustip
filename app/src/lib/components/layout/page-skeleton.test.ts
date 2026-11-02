@@ -4,7 +4,7 @@ import { pageSkeletonKind, pendingPagePath, type PageSkeletonKind } from './page
 
 const routes: Record<PageSkeletonKind, string[]> = {
 	home: ['/'],
-	auth: ['/masuk', '/daftar', '/demo'],
+	auth: ['/masuk', '/daftar'],
 	article: ['/privasi', '/ketentuan', '/panduan', '/faq'],
 	profile: ['/t/sample', '/u/sample'],
 	product: ['/p/sample/sample'],

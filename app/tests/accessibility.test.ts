@@ -134,7 +134,6 @@ async function visitorPages(page: Page): Promise<string[]> {
 		'/',
 		'/masuk',
 		'/daftar',
-		'/demo',
 		'/privasi',
 		'/ketentuan',
 		'/panduan',
@@ -265,7 +264,7 @@ test(
 	{ tag: '@accessibility' },
 	async ({ browser }) => {
 		const page = await openPage(browser);
-		await page.goto('/demo');
+		await page.goto('/masuk');
 		await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', {
 			timeout: networkTimeoutMs
 		});
@@ -273,8 +272,13 @@ test(
 		await tabTo(page, 'Lewati ke konten');
 		await page.keyboard.press('Enter');
 		await expect(page.locator('main#konten')).toBeFocused();
-		await tabTo(page, 'Coba sebagai Zara (toko)');
-		await page.keyboard.press('Enter');
+		await expect(async () => {
+			await page.keyboard.press('Tab');
+			await expect(page.getByLabel('Email')).toBeFocused({ timeout: 0 });
+		}).toPass();
+		await page.keyboard.type('toko@demo.trustip.id');
+		await page.keyboard.press('Tab');
+		await page.keyboard.type(demoPassword);
 		await expect(page.getByLabel('Email')).toHaveValue('toko@demo.trustip.id');
 		await expect(page.getByLabel('Kata sandi')).toHaveValue(demoPassword);
 		await tabTo(page, 'Masuk');

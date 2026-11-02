@@ -135,6 +135,5 @@ export const faq = {
 	guideTitle: 'Ingin langkah lengkapnya?',
 	guideBody:
 		'Panduan menjelaskan alur dari mencari mitra sampai setoran diterima, tahap demi tahap.',
-	guideLink: 'Baca panduan',
-	tryDemo: 'Coba akun demo'
+	guideLink: 'Baca panduan'
 };

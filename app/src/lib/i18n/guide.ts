@@ -114,7 +114,6 @@ export const guide = {
 	eyebrow: 'Panduan',
 	headline: 'Dari mencari mitra sampai setoran diterima',
 	intro: 'Delapan tahap singkat untuk memakai Trustip. Buka tiap tahap untuk melihat langkahnya.',
-	tryDemo: 'Coba akun demo',
 	register: 'Buat akun usaha',
 	stepsLabel: 'Langkah',
 	stepsToggle: 'Lihat langkah',

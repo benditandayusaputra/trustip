@@ -38,7 +38,7 @@ Tampilan memakai biru dengan pilihan Sistem, Terang, dan Gelap. Pilihan tersimpa
 
 ## Coba akun demo
 
-Buka [halaman masuk](https://trustip.vercel.app/masuk) dan tekan **Coba akun demo**, atau masuk dengan:
+Masuk lewat [halaman masuk](https://trustip.vercel.app/masuk) dengan salah satu akun berikut. Daftar lengkap ke-28 akun, termasuk semua toko dan penitip di Cari Mitra, ada di [docs/AKUN-DEMO.md](docs/AKUN-DEMO.md).
 
 | Akun | Usaha | Email | Kata sandi | Yang bisa dicoba |
 |---|---|---|---|---|

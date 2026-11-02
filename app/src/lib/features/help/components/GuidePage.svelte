@@ -28,8 +28,7 @@
 		<h1 class="section-title text-text">{text.headline}</h1>
 		<p class="text-base text-text-muted">{text.intro}</p>
 		<div class="flex flex-wrap gap-4">
-			<a href="/demo" class="action-link">{text.tryDemo}</a>
-			<a href="/daftar" class="secondary-link">{text.register}</a>
+			<a href="/daftar" class="action-link">{text.register}</a>
 		</div>
 	</header>
 	<ol class="grid items-start gap-4 md:grid-cols-2">

@@ -7,7 +7,6 @@ const publicPaths = [
 	'/',
 	'/masuk',
 	'/daftar',
-	'/demo',
 	'/privasi',
 	'/panduan',
 	'/faq',
@@ -25,7 +24,7 @@ for (const width of widths) {
 			await page.emulateMedia({ colorScheme: theme });
 			for (const path of publicPaths) {
 				await page.goto(path, { waitUntil: 'load' });
-				if (path === '/masuk' || path === '/daftar' || path === '/demo') {
+				if (path === '/masuk' || path === '/daftar') {
 					await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', {
 						timeout: networkTimeoutMs
 					});

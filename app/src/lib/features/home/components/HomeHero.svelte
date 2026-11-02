@@ -32,11 +32,6 @@
 				<a href="/daftar" class="action-link"
 					>{text.register}<ArrowRight class="size-5" aria-hidden="true" /></a
 				>
-				<a
-					href="/demo"
-					class="inline-flex min-h-12 items-center justify-center rounded-control border border-border-strong bg-surface px-6 font-semibold text-text hover:border-accent"
-					>{text.tryDemo}</a
-				>
 			</div>
 			<ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-text-muted">
 				{#each text.highlights as highlight (highlight)}

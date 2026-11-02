@@ -21,8 +21,7 @@ export const publicFooter = {
 			links: [
 				{ label: 'Cara kerja', href: '/#beranda-cara' },
 				{ label: 'Panduan pemakaian', href: '/panduan' },
-				{ label: 'Buat akun usaha', href: '/daftar' },
-				{ label: 'Jelajahi demo', href: '/demo' }
+				{ label: 'Buat akun usaha', href: '/daftar' }
 			]
 		},
 		{

@@ -44,9 +44,6 @@
 	>
 		<h2 id="faq-panduan" class="text-lg font-semibold text-text">{text.guideTitle}</h2>
 		<p class="text-base text-text-muted">{text.guideBody}</p>
-		<div class="flex flex-wrap gap-4">
-			<a href="/panduan" class="action-link">{text.guideLink}</a>
-			<a href="/demo" class="secondary-link">{text.tryDemo}</a>
-		</div>
+		<a href="/panduan" class="action-link">{text.guideLink}</a>
 	</section>
 </article>
