@@ -837,7 +837,7 @@ Sanitasi berarti menormalkan, bukan mengubah makna. Pencegahan XSS dilakukan saa
 - **R-SEC-52** Email menjadi huruf kecil. Nomor WhatsApp dinormalkan ke `62xxxxxxxxxx`. Slug hanya huruf kecil, angka, dan tanda hubung.
 - **R-SEC-53** Teks pengguna disimpan sebagai teks polos. Tidak ada isian yang menerima HTML atau Markdown.
 - **R-SEC-54** Nama berkas unggahan dibuang. Kunci penyimpanan dibangkitkan server.
-- **R-SEC-55** Ekspor CSV: sel yang diawali `=`, `+`, `-`, `@`, tab, atau baris baru diberi awalan tanda petik tunggal supaya tidak dijalankan sebagai rumus.
+- **R-SEC-55** Ekspor Excel: setiap teks ditulis sebagai sel teks (`inlineStr`), tidak pernah sebagai rumus, sehingga teks yang diawali `=`, `+`, `-`, atau `@` tidak dijalankan.
 
 ### 7.12 Suntikan SQL
 

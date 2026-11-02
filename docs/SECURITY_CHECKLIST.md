@@ -102,7 +102,7 @@ Status:
 | R-SEC-52 | Email kecil, WhatsApp `62`, slug | Terpenuhi | `api/internal/kernel/contact/whatsapp_test.go` `TestParseWhatsAppNumber_RSEC52_NormalizesTo62`; `api/internal/modules/auth/domain/registration_test.go` `TestNewRegistration_ValidForm_NormalizesEmailAndWhatsApp` |
 | R-SEC-53 | Teks polos, tanpa HTML atau Markdown | Terpenuhi | `app/tests/xss.test.ts` (muatan tampil sebagai teks); lint `svelte/no-at-html-tags` |
 | R-SEC-54 | Nama berkas dibuang, kunci dari server | Terpenuhi | `api/internal/platform/storage/storage_test.go` `TestPut_RSEC54_KeyIsRandomAndKeepsOnlyTheExtension` |
-| R-SEC-55 | Sel CSV berawalan rumus diberi petik | Terpenuhi | `app/src/lib/domain/csv.test.ts` |
+| R-SEC-55 | Teks ekspor Excel ditulis sebagai sel teks, bukan rumus | Terpenuhi | `app/src/lib/domain/xlsx.test.ts` |
 
 ## 7.12 Suntikan SQL
 

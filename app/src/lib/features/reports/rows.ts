@@ -1,4 +1,5 @@
 import type { DailyRecap, SalesReport } from '#lib/api/reports.js';
+import type { Sheet, SheetCell } from '#lib/domain/xlsx.js';
 import {
 	formatBasisPoints,
 	formatBusinessDate,
@@ -81,8 +82,42 @@ export function recapCells(row: RecapRow): RecapCells {
 	};
 }
 
-export function salesCsv(report: SalesReport, isStore: boolean): string[][] {
+const basisPointsPerWhole = 10_000;
+const labelWidth = 34;
+const figureWidth = 20;
+const bodyStyles = {
+	text: 'text',
+	integer: 'integer',
+	rupiah: 'rupiah',
+	percent: 'percent'
+} as const;
+const totalStyles = {
+	text: 'totalText',
+	integer: 'totalInteger',
+	rupiah: 'totalRupiah',
+	percent: 'totalPercent'
+} as const;
+
+function sheetRow(
+	label: string,
+	figures: Figures,
+	styles: typeof bodyStyles | typeof totalStyles
+): SheetCell[] {
+	return [
+		{ value: label, style: styles.text },
+		{ value: figures.sold_qty, style: styles.integer },
+		{ value: figures.split.gross, style: styles.rupiah },
+		{ value: figures.split.store_share, style: styles.rupiah },
+		{ value: figures.split.consignor_share, style: styles.rupiah },
+		{ value: figures.returned_qty, style: styles.integer },
+		{ value: figures.returned_bps / basisPointsPerWhole, style: styles.percent }
+	];
+}
+
+export function salesSheet(report: SalesReport, isStore: boolean): Sheet {
 	const text = id.reports;
+	const grouping = text.groupings[isStore ? 'STORE' : 'CONSIGNOR'][report.group_by];
+	const period = text.sheetPeriod(formatBusinessDate(report.from), formatBusinessDate(report.to));
 	const header = [
 		text.rowLabel,
 		text.soldUnits,
@@ -92,16 +127,22 @@ export function salesCsv(report: SalesReport, isStore: boolean): string[][] {
 		text.returnedUnits,
 		text.returnedPercent
 	];
-	const lines = report.rows.map((row) => [
-		row.label,
-		String(row.sold_qty),
-		String(row.split.gross),
-		String(row.split.store_share),
-		String(row.split.consignor_share),
-		String(row.returned_qty),
-		formatBasisPoints(row.returned_bps)
-	]);
-	return [header, ...lines];
+	const intro: SheetCell[][] = [
+		[{ value: text.salesTitle, style: 'title' }],
+		[{ value: `${period} · ${grouping}`, style: 'note' }],
+		[],
+		header.map((value) => ({ value, style: 'header' }))
+	];
+	return {
+		name: text.tabs.sales,
+		columnWidths: header.map((_, index) => (index === 0 ? labelWidth : figureWidth)),
+		frozenRows: intro.length,
+		rows: [
+			...intro,
+			...report.rows.map((row) => sheetRow(row.label, row, bodyStyles)),
+			sheetRow(text.total, report.summary, totalStyles)
+		]
+	};
 }
 
 export interface DayCells extends Record<string, string> {

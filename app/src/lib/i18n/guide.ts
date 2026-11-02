@@ -91,7 +91,7 @@ const phases: GuidePhase[] = [
 		summary: 'Angka dan grafik membantu memutuskan produk mana yang ditambah atau dikurangi.',
 		steps: [
 			'Beranda menampilkan angka 30 hari, grafik penjualan harian, pembagian omzet, dan hal yang perlu ditindaklanjuti.',
-			'Laporan menyajikan penjualan per mitra, per produk, atau per hari, lengkap dengan grafik dan unduhan CSV. Tab Setoran memuat ringkasan dan daftar Setoran.',
+			'Laporan menyajikan penjualan per mitra, per produk, atau per hari, lengkap dengan grafik dan unduhan Excel. Tab Setoran memuat ringkasan dan daftar Setoran.',
 			'Pengingat di Beranda memberi tahu stok yang segera habis, barang mendekati kedaluwarsa, dan Setoran lewat tempo.',
 			'Stok menunjukkan jumlah tercatat di setiap toko beserta kedaluwarsa terdekat.'
 		]

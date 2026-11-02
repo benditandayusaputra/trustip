@@ -71,7 +71,9 @@ export const reports = {
 		productsCaption: 'Unit terjual dibanding unit yang dikembalikan, produk teratas lebih dulu.',
 		soldReturned: (sold: string, returned: string) => `${sold} terjual · ${returned} kembali`,
 		day: 'Tanggal',
-		exportCsv: 'Unduh CSV',
-		fileName: (kind: string, from: string, to: string) => `trustip-${kind}-${from}-${to}.csv`
+		exportExcel: 'Unduh Excel',
+		total: 'Total',
+		sheetPeriod: (from: string, to: string) => `Periode ${from} sampai ${to}`,
+		fileName: (kind: string, from: string, to: string) => `trustip-${kind}-${from}-${to}.xlsx`
 	}
 };

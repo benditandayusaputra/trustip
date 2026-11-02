@@ -179,7 +179,7 @@ Prioritas menandai urutan, bukan tanggal. **P0** harus utuh dan lulus uji sebelu
 | Stok | Buku stok per toko per batch, urutan kedaluwarsa |
 | Hitung Sisa | Diisi toko saat tutup atau saat barang diambil, termasuk barang yang dikembalikan. Menghasilkan rekap terjual, omzet, untung toko, dan harus setor |
 | Setoran dan pembayaran | Setoran terbit otomatis per hitung, mingguan, atau bulanan. Toko mencatat bayar, penitip mengonfirmasi |
-| Laporan | Laporan penjualan toko dan penitip, rekap harian, ekspor CSV |
+| Laporan | Laporan penjualan toko dan penitip, rekap harian, ekspor Excel |
 | Dasbor dan saran | Angka kunci, daftar perlu tindakan, peringatan kedaluwarsa, stok menipis, saran jumlah titip, saran mitra |
 | Pemberitahuan | Di dalam aplikasi secara langsung, ditambah tautan WhatsApp siap kirim |
 | Halaman publik | Profil toko, profil penitip, halaman produk dengan QR dan daftar toko yang menjual |

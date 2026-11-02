@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import ReportsHarness from '#lib/testing/ReportsHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
+import { unzipStored } from '#lib/testing/unzip.js';
 
 const figures = {
 	sold_qty: 18,
@@ -173,7 +174,7 @@ describe('Sales report', () => {
 		await expectAccessible(container);
 	});
 
-	it('FR-RPT-08 exports the rows on screen as CSV', async () => {
+	it('FR-RPT-08 exports the rows on screen as an Excel workbook', async () => {
 		vi.useFakeTimers({ now: new Date('2026-11-20T05:00:00Z'), toFake: ['Date'] });
 		serve();
 		const blobs: Blob[] = [];
@@ -187,13 +188,27 @@ describe('Sales report', () => {
 			.mockImplementation(() => undefined);
 		await render(ReportsHarness, {});
 
-		await userEvent.click(page.getByRole('button', { name: 'Unduh CSV' }));
+		await userEvent.click(page.getByRole('button', { name: 'Unduh Excel' }));
 
-		const csv = await blobs[0]?.text();
+		const bytes = new Uint8Array((await blobs[0]?.arrayBuffer()) ?? new ArrayBuffer(0));
+		const sheet = unzipStored(bytes).get('xl/worksheets/sheet1.xml') ?? '';
 		expect(click).toHaveBeenCalled();
-		expect(csv).toContain(
-			'Kelompok,Unit terjual,Omzet,Untung toko,Harus setor,Unit dikembalikan,Persen dikembalikan'
+		expect(blobs[0]?.type).toBe(
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 		);
-		expect(csv).toContain('Roti Pak Anton,18,36000,4500,31500,2,10%');
+		for (const header of [
+			'Kelompok',
+			'Unit terjual',
+			'Omzet',
+			'Harus setor',
+			'Persen dikembalikan'
+		]) {
+			expect(sheet).toContain(`>${header}</t>`);
+		}
+		expect(sheet).toContain('>Roti Pak Anton</t>');
+		expect(sheet).toContain('<v>36000</v>');
+		expect(sheet).toContain('<v>31500</v>');
+		expect(sheet).toContain('<v>0.1</v>');
+		expect(sheet).toContain('>Total</t>');
 	});
 });

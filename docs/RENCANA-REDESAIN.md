@@ -104,7 +104,7 @@ Daftar di bawah mencakup seluruh rute UI yang tersedia pada saat review. Setiap 
 | `/app/hitung/[id]` | Nomor/status, rincian hitungan dan rekap, konfirmasi penitip, segel, lanjut catat bayar/titipan baru sesuai jadwal |
 | `/app/setoran` | Total dan filter status/umur, pihak lawan, jatuh tempo, sisa setoran, tindakan paling relevan |
 | `/app/setoran/[id]` | Nilai utama, periode, rincian sumber hitungan, status, bukti bayar dan riwayat; Catat bayar untuk toko dan Uang diterima untuk penitip |
-| `/app/laporan` | Rentang tanggal, kelompok/per mitra/produk, grafik dengan alternatif tabel, ringkasan omzet/untung/hak, ekspor CSV; hanya untuk peran berhak |
+| `/app/laporan` | Rentang tanggal, kelompok/per mitra/produk, grafik dengan alternatif tabel, ringkasan omzet/untung/hak, ekspor Excel; hanya untuk peran berhak |
 | `/app/produk` | Katalog dengan foto, SKU, status, kategori, dan pencarian; akses tambah dan detail |
 | `/app/produk/baru` | Formulir berkelompok: identitas/foto, harga jual saran, masa simpan, komposisi/legalitas; validasi dekat isian |
 | `/app/produk/[id]` | Detail/edit sesuai fitur yang ada, QR dan tautan publik, sedang mencari toko, status arsip |

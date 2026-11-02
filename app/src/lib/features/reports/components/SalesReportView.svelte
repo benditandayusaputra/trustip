@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ChartColumn from '@lucide/svelte/icons/chart-column';
+	import FileSpreadsheet from '@lucide/svelte/icons/file-spreadsheet';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import DateField from '#lib/components/ui/DateField.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
@@ -12,8 +13,8 @@
 	import type { RangePreset } from '#lib/domain/ranges.js';
 	import { reports as id } from '#lib/i18n/reports.js';
 	import Button from '#lib/components/ui/Button.svelte';
-	import { downloadCsv } from '../download';
-	import { reportRows, salesCsv, summaryCards } from '../rows';
+	import { downloadXlsx } from '../download';
+	import { reportRows, salesSheet, summaryCards } from '../rows';
 	import { SalesReportView } from '../state.svelte';
 	import DailySalesChart from './DailySalesChart.svelte';
 	import SalesCharts from './SalesCharts.svelte';
@@ -101,10 +102,13 @@
 		<Button
 			variant="secondary"
 			onclick={() => {
-				downloadCsv(text.fileName('penjualan', report.from, report.to), salesCsv(report, isStore));
+				downloadXlsx(
+					text.fileName('penjualan', report.from, report.to),
+					salesSheet(report, isStore)
+				);
 			}}
 		>
-			{text.exportCsv}
+			<FileSpreadsheet class="size-5" aria-hidden="true" />{text.exportExcel}
 		</Button>
 	{/if}
 {/if}

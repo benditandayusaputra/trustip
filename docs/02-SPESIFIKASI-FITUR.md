@@ -603,7 +603,7 @@ Catatan pembulatan: 67.500 × 0,175 = 11.812,5 dibulatkan setengah ke atas menja
 | FR-RPT-05 | Grafik penjualan harian pada rentang terpilih | P0 |
 | FR-RPT-06 | Laporan Setoran: terbit, lunas, belum lunas, lewat tempo | P0 |
 | FR-RPT-07 | Rentang cepat: hari ini, 7 hari, 30 hari, bulan ini, bulan lalu, atur sendiri | P0 |
-| FR-RPT-08 | Ekspor CSV | P0 |
+| FR-RPT-08 | Ekspor Excel | P0 |
 | FR-RPT-09 | Ekspor PDF | P1 |
 
 **Definisi angka** (sama di semua layar)
@@ -628,7 +628,7 @@ Catatan pembulatan: 67.500 × 0,175 = 11.812,5 dibulatkan setengah ke atas menja
 **Kriteria penerimaan**
 
 - WHEN toko membuka rekap harian setelah menghitung tiga penitip THE SYSTEM SHALL menampilkan tiga baris beserta total omzet, untung toko, dan harus setor hari itu.
-- WHEN laporan diekspor THE SYSTEM SHALL menghasilkan CSV dengan kolom dan angka yang sama dengan yang tampil di layar.
+- WHEN laporan diekspor THE SYSTEM SHALL menghasilkan berkas Excel (.xlsx) dengan kolom dan angka yang sama dengan yang tampil di layar, ditambah judul, periode, dan baris total.
 
 ## 15. DSH dan INS: dasbor dan saran
 
@@ -999,7 +999,7 @@ Penjadwal memeriksa jam di memori dan baru menyentuh basis data saat ada tugas y
 | Permintaan | Tanda tangan HMAC dari proxy. Pemeriksaan asal untuk operasi tulis. Batas ukuran isi permintaan. Penolakan isian tak dikenal. Kueri berparameter saja |
 | Otorisasi | Hak peran dari tabel izin dan hak data dari lingkup kueri (BR-AUTHZ-01 sampai 06), dengan uji isolasi per jenis data |
 | Keutuhan | Segel Ed25519 berantai per kemitraan, tabel segel hanya bisa ditambah, pemeriksaan harian |
-| Keluaran | Antarmuka meloloskan teks secara bawaan. Penyisipan HTML mentah dilarang. Kebijakan keamanan konten berbasis hash. Ekspor CSV aman dari rumus |
+| Keluaran | Antarmuka meloloskan teks secara bawaan. Penyisipan HTML mentah dilarang. Kebijakan keamanan konten berbasis hash. Ekspor Excel aman dari rumus |
 | Unggahan | Pemeriksaan jenis dari isi berkas, dikode ulang di server, batas ukuran, nama acak, disajikan dari asal terpisah |
 | Penyalahgunaan | Pembatasan laju per IP dan per organisasi. Batas ajuan harian. Kode undangan acak sekali pakai |
 | Rahasia | Hanya dari variabel lingkungan. Aplikasi menolak berjalan bila rahasia kosong |
