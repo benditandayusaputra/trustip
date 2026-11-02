@@ -6789,13 +6789,28 @@ components:
         recorded_offline:
           type: boolean
         counterpart:
-          $ref: "#/components/schemas/CounterpartRef"
+          $ref: "#/components/schemas/CountCounterpart"
         sold_qty:
           type: integer
         returned_qty:
           type: integer
         consignor_share:
           type: integer
+    CountCounterpart:
+      type: object
+      additionalProperties: false
+      required: [id, name, type, logo_url]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/OrganizationType"
+        logo_url:
+          type: string
+          nullable: true
     CountSummaryListResponse:
       type: object
       additionalProperties: false

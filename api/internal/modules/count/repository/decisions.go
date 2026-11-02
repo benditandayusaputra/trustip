@@ -65,7 +65,8 @@ func (r *Counts) ListCounts(ctx context.Context, query domain.ListQuery) ([]doma
 		summaries = append(summaries, domain.Summary{
 			ID: row.ID, Number: row.Number, PartnershipID: row.PartnershipID, Status: domain.Status(row.Status),
 			CountedAt: row.CountedAt, RecordedOffline: row.RecordedOffline, CounterpartID: row.CounterpartID,
-			CounterpartName: row.CounterpartName, CounterpartType: row.CounterpartType, SoldQty: int(row.SoldQty),
+			CounterpartName: row.CounterpartName, CounterpartType: row.CounterpartType,
+			CounterpartLogo: row.CounterpartLogoStorageKey, SoldQty: int(row.SoldQty),
 			ReturnedQty: int(row.ReturnedQty), ConsignorShare: row.ConsignorShareAmount,
 		})
 	}

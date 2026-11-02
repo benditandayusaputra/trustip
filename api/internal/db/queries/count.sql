@@ -160,11 +160,13 @@ SELECT
         ELSE c.status
     END)::text AS status,
     o.id AS counterpart_id, o.name AS counterpart_name, o.type AS counterpart_type,
+    COALESCE(logo.storage_key, '')::text AS counterpart_logo_storage_key,
     c.sold_qty, c.returned_qty, c.consignor_share_amount
 FROM counts AS c
 JOIN partnerships AS p ON p.id = c.partnership_id
 JOIN organizations AS o
     ON o.id = CASE WHEN p.store_org_id = @organization_id::uuid THEN p.consignor_org_id ELSE p.store_org_id END
+LEFT JOIN files AS logo ON logo.id = o.logo_file_id
 WHERE (p.store_org_id = @organization_id::uuid OR p.consignor_org_id = @organization_id::uuid)
     AND (@partnership_id::text = '' OR c.partnership_id::text = @partnership_id::text)
     AND c.counted_at >= @from_at::timestamptz AND c.counted_at < @to_at::timestamptz

@@ -77,6 +77,7 @@ type Summary struct {
 	CounterpartID   string
 	CounterpartName string
 	CounterpartType string
+	CounterpartLogo string
 	SoldQty         int
 	ReturnedQty     int
 	ConsignorShare  int64

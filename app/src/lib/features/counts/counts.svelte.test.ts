@@ -338,7 +338,9 @@ describe('Count confirmation and history', () => {
 		await expect.element(page.getByRole('button', { name: 'Sesuai' })).not.toBeInTheDocument();
 	});
 
-	it('FR-CNT-10 lists the partner counts with what the store owes', async () => {
+	it('FR-CNT-10 lists the partner counts with their photo and what the store owes', async () => {
+		const logo =
+			'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 		const summary = {
 			id: countId,
 			number: 'HS-202611-0001',
@@ -346,7 +348,7 @@ describe('Count confirmation and history', () => {
 			status: 'CONFIRMED',
 			counted_at: '2026-11-10T12:00:00Z',
 			recorded_offline: false,
-			counterpart: { ...sheet.consignor, type: 'CONSIGNOR' },
+			counterpart: { ...sheet.consignor, type: 'CONSIGNOR', logo_url: logo },
 			sold_qty: 18,
 			returned_qty: 2,
 			consignor_share: 31500
@@ -362,10 +364,11 @@ describe('Count confirmation and history', () => {
 		});
 		const { container } = await render(CountsHarness, { view: 'history', targetId: partnershipId });
 
-		await expect
-			.element(page.getByText('18 terjual, 2 dikembalikan', { exact: false }))
-			.toBeVisible();
-		await expect.element(page.getByText(/Rp31\.500/u)).toBeVisible();
+		const row = page.getByRole('link', { name: /HS-202611-0001/u });
+		await expect.element(row.getByText('18', { exact: true })).toBeVisible();
+		await expect.element(row.getByText('2', { exact: true })).toBeVisible();
+		await expect.element(row.getByText(/Rp31\.500/u)).toBeVisible();
+		await expect.element(row.getByRole('presentation')).toHaveAttribute('src', logo);
 		await expectAccessible(container);
 	});
 });

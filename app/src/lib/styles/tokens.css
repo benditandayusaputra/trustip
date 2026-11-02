@@ -124,6 +124,7 @@
 	--figure-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
 	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 	--store-results-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+	--count-stats-columns: 4.5rem 6.5rem 7.5rem 10.5rem;
 	--profile-columns: minmax(0, 1fr) minmax(0, 2fr);
 	--profile-rows: auto 1fr;
 	--directory-map-height: 26rem;

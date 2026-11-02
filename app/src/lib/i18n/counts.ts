@@ -47,6 +47,7 @@ export const counts = {
 		gross: 'Omzet',
 		storeShare: 'Untung toko',
 		consignorShare: 'Harus setor',
+		consignorShareShort: 'Hak penitip',
 		save: 'Simpan Hitung Sisa',
 		saved: (number: string) => `Hitung Sisa ${number} tersimpan.`,
 		stockChanged: 'Stok baru saja berubah. Lembar hitung dimuat ulang, periksa lagi isiannya.',
@@ -73,8 +74,6 @@ export const counts = {
 		historyEmpty: 'Belum ada Hitung Sisa. Hasil hitungan toko akan tampil di sini.',
 		historyNoMatch: 'Tidak ada Hitung Sisa yang cocok dengan saringan ini.',
 		filters: 'Saring Hitung Sisa',
-		summary: (sold: number, returned: number) =>
-			`${String(sold)} terjual, ${String(returned)} dikembalikan`,
 		loadMore: 'Muat lebih banyak',
 		count: 'Hitung sisa'
 	}

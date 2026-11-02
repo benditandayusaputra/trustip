@@ -65,6 +65,7 @@ func countDeps(deps countservice.Deps, routes tradeRoutes) counthandler.Deps {
 		Sheet:        countservice.NewGetSheet(deps),
 		Confirm:      countservice.NewConfirmCount(deps),
 		List:         countservice.NewListCounts(deps),
+		FilesBaseURL: routes.filesBaseURL,
 		WriteLimiter: routes.writeLimiter,
 		SecurityLog:  routes.securityLog,
 	}

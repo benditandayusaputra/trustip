@@ -50,6 +50,7 @@ type Deps struct {
 	Sheet        SheetReader
 	Confirm      Reader
 	List         Lister
+	FilesBaseURL string
 	WriteLimiter httpserver.RateLimiter
 	SecurityLog  *slog.Logger
 }
@@ -57,7 +58,7 @@ type Deps struct {
 func Mount(api fiber.Router, deps Deps) {
 	writeLimit := httpserver.RateLimit(deps.WriteLimiter, httpserver.BySignedInUser, deps.SecurityLog)
 	api.Post(countsPath, deps.Authenticate, writeLimit, record(deps))
-	api.Get(countsPath, deps.Authenticate, list(deps.List))
+	api.Get(countsPath, deps.Authenticate, list(deps.List, deps.FilesBaseURL))
 	api.Get(countPath, deps.Authenticate, byID(deps.Get, deps.SecurityLog))
 	api.Post(confirmPath, deps.Authenticate, writeLimit, byID(deps.Confirm, deps.SecurityLog))
 	api.Get(sheetPath, deps.Authenticate, sheet(deps.Sheet))
@@ -143,7 +144,7 @@ func sheet(reader SheetReader) fiber.Handler {
 	}
 }
 
-func list(lister Lister) fiber.Handler {
+func list(lister Lister, filesBaseURL string) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		signedIn, err := signedInActor(c)
 		if err != nil {
@@ -160,7 +161,7 @@ func list(lister Lister) fiber.Handler {
 		}
 		items := make([]summaryResponse, 0, len(page.Items))
 		for _, summary := range page.Items {
-			items = append(items, toSummaryResponse(summary))
+			items = append(items, toSummaryResponse(summary, filesBaseURL))
 		}
 		return httpserver.RespondList(c, httpserver.Page[summaryResponse]{
 			Items: items, NextCursor: page.NextCursor, HasMore: page.HasMore,

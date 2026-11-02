@@ -488,7 +488,7 @@ Hitung Sisa dilakukan toko saat tutup, saat penitip datang mengambil sisa, atau 
 | FR-CNT-07 | Pilihan cara isi: mengisi **sisa** atau mengisi **terjual**. Sistem menghitung yang satunya | P0 |
 | FR-CNT-08 | Penitip menerima pemberitahuan dan menekan **Sesuai**. Tanpa tanggapan 48 jam dianggap sesuai | P0 |
 | FR-CNT-09 | Setelah rekap: tombol "Catat bayar" bila jadwal setor `ON_COUNT`, dan "Catat titipan baru" | P0 |
-| FR-CNT-10 | Riwayat Hitung Sisa dengan saringan mitra dan tanggal | P0 |
+| FR-CNT-10 | Riwayat Hitung Sisa dengan foto mitra, saringan mitra dan tanggal | P0 |
 | FR-CNT-11 | "Hitung cepat" dari dasbor toko: daftar mitra yang belum dihitung hari ini | P0 |
 | FR-CNT-12 | Penitip menyanggah hitungan, toko menerima atau menolak koreksi | P1 |
 | FR-CNT-13 | Hitung per batch bila satu produk punya beberapa batch | P1 |

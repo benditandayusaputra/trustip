@@ -136,9 +136,10 @@ func toSealResponse(verdict domain.SealVerdict) sealResponse {
 }
 
 type counterpartResponse struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Type string `json:"type"`
+	ID      string  `json:"id"`
+	Name    string  `json:"name"`
+	Type    string  `json:"type"`
+	LogoURL *string `json:"logo_url"`
 }
 
 type summaryResponse struct {
@@ -154,13 +155,17 @@ type summaryResponse struct {
 	ConsignorShare  int64               `json:"consignor_share"`
 }
 
-func toSummaryResponse(summary domain.Summary) summaryResponse {
+func toSummaryResponse(summary domain.Summary, filesBaseURL string) summaryResponse {
+	counterpart := counterpartResponse{
+		ID: summary.CounterpartID, Name: summary.CounterpartName, Type: summary.CounterpartType,
+	}
+	if summary.CounterpartLogo != "" {
+		logoURL := filesBaseURL + "/" + summary.CounterpartLogo
+		counterpart.LogoURL = &logoURL
+	}
 	return summaryResponse{
 		ID: summary.ID, Number: summary.Number, PartnershipID: summary.PartnershipID, Status: string(summary.Status),
-		CountedAt: timestamp(summary.CountedAt), RecordedOffline: summary.RecordedOffline,
-		Counterpart: counterpartResponse{
-			ID: summary.CounterpartID, Name: summary.CounterpartName, Type: summary.CounterpartType,
-		},
+		CountedAt: timestamp(summary.CountedAt), RecordedOffline: summary.RecordedOffline, Counterpart: counterpart,
 		SoldQty: summary.SoldQty, ReturnedQty: summary.ReturnedQty, ConsignorShare: summary.ConsignorShare,
 	}
 }

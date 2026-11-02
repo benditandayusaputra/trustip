@@ -2702,10 +2702,17 @@ export interface components {
             /** Format: date-time */
             counted_at: string;
             recorded_offline: boolean;
-            counterpart: components["schemas"]["CounterpartRef"];
+            counterpart: components["schemas"]["CountCounterpart"];
             sold_qty: number;
             returned_qty: number;
             consignor_share: number;
+        };
+        CountCounterpart: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["OrganizationType"];
+            logo_url: string | null;
         };
         CountSummaryListResponse: {
             code: components["schemas"]["SuccessCode"];
