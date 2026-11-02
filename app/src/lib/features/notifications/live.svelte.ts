@@ -57,8 +57,8 @@ export class LiveNotifications {
 
 	show(): void {
 		clearTimeout(this.#pause);
+		void this.#deps.refresh();
 		if (this.mode === 'paused' || this.mode === 'polling') {
-			void this.#deps.refresh();
 			this.start();
 		}
 	}

@@ -8,6 +8,11 @@ import {
 } from '#lib/api/notifications.js';
 
 export type InboxStatus = 'loading' | 'ready' | 'failed';
+export const unreadChangedEvent = 'trustip:unread-changed';
+
+function announceUnreadChange(): void {
+	window.dispatchEvent(new Event(unreadChangedEvent));
+}
 
 export class Inbox {
 	items = $state<Notification[]>([]);
@@ -62,6 +67,7 @@ export class Inbox {
 			item.id === notification.id ? { ...item, is_read: true } : item
 		);
 		this.unread = Math.max(0, this.unread - 1);
+		announceUnreadChange();
 	}
 
 	async readAll(): Promise<void> {
@@ -70,6 +76,7 @@ export class Inbox {
 			await markAllRead(this.#client());
 			this.items = this.items.map((item) => ({ ...item, is_read: true }));
 			this.unread = 0;
+			announceUnreadChange();
 		} finally {
 			this.busy = false;
 		}

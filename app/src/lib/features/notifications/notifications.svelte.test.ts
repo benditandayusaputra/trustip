@@ -88,12 +88,19 @@ describe('Notifications', () => {
 	});
 
 	it('FR-NTF-04 marks every notification read', async () => {
+		let unreadCount = 1;
 		const calls = serve({
-			'GET /api/v1/notifications/unread-count': () => ok({ count: 1 }),
+			'GET /api/v1/notifications/unread-count': () => ok({ count: unreadCount }),
 			'GET /api/v1/notifications': () => list([unread]),
-			'POST /api/v1/notifications/read-all': () => ok(null)
+			'POST /api/v1/notifications/read-all': () => {
+				unreadCount = 0;
+				return ok(null);
+			}
 		});
 		await render(NotificationsHarness);
+		await expect
+			.element(page.getByRole('link', { name: 'Pemberitahuan, 1 belum dibaca' }))
+			.toBeVisible();
 
 		await userEvent.click(page.getByRole('button', { name: 'Tandai semua telah dibaca' }));
 
@@ -103,6 +110,9 @@ describe('Notifications', () => {
 			.element(page.getByRole('button', { name: /Tandai dibaca/u }))
 			.not.toBeInTheDocument();
 		expect(calls).toContain('POST /api/v1/notifications/read-all');
+		await expect
+			.element(page.getByRole('link', { name: 'Pemberitahuan', exact: true }))
+			.toBeVisible();
 	});
 
 	it('FR-NTF-04 marks one notification read and filters the unread ones', async () => {
