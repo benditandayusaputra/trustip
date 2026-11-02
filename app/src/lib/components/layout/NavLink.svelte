@@ -13,7 +13,7 @@
 	const current = $derived(isCurrent(item.href, currentPath));
 	const layouts = {
 		tab: 'flex min-h-11 flex-1 flex-col items-center justify-center gap-1 text-xs',
-		row: 'flex min-h-11 items-center gap-2 rounded-control px-4 text-sm'
+		row: 'flex min-h-11 items-center gap-2 rounded-control px-4 text-sm short:min-h-8'
 	};
 </script>
 

@@ -16,14 +16,14 @@
 </script>
 
 <aside
-	class="workspace-sidebar sticky top-0 hidden h-dvh w-(--sidebar-width) shrink-0 flex-col gap-6 overflow-y-auto p-5 lg:flex"
+	class="workspace-sidebar sticky top-0 hidden h-dvh w-(--sidebar-width) shrink-0 flex-col gap-6 overflow-y-auto p-5 lg:flex short:gap-4"
 >
-	<div class="px-2 py-2">
+	<div class="px-2 py-2 short:py-0">
 		<Brand href="/app" subtitle={id.layout.organizations[organizationType]} />
 	</div>
-	<nav aria-label={id.layout.mainNavigation} class="flex flex-col gap-6">
+	<nav aria-label={id.layout.mainNavigation} class="flex flex-col gap-6 short:gap-4">
 		{#each groups as group (group.label)}
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 short:gap-1">
 				<p
 					class="px-4 text-xs font-medium tracking-(--letter-spacing-label) text-sidebar-muted uppercase"
 				>

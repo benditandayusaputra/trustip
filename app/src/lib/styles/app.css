@@ -5,6 +5,8 @@
 @import './surfaces.css';
 @import './usability.css';
 
+@custom-variant short (@media (width >= 64rem) and (height < 48rem));
+
 @layer base {
 	html {
 		color-scheme: light;

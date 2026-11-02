@@ -18,6 +18,8 @@
 	.workspace-sidebar {
 		background: var(--color-sidebar);
 		color: var(--color-sidebar-text);
+		scrollbar-color: var(--color-sidebar-muted) transparent;
+		scrollbar-width: thin;
 	}
 	.workspace-sidebar .brand {
 		color: var(--color-sidebar-text);
