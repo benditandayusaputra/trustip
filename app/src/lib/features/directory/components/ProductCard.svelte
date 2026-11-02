@@ -75,6 +75,7 @@
 				name={card.consignor.name}
 				productId={card.id}
 				canPropose={!card.is_partner}
+				stacked
 			/>
 		</div>
 	{/if}

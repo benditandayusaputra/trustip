@@ -120,7 +120,7 @@
 				<DirectoryResults
 					list={consignors}
 					query={search}
-					skeleton="list"
+					skeleton="catalog"
 					{isVisitor}
 					failedTitle={text.consignorsFailed}
 					emptyMessage={text.consignorsEmpty}
@@ -130,7 +130,7 @@
 						<ConsignorCard card={consignor} />
 					{/snippet}
 					{#snippet results(items: DirectoryConsignorCard[])}
-						<ul class="org-row-list">
+						<ul class="grid grid-cols-(--product-grid-columns) gap-4">
 							{#each items as consignor (consignor.id)}<li>
 									<ConsignorCard card={consignor} />
 								</li>{/each}

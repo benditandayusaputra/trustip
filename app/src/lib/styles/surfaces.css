@@ -65,22 +65,6 @@
 		z-index: 1;
 		margin-top: auto;
 	}
-	.org-row-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-4);
-	}
-	@media (width >= 48rem) {
-		.org-row {
-			display: grid;
-			grid-template-columns: var(--org-row-columns);
-			align-items: start;
-			column-gap: var(--spacing-6);
-		}
-		.org-row .list-card-actions {
-			margin-top: var(--spacing-0);
-		}
-	}
 	.list-grid {
 		display: grid;
 		grid-template-columns: var(--store-results-columns);
