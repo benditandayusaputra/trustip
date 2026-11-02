@@ -163,5 +163,58 @@ test('the bell is marked current on the notifications page', async ({ page }) =>
 
 	await expect(page).toHaveURL(/\/app\/pemberitahuan$/u);
 	await expect(bell).toHaveAttribute('aria-current', 'page');
-	await expect(bell).toHaveClass(/bg-accent-surface/u);
+	await expect(bell).toHaveClass(/bg-primary/u);
+});
+
+test('a settlement opened from a menu page keeps that menu in the breadcrumb and sidebar', async ({
+	page
+}, testInfo) => {
+	test.skip(testInfo.project.name !== 'desktop', 'The sidebar shows on wide screens');
+	await mockDashboard(page, 'STORE');
+	await page.route('**/api/v1/settlements/**', (route) =>
+		route.fulfill({
+			status: 404,
+			json: { code: 'NOT_FOUND', message: 'Tidak ditemukan.', meta: { request_id: 'test' } }
+		})
+	);
+	const sidebar = page.getByRole('complementary').getByRole('navigation');
+	const back = page.getByRole('banner').getByRole('link', { name: 'Kembali' });
+	const settlement = '/app/setoran/0192f0c4-0000-7000-8000-000000000301';
+
+	await page.goto(settlement);
+	await expect(back).toHaveAttribute('href', '/app/laporan');
+	await expect(sidebar.getByRole('link', { name: 'Laporan' })).toHaveAttribute(
+		'aria-current',
+		'page'
+	);
+
+	await page.goto('/app/mitra?status=ACTIVE');
+	await expect(sidebar.getByRole('link', { name: 'Mitra' })).toHaveAttribute(
+		'aria-current',
+		'page'
+	);
+	await page.evaluate((href) => {
+		const link = document.createElement('a');
+		link.href = href;
+		link.textContent = 'Buka setoran';
+		document.querySelector('main')?.append(link);
+	}, settlement);
+	await page.evaluate(() => {
+		Object.assign(window, { sameDocument: true });
+	});
+	await page.getByRole('link', { name: 'Buka setoran' }).click();
+	await expect(page).toHaveURL(settlement);
+	expect(await page.evaluate(() => 'sameDocument' in window)).toBe(true);
+
+	await expect(page).toHaveURL(settlement);
+	await expect(back).toHaveAttribute('href', '/app/mitra?status=ACTIVE');
+	await expect(page.getByRole('banner').getByRole('link', { name: 'Mitra' })).toBeVisible();
+	await expect(sidebar.getByRole('link', { name: 'Mitra' })).toHaveAttribute(
+		'aria-current',
+		'page'
+	);
+	await expect(sidebar.getByRole('link', { name: 'Laporan' })).not.toHaveAttribute(
+		'aria-current',
+		'page'
+	);
 });

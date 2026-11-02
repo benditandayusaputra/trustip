@@ -18,7 +18,7 @@
 </svelte:head>
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
-	<PageHeading backHref="/app/setoran" icon={Wallet}>{id.settlements.detailTitle}</PageHeading>
+	<PageHeading backHref="/app/laporan" icon={Wallet}>{id.settlements.detailTitle}</PageHeading>
 	{#key page.params.id}
 		<SettlementView settlementId={page.params.id ?? ''} {viewer} />
 	{/key}

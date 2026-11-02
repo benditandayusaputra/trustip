@@ -86,7 +86,7 @@
 	aria-label={id.notifications.bell(counter.count)}
 	aria-current={current ? 'page' : undefined}
 	class="relative inline-flex size-11 items-center justify-center rounded-control {current
-		? 'bg-accent-surface text-accent'
+		? 'bg-primary text-on-accent hover:bg-primary-hover'
 		: 'text-text hover:bg-surface-hover'}"
 >
 	<Bell class="size-6" aria-hidden="true" />

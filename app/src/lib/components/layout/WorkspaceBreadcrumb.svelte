@@ -13,18 +13,25 @@
 	let {
 		organizationType,
 		currentPath,
+		backHref,
 		focused = false
-	}: { organizationType: OrganizationType; currentPath: string; focused?: boolean } = $props();
+	}: {
+		organizationType: OrganizationType;
+		currentPath: string;
+		backHref: string | undefined;
+		focused?: boolean;
+	} = $props();
 	const pageTitle = getPageTitle();
 	const navigation = $derived(navigationFor(organizationType));
 	const items = $derived([...navigation.workspace, ...navigation.manage]);
 	const section = $derived(items.find((item) => isCurrent(item.href, currentPath)));
 	const entry = $derived(pageTitle?.entry);
-	const backHref = $derived(entry?.backHref ?? (section ? undefined : items[0]?.href));
 	const parent = $derived(
 		backHref === undefined
 			? undefined
-			: [...items, ...sectionsOutsideNavigation].find((item) => isCurrent(item.href, backHref))
+			: [...items, ...sectionsOutsideNavigation].find((item) =>
+					isCurrent(item.href, backHref.split('?')[0] ?? backHref)
+				)
 	);
 	const Icon = $derived(entry?.icon ?? section?.icon ?? LayoutDashboard);
 </script>
