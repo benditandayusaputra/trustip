@@ -151,3 +151,17 @@ test('dashboard uses a page skeleton until data arrives', async ({ page }, testI
 	await expect(page.getByText('Mitra aktif', { exact: true })).toBeVisible();
 	await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
 });
+
+test('the bell is marked current on the notifications page', async ({ page }) => {
+	await mockDashboard(page, 'STORE');
+	await page.goto('/app/toko');
+	const bell = page.locator('a[aria-label^="Pemberitahuan"]');
+	await expect(bell).toBeVisible();
+	await expect(bell).not.toHaveAttribute('aria-current', 'page');
+
+	await bell.click();
+
+	await expect(page).toHaveURL(/\/app\/pemberitahuan$/u);
+	await expect(bell).toHaveAttribute('aria-current', 'page');
+	await expect(bell).toHaveClass(/bg-accent-surface/u);
+});

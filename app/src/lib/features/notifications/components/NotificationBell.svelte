@@ -1,8 +1,10 @@
 <script lang="ts">
 	import Bell from '@lucide/svelte/icons/bell';
 	import { afterNavigate } from '$app/navigation';
+	import { page } from '$app/state';
 	import { apiClient } from '#lib/api/client.js';
 	import { openNotificationStream } from '#lib/api/stream.js';
+	import { isCurrent } from '#lib/components/layout/navigation.js';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { safeHref } from '#lib/domain/safe-href.js';
 	import { common as id } from '#lib/i18n/common.js';
@@ -25,6 +27,7 @@
 	const toaster = getToaster();
 	const badgeLimit = 99;
 	const inboxHref = '/app/pemberitahuan';
+	const current = $derived(isCurrent(inboxHref, page.url.pathname));
 
 	async function announce(notificationId: string) {
 		const notification = await findNotification(apiClient(), notificationId).catch(() => undefined);
@@ -81,7 +84,10 @@
 <a
 	href={inboxHref}
 	aria-label={id.notifications.bell(counter.count)}
-	class="relative inline-flex size-11 items-center justify-center rounded-control text-text"
+	aria-current={current ? 'page' : undefined}
+	class="relative inline-flex size-11 items-center justify-center rounded-control {current
+		? 'bg-accent-surface text-accent'
+		: 'text-text hover:bg-surface-hover'}"
 >
 	<Bell class="size-6" aria-hidden="true" />
 	{#if counter.count > 0}
