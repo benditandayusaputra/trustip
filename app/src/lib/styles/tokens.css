@@ -123,9 +123,10 @@
 	--home-example-columns: minmax(0, 7fr) minmax(0, 5fr);
 	--figure-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
 	--insight-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-	--store-results-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+	--store-results-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
 	--org-row-columns: minmax(0, 5fr) minmax(0, 6fr) auto;
 	--profile-columns: minmax(0, 1fr) minmax(0, 2fr);
+	--profile-rows: auto 1fr;
 	--directory-map-height: 26rem;
 	--map-marker-size: 44px;
 	--qr-code-size: 192px;

@@ -83,6 +83,11 @@ export const directory = {
 		onTime: (percent: string) => `Bayar tepat waktu ${percent}`,
 		activePartners: (count: number) => `${String(count)} mitra aktif`,
 		joined: (date: string) => `Bergabung ${date}`,
+		commissionLabel: 'Komisi',
+		onTimeLabel: 'Bayar tepat waktu',
+		partnersLabel: 'Mitra aktif',
+		joinedLabel: 'Bergabung',
+		percentRange: (minimum: string, maximum: string) => `${minimum}–${maximum}`,
 		labels: { VERY_GOOD: 'Sangat cocok', GOOD: 'Cocok' },
 		score: (score: number) => `Skor kecocokan ${String(score)}`,
 		reasons: {

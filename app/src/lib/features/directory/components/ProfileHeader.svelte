@@ -1,23 +1,19 @@
 <script lang="ts">
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Store from '@lucide/svelte/icons/store';
-	import StoreImage from '#lib/components/ui/StoreImage.svelte';
 
 	interface Props {
 		name: string;
 		kind: string;
 		place: string;
 		logoUrl: string | null;
-		isStore?: boolean;
 	}
 
-	let { name, kind, place, logoUrl, isStore = false }: Props = $props();
+	let { name, kind, place, logoUrl }: Props = $props();
 </script>
 
 <header class="trade-panel flex flex-wrap items-center gap-5">
-	{#if isStore}
-		<StoreImage url={logoUrl} class="size-12 rounded-control border border-border" />
-	{:else if logoUrl}
+	{#if logoUrl}
 		<img
 			src={logoUrl}
 			alt=""

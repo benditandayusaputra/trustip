@@ -16,9 +16,10 @@
 		name: string;
 		productId?: string;
 		canPropose: boolean;
+		stacked?: boolean;
 	}
 
-	let { organizationId, name, productId = '', canPropose }: Props = $props();
+	let { organizationId, name, productId = '', canPropose, stacked = false }: Props = $props();
 
 	const text = id.directory;
 	let chatUrl = $state<string | undefined>();
@@ -51,11 +52,11 @@
 	}
 </script>
 
-<div class="flex flex-wrap items-center gap-4">
+<div class={stacked ? 'grid gap-2' : 'flex flex-wrap items-center gap-4'}>
 	{#if canPropose}
 		<a
 			href={proposeHref}
-			class="inline-flex min-h-11 items-center rounded-control bg-primary px-4 font-semibold text-on-accent"
+			class="inline-flex min-h-12 items-center justify-center rounded-control bg-primary px-5 font-semibold text-on-accent hover:bg-primary-hover"
 			>{text.propose}</a
 		>
 	{/if}
@@ -64,7 +65,7 @@
 			href={chatUrl}
 			target="_blank"
 			rel="noopener noreferrer"
-			class="inline-flex min-h-12 items-center gap-2 rounded-control border border-whatsapp bg-whatsapp px-5 font-semibold text-on-accent hover:bg-whatsapp-hover"
+			class="inline-flex min-h-12 items-center justify-center gap-2 rounded-control border border-whatsapp bg-whatsapp px-5 font-semibold text-on-accent hover:bg-whatsapp-hover"
 		>
 			<WhatsAppIcon />
 			{text.openWhatsApp(name)}
@@ -75,7 +76,10 @@
 		>
 	{/if}
 	{#if needsSignIn}
-		<a href={signInHref} class="inline-flex min-h-11 items-center font-semibold text-accent">
+		<a
+			href={signInHref}
+			class="inline-flex min-h-11 items-center justify-center font-semibold text-accent"
+		>
 			{id.publicProfile.signInToContact}
 		</a>
 	{/if}

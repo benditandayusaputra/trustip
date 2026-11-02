@@ -122,7 +122,7 @@
 		{#snippet card(store: DirectoryStoreCard)}<StoreCard card={store} />{/snippet}
 		{#snippet results(items: DirectoryStoreCard[])}
 			{#if view === 'map'}<StoreMap stores={items} />
-			{:else}<ul class="org-row-list">
+			{:else}<ul class="list-grid">
 					{#each items as store (store.id)}<li><StoreCard card={store} /></li>{/each}
 				</ul>{/if}
 		{/snippet}

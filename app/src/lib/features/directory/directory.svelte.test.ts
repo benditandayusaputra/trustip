@@ -125,9 +125,9 @@ describe('Store directory', () => {
 
 		await expect.element(page.getByRole('heading', { name: 'Kantin Kampus' })).toBeVisible();
 		await expect.element(page.getByText('Sangat cocok')).toBeVisible();
-		await expect
-			.element(page.getByText('Bayar tepat waktu 96% · 4 mitra aktif').first())
-			.toBeVisible();
+		await expect.element(page.getByText('10%–20%').first()).toBeVisible();
+		await expect.element(page.getByText('96%', { exact: true }).first()).toBeVisible();
+		await expect.element(page.getByText('Mitra aktif').first()).toBeVisible();
 		await expect.element(page.getByText('Bergabung 1 Agu 2026').first()).toBeVisible();
 		await expect.element(page.getByText('Terima Kue kering dan camilan')).toBeVisible();
 		await expect.element(page.getByText('Sudah bermitra')).toBeVisible();

@@ -8,7 +8,6 @@
 	let { children }: LayoutProps = $props();
 
 	const backTargets = [
-		['/t/', '/cari/toko'],
 		['/u/', '/cari/penitip'],
 		['/p/', '/cari/penitip'],
 		['/kebutuhan/', '/kebutuhan']
