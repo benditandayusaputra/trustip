@@ -21,8 +21,8 @@ const routes: Record<PageSkeletonKind, string[]> = {
 		'/app/mitra/sample/perubahan'
 	],
 	report: ['/app/laporan'],
-	catalog: ['/app/produk'],
-	cards: ['/cari/toko', '/cari/penitip', '/kebutuhan'],
+	catalog: ['/app/produk', '/cari/penitip'],
+	cards: ['/cari/toko', '/kebutuhan'],
 	'store-dashboard': ['/app', '/app/toko'],
 	'consignor-dashboard': ['/app/penitip'],
 	list: [

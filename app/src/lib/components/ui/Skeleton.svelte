@@ -3,7 +3,7 @@
 
 	interface Props {
 		lines?: number;
-		shape?: 'text' | 'control' | 'chart' | 'metric' | 'image' | 'square' | 'map';
+		shape?: 'text' | 'control' | 'chart' | 'metric' | 'image' | 'cover' | 'square' | 'map';
 	}
 
 	let { lines = 1, shape = 'text' }: Props = $props();
@@ -14,6 +14,7 @@
 		control: 'h-12 rounded-control',
 		chart: 'aspect-10/3 rounded-control',
 		image: 'aspect-4/3 rounded-card',
+		cover: 'aspect-video rounded-control',
 		square: 'aspect-square rounded-control',
 		map: 'h-(--directory-map-height) rounded-control'
 	};

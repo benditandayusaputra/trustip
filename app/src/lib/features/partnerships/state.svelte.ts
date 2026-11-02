@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { ApiClient } from '#lib/api/client.js';
 import {
 	getPartnership,
@@ -30,7 +31,9 @@ export class PartnerList {
 
 	async load(filter: PartnerFilter): Promise<void> {
 		this.#filter = filter;
-		this.status = 'loading';
+		if (untrack(() => this.status) !== 'ready') {
+			this.status = 'loading';
+		}
 		try {
 			const page = await listPartnerships(this.#client(), this.#status(), null);
 			this.items = page.items;

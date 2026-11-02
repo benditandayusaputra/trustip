@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { ApiClient } from '#lib/api/client.js';
 import { listDrops, type DropFilter, type DropSummary } from '#lib/api/drops.js';
 
@@ -20,7 +21,9 @@ export class DropHistory {
 
 	async load(filter: DropFilter): Promise<void> {
 		this.#filter = { ...filter };
-		this.status = 'loading';
+		if (untrack(() => this.status) !== 'ready') {
+			this.status = 'loading';
+		}
 		try {
 			const page = await listDrops(this.#client(), this.#filter, null);
 			this.items = page.items;

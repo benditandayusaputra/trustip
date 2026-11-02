@@ -17,12 +17,13 @@
 	interface Props {
 		query: BoardQuery;
 		isVisitor?: boolean;
+		ready?: boolean;
 		canRespond: boolean;
 		place: Snippet;
 		onchange: (query: BoardQuery) => void;
 	}
 
-	let { query, isVisitor = false, canRespond, place, onchange }: Props = $props();
+	let { query, isVisitor = false, ready = true, canRespond, place, onchange }: Props = $props();
 
 	const text = id.needBoard;
 	const typingDelayMs = 300;
@@ -45,6 +46,7 @@
 	});
 
 	$effect(() => {
+		if (!ready) return;
 		needs.shuffle = isRandomOrder(query, isVisitor);
 		void needs.load(search);
 	});

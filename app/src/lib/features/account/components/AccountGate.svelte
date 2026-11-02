@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack, type Snippet } from 'svelte';
+	import { onMount, untrack, type Snippet } from 'svelte';
 	import { navigating, page } from '$app/state';
 	import Alert from '#lib/components/ui/Alert.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
@@ -34,6 +34,10 @@
 	const session = slot.session;
 	setAccountSession(session);
 
+	onMount(() => {
+		session.recallWorkspace();
+	});
+
 	$effect(() => {
 		void untrack(() => session.load());
 	});
@@ -49,6 +53,7 @@
 	);
 	const isVisitor = $derived(session.status === 'signedOut' && placement === 'anyone');
 	const isOpenWhileLoading = $derived(session.status === 'loading' && placement === 'anyone');
+	const expectedWorkspace = $derived(isOpenWhileLoading ? session.expectedWorkspace : undefined);
 
 	$effect(() => {
 		if (session.status === 'signedOut' && placement !== 'anyone') {
@@ -87,14 +92,17 @@
 			{/snippet}
 		</Alert>
 	{:else}
-		{#if loading}{@render loading()}{:else}<PageSkeleton path={page.url.pathname} />{/if}
+		{#if loading}{@render loading()}{:else}<PageSkeleton
+				path={page.url.pathname}
+				titled={placement !== 'member'}
+			/>{/if}
 	{/if}
 {/snippet}
 
 <AppShell
 	organizationType={isPlaced && placement !== 'newcomer'
 		? session.account?.membership?.organization_type
-		: undefined}
+		: expectedWorkspace}
 	currentPath={page.url.pathname}
 	workspace={placement === 'member'}
 	pendingPath={pendingPagePath(navigating.to?.url, page.url)}

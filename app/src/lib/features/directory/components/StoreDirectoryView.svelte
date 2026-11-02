@@ -17,10 +17,11 @@
 	interface Props {
 		query: StoreQuery;
 		isVisitor?: boolean;
+		ready?: boolean;
 		place: Snippet;
 		onchange: (query: StoreQuery) => void;
 	}
-	let { query, isVisitor = false, place, onchange }: Props = $props();
+	let { query, isVisitor = false, ready = true, place, onchange }: Props = $props();
 	const text = id.directory;
 	const viewOptions = [
 		{ value: 'list', label: text.listView },
@@ -42,6 +43,7 @@
 			.catch(() => (categories = []));
 	});
 	$effect(() => {
+		if (!ready) return;
 		stores.shuffle = isRandomOrder(query, isVisitor);
 		void stores.load(search);
 	});
@@ -106,9 +108,9 @@
 			</div>
 		</div>
 	</section>
-	{#if stores.status === 'ready'}<p role="status" class="text-sm font-semibold text-text-muted">
-			{text.loadedStores(stores.items.length)}
-		</p>{/if}
+	<p role="status" class="min-h-5 text-sm font-semibold text-text-muted">
+		{stores.items.length > 0 ? text.loadedStores(stores.items.length) : ''}
+	</p>
 	<DirectoryResults
 		list={stores}
 		query={search}

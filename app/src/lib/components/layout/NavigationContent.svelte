@@ -3,14 +3,31 @@
 	import PageSkeleton from './PageSkeleton.svelte';
 	interface Props {
 		pendingPath?: string | undefined;
+		titled?: boolean;
 		children: Snippet;
 	}
-	let { pendingPath, children }: Props = $props();
-	const waiting = $derived(pendingPath !== undefined);
+	let { pendingPath, titled = true, children }: Props = $props();
+	const skeletonDelayMs = 150;
+	let shownPath = $state<string | undefined>();
+	const waiting = $derived(shownPath !== undefined);
+
+	$effect(() => {
+		const path = pendingPath;
+		if (path === undefined) {
+			shownPath = undefined;
+			return;
+		}
+		const timer = setTimeout(() => {
+			shownPath = path;
+		}, skeletonDelayMs);
+		return () => {
+			clearTimeout(timer);
+		};
+	});
 </script>
 
-{#if pendingPath}
-	<div data-navigation-loading><PageSkeleton path={pendingPath} /></div>
+{#if shownPath}
+	<div data-navigation-loading><PageSkeleton path={shownPath} {titled} /></div>
 {/if}
 <div
 	class={waiting ? 'hidden' : 'contents'}

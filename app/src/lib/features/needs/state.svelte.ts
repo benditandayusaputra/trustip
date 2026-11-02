@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { ApiClient } from '#lib/api/client.js';
 import { ApiError } from '#lib/api/errors.js';
 import {
@@ -78,7 +79,9 @@ export class NeedList {
 
 	async load(filter: NeedStatus | ''): Promise<void> {
 		this.#filter = filter;
-		this.status = 'loading';
+		if (untrack(() => this.status) !== 'ready') {
+			this.status = 'loading';
+		}
 		try {
 			const page = await listNeeds(this.#client(), filter, null);
 			this.items = page.items;

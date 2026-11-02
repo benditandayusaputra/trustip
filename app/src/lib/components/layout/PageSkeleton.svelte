@@ -3,8 +3,9 @@
 	import DashboardSkeleton from '../ui/DashboardSkeleton.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
 	import { pageSkeletonKind } from './page-skeleton';
-	let { path }: { path: string } = $props();
+	let { path, titled = true }: { path: string; titled?: boolean } = $props();
 	const kind = $derived(pageSkeletonKind(path));
+	const dashboard = $derived(kind === 'store-dashboard' || kind === 'consignor-dashboard');
 	const narrow = $derived(['form', 'auth'].includes(kind));
 	const reading = $derived(kind === 'article');
 </script>
@@ -14,10 +15,12 @@
 		? 'max-w-reading'
 		: ''}"
 >
-	<div aria-hidden="true" class="flex flex-col gap-4">
-		<div class="w-1/2"><Skeleton shape="metric" /></div>
-		<div class="w-2/3"><Skeleton /></div>
-	</div>
+	{#if titled || dashboard}
+		<div aria-hidden="true" class="flex flex-col gap-4">
+			<div class="w-1/2"><Skeleton shape="metric" /></div>
+			<div class="w-2/3"><Skeleton /></div>
+		</div>
+	{/if}
 	{#if kind === 'store-dashboard' || kind === 'consignor-dashboard'}
 		<DashboardSkeleton side={kind === 'store-dashboard' ? 'STORE' : 'CONSIGNOR'} />
 	{:else}

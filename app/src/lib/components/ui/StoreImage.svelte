@@ -1,5 +1,9 @@
 <script lang="ts">
-	let { url, class: className = '' }: { url: string | null; class?: string } = $props();
+	let {
+		url,
+		class: className = '',
+		loading = 'lazy'
+	}: { url: string | null; class?: string; loading?: 'lazy' | 'eager' } = $props();
 
 	let failedUrl = $state<string | null>(null);
 	const showsPhoto = $derived(url !== null && url !== failedUrl);
@@ -11,7 +15,7 @@
 		alt=""
 		width="48"
 		height="48"
-		loading="lazy"
+		{loading}
 		decoding="async"
 		onerror={() => (failedUrl = url)}
 		class="shrink-0 object-cover {className}"

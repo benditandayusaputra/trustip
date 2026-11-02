@@ -52,7 +52,12 @@
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<PageHeading icon={Search}>{id.consignorDirectory.title}</PageHeading>
-	<ConsignorDirectoryView {query} {isVisitor} onchange={show}>
+	<ConsignorDirectoryView
+		{query}
+		{isVisitor}
+		ready={session.status !== 'loading' || session.expectedWorkspace !== undefined}
+		onchange={show}
+	>
 		{#snippet place()}
 			<PlacePicker
 				place={origin}

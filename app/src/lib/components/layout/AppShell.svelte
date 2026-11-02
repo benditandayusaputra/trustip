@@ -78,7 +78,7 @@
 				? 'pb-8'
 				: 'pb-(--toast-offset)'}"
 		>
-			<NavigationContent {pendingPath}>{@render children()}</NavigationContent>
+			<NavigationContent {pendingPath} titled={isPublic}>{@render children()}</NavigationContent>
 		</main>
 		{#if isPublic}
 			<PublicFooter />

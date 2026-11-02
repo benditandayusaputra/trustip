@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { ApiClient } from '#lib/api/client.js';
 import { listProposals, type ProposalBox, type ProposalSummary } from '#lib/api/proposals.js';
 import type { LoadStatus } from './record.svelte';
@@ -17,7 +18,9 @@ export class ProposalInbox {
 
 	async load(box: ProposalBox): Promise<void> {
 		this.box = box;
-		this.status = 'loading';
+		if (untrack(() => this.status) !== 'ready') {
+			this.status = 'loading';
+		}
 		try {
 			const page = await listProposals(this.#client(), box, null);
 			this.items = page.items;

@@ -49,7 +49,11 @@
 	<PageHeading icon={Store} backHref="/cari/toko">{store.name}</PageHeading>
 	<div class="grid items-start gap-6 lg:grid-cols-12 lg:grid-rows-(--profile-rows)">
 		<section class="surface-card overflow-hidden lg:col-span-8">
-			<StoreImage url={cover} class="aspect-video w-full bg-accent-surface lg:aspect-21/9" />
+			<StoreImage
+				url={cover}
+				loading="eager"
+				class="aspect-video w-full bg-accent-surface lg:aspect-21/9"
+			/>
 			<div class="flex flex-col gap-4 p-5 compact:p-6">
 				<div class="flex flex-col gap-1">
 					<p class="section-label">{kind}</p>

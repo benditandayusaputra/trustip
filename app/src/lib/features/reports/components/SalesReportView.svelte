@@ -77,7 +77,7 @@
 		/>
 	{/if}
 </fieldset>
-{#if view.status === 'loading'}
+{#if view.status === 'loading' && !view.report}
 	<ContentSkeleton variant="report" />
 {:else if view.status === 'failed' || !view.report}
 	<Alert title={text.loadFailed}>{view.failure}</Alert>

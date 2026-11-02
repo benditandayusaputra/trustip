@@ -21,7 +21,7 @@ const exact: Record<string, PageSkeletonKind> = {
 	'/app/produk': 'catalog',
 	'/app/laporan': 'report',
 	'/cari/toko': 'cards',
-	'/cari/penitip': 'cards',
+	'/cari/penitip': 'catalog',
 	'/kebutuhan': 'cards'
 };
 

@@ -14,4 +14,4 @@
 	});
 </script>
 
-<PageSkeleton path={target} />
+<PageSkeleton path={target} titled={false} />

@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { ApiClient } from '#lib/api/client.js';
 import { listCounts, type CountFilter, type CountSummary } from '#lib/api/counts.js';
 import { listPartnerships, type PartnershipSummary } from '#lib/api/partnerships.js';
@@ -27,7 +28,9 @@ export class CountHistory {
 
 	async load(filter: CountFilter): Promise<void> {
 		this.#filter = { ...filter };
-		this.status = 'loading';
+		if (untrack(() => this.status) !== 'ready') {
+			this.status = 'loading';
+		}
 		try {
 			const page = await listCounts(this.#client(), this.#filter, null);
 			this.items = page.items;

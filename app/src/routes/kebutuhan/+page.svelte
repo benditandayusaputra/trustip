@@ -54,7 +54,13 @@
 
 <section class="mx-auto flex w-full max-w-content flex-col gap-6">
 	<PageHeading icon={Megaphone}>{id.needBoard.title}</PageHeading>
-	<NeedBoardView {query} {isVisitor} {canRespond} onchange={show}>
+	<NeedBoardView
+		{query}
+		{isVisitor}
+		ready={session.status !== 'loading' || session.expectedWorkspace !== undefined}
+		{canRespond}
+		onchange={show}
+	>
 		{#snippet place()}
 			<PlacePicker
 				place={origin}

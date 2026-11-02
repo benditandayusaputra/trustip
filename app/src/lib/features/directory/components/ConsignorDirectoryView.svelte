@@ -23,11 +23,12 @@
 	interface Props {
 		query: ConsignorQuery;
 		isVisitor?: boolean;
+		ready?: boolean;
 		place: Snippet;
 		onchange: (query: ConsignorQuery) => void;
 	}
 
-	let { query, isVisitor = false, place, onchange }: Props = $props();
+	let { query, isVisitor = false, ready = true, place, onchange }: Props = $props();
 
 	const text = id.consignorDirectory;
 	const products = new DirectoryList<DirectoryProductCard>(apiClient, '/api/v1/directory/products');
@@ -49,6 +50,7 @@
 	});
 
 	$effect(() => {
+		if (!ready) return;
 		const list = query.tab === 'produk' ? products : consignors;
 		list.shuffle = isRandomOrder(query, isVisitor);
 		void list.load(search);
@@ -99,6 +101,7 @@
 				<DirectoryResults
 					list={products}
 					query={search}
+					skeleton="catalog"
 					{isVisitor}
 					failedTitle={text.productsFailed}
 					emptyMessage={text.productsEmpty}
@@ -117,6 +120,7 @@
 				<DirectoryResults
 					list={consignors}
 					query={search}
+					skeleton="list"
 					{isVisitor}
 					failedTitle={text.consignorsFailed}
 					emptyMessage={text.consignorsEmpty}

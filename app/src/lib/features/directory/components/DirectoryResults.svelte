@@ -5,6 +5,7 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
+	import type { SkeletonVariant } from '#lib/components/ui/skeleton.js';
 	import { directory as id } from '#lib/i18n/directory.js';
 	import { watchOnline } from '#lib/offline/network.js';
 	import type { DirectoryList } from '../state.svelte';
@@ -14,6 +15,7 @@
 		query: string;
 		isVisitor?: boolean;
 		failedTitle: string;
+		skeleton?: SkeletonVariant;
 		emptyMessage: string;
 		card: Snippet<[T]>;
 		results?: Snippet<[T[]]>;
@@ -25,6 +27,7 @@
 		query,
 		isVisitor = false,
 		failedTitle,
+		skeleton = 'cards',
 		emptyMessage,
 		card,
 		results,
@@ -32,6 +35,7 @@
 	}: Props = $props();
 
 	const text = id.directory;
+	const skeletonCards = 6;
 	let isOnline = $state(true);
 	const search = $derived(list.search);
 
@@ -53,8 +57,8 @@
 			<a href="/app/profil" class="font-semibold text-accent">{text.setLocation}</a>
 		</p>
 	{/if}
-	{#if list.status === 'loading'}
-		<ContentSkeleton variant="cards" />
+	{#if list.status === 'loading' && list.items.length === 0}
+		<ContentSkeleton variant={skeleton} rows={skeletonCards} />
 	{:else if list.status === 'failed'}
 		<Alert title={failedTitle}>
 			{list.failure}

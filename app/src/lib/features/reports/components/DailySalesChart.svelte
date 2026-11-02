@@ -17,6 +17,7 @@
 	import { columnChart } from '#lib/domain/chart.js';
 	import { dayCells } from '../rows';
 	import { SalesReportView } from '../state.svelte';
+	import ColumnChart from './ColumnChart.svelte';
 
 	interface Props {
 		range: DateRange;
@@ -57,8 +58,8 @@
 	{#if controls}
 		{@render controls()}
 	{/if}
-	{#if daily.status === 'loading'}
-		<Skeleton shape="chart" />
+	{#if daily.status === 'loading' && !daily.report}
+		<div class="flex min-h-(--chart-min-height) flex-1 flex-col"><Skeleton shape="chart" /></div>
 	{:else if daily.status === 'failed' || !daily.report}
 		<p class="text-sm text-text">{text.chartFailed}</p>
 	{:else}
@@ -76,21 +77,16 @@
 				</div>
 			</div>
 		{:else}
-			{#await import('./ColumnChart.svelte')}
-				<Skeleton shape="chart" />
-			{:then chart}
-				<chart.default
-					caption={text.chartCaption(
-						formatBusinessDate(report.from),
-						formatBusinessDate(report.to)
-					)}
-					{shape}
-					{points}
-					ceilingLabel={formatRupiah(shape.ceiling)}
-				/>
-			{/await}
+			<ColumnChart
+				caption={text.chartCaption(formatBusinessDate(report.from), formatBusinessDate(report.to))}
+				{shape}
+				{points}
+				ceilingLabel={formatRupiah(shape.ceiling)}
+			/>
 		{/if}
-		<Button variant="secondary" onclick={() => (asTable = !asTable)}>
+	{/if}
+	{#if daily.status !== 'failed'}
+		<Button variant="secondary" disabled={!daily.report} onclick={() => (asTable = !asTable)}>
 			{asTable ? text.showChart : text.showTable}
 		</Button>
 	{/if}

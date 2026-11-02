@@ -8,6 +8,7 @@
 	import { reports as id } from '#lib/i18n/reports.js';
 	import { grossBars, returnBars, returnLegend } from '../charts';
 	import { SalesReportView } from '../state.svelte';
+	import BarChart from './BarChart.svelte';
 	import SplitChart from './SplitChart.svelte';
 
 	interface Props {
@@ -30,7 +31,7 @@
 	});
 </script>
 
-{#if status === 'loading'}
+{#if status === 'loading' && (!partners.report || !products.report)}
 	<div class="grid gap-6 lg:grid-cols-2">
 		<Skeleton shape="chart" />
 		<Skeleton shape="chart" />
@@ -40,21 +41,17 @@
 {:else}
 	{@const byPartner = partners.report}
 	{@const byProduct = products.report}
-	{#await import('./BarChart.svelte')}
-		<Skeleton shape="chart" />
-	{:then { default: BarChart }}
-		<div class="grid items-stretch gap-6 lg:grid-cols-12">
-			<div class="min-w-0 lg:col-span-5">
-				<SplitChart figures={byPartner.summary} {isStore} />
-			</div>
-			<div class="min-w-0 lg:col-span-7">
-				<Card title={text.partnersChart[isStore ? 'STORE' : 'CONSIGNOR']} icon={ChartBar} fill>
-					<BarChart caption={text.partnersCaption} rows={grossBars(byPartner)} />
-				</Card>
-			</div>
+	<div class="grid items-stretch gap-6 lg:grid-cols-12">
+		<div class="min-w-0 lg:col-span-5">
+			<SplitChart figures={byPartner.summary} {isStore} />
 		</div>
-		<Card title={text.productsChart} icon={ChartBarStacked}>
-			<BarChart caption={text.productsCaption} rows={returnBars(byProduct)} legend={returnLegend} />
-		</Card>
-	{/await}
+		<div class="min-w-0 lg:col-span-7">
+			<Card title={text.partnersChart[isStore ? 'STORE' : 'CONSIGNOR']} icon={ChartBar} fill>
+				<BarChart caption={text.partnersCaption} rows={grossBars(byPartner)} />
+			</Card>
+		</div>
+	</div>
+	<Card title={text.productsChart} icon={ChartBarStacked}>
+		<BarChart caption={text.productsCaption} rows={returnBars(byProduct)} legend={returnLegend} />
+	</Card>
 {/if}

@@ -29,7 +29,20 @@
 		{:else if variant === 'catalog'}
 			<SkeletonProducts {rows} />
 		{:else if variant === 'cards'}
-			<SkeletonCards {rows} />
+			<div class="list-grid">
+				{#each { length: rows }, index (index)}
+					<div class="flex min-w-0 flex-col gap-4 rounded-card border border-border bg-surface p-5">
+						<Skeleton shape="cover" />
+						<div class="flex flex-col gap-2">
+							<div class="w-1/3"><Skeleton /></div>
+							<div class="w-2/3"><Skeleton shape="metric" /></div>
+							<div class="w-1/2"><Skeleton /></div>
+						</div>
+						<Skeleton shape="control" />
+						<Skeleton shape="control" />
+					</div>
+				{/each}
+			</div>
 		{:else if variant === 'form' || variant === 'auth'}
 			<SkeletonFields {rows} />
 		{:else if variant === 'report'}

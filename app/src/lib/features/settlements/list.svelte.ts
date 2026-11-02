@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { ApiClient } from '#lib/api/client.js';
 import {
 	getRunningSales,
@@ -26,7 +27,9 @@ export class SettlementList {
 
 	async load(filter: SettlementFilter): Promise<void> {
 		this.#filter = { ...filter };
-		this.status = 'loading';
+		if (untrack(() => this.status) !== 'ready') {
+			this.status = 'loading';
+		}
 		try {
 			const page = await listSettlements(this.#client(), this.#filter, null);
 			this.items = page.items;

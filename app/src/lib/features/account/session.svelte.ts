@@ -9,6 +9,29 @@ import { dashboardDestination } from '#lib/domain/dashboard-access.js';
 import { deviceReadCache } from '#lib/offline/read-cache.js';
 
 export type AccountStatus = 'loading' | 'ready' | 'failed' | 'signedOut';
+const workspaceKey = 'trustip-workspace';
+const workspaceTypes: readonly string[] = ['CONSIGNOR', 'STORE'] satisfies OrganizationType[];
+
+function readWorkspace(): OrganizationType | undefined {
+	try {
+		const stored = localStorage.getItem(workspaceKey) ?? '';
+		return workspaceTypes.includes(stored) ? (stored as OrganizationType) : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+function writeWorkspace(type: OrganizationType | undefined): void {
+	try {
+		if (type) {
+			localStorage.setItem(workspaceKey, type);
+		} else {
+			localStorage.removeItem(workspaceKey);
+		}
+	} catch {
+		return;
+	}
+}
 export type Placement = 'member' | 'newcomer' | 'anyone';
 
 export function dashboardPath(type: OrganizationType): string {
@@ -23,6 +46,7 @@ export class AccountSession {
 	account = $state<AccountProfile | undefined>();
 	status = $state<AccountStatus>('loading');
 	failure = $state('');
+	expectedWorkspace = $state<OrganizationType | undefined>();
 	readonly #client: () => ApiClient;
 	readonly #forgetDeviceData: () => Promise<void>;
 
@@ -38,13 +62,19 @@ export class AccountSession {
 		try {
 			this.account = await getAccount(this.#client());
 			this.status = 'ready';
+			writeWorkspace(this.account.membership?.organization_type);
 		} catch (error) {
 			this.#fail(error);
 		}
 	}
 
+	recallWorkspace(): void {
+		this.expectedWorkspace = readWorkspace();
+	}
+
 	async endThisDevice(): Promise<void> {
 		await logOut(this.#client());
+		writeWorkspace(undefined);
 		await this.#forgetDeviceData();
 		this.account = undefined;
 		this.status = 'signedOut';
@@ -52,6 +82,7 @@ export class AccountSession {
 
 	async endEveryDevice(): Promise<void> {
 		await logOutEverywhere(this.#client());
+		writeWorkspace(undefined);
 		await this.#forgetDeviceData();
 		this.account = undefined;
 		this.status = 'signedOut';
@@ -59,6 +90,7 @@ export class AccountSession {
 
 	#fail(error: unknown): void {
 		if (error instanceof ApiError && error.isSessionProblem()) {
+			writeWorkspace(undefined);
 			this.account = undefined;
 			this.status = 'signedOut';
 			return;

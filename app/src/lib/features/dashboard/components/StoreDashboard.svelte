@@ -38,7 +38,7 @@
 	});
 </script>
 
-{#if board.status === 'loading'}
+{#if board.status === 'loading' || (isOwner && sales.status === 'loading')}
 	<DashboardSkeleton side="STORE" />
 {:else if board.status === 'failed' || !board.dashboard}
 	<Alert title={text.loadFailed}>{board.failure}</Alert>
