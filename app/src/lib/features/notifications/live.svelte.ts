@@ -77,6 +77,7 @@ export class LiveNotifications {
 		this.#poll ??= setInterval(() => {
 			if (this.#deps.isVisible()) {
 				void this.#deps.refresh();
+				void this.#connect();
 			}
 		}, pollIntervalMs);
 	}

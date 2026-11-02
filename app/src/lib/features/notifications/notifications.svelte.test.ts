@@ -43,8 +43,31 @@ function serve(routes: Record<string, () => Response>) {
 	return calls;
 }
 
+class FakeStream {
+	static opened: FakeStream[] = [];
+	onerror: (() => void) | null = null;
+	readonly #listeners = new Map<string, (event: MessageEvent) => void>();
+
+	constructor() {
+		FakeStream.opened.push(this);
+	}
+
+	addEventListener(name: string, listener: (event: MessageEvent) => void): void {
+		this.#listeners.set(name, listener);
+	}
+
+	emit(name: string, data: unknown): void {
+		this.#listeners.get(name)?.(new MessageEvent(name, { data: JSON.stringify(data) }));
+	}
+
+	close(): void {
+		this.#listeners.clear();
+	}
+}
+
 afterEach(() => {
 	vi.unstubAllGlobals();
+	FakeStream.opened = [];
 });
 
 describe('Notifications', () => {
@@ -166,5 +189,48 @@ describe('Notifications', () => {
 		await render(NotificationsHarness);
 
 		await expect.element(page.getByText('Pemberitahuan tidak bisa dimuat.')).toBeVisible();
+	});
+
+	it('FR-NTF-02 shows a live notification at once and opens its document', async () => {
+		const arrived = {
+			...unread,
+			id: '0192f0c4-0000-7000-8000-000000000103',
+			title: 'Ajuan kerja sama',
+			body: 'Roti Mas Bendi mengajukan kerja sama.',
+			link: '/app/ajuan/0192f0c4-0000-7000-8000-000000000555'
+		};
+		let items = [unread];
+		const calls = serve({
+			'GET /api/v1/notifications/unread-count': () =>
+				ok({ count: items.filter((item) => !item.is_read).length }),
+			'GET /api/v1/notifications': () => list(items),
+			'POST /api/v1/stream-tickets': () => ok({ ticket: 't', expires_at: '2026-11-02T00:00:30Z' }),
+			[`POST /api/v1/notifications/${arrived.id}/read`]: () => ok(null)
+		});
+		vi.stubGlobal('EventSource', FakeStream);
+		await render(NotificationsHarness, { streamUrl: 'https://api.trustip.test/api/v1/stream' });
+		await expect.poll(() => FakeStream.opened.length, { timeout: 5000 }).toBe(1);
+
+		items = [arrived, unread];
+		FakeStream.opened[0]?.emit('notification', { id: arrived.id, type: 'PROPOSAL_RECEIVED' });
+
+		await expect.element(page.getByText(arrived.body).first()).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: 'Pemberitahuan, 2 belum dibaca' }))
+			.toBeVisible();
+		await expect.element(page.getByText('2 belum dibaca', { exact: true })).toBeVisible();
+		const open = page.getByRole('link', { name: 'Lihat' });
+		await expect.element(open).toHaveAttribute('href', arrived.link);
+		document.addEventListener(
+			'click',
+			(event) => {
+				event.preventDefault();
+			},
+			{ capture: true, once: true }
+		);
+		await userEvent.click(open);
+
+		await expect.element(open).not.toBeInTheDocument();
+		await expect.poll(() => calls).toContain(`POST /api/v1/notifications/${arrived.id}/read`);
 	});
 });

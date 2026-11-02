@@ -33,7 +33,14 @@
 		>
 			<p class="flex-1 text-base">{toast.message}</p>
 			{#if toast.action?.href}
-				<a class="font-semibold text-accent" href={toast.action.href}>{toast.action.label}</a>
+				<a
+					class="font-semibold text-accent"
+					href={toast.action.href}
+					onclick={() => {
+						toast.action?.onclick?.();
+						toaster.dismiss(toast.id);
+					}}>{toast.action.label}</a
+				>
 			{:else if toast.action?.onclick}
 				<button type="button" class="font-semibold text-accent" onclick={toast.action.onclick}>
 					{toast.action.label}

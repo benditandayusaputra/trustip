@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import Bell from '@lucide/svelte/icons/bell';
 	import CheckCheck from '@lucide/svelte/icons/check-check';
 	import Clock from '@lucide/svelte/icons/clock';
@@ -9,11 +8,10 @@
 	import ContentSkeleton from '#lib/components/ui/ContentSkeleton.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
-	import type { Notification } from '#lib/api/notifications.js';
 	import { safeHref } from '#lib/domain/safe-href.js';
 	import { formatDateTime } from '#lib/i18n/format.js';
 	import { common as id } from '#lib/i18n/common.js';
-	import { Inbox } from '../inbox.svelte';
+	import { Inbox, notificationArrivedEvent } from '../inbox.svelte';
 
 	const text = id.notifications;
 	const inbox = new Inbox(apiClient);
@@ -27,13 +25,14 @@
 
 	$effect(() => {
 		void inbox.load();
+		const reload = () => {
+			void inbox.load();
+		};
+		window.addEventListener(notificationArrivedEvent, reload);
+		return () => {
+			window.removeEventListener(notificationArrivedEvent, reload);
+		};
 	});
-
-	async function open(event: MouseEvent, notification: Notification, href: string) {
-		event.preventDefault();
-		await inbox.open(notification).catch(() => undefined);
-		await goto(href);
-	}
 
 	async function readAll() {
 		await inbox.readAll();
@@ -106,7 +105,7 @@
 				>
 					<a
 						{href}
-						onclick={(event) => void open(event, notification, href)}
+						onclick={() => void inbox.open(notification).catch(() => undefined)}
 						class="flex min-w-0 flex-1 flex-col gap-1"
 					>
 						<span

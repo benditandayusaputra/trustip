@@ -4,9 +4,11 @@
 	import NotificationBell from '#lib/features/notifications/components/NotificationBell.svelte';
 	import NotificationList from '#lib/features/notifications/components/NotificationList.svelte';
 
+	let { streamUrl = '' }: { streamUrl?: string } = $props();
+
 	setToaster(new ToastQueue());
 </script>
 
-<NotificationBell streamUrl="" />
+<NotificationBell {streamUrl} />
 <NotificationList />
 <Toaster />

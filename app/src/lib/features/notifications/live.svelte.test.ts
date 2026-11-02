@@ -91,15 +91,20 @@ describe('LiveNotifications', () => {
 		expect(refresh).not.toHaveBeenCalled();
 	});
 
-	it('FR-NTF-03 falls back to checking when an open stream drops', async () => {
-		const { live, refresh, close, handlers } = fixture(true);
+	it('FR-NTF-03 checks once and reconnects when an open stream drops', async () => {
+		const { live, refresh, close, connect, handlers } = fixture(true);
 		live.start();
 		await vi.advanceTimersByTimeAsync(settleBeforeConnectMs);
 
 		handlers().onfailure();
+		expect(live.mode).toBe('polling');
 		await vi.advanceTimersByTimeAsync(pollIntervalMs);
 
 		expect(close).toHaveBeenCalled();
+		expect(refresh).toHaveBeenCalledTimes(1);
+		expect(connect).toHaveBeenCalledTimes(2);
+		expect(live.mode).toBe('live');
+		await vi.advanceTimersByTimeAsync(pollIntervalMs * 2);
 		expect(refresh).toHaveBeenCalledTimes(1);
 	});
 

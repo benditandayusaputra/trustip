@@ -4,8 +4,15 @@
 	import { apiClient } from '#lib/api/client.js';
 	import { openNotificationStream } from '#lib/api/stream.js';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
+	import { safeHref } from '#lib/domain/safe-href.js';
 	import { common as id } from '#lib/i18n/common.js';
-	import { UnreadCounter, unreadChangedEvent } from '../inbox.svelte';
+	import {
+		findNotification,
+		notificationArrivedEvent,
+		readNotification,
+		UnreadCounter,
+		unreadChangedEvent
+	} from '../inbox.svelte';
 	import { LiveNotifications, watchVisibility } from '../live.svelte';
 
 	interface Props {
@@ -17,6 +24,28 @@
 	const counter = new UnreadCounter(apiClient);
 	const toaster = getToaster();
 	const badgeLimit = 99;
+	const inboxHref = '/app/pemberitahuan';
+
+	async function announce(notificationId: string) {
+		const notification = await findNotification(apiClient(), notificationId).catch(() => undefined);
+		window.dispatchEvent(new Event(notificationArrivedEvent));
+		const href = notification ? safeHref(notification.link) : undefined;
+		const detail = notification?.body === '' ? notification.title : notification?.body;
+		toaster.show({
+			tone: 'info',
+			message: detail ?? id.notifications.arrived,
+			action:
+				notification && href
+					? {
+							label: id.notifications.open,
+							href,
+							onclick: () => {
+								void readNotification(apiClient(), notification.id).catch(() => undefined);
+							}
+						}
+					: { label: id.notifications.open, href: inboxHref }
+		});
+	}
 
 	afterNavigate(({ type }) => {
 		if (type !== 'enter') {
@@ -33,13 +62,9 @@
 		const live = new LiveNotifications({
 			connect: (handlers) => openNotificationStream(apiClient(), streamUrl, handlers),
 			refresh: () => counter.refresh(),
-			onarrive: () => {
+			onarrive: (notification) => {
 				void counter.refresh();
-				toaster.show({
-					tone: 'info',
-					message: id.notifications.arrived,
-					action: { label: id.notifications.open, href: '/app/pemberitahuan' }
-				});
+				void announce(notification.id);
 			},
 			isVisible: () => document.visibilityState === 'visible'
 		});
@@ -54,7 +79,7 @@
 </script>
 
 <a
-	href="/app/pemberitahuan"
+	href={inboxHref}
 	aria-label={id.notifications.bell(counter.count)}
 	class="relative inline-flex size-11 items-center justify-center rounded-control text-text"
 >
