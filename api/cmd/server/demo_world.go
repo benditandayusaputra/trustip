@@ -57,6 +57,14 @@ type demoConsignor struct {
 	PreferredStoreTypes []string `json:"preferred_store_types"`
 	CanProvideSample    bool     `json:"can_provide_sample"`
 	PaymentInfo         string   `json:"payment_info"`
+	PaymentMethods      []string `json:"payment_methods"`
+	Bank                demoBank `json:"bank"`
+}
+
+type demoBank struct {
+	Name          string `json:"name"`
+	AccountNumber string `json:"account_number"`
+	Holder        string `json:"holder"`
 }
 
 type demoStore struct {

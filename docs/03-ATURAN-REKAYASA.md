@@ -888,7 +888,7 @@ Sanitasi berarti menormalkan, bukan mengubah makna. Pencegahan XSS dilakukan saa
 
 ### 7.15 Unggahan
 
-- **R-SEC-70** Jenis berkas ditentukan dari isinya. Server mendekode gambar sepenuhnya, menolak dimensi di atas 4096 piksel, lalu **mengodekannya ulang** sebelum disimpan, sehingga muatan tersembunyi dan metadata lokasi terbuang walau peramban sudah mengecilkannya.
+- **R-SEC-70** Jenis berkas ditentukan dari isinya. Server mendekode gambar sepenuhnya, menolak dimensi di atas 4096 piksel, lalu **mengodekannya ulang** sebelum disimpan, sehingga muatan tersembunyi dan metadata lokasi terbuang walau peramban sudah mengecilkannya. Satu-satunya pengecualian adalah PDF bukti bayar (ADR 0063): disimpan apa adanya setelah diperiksa tidak terkunci dan tidak memuat skrip, aksi peluncur, lampiran, atau formulir kirim, termasuk di dalam stream terkompresi.
 - **R-SEC-71** Berkas disajikan dari asal API, bukan asal app, dengan `Content-Disposition: inline`, `nosniff`, dan jenis isi yang ditetapkan server.
 - **R-SEC-72** Berkas privat (bukti bayar) hanya lewat proxy dengan pemeriksaan keanggotaan kemitraan, dan tidak pernah di-cache.
 

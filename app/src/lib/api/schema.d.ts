@@ -1781,10 +1781,18 @@ export interface components {
         PaymentInfo: {
             info: string;
             qr: components["schemas"]["ImageRef"] | null;
+            methods: components["schemas"]["PaymentMethod"][];
+            bank_name: string;
+            bank_account_number: string;
+            bank_account_holder: string;
         };
         PaymentInfoRequest: {
             payment_info: string;
             payment_qr_file_id: string | null;
+            payment_methods: components["schemas"]["PaymentMethod"][];
+            bank_name: string;
+            bank_account_number: string;
+            bank_account_holder: string;
         };
         /** @enum {string} */
         StoreType: "GROCERY_STALL" | "LOCAL_MINIMARKET" | "SOUVENIR_SHOP" | "CANTEEN" | "CAFE" | "BAKERY" | "COOPERATIVE" | "MARKET_KIOSK" | "OTHER";
@@ -1889,7 +1897,7 @@ export interface components {
             /** @enum {string} */
             visibility: "PUBLIC" | "PRIVATE";
             /** @enum {string} */
-            content_type: "image/jpeg" | "image/png";
+            content_type: "image/jpeg" | "image/png" | "application/pdf";
             size_bytes: number;
             width: number;
             height: number;
@@ -2782,6 +2790,10 @@ export interface components {
                 payment_info: string;
                 /** Format: uuid */
                 payment_qr_file_id: string | null;
+                methods: components["schemas"]["PaymentMethod"][];
+                bank_name: string;
+                bank_account_number: string;
+                bank_account_holder: string;
             } | null;
             seal: components["schemas"]["SealStatus"];
         };
@@ -4259,7 +4271,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Gambar dikode ulang dan disimpan */
+            /** @description Gambar dikode ulang, atau PDF bukti bayar diperiksa, lalu disimpan */
             201: {
                 headers: {
                     "X-Request-Id": components["headers"]["RequestId"];

@@ -91,12 +91,16 @@ func TestGetFile_RSEC38_FileOfAnotherOrganizationIsNotFound(t *testing.T) {
 	}
 }
 
-func TestCreateFile_NFR09_NonImageContentTypeIsRejectedByTheDatabase(t *testing.T) {
+func TestCreateFile_NFR09_OnlyImagesOrProofPDFsAreAcceptedByTheDatabase(t *testing.T) {
 	files := repository.NewFiles(poolWithOrganizations(t))
-	notAnImage := logo()
-	notAnImage.ContentType = "image/gif"
+	gif := logo()
+	gif.ContentType = "image/gif"
+	pdfLogo := logo()
+	pdfLogo.ContentType, pdfLogo.Width, pdfLogo.Height = "application/pdf", 0, 0
 
-	if err := files.CreateFile(t.Context(), notAnImage); err == nil {
-		t.Fatal("a non-image content type must violate files_content_type_image")
+	for name, file := range map[string]domain.File{"gif": gif, "pdf logo": pdfLogo} {
+		if err := files.CreateFile(t.Context(), file); err == nil {
+			t.Errorf("%s must violate files_content_type_known", name)
+		}
 	}
 }

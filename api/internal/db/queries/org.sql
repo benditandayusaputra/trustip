@@ -185,7 +185,7 @@ WHERE organization_id = @organization_id::uuid;
 
 -- name: GetPaymentInfo :one
 SELECT
-    o.payment_info,
+    o.payment_info, o.payment_methods, o.bank_name, o.bank_account_number, o.bank_account_holder,
     COALESCE(f.id::text, '')::text AS qr_file_id,
     COALESCE(f.storage_key, '')::text AS qr_storage_key
 FROM organizations AS o
@@ -197,6 +197,10 @@ UPDATE organizations
 SET
     payment_info = @payment_info::text,
     payment_qr_file_id = NULLIF(@payment_qr_file_id::text, '')::uuid,
+    payment_methods = @payment_methods::text[],
+    bank_name = @bank_name::text,
+    bank_account_number = @bank_account_number::text,
+    bank_account_holder = @bank_account_holder::text,
     updated_at = @updated_at::timestamptz
 WHERE id = @id::uuid;
 
@@ -209,7 +213,8 @@ SELECT
     (o.location IS NOT NULL)::boolean AS has_location,
     (o.description <> '')::boolean AS has_description,
     (o.logo_file_id IS NOT NULL)::boolean AS has_logo,
-    (o.payment_info <> '' OR o.payment_qr_file_id IS NOT NULL)::boolean AS has_payment_info,
+    (o.payment_info <> '' OR o.bank_account_number <> '' OR o.payment_qr_file_id IS NOT NULL)::boolean
+        AS has_payment_info,
     COALESCE(sp.store_type IS NOT NULL, false)::boolean AS has_store_type,
     (SELECT count(*) FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id)::bigint
         AS accepted_categories,

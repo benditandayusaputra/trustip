@@ -26,8 +26,12 @@ type paymentResponse struct {
 }
 
 type payeeResponse struct {
-	PaymentInfo     string  `json:"payment_info"`
-	PaymentQRFileID *string `json:"payment_qr_file_id"`
+	PaymentInfo       string   `json:"payment_info"`
+	PaymentQRFileID   *string  `json:"payment_qr_file_id"`
+	Methods           []string `json:"methods"`
+	BankName          string   `json:"bank_name"`
+	BankAccountNumber string   `json:"bank_account_number"`
+	BankAccountHolder string   `json:"bank_account_holder"`
 }
 
 func toPayments(sealed domain.SealedView) []paymentResponse {
@@ -52,7 +56,10 @@ func toPayee(payee domain.Payee) *payeeResponse {
 	if !payee.IsShown {
 		return nil
 	}
-	return &payeeResponse{PaymentInfo: payee.Info, PaymentQRFileID: optional(payee.QRFileID)}
+	return &payeeResponse{
+		PaymentInfo: payee.Info, PaymentQRFileID: optional(payee.QRFileID), Methods: payee.Methods,
+		BankName: payee.Bank.Name, BankAccountNumber: payee.Bank.Number, BankAccountHolder: payee.Bank.Holder,
+	}
 }
 
 func optional(value string) *string {

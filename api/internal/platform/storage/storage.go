@@ -25,7 +25,7 @@ const (
 
 var (
 	ErrNotFound = errors.New("stored file not found")
-	keyFormat   = regexp.MustCompile(`^[0-9a-f]{32}\.(jpg|png)$`)
+	keyFormat   = regexp.MustCompile(`^[0-9a-f]{32}\.(jpg|png|pdf)$`)
 )
 
 type Disk struct {

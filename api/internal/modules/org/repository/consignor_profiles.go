@@ -48,9 +48,11 @@ func (r *Profiles) UpdatePaymentInfo(ctx context.Context, change domain.PaymentI
 	}); err != nil {
 		return explainMissingFile(err, domain.ErrUnknownQR)
 	}
+	payment := change.Payment
 	err := queries.UpdatePaymentInfo(writeCtx, sqlc.UpdatePaymentInfoParams{
-		ID: change.OrganizationID, PaymentInfo: change.Payment.Info, PaymentQrFileID: change.Payment.QRFileID,
-		UpdatedAt: change.At,
+		ID: change.OrganizationID, PaymentInfo: payment.Info, PaymentQrFileID: payment.QRFileID,
+		PaymentMethods: payment.Methods, BankName: payment.Bank.Name, BankAccountNumber: payment.Bank.Number,
+		BankAccountHolder: payment.Bank.Holder, UpdatedAt: change.At,
 	})
 	if err != nil {
 		return fmt.Errorf("update payment info of %s: %w", change.OrganizationID, err)
@@ -91,6 +93,9 @@ func consignorSettings(
 	}
 	settings := domain.PaymentSettings{
 		Info: payment.PaymentInfo, QR: domain.FileRef{ID: payment.QrFileID, StorageKey: payment.QrStorageKey},
+		Methods: payment.PaymentMethods, Bank: domain.BankAccount{
+			Name: payment.BankName, Number: payment.BankAccountNumber, Holder: payment.BankAccountHolder,
+		},
 	}
 	return profile, settings, nil
 }

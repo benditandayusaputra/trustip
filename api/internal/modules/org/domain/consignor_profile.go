@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"regexp"
 	"slices"
 	"time"
 
@@ -10,10 +11,22 @@ import (
 )
 
 const (
-	MaxDeliveryRadiusKM  = 500
-	MaxLegalNumberLength = 50
-	MaxPaymentInfoLength = 500
+	MaxDeliveryRadiusKM    = 500
+	MaxLegalNumberLength   = 50
+	MaxPaymentInfoLength   = 500
+	MaxBankNameLength      = 60
+	MaxBankHolderLength    = 80
+	MinAccountNumberLength = 5
+	MaxAccountNumberLength = 30
+	methodTransfer         = "TRANSFER"
+	methodQRIS             = "QRIS"
 )
+
+var accountNumberFormat = regexp.MustCompile(`^[0-9][0-9 -]*$`)
+
+func PaymentMethods() []string {
+	return []string{"CASH", methodTransfer, methodQRIS}
+}
 
 func DeliveryDays() []string {
 	return []string{"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"}
@@ -80,9 +93,17 @@ func findChoicesProblem(name string, values, choices []string) field.Problem {
 	return field.Problem{}
 }
 
+type BankAccount struct {
+	Name   string
+	Number string
+	Holder string
+}
+
 type PaymentInfoForm struct {
 	Info     string
 	QRFileID string
+	Methods  []string
+	Bank     BankAccount
 }
 
 type PaymentInfo PaymentInfoForm
@@ -94,14 +115,65 @@ type PaymentInfoChange struct {
 }
 
 func NewPaymentInfo(form PaymentInfoForm) (PaymentInfo, error) {
-	problems := field.Collect(
+	problems := field.Collect(append([]field.Problem{
 		field.CheckLength("payment_info", form.Info, field.Length{Max: MaxPaymentInfoLength}),
-	)
-	if form.QRFileID != "" && !fileIDFormat.MatchString(form.QRFileID) {
-		problems = append(problems, apperror.InvalidField("payment_qr_file_id", apperror.FieldUnknownChoice))
-	}
+		findMethodsProblem(form.Methods),
+		findQRProblem(form),
+		findAccountNumberProblem(form),
+	}, findBankTextProblems(form)...)...)
 	if len(problems) > 0 {
 		return PaymentInfo{}, apperror.Validation(problems...)
 	}
 	return PaymentInfo(form), nil
+}
+
+func findMethodsProblem(methods []string) field.Problem {
+	if len(methods) == 0 {
+		return field.Invalid("payment_methods", apperror.FieldRequired)
+	}
+	return findChoicesProblem("payment_methods", methods, PaymentMethods())
+}
+
+func findQRProblem(form PaymentInfoForm) field.Problem {
+	if form.QRFileID != "" && !fileIDFormat.MatchString(form.QRFileID) {
+		return field.Invalid("payment_qr_file_id", apperror.FieldUnknownChoice)
+	}
+	if form.QRFileID == "" && slices.Contains(form.Methods, methodQRIS) {
+		return field.Invalid("payment_qr_file_id", apperror.FieldRequired)
+	}
+	return field.Problem{}
+}
+
+func findBankTextProblems(form PaymentInfoForm) []field.Problem {
+	texts := []struct {
+		name    string
+		value   string
+		maximum int
+	}{
+		{"bank_name", form.Bank.Name, MaxBankNameLength},
+		{"bank_account_holder", form.Bank.Holder, MaxBankHolderLength},
+	}
+	problems := make([]field.Problem, 0, len(texts))
+	for _, text := range texts {
+		if text.value == "" && slices.Contains(form.Methods, methodTransfer) {
+			problems = append(problems, field.Invalid(text.name, apperror.FieldRequired))
+			continue
+		}
+		problems = append(problems, field.CheckLength(text.name, text.value, field.Length{Max: text.maximum}))
+	}
+	return problems
+}
+
+func findAccountNumberProblem(form PaymentInfoForm) field.Problem {
+	number := form.Bank.Number
+	switch {
+	case number == "" && slices.Contains(form.Methods, methodTransfer):
+		return field.Invalid("bank_account_number", apperror.FieldRequired)
+	case number == "":
+		return field.Problem{}
+	case !accountNumberFormat.MatchString(number):
+		return field.Invalid("bank_account_number", apperror.FieldInvalidCharacters)
+	}
+	return field.CheckLength("bank_account_number", number,
+		field.Length{Min: MinAccountNumberLength, Max: MaxAccountNumberLength})
 }

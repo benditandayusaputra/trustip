@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
+	import Checkbox from '#lib/components/ui/Checkbox.svelte';
 	import ImageField from '#lib/components/ui/ImageField.svelte';
 	import TextArea from '#lib/components/ui/TextArea.svelte';
+	import TextField from '#lib/components/ui/TextField.svelte';
 	import { getToaster } from '#lib/components/ui/toast.svelte.js';
 	import { apiClient } from '#lib/api/client.js';
 	import type { Organization } from '#lib/api/organizations.js';
 	import { organization as id } from '#lib/i18n/organization.js';
-	import { PaymentEditor } from '../payment.svelte';
+	import { PaymentEditor, paymentMethods } from '../payment.svelte';
 	import { reportSection } from '../section';
 
 	interface Props {
@@ -19,6 +21,10 @@
 	let { organization, canEdit, onsaved }: Props = $props();
 
 	const text = id.payment;
+	const hintId = $props.id();
+	const bankNameLength = 60;
+	const accountNumberLength = 30;
+	const holderLength = 80;
 	const editor = new PaymentEditor(
 		apiClient,
 		untrack(() => organization.payment)
@@ -40,9 +46,7 @@
 
 	function cancel() {
 		editing = false;
-		editor.info = organization.payment?.info ?? '';
-		editor.qr = organization.payment?.qr ?? null;
-		editor.errors = {};
+		editor.reset(organization.payment);
 	}
 </script>
 
@@ -57,22 +61,68 @@
 		{/if}
 	</div>
 	<fieldset disabled={!canEdit || !editing} class="flex flex-col gap-5">
+		<fieldset class="flex flex-col gap-2" aria-describedby={hintId}>
+			<legend class="mb-2 text-sm font-medium text-text">{text.methods}</legend>
+			<div class="flex flex-wrap gap-x-6">
+				{#each paymentMethods as method (method)}
+					<Checkbox
+						checked={editor.accepts(method)}
+						onchange={(checked: boolean) => {
+							editor.toggle(method, checked);
+						}}>{text.methodLabels[method]}</Checkbox
+					>
+				{/each}
+			</div>
+			<p id={hintId} class="text-xs text-text-muted">{text.methodsHint}</p>
+			{#if editor.errors.methods}
+				<p class="text-sm text-danger">{editor.errors.methods}</p>
+			{/if}
+		</fieldset>
+		{#if editor.accepts('TRANSFER')}
+			<div class="grid gap-5 md:grid-cols-3">
+				<TextField
+					label={text.bankName}
+					name="bank_name"
+					maxlength={bankNameLength}
+					hint={text.bankNameHint}
+					bind:value={editor.bankName}
+					error={editor.errors.bankName}
+				/>
+				<TextField
+					label={text.bankAccountNumber}
+					name="bank_account_number"
+					inputmode="numeric"
+					maxlength={accountNumberLength}
+					bind:value={editor.bankAccountNumber}
+					error={editor.errors.bankAccountNumber}
+				/>
+				<TextField
+					label={text.bankAccountHolder}
+					name="bank_account_holder"
+					maxlength={holderLength}
+					bind:value={editor.bankAccountHolder}
+					error={editor.errors.bankAccountHolder}
+				/>
+			</div>
+		{/if}
+		{#if editor.accepts('QRIS')}
+			<ImageField
+				label={text.qr}
+				chooseLabel={text.chooseQr}
+				imageUrl={editor.qr?.url}
+				imageAlt={text.qrAlt}
+				hint={id.settings.logoHint}
+				error={editor.errors.qr}
+				busy={editor.isUploading}
+				onselect={(file: File) => void editor.chooseQr(file)}
+			/>
+		{/if}
 		<TextArea
 			label={text.info}
 			name="payment_info"
 			hint={text.infoHint}
 			bind:value={editor.info}
 			error={editor.errors.info}
-		/>
-		<ImageField
-			label={text.qr}
-			chooseLabel={text.chooseQr}
-			imageUrl={editor.qr?.url}
-			imageAlt={text.qrAlt}
-			hint={id.settings.logoHint}
-			error={editor.errors.qr}
-			busy={editor.isUploading}
-			onselect={(file: File) => void editor.chooseQr(file)}
 		/>
 		{#if editing}
 			<div class="form-footer">

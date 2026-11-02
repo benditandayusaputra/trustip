@@ -748,7 +748,7 @@ paths:
                   enum: [LOGO, STORE_PHOTO, PAYMENT_QR, PRODUCT_PHOTO, PAYMENT_PROOF, AVATAR]
       responses:
         "201":
-          description: Gambar dikode ulang dan disimpan
+          description: Gambar dikode ulang, atau PDF bukti bayar diperiksa, lalu disimpan
           headers:
             X-Request-Id:
               $ref: "#/components/headers/RequestId"
@@ -4629,7 +4629,7 @@ components:
     PaymentInfo:
       type: object
       additionalProperties: false
-      required: [info, qr]
+      required: [info, qr, methods, bank_name, bank_account_number, bank_account_holder]
       properties:
         info:
           type: string
@@ -4637,16 +4637,42 @@ components:
           nullable: true
           allOf:
             - $ref: "#/components/schemas/ImageRef"
+        methods:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PaymentMethod"
+        bank_name:
+          type: string
+        bank_account_number:
+          type: string
+        bank_account_holder:
+          type: string
     PaymentInfoRequest:
       type: object
       additionalProperties: false
-      required: [payment_info, payment_qr_file_id]
+      required:
+        [payment_info, payment_qr_file_id, payment_methods, bank_name, bank_account_number, bank_account_holder]
       properties:
         payment_info:
           type: string
         payment_qr_file_id:
           type: string
           nullable: true
+        payment_methods:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PaymentMethod"
+        bank_name:
+          type: string
+          maxLength: 60
+        bank_account_number:
+          type: string
+          maxLength: 30
+        bank_account_holder:
+          type: string
+          maxLength: 80
     StoreType:
       type: string
       enum: [GROCERY_STALL, LOCAL_MINIMARKET, SOUVENIR_SHOP, CANTEEN, CAFE, BAKERY, COOPERATIVE, MARKET_KIOSK, OTHER]
@@ -4887,7 +4913,7 @@ components:
           enum: [PUBLIC, PRIVATE]
         content_type:
           type: string
-          enum: [image/jpeg, image/png]
+          enum: [image/jpeg, image/png, application/pdf]
         size_bytes:
           type: integer
           minimum: 1
@@ -6979,7 +7005,8 @@ components:
           type: object
           nullable: true
           additionalProperties: false
-          required: [payment_info, payment_qr_file_id]
+          required:
+            [payment_info, payment_qr_file_id, methods, bank_name, bank_account_number, bank_account_holder]
           properties:
             payment_info:
               type: string
@@ -6987,6 +7014,16 @@ components:
               type: string
               format: uuid
               nullable: true
+            methods:
+              type: array
+              items:
+                $ref: "#/components/schemas/PaymentMethod"
+            bank_name:
+              type: string
+            bank_account_number:
+              type: string
+            bank_account_holder:
+              type: string
         seal:
           $ref: "#/components/schemas/SealStatus"
     SettlementResponse:

@@ -32,7 +32,14 @@ const consignor = {
 		halal_cert_no: '',
 		can_provide_sample: false
 	},
-	payment: { info: '', qr: null }
+	payment: {
+		info: '',
+		qr: null,
+		methods: ['CASH'],
+		bank_name: '',
+		bank_account_number: '',
+		bank_account_holder: ''
+	}
 };
 
 function envelope(data: unknown, status = 200): Response {
@@ -103,7 +110,7 @@ describe('Consignor settings', () => {
 		});
 	});
 
-	it('FR-ORG-07 uploads a private QRIS and saves it with the account text', async () => {
+	it('FR-ORG-07 chooses how stores pay, with the bank account and a private QRIS', async () => {
 		const path = `PATCH /api/v1/organizations/${organizationId}/payment-info`;
 		const sent = serve({
 			'POST /api/v1/files': () => envelope({ id: qrId, url: `/api/v1/files/${qrId}` }, 201),
@@ -111,10 +118,16 @@ describe('Consignor settings', () => {
 		});
 		await render(SettingsHarness, { organizationId, canEdit: true, view: 'preferences' });
 
-		await expect.element(page.getByLabelText('Rekening tujuan')).toBeDisabled();
+		await expect.element(page.getByLabelText('Catatan untuk toko')).toBeDisabled();
+		await expect.element(page.getByLabelText('Nomor rekening')).not.toBeInTheDocument();
 		await userEvent.click(page.getByRole('button', { name: 'Edit', exact: true }));
 
-		await userEvent.fill(page.getByLabelText('Rekening tujuan'), 'BCA 1234567 a.n. Darmi');
+		await userEvent.click(page.getByRole('checkbox', { name: 'Transfer bank' }));
+		await userEvent.click(page.getByRole('checkbox', { name: 'QRIS' }));
+		await userEvent.fill(page.getByLabelText('Nama bank'), 'BCA');
+		await userEvent.fill(page.getByLabelText('Nomor rekening'), '1234567');
+		await userEvent.fill(page.getByLabelText('Atas nama'), 'Darmi');
+		await userEvent.fill(page.getByLabelText('Catatan untuk toko'), 'Transfer sebelum jam 5 sore');
 		const bytes = Uint8Array.from(atob(tinyPng), (char) => char.charCodeAt(0));
 		await userEvent.upload(
 			page.getByLabelText('Pilih gambar QRIS'),
@@ -124,9 +137,13 @@ describe('Consignor settings', () => {
 		await userEvent.click(page.getByRole('button', { name: 'Simpan info pembayaran' }));
 
 		await expect.element(page.getByText('Info pembayaran tersimpan.')).toBeVisible();
-		await expect.element(page.getByLabelText('Rekening tujuan')).toBeDisabled();
+		await expect.element(page.getByLabelText('Catatan untuk toko')).toBeDisabled();
 		expect(sent[path]).toEqual({
-			payment_info: 'BCA 1234567 a.n. Darmi',
+			payment_methods: ['CASH', 'TRANSFER', 'QRIS'],
+			bank_name: 'BCA',
+			bank_account_number: '1234567',
+			bank_account_holder: 'Darmi',
+			payment_info: 'Transfer sebelum jam 5 sore',
 			payment_qr_file_id: qrId
 		});
 	});

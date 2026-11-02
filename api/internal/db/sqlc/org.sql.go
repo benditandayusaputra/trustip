@@ -271,7 +271,8 @@ SELECT
     (o.location IS NOT NULL)::boolean AS has_location,
     (o.description <> '')::boolean AS has_description,
     (o.logo_file_id IS NOT NULL)::boolean AS has_logo,
-    (o.payment_info <> '' OR o.payment_qr_file_id IS NOT NULL)::boolean AS has_payment_info,
+    (o.payment_info <> '' OR o.bank_account_number <> '' OR o.payment_qr_file_id IS NOT NULL)::boolean
+        AS has_payment_info,
     COALESCE(sp.store_type IS NOT NULL, false)::boolean AS has_store_type,
     (SELECT count(*) FROM store_accepted_categories AS sac WHERE sac.organization_id = o.id)::bigint
         AS accepted_categories,
@@ -381,7 +382,7 @@ func (q *Queries) GetOrganizationSettings(ctx context.Context, id string) (GetOr
 
 const getPaymentInfo = `-- name: GetPaymentInfo :one
 SELECT
-    o.payment_info,
+    o.payment_info, o.payment_methods, o.bank_name, o.bank_account_number, o.bank_account_holder,
     COALESCE(f.id::text, '')::text AS qr_file_id,
     COALESCE(f.storage_key, '')::text AS qr_storage_key
 FROM organizations AS o
@@ -390,15 +391,27 @@ WHERE o.id = $1
 `
 
 type GetPaymentInfoRow struct {
-	PaymentInfo  string
-	QrFileID     string
-	QrStorageKey string
+	PaymentInfo       string
+	PaymentMethods    []string
+	BankName          string
+	BankAccountNumber string
+	BankAccountHolder string
+	QrFileID          string
+	QrStorageKey      string
 }
 
 func (q *Queries) GetPaymentInfo(ctx context.Context, id string) (GetPaymentInfoRow, error) {
 	row := q.db.QueryRow(ctx, getPaymentInfo, id)
 	var i GetPaymentInfoRow
-	err := row.Scan(&i.PaymentInfo, &i.QrFileID, &i.QrStorageKey)
+	err := row.Scan(
+		&i.PaymentInfo,
+		&i.PaymentMethods,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.BankAccountHolder,
+		&i.QrFileID,
+		&i.QrStorageKey,
+	)
 	return i, err
 }
 
@@ -765,21 +778,33 @@ UPDATE organizations
 SET
     payment_info = $1::text,
     payment_qr_file_id = NULLIF($2::text, '')::uuid,
-    updated_at = $3::timestamptz
-WHERE id = $4::uuid
+    payment_methods = $3::text[],
+    bank_name = $4::text,
+    bank_account_number = $5::text,
+    bank_account_holder = $6::text,
+    updated_at = $7::timestamptz
+WHERE id = $8::uuid
 `
 
 type UpdatePaymentInfoParams struct {
-	PaymentInfo     string
-	PaymentQrFileID string
-	UpdatedAt       time.Time
-	ID              string
+	PaymentInfo       string
+	PaymentQrFileID   string
+	PaymentMethods    []string
+	BankName          string
+	BankAccountNumber string
+	BankAccountHolder string
+	UpdatedAt         time.Time
+	ID                string
 }
 
 func (q *Queries) UpdatePaymentInfo(ctx context.Context, arg UpdatePaymentInfoParams) error {
 	_, err := q.db.Exec(ctx, updatePaymentInfo,
 		arg.PaymentInfo,
 		arg.PaymentQrFileID,
+		arg.PaymentMethods,
+		arg.BankName,
+		arg.BankAccountNumber,
+		arg.BankAccountHolder,
 		arg.UpdatedAt,
 		arg.ID,
 	)

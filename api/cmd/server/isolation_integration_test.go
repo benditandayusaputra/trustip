@@ -50,7 +50,8 @@ func newIsolationWorld(t *testing.T) isolationWorld {
 	if world.consignor.settlementID == "" {
 		t.Fatalf("counted = %s", counted.body)
 	}
-	paid := storeOwner.recordPayment(world.consignor.settlementID, paymentBody(1750, "CASH", ""), paymentKey)
+	paid := storeOwner.recordPayment(world.consignor.settlementID,
+		paymentBody(1750, "CASH", storeOwner.uploadProof()), paymentKey)
 	world.consignor.paymentID = quotedAfter(string(paid.body), `"payments":[{"id":"`)
 	posted := storeOwner.postJSON(needsPath, needBody("Butuh roti untuk sarapan"))
 	world.store.needID = quotedAfter(string(posted.body), `"id":"`)

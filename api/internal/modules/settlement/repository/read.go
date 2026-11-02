@@ -42,7 +42,12 @@ func (r *Settlements) GetSettlement(ctx context.Context, key domain.SettlementKe
 	view.Summary.Qty = int(row.SoldQty)
 	view.Summary.Split = splitOf(row.GrossAmount, row.StoreShareAmount, row.ConsignorShareAmount)
 	if row.ShowsPayee {
-		view.Payee = domain.Payee{IsShown: true, Info: row.PaymentInfo, QRFileID: row.PaymentQrFileID}
+		view.Payee = domain.Payee{
+			IsShown: true, Info: row.PaymentInfo, QRFileID: row.PaymentQrFileID, Methods: row.PaymentMethods,
+			Bank: domain.BankAccount{
+				Name: row.BankName, Number: row.BankAccountNumber, Holder: row.BankAccountHolder,
+			},
+		}
 	}
 	return withPayments(readCtx, queries, view)
 }

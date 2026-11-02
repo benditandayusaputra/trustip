@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FileText from '@lucide/svelte/icons/file-text';
 	import ImageUp from '@lucide/svelte/icons/image-up';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { common as id } from '#lib/i18n/common.js';
@@ -8,6 +9,8 @@
 		chooseLabel: string;
 		imageUrl: string | undefined;
 		imageAlt: string;
+		documentName?: string | undefined;
+		accept?: string;
 		hint?: string | undefined;
 		error?: string | undefined;
 		busy?: boolean;
@@ -19,6 +22,8 @@
 		chooseLabel,
 		imageUrl,
 		imageAlt,
+		documentName,
+		accept = 'image/jpeg,image/png,image/webp',
 		hint,
 		error,
 		busy = false,
@@ -41,7 +46,15 @@
 
 <div class="flex flex-col gap-2">
 	<p class="text-sm font-medium text-text">{label}</p>
-	{#if imageUrl}
+	{#if documentName}
+		<p
+			class="inline-flex w-fit max-w-full items-center gap-2 rounded-control border border-border bg-surface px-4 py-2 text-sm font-medium text-text"
+		>
+			<FileText class="size-5 shrink-0 text-accent" aria-hidden="true" /><span class="truncate"
+				>{documentName}</span
+			>
+		</p>
+	{:else if imageUrl}
 		<img
 			src={imageUrl}
 			alt={imageAlt}
@@ -66,7 +79,7 @@
 			bind:this={input}
 			id={inputId}
 			type="file"
-			accept="image/jpeg,image/png,image/webp"
+			{accept}
 			disabled={busy}
 			aria-invalid={error ? true : undefined}
 			aria-describedby={[hint ? `${inputId}-hint` : '', error ? `${inputId}-error` : '']

@@ -51,7 +51,7 @@ func (r *Settlements) LockPayable(ctx context.Context, key domain.PayableKey) (d
 		SettlementID: row.ID, Number: row.Number, PartnershipID: row.PartnershipID,
 		ConsignorID: row.ConsignorOrgID, StoreID: row.StoreOrgID, StoreName: row.StoreName,
 		Status: domain.Status(row.Status), Remaining: money.Rupiah(row.ConsignorShareAmount),
-		HasOpenPayment: row.HasOpenPayment,
+		HasOpenPayment: row.HasOpenPayment, Methods: row.PaymentMethods,
 	}
 	if key.ProofFileID == "" {
 		return payable, nil

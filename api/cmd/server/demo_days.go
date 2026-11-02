@@ -11,6 +11,7 @@ import (
 	countservice "github.com/benditandayusaputra/trustip/api/internal/modules/count/service"
 	dropdomain "github.com/benditandayusaputra/trustip/api/internal/modules/drop/domain"
 	dropservice "github.com/benditandayusaputra/trustip/api/internal/modules/drop/service"
+	filedomain "github.com/benditandayusaputra/trustip/api/internal/modules/file/domain"
 	settlementdomain "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/domain"
 	settlementservice "github.com/benditandayusaputra/trustip/api/internal/modules/settlement/service"
 )
@@ -23,6 +24,7 @@ const (
 	jitterDayStep     = 37
 	jitterProductStep = 11
 	cashPayment       = "CASH"
+	cashReceipt       = "bukti/nota-tunai"
 )
 
 func (s *demoSeeder) recordDrops(ctx context.Context, daysAgo int) error {
@@ -205,10 +207,14 @@ func (s *demoSeeder) payPartner(ctx context.Context, deal demoPartnership, daysA
 		if err != nil {
 			return err
 		}
+		proofID, err := s.photos.put(ctx, store, filedomain.PaymentProof, cashReceipt)
+		if err != nil {
+			return err
+		}
 		_, err = s.use.settlement.Payments.Record.Execute(ctx, store, settlementservice.RecordPaymentCommand{
 			SettlementID: settlement.ID, IdempotencyKey: key, Input: settlementdomain.PaymentInput{
 				Amount: settlement.ConsignorShareAmount, Method: cashPayment,
-				PaidOn: s.clock.Now().In(period.Jakarta()).Format(time.DateOnly),
+				PaidOn: s.clock.Now().In(period.Jakarta()).Format(time.DateOnly), ProofFileID: proofID,
 			},
 		})
 		if err != nil {

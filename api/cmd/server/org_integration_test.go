@@ -122,7 +122,7 @@ func TestUpdatePaymentInfo_FRORG07_PrivateQRIsLinkedAndReadableByTheOwner(t *tes
 	qrID := quotedAfter(string(uploaded.body), `"id":"`)
 
 	saved := visitor.patch(organizationsPath+"/"+organizationID+"/payment-info",
-		`{"payment_info":"BCA 1234567 a.n. Darmi","payment_qr_file_id":"`+qrID+`"}`)
+		paymentInfoBody("BCA 1234567 a.n. Darmi", qrID, "CASH", "QRIS"))
 	qr := visitor.get("/api/v1/files/" + qrID)
 
 	requireCode(t, saved, "OK")
@@ -142,7 +142,7 @@ func TestUpdatePaymentInfo_LogoCannotStandInForTheQR(t *testing.T) {
 		part{name: "file", filename: "logo.jpg", data: photoWithLocation(t)})
 
 	got := visitor.patch(organizationsPath+"/"+organizationID+"/payment-info",
-		`{"payment_info":"","payment_qr_file_id":"`+quotedAfter(string(uploaded.body), `"id":"`)+`"}`)
+		paymentInfoBody("", quotedAfter(string(uploaded.body), `"id":"`), "CASH", "QRIS"))
 
 	requireCode(t, got, "VALIDATION_FAILED")
 	if !strings.Contains(string(got.body), `"field":"payment_qr_file_id"`) {

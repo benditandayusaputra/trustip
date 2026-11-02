@@ -125,7 +125,7 @@ func TestUploadImage_BRORG06_FileOverOneMegabyteIsRejectedBeforeDecoding(t *test
 
 	_, err := fixture.useCase().Execute(t.Context(), member(actor.Store, actor.Owner), command)
 
-	if !hasFieldCode(err, "file", "FILE_TOO_LARGE") {
+	if !hasFileCode(err, "FILE_TOO_LARGE") {
 		t.Fatalf("err = %v", err)
 	}
 }
@@ -140,7 +140,7 @@ func TestUploadImage_RSEC70_ContentThatIsNotAnImageIsRejected(t *testing.T) {
 
 		_, err := fixture.useCase().Execute(t.Context(), member(actor.Store, actor.Owner), upload("LOGO"))
 
-		if !hasFieldCode(err, "file", code) || len(fixture.store.blobs) != 0 {
+		if !hasFileCode(err, code) || len(fixture.store.blobs) != 0 {
 			t.Errorf("%v: err = %v", cause, err)
 		}
 	}
@@ -152,7 +152,7 @@ func TestUploadImage_RecodedImageThatGrewPastTheLimitIsRejected(t *testing.T) {
 
 	_, err := fixture.useCase().Execute(t.Context(), member(actor.Store, actor.Owner), upload("LOGO"))
 
-	if !hasFieldCode(err, "file", "FILE_TOO_LARGE") || len(fixture.store.blobs) != 0 {
+	if !hasFileCode(err, "FILE_TOO_LARGE") || len(fixture.store.blobs) != 0 {
 		t.Fatalf("err = %v", err)
 	}
 }
@@ -172,9 +172,51 @@ func TestUploadImage_RSEC54_StoresOnlyTheRecodedBytesUnderAServerKey(t *testing.
 	}
 }
 
-func hasFieldCode(err error, field, code string) bool {
+func TestUploadImage_PaymentProofMayBeAPlainPDF(t *testing.T) {
+	fixture := newUploadFixture()
+	receipt := []byte("%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n")
+
+	file, err := fixture.useCase().Execute(t.Context(), member(actor.Store, actor.Owner),
+		service.UploadCommand{Purpose: "PAYMENT_PROOF", Data: receipt})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+
+	blob := fixture.store.blobs[file.StorageKey]
+	if file.ContentType != "application/pdf" || !strings.HasSuffix(file.StorageKey, ".pdf") ||
+		string(blob.data) != string(receipt) || blob.visibility != domain.Private || file.Width != 0 {
+		t.Fatalf("file = %+v", file)
+	}
+}
+
+func TestUploadImage_RSEC70_PDFIsOnlyForPaymentProofAndMustBeSafe(t *testing.T) {
+	scripted := []byte("%PDF-1.4\n1 0 obj << /S /JavaScript /JS (x) >> endobj\n%%EOF\n")
+	cases := []struct {
+		purpose string
+		orgType actor.OrganizationType
+		data    []byte
+		code    string
+	}{
+		{"LOGO", actor.Store, []byte("%PDF-1.4\n%%EOF\n"), "INVALID_IMAGE"},
+		{"PAYMENT_PROOF", actor.Store, scripted, "INVALID_PROOF"},
+		{"PAYMENT_PROOF", actor.Store, []byte("plain text"), "INVALID_PROOF"},
+	}
+	for _, tc := range cases {
+		fixture := newUploadFixture()
+		fixture.recoder.err = domain.ErrUnsupportedImage
+
+		_, err := fixture.useCase().Execute(t.Context(), member(tc.orgType, actor.Owner),
+			service.UploadCommand{Purpose: tc.purpose, Data: tc.data})
+
+		if !hasFileCode(err, tc.code) || len(fixture.store.blobs) != 0 {
+			t.Errorf("%s %q: err = %v", tc.purpose, tc.data, err)
+		}
+	}
+}
+
+func hasFileCode(err error, code string) bool {
 	for _, problem := range apperror.From(err).Fields() {
-		if problem.Field == field && problem.Code == code {
+		if problem.Field == "file" && problem.Code == code {
 			return true
 		}
 	}

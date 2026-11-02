@@ -43,6 +43,20 @@ func TestRead_ReturnsWhatWasPutInTheSameArea(t *testing.T) {
 	}
 }
 
+func TestRead_PDFProofIsReadBack(t *testing.T) {
+	disk := storage.NewDisk(t.TempDir())
+	key, err := disk.Put(t.Context(), storage.Private, []byte("%PDF-1.4"), "pdf")
+	if err != nil {
+		t.Fatalf("put: %v", err)
+	}
+
+	got, err := disk.Read(storage.Private, key)
+
+	if err != nil || string(got) != "%PDF-1.4" {
+		t.Fatalf("got = %q, err = %v", got, err)
+	}
+}
+
 func TestRead_RSEC72_PrivateFileIsNotInThePublicArea(t *testing.T) {
 	disk := storage.NewDisk(t.TempDir())
 	key, err := disk.Put(t.Context(), storage.Private, []byte("qris"), "png")

@@ -40,7 +40,7 @@ func (uc *UploadImage) Execute(ctx context.Context, signedIn actor.Actor, cmd Up
 	if err != nil {
 		return domain.File{}, fmt.Errorf("check upload purpose: %w", err)
 	}
-	image, err := uc.recode(cmd.Data)
+	image, err := uc.prepare(purpose, cmd.Data)
 	if err != nil {
 		return domain.File{}, err
 	}
@@ -62,14 +62,25 @@ func (uc *UploadImage) Execute(ctx context.Context, signedIn actor.Actor, cmd Up
 	return file, nil
 }
 
-func (uc *UploadImage) recode(data []byte) (domain.Image, error) {
+func (uc *UploadImage) prepare(purpose domain.Purpose, data []byte) (domain.Image, error) {
 	if err := domain.CheckUploadSize(len(data)); err != nil {
 		return domain.Image{}, fmt.Errorf("check upload size: %w", err)
+	}
+	invalid := apperror.FieldInvalidImage
+	if purpose == domain.PaymentProof {
+		invalid = apperror.FieldInvalidProof
+	}
+	if purpose == domain.PaymentProof && domain.IsPDF(data) {
+		document, err := domain.CheckProofPDF(data)
+		if err != nil {
+			return domain.Image{}, apperror.Validation(apperror.InvalidField("file", invalid)).WithCause(err)
+		}
+		return document, nil
 	}
 	image, err := uc.deps.Images.Recode(data)
 	switch {
 	case errors.Is(err, domain.ErrUnsupportedImage):
-		return domain.Image{}, apperror.Validation(apperror.InvalidField("file", apperror.FieldInvalidImage))
+		return domain.Image{}, apperror.Validation(apperror.InvalidField("file", invalid))
 	case errors.Is(err, domain.ErrImageTooLarge):
 		return domain.Image{}, apperror.Validation(apperror.InvalidField("file", apperror.FieldImageTooLarge))
 	case err != nil:

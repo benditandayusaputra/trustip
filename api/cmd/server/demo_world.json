@@ -12,21 +12,27 @@
       "description": "Roti manis dan roti tawar dipanggang tiap subuh, diantar pagi ke warung dan kantin sekitar Lowokwaru.",
       "consignor": { "delivery_radius_km": 10, "delivery_days": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
         "preferred_store_types": ["GROCERY_STALL", "CANTEEN", "CAFE", "BAKERY"], "can_provide_sample": true,
-        "payment_info": "Rekening contoh 0000-1234-5678 a.n. Bendi (data demo).\nBoleh juga tunai saat roti diantar." }
+        "payment_methods": ["CASH", "TRANSFER"],
+        "bank": { "name": "BRI", "account_number": "0000 1234 5678", "holder": "Bendi" },
+        "payment_info": "Rekening contoh untuk data demo. Boleh juga tunai saat roti diantar." }
     },
     {
       "key": "rina", "type": "CONSIGNOR", "name": "Keripik Bu Rina", "owner": "Rina Kusumawati",
       "email": "keripik.rina@demo.trustip.id", "north_km": -1.8, "east_km": 1.1, "address": "Jl. Sudimoro 7",
       "description": "Keripik singkong dan keripik tempe goreng sendiri, renyah dan tahan lama.",
       "consignor": { "delivery_radius_km": 15, "delivery_days": ["MON", "THU"],
-        "preferred_store_types": ["GROCERY_STALL", "SOUVENIR_SHOP", "LOCAL_MINIMARKET"], "can_provide_sample": true }
+        "preferred_store_types": ["GROCERY_STALL", "SOUVENIR_SHOP", "LOCAL_MINIMARKET"], "can_provide_sample": true,
+        "payment_methods": ["CASH", "TRANSFER"],
+        "bank": { "name": "BCA", "account_number": "0000 8765 4321", "holder": "Rina Kusumawati" },
+        "payment_info": "Rekening contoh untuk data demo." }
     },
     {
       "key": "ijah", "type": "CONSIGNOR", "name": "Dapur Sambal Mak Ijah", "owner": "Hidayah Lestari",
       "email": "sambal.ijah@demo.trustip.id", "north_km": 1.5, "east_km": 1.9, "address": "Jl. Candi Panggung 21",
       "description": "Sambal bawang dan sambal cumi dalam botol kaca, tanpa pengawet buatan.",
       "consignor": { "delivery_radius_km": 12, "delivery_days": ["SAT"],
-        "preferred_store_types": ["GROCERY_STALL", "CAFE"], "can_provide_sample": false }
+        "preferred_store_types": ["GROCERY_STALL", "CAFE"], "can_provide_sample": false,
+        "payment_methods": ["CASH"], "payment_info": "Bayar tunai saat sambal diantar tiap Sabtu." }
     },
     {
       "key": "sri", "type": "STORE", "name": "Warung Mbak Zara", "owner": "Zara",

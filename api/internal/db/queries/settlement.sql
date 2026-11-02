@@ -45,7 +45,8 @@ SELECT
     st.store_share_amount, st.consignor_share_amount, to_char(st.due_date, 'YYYY-MM-DD')::text AS due_date,
     st.issued_at, COALESCE(st.paid_at, st.issued_at)::timestamptz AS paid_at,
     (st.consignor_org_id = @organization_id::uuid OR pa.status = 'ACTIVE')::boolean AS shows_payee,
-    c.payment_info, COALESCE(c.payment_qr_file_id::text, '')::text AS payment_qr_file_id
+    c.payment_info, COALESCE(c.payment_qr_file_id::text, '')::text AS payment_qr_file_id, c.payment_methods,
+    c.bank_name, c.bank_account_number, c.bank_account_holder
 FROM settlements AS st
 JOIN partnerships AS pa ON pa.id = st.partnership_id
 JOIN organizations AS c ON c.id = st.consignor_org_id
@@ -117,13 +118,14 @@ WHERE recorded_by_org_id = @organization_id::uuid AND idempotency_key = @idempot
 -- name: LockPayable :one
 SELECT
     st.id, st.number, st.partnership_id, st.consignor_org_id, st.store_org_id, s.name AS store_name, st.status,
-    st.consignor_share_amount,
+    st.consignor_share_amount, c.payment_methods,
     EXISTS (
         SELECT 1 FROM payments AS p
         WHERE p.settlement_id = st.id AND p.status IN ('PENDING_CONFIRMATION', 'CONFIRMED')
     )::boolean AS has_open_payment
 FROM settlements AS st
 JOIN organizations AS s ON s.id = st.store_org_id
+JOIN organizations AS c ON c.id = st.consignor_org_id
 WHERE st.id = @id::uuid
     AND (st.consignor_org_id = @organization_id::uuid OR st.store_org_id = @organization_id::uuid)
 FOR UPDATE OF st;

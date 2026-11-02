@@ -30,9 +30,13 @@ func TestDemoSeed_Spec25_SeedsThirtyDaysThenResetLeavesNoDemoRows(t *testing.T) 
 		t.Fatalf("seed: %v", err)
 	}
 	seeded := readDemoShape(t, pool, now)
-	stored, err := os.ReadDir(filepath.Join(fileDir, "public"))
+	photos, err := os.ReadDir(filepath.Join(fileDir, "public"))
 	if err != nil {
 		t.Fatalf("read stored photos: %v", err)
+	}
+	proofs, err := os.ReadDir(filepath.Join(fileDir, "private"))
+	if err != nil {
+		t.Fatalf("read stored proofs: %v", err)
 	}
 	if err := sqlc.New(pool.Querier(t.Context())).ResetDemoData(t.Context()); err != nil {
 		t.Fatalf("reset: %v", err)
@@ -47,7 +51,7 @@ func TestDemoSeed_Spec25_SeedsThirtyDaysThenResetLeavesNoDemoRows(t *testing.T) 
 		"overdue settlements":          seeded.OverdueSettlements > 0,
 		"unpaid but not overdue":       seeded.UnpaidSettlements > seeded.OverdueSettlements,
 		"28 demo organizations":        seeded.DemoOrganizations == 28,
-		"photos stored once each":      seeded.DemoFiles > 0 && int64(len(stored)) == seeded.DemoFiles,
+		"files stored once each":       len(proofs) > 0 && int64(len(photos)+len(proofs)) == seeded.DemoFiles,
 		"reset removes every demo row": reset == sqlc.GetDemoShapeRow{},
 	}
 	for name, holds := range checks {

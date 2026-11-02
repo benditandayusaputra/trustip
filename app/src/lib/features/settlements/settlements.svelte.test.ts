@@ -6,6 +6,9 @@ import { expectAccessible } from '#lib/testing/accessibility.js';
 
 const partnershipId = '0192f0c4-0000-7000-8000-000000000501';
 const settlementId = '0192f0c4-0000-7000-8000-000000000701';
+const proofId = '0192f0c4-0000-7000-8000-000000000601';
+const tinyPng =
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 const store = { id: '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7d', name: 'Warung Bu Sri' };
 const consignor = { id: '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c', name: 'Roti Pak Anton' };
 
@@ -54,7 +57,14 @@ const settlement = {
 		}
 	],
 	payments: [] as unknown[],
-	payee: { payment_info: 'BCA 1234567890 a.n. Anton', payment_qr_file_id: null },
+	payee: {
+		payment_info: 'Transfer sebelum jam 5 sore',
+		payment_qr_file_id: null,
+		methods: ['CASH', 'TRANSFER'],
+		bank_name: 'BCA',
+		bank_account_number: '1234567890',
+		bank_account_holder: 'Anton'
+	},
 	seal: { is_valid: true, events: [] }
 };
 
@@ -196,11 +206,13 @@ describe('Running sales', () => {
 });
 
 describe('Payments', () => {
-	it('FR-STL-05 lets the store owner record cash for the remaining amount', async () => {
+	it('FR-STL-05 lets the store owner record cash with a photo of the receipt', async () => {
 		const sent: unknown[] = [];
 		serve(
 			{
 				[`GET /api/v1/settlements/${settlementId}`]: () => envelope(settlement),
+				'POST /api/v1/files': () =>
+					envelope({ id: proofId, url: `/api/v1/files/${proofId}`, content_type: 'image/png' }),
 				[`POST /api/v1/settlements/${settlementId}/payments`]: () =>
 					envelope({ ...settlement, payments: [pending] })
 			},
@@ -211,16 +223,23 @@ describe('Payments', () => {
 			targetId: settlementId
 		});
 
-		await expect.element(page.getByText('BCA 1234567890 a.n. Anton')).toBeVisible();
-		await userEvent.selectOptions(page.getByRole('combobox', { name: 'Metode' }), 'CASH');
+		await expect.element(page.getByText(/Serahkan uang tunai langsung ke penitip/u)).toBeVisible();
+		await expect.element(page.getByText('Transfer sebelum jam 5 sore')).toBeVisible();
 		await expectAccessible(container);
+		await userEvent.upload(
+			page.getByLabelText('Pilih foto atau PDF'),
+			new File([Uint8Array.from(atob(tinyPng), (char) => char.charCodeAt(0))], 'nota.png', {
+				type: 'image/png'
+			})
+		);
+		await expect.element(page.getByRole('img', { name: 'Foto bukti bayar' })).toBeVisible();
 		await userEvent.click(page.getByRole('button', { name: 'Simpan pembayaran' }));
 
 		await expect.element(page.getByText('Menunggu penitip').first()).toBeVisible();
-		expect(sent[0]).toMatchObject({ amount: 691187, method: 'CASH', proof_file_id: null });
+		expect(sent[0]).toMatchObject({ amount: 691187, method: 'CASH', proof_file_id: proofId });
 	});
 
-	it('BR-STL-05 asks for proof before sending a transfer', async () => {
+	it('BR-STL-05 asks for proof before sending any payment', async () => {
 		const sent: unknown[] = [];
 		serve({ [`GET /api/v1/settlements/${settlementId}`]: () => envelope(settlement) }, sent);
 		await render(SettlementsHarness, { view: 'detail', targetId: settlementId });
@@ -228,9 +247,43 @@ describe('Payments', () => {
 		await userEvent.click(page.getByRole('button', { name: 'Simpan pembayaran' }));
 
 		await expect
-			.element(page.getByText('Unggah bukti untuk pembayaran transfer atau QRIS.'))
+			.element(page.getByText('Unggah bukti pembayaran berupa foto atau PDF.'))
 			.toBeVisible();
 		expect(sent).toHaveLength(0);
+	});
+
+	it('offers only the methods the consignor accepts and shows the bank account for a transfer', async () => {
+		const sent: unknown[] = [];
+		serve(
+			{
+				[`GET /api/v1/settlements/${settlementId}`]: () => envelope(settlement),
+				'POST /api/v1/files': () =>
+					envelope({
+						id: proofId,
+						url: `/api/v1/files/${proofId}`,
+						content_type: 'application/pdf'
+					}),
+				[`POST /api/v1/settlements/${settlementId}/payments`]: () =>
+					envelope({ ...settlement, payments: [pending] })
+			},
+			sent
+		);
+		await render(SettlementsHarness, { view: 'detail', targetId: settlementId });
+		const method = page.getByRole('combobox', { name: 'Metode' });
+
+		await expect.element(method.getByRole('option')).toHaveLength(2);
+		await userEvent.selectOptions(method, 'TRANSFER');
+		await expect.element(page.getByText('1234567890')).toBeVisible();
+		await expect.element(page.getByText('Anton', { exact: true })).toBeVisible();
+		await userEvent.upload(
+			page.getByLabelText('Pilih foto atau PDF'),
+			new File(['%PDF-1.4'], 'struk-transfer.pdf', { type: 'application/pdf' })
+		);
+		await expect.element(page.getByText('struk-transfer.pdf')).toBeVisible();
+		await userEvent.click(page.getByRole('button', { name: 'Simpan pembayaran' }));
+
+		await expect.element(page.getByText('Menunggu penitip').first()).toBeVisible();
+		expect(sent[0]).toMatchObject({ method: 'TRANSFER', proof_file_id: proofId });
 	});
 
 	it('FR-STL-06 lets the consignor owner accept the pending payment', async () => {

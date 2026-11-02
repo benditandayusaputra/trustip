@@ -31,6 +31,7 @@ const (
 	FieldPeriodSettled     FieldCode = "PERIOD_ALREADY_SETTLED"
 	FieldAmountMismatch    FieldCode = "PAYMENT_AMOUNT_MISMATCH"
 	FieldProofRequired     FieldCode = "PROOF_REQUIRED"
+	FieldInvalidProof      FieldCode = "INVALID_PROOF"
 	FieldContactInText     FieldCode = "CONTACT_NOT_ALLOWED"
 	FieldWrongCurrent      FieldCode = "WRONG_PASSWORD"
 	FieldSameAsCurrent     FieldCode = "SAME_AS_CURRENT"
@@ -68,7 +69,8 @@ func fieldMessages() map[FieldCode]string {
 		FieldBeforeLastDoc:     "Waktu ini lebih awal dari dokumen terakhir dengan mitra ini.",
 		FieldPeriodSettled:     "Tanggal ini sudah masuk Setoran {no}.",
 		FieldAmountMismatch:    "Jumlah harus sama dengan sisa Setoran ({Rp}).",
-		FieldProofRequired:     "Unggah bukti untuk pembayaran transfer atau QRIS.",
+		FieldProofRequired:     "Unggah bukti pembayaran berupa foto atau PDF.",
+		FieldInvalidProof:      "Bukti harus foto JPG, PNG, atau WebP, atau PDF biasa yang tidak terkunci.",
 		FieldWrongCurrent:      "Kata sandi saat ini salah.",
 		FieldSameAsCurrent:     "Kata sandi baru harus berbeda dari yang sekarang.",
 		FieldContactInText: "Nomor telepon dan tautan tidak boleh ada di teks. " +

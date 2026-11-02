@@ -143,4 +143,12 @@ type Payee struct {
 	IsShown  bool
 	Info     string
 	QRFileID string
+	Methods  []string
+	Bank     BankAccount
+}
+
+type BankAccount struct {
+	Name   string
+	Number string
+	Holder string
 }

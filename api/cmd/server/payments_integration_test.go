@@ -27,6 +27,20 @@ func (b *browser) recordPayment(settlementID, body, key string) exchange {
 	return b.send(req)
 }
 
+func paymentInfoBody(info, qrFileID string, methods ...string) string {
+	qrJSON := "null"
+	if qrFileID != "" {
+		qrJSON = `"` + qrFileID + `"`
+	}
+	quoted := make([]string, 0, len(methods))
+	for _, method := range methods {
+		quoted = append(quoted, `"`+method+`"`)
+	}
+	return fmt.Sprintf(`{"payment_info":%q,"payment_qr_file_id":%s,"payment_methods":[%s],`+
+		`"bank_name":"BCA","bank_account_number":"1234567890","bank_account_holder":"Darmi"}`,
+		info, qrJSON, strings.Join(quoted, ","))
+}
+
 func paymentBody(amount int, method, proofFileID string) string {
 	proof := "null"
 	if proofFileID != "" {
@@ -66,25 +80,60 @@ func (b *browser) uploadProof() string {
 	return fileID
 }
 
-func TestRecordPayment_BRSTL05_TransferNeedsProofAndTheRemainingAmount(t *testing.T) {
+func TestRecordPayment_BRSTL05_EveryPaymentNeedsProofAnAcceptedMethodAndTheRemainingAmount(t *testing.T) {
 	scene := issuedSettlement(t)
+	proofID := scene.store.uploadProof()
 
-	withoutProof := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "TRANSFER", ""), paymentKey)
-	tooLittle := scene.store.recordPayment(scene.settlementID, paymentBody(31000, "CASH", ""),
+	withoutProof := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", ""), paymentKey)
+	tooLittle := scene.store.recordPayment(scene.settlementID, paymentBody(31000, "CASH", proofID),
 		"0192f0c4-0000-7000-8000-00000000d002")
+	notAccepted := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "TRANSFER", proofID),
+		"0192f0c4-0000-7000-8000-00000000d003")
 
 	requireCode(t, withoutProof, "VALIDATION_FAILED")
 	loadContract(t).requireConforms(t, withoutProof)
-	if !strings.Contains(string(withoutProof.body), "Unggah bukti untuk pembayaran transfer atau QRIS.") {
+	if !strings.Contains(string(withoutProof.body), "Unggah bukti pembayaran berupa foto atau PDF.") {
 		t.Fatalf("without proof = %s", withoutProof.body)
 	}
 	if !strings.Contains(string(tooLittle.body), "Jumlah harus sama dengan sisa Setoran (Rp31.500).") {
 		t.Fatalf("too little = %s", tooLittle.body)
 	}
+	if !strings.Contains(string(notAccepted.body), `"field":"method"`) {
+		t.Fatalf("not accepted = %s", notAccepted.body)
+	}
+}
+
+func TestRecordPayment_PDFReceiptIsKeptAndTheConsignorCanOpenIt(t *testing.T) {
+	scene := issuedSettlement(t)
+	receipt := []byte("%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n")
+	scripted := []byte("%PDF-1.4\n1 0 obj << /S /JavaScript /JS (app.alert(1)) >> endobj\n%%EOF\n")
+
+	uploaded := scene.store.upload(part{name: "purpose", data: []byte("PAYMENT_PROOF")},
+		part{name: "file", filename: "bukti.pdf", data: receipt})
+	refused := scene.store.upload(part{name: "purpose", data: []byte("PAYMENT_PROOF")},
+		part{name: "file", filename: "bukti.pdf", data: scripted})
+	proofID := quotedAfter(string(uploaded.body), `"id":"`)
+	recorded := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", proofID), paymentKey)
+	opened := scene.consignor.get("/api/v1/files/" + proofID)
+
+	requireCreated(t, uploaded)
+	loadContract(t).requireConforms(t, uploaded)
+	if !strings.Contains(string(uploaded.body), `"content_type":"application/pdf"`) ||
+		!strings.Contains(string(refused.body), `"code":"INVALID_PROOF"`) {
+		t.Fatalf("uploaded = %s, refused = %s", uploaded.body, refused.body)
+	}
+	requireCreated(t, recorded)
+	if opened.status != http.StatusOK || opened.header.Get(fiber.HeaderContentType) != "application/pdf" ||
+		string(opened.body) != string(receipt) {
+		t.Fatalf("opened = %d %s", opened.status, opened.header.Get(fiber.HeaderContentType))
+	}
 }
 
 func TestConfirmPayment_FRSTL06_TransferWithProofIsAcceptedAndTheSettlementIsPaid(t *testing.T) {
 	scene := issuedSettlement(t)
+	consignorID := scene.consignor.actor(t).Membership.OrganizationID
+	requireCode(t, scene.consignor.patch(organizationsPath+"/"+consignorID+"/payment-info",
+		paymentInfoBody("", "", "CASH", "TRANSFER")), "OK")
 	proofID := scene.store.uploadProof()
 
 	recorded := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "TRANSFER", proofID), paymentKey)
@@ -117,13 +166,14 @@ func TestConfirmPayment_FRSTL06_TransferWithProofIsAcceptedAndTheSettlementIsPai
 
 func TestRejectPayment_BRSTL06_RejectedCashCanBeRecordedAgain(t *testing.T) {
 	scene := issuedSettlement(t)
-	recorded := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", ""), paymentKey)
+	proofID := scene.store.uploadProof()
+	recorded := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", proofID), paymentKey)
 	paymentID := quotedAfter(string(recorded.body), `"payments":[{"id":"`)
 
-	pending := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", ""),
+	pending := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", proofID),
 		"0192f0c4-0000-7000-8000-00000000d002")
 	rejected := scene.consignor.postJSON("/api/v1/payments/"+paymentID+"/reject", `{"reason":"Uang belum diterima"}`)
-	again := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", ""),
+	again := scene.store.recordPayment(scene.settlementID, paymentBody(31500, "CASH", proofID),
 		"0192f0c4-0000-7000-8000-00000000d003")
 
 	requireCode(t, pending, "PAYMENT_PENDING")
@@ -156,12 +206,17 @@ func TestMarkPaid_FRSTL07_ConsignorMarksCashReceivedWithoutTheStore(t *testing.T
 func TestGetSettlement_FRSTL05_StoreSeesThePaymentInfoOfAnActivePartner(t *testing.T) {
 	scene := issuedSettlement(t)
 	consignorID := scene.consignor.actor(t).Membership.OrganizationID
-	scene.consignor.patch(organizationsPath+"/"+consignorID+"/payment-info",
-		`{"payment_info":"BCA 1234567890 a.n. Darmi","payment_qr_file_id":null}`)
+	saved := scene.consignor.patch(organizationsPath+"/"+consignorID+"/payment-info",
+		paymentInfoBody("Transfer sebelum jam 5 sore", "", "CASH", "TRANSFER"))
 
 	got := scene.store.get(settlementsPath + "/" + scene.settlementID)
 
-	if !strings.Contains(string(got.body), `"payee":{"payment_info":"BCA 1234567890 a.n. Darmi"`) {
+	requireCode(t, saved, "OK")
+	loadContract(t).requireConforms(t, saved)
+	if !strings.Contains(string(got.body), `"payee":{"payment_info":"Transfer sebelum jam 5 sore"`) ||
+		!strings.Contains(string(got.body), `"methods":["CASH","TRANSFER"],"bank_name":"BCA",`+
+			`"bank_account_number":"1234567890","bank_account_holder":"Darmi"`) {
 		t.Fatalf("got = %s", got.body)
 	}
+	loadContract(t).requireConforms(t, got)
 }

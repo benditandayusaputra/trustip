@@ -139,7 +139,7 @@ Setiap pengguna menjadi anggota tepat satu **organisasi**. Organisasi bertipe `C
 | FR-ORG-04 | Profil toko: jenis toko, kategori produk yang diterima, model yang diterima, kisaran komisi, syarat penitip, jam buka, sampai 5 foto | P0 |
 | FR-ORG-05 | Profil penitip: jangkauan antar (km), hari antar, jenis toko yang diincar, NIB, nomor izin edar, nomor sertifikat halal, bisa kirim sampel | P0 |
 | FR-ORG-06 | Sakelar "Tampil di Cari Mitra" | P0 |
-| FR-ORG-07 | Info pembayaran penitip: teks rekening dan gambar QRIS | P0 |
+| FR-ORG-07 | Cara pembayaran penitip: metode yang diterima (tunai, transfer bank, QRIS), rekening bank, gambar QRIS, dan catatan untuk toko (ADR 0063) | P0 |
 | FR-ORG-08 | Meter kelengkapan profil dengan daftar yang belum diisi | P0 |
 | FR-ORG-09 | OWNER mengundang STAFF lewat tautan yang berlaku 7 hari, dan menonaktifkannya | P1 |
 | FR-ORG-10 | OWNER mengizinkan STAFF mencatat pembayaran | P1 |
@@ -543,7 +543,7 @@ Setoran adalah jumlah yang wajib dibayar toko ke penitip untuk barang yang terju
 | FR-STL-02 | Jadwal `WEEKLY` dan `MONTHLY`: Setoran terbit otomatis setelah periode berakhir | P0 |
 | FR-STL-03 | Nomor `ST-<YYYYMM>-<4 angka urut per penitip>`. Jatuh tempo sama dengan tanggal terbit ditambah tempo bayar | P0 |
 | FR-STL-04 | Halaman Setoran: baris per produk (jumlah, harga jual, model, omzet, untung toko, hak penitip), total, dan daftar Hitung Sisa sumbernya | P0 |
-| FR-STL-05 | Toko melihat info rekening atau QRIS penitip lalu **Catat bayar**: metode, tanggal, bukti foto | P0 |
+| FR-STL-05 | Toko memilih metode yang diterima penitip, melihat rekening atau QRIS-nya, lalu **Catat bayar**: metode, tanggal, bukti foto atau PDF | P0 |
 | FR-STL-06 | Penitip **Uang diterima** atau **Tolak** dengan alasan | P0 |
 | FR-STL-07 | Penitip bisa langsung menandai Setoran lunas bila uang diterima tunai tanpa dicatat toko | P0 |
 | FR-STL-08 | Tombol "Ingatkan lewat WhatsApp" dengan pesan terisi | P0 |
@@ -567,7 +567,7 @@ Setoran adalah jumlah yang wajib dibayar toko ke penitip untuk barang yang terju
   - Model Komisi: `untung_toko = bulatkanSetengahKeAtas(omzet × commission_bps / 10000)`, `hak_penitip = omzet − untung_toko`
   - Model Harga Setor: `hak_penitip = jumlah × deposit_price`, `untung_toko = omzet − hak_penitip`
   - Total adalah penjumlahan baris. Komisi **tidak** dihitung ulang dari total.
-- **BR-STL-05** Di P0 pembayaran harus sebesar sisa Setoran. Bukti foto wajib untuk `TRANSFER` dan `QRIS`, boleh kosong untuk `CASH`.
+- **BR-STL-05** Di P0 pembayaran harus sebesar sisa Setoran, memakai metode yang diterima penitip, dan wajib disertai bukti berupa foto atau PDF untuk semua metode, termasuk `CASH` (ADR 0063).
 - **BR-STL-06** Setoran menjadi `PAID` saat pembayaran `CONFIRMED`. Pembayaran yang ditolak tidak mengubah status, dan toko bisa mencatat ulang. Bila penitip menandai lunas sendiri (FR-STL-07), sistem membuat pembayaran yang langsung `CONFIRMED` atas nama penitip.
 - **BR-STL-07** Batas periode dihitung dalam zona waktu Asia/Jakarta. Mingguan: Senin 00.00 sampai Minggu 23.59. Bulanan: tanggal 1 sampai akhir bulan.
 - **BR-STL-08** Mengonfirmasi pembayaran berarti menyetujui Hitung Sisa yang menjadi sumbernya. Setelah itu hitungan tersebut tidak bisa disanggah.
@@ -589,7 +589,7 @@ Catatan pembulatan: 67.500 × 0,175 = 11.812,5 dibulatkan setengah ke atas menja
 
 - WHEN Hitung Sisa disimpan pada Kemitraan berjadwal `ON_COUNT` dan ada unit terjual THE SYSTEM SHALL menerbitkan Setoran sebesar hak penitip pada rekap itu.
 - WHEN periode mingguan berakhir dan ada penjualan THE SYSTEM SHALL menerbitkan satu Setoran untuk periode itu dan mengirim pemberitahuan ke kedua OWNER.
-- WHEN toko mencatat bayar dengan metode transfer tanpa bukti THE SYSTEM SHALL menolak dengan pesan di bawah isian bukti.
+- WHEN toko mencatat bayar tanpa bukti, dengan metode apa pun, THE SYSTEM SHALL menolak dengan pesan di bawah isian bukti.
 - WHEN penitip menekan Uang diterima THE SYSTEM SHALL mengubah Setoran menjadi `PAID` dan memberi tahu toko.
 
 ## 14. RPT: Laporan
@@ -1106,7 +1106,7 @@ erDiagram
 |---|---|---|
 | `users` | `email`, `password_hash`, `pepper_version`, `full_name`, `whatsapp`, `is_platform_admin`, `failed_login_count`, `locked_until`, `privacy_accepted_at` | `email` unik |
 | `sessions` | `user_id`, `family_id`, `token_hash`, `expires_at`, `rotated_at`, `revoked_at` | `token_hash` unik |
-| `organizations` | `type`, `name`, `slug`, `description`, `whatsapp`, `address`, `district`, `city_code`, `city_name`, `location`, `location_public`, `logo_file_id`, `is_listed`, `status` (`ACTIVE`, `SUSPENDED`), `is_demo`, `last_active_at`, `payment_info`, `payment_qr_file_id` | `slug` unik. Indeks spasial pada `location_public`. Indeks trigram pada `name` |
+| `organizations` | `type`, `name`, `slug`, `description`, `whatsapp`, `address`, `district`, `city_code`, `city_name`, `location`, `location_public`, `logo_file_id`, `is_listed`, `status` (`ACTIVE`, `SUSPENDED`), `is_demo`, `last_active_at`, `payment_info`, `payment_qr_file_id`, `payment_methods`, `bank_name`, `bank_account_number`, `bank_account_holder` | `slug` unik. Indeks spasial pada `location_public`. Indeks trigram pada `name` |
 | `memberships` | `organization_id`, `user_id`, `role`, `is_active`, `can_handle_payments` | `user_id` unik (satu organisasi per pengguna) |
 | `store_profiles` | `organization_id`, `store_type`, `opening_hours`, `accepts_fixed_deposit`, `accepts_commission`, `commission_min_bps`, `commission_max_bps`, `requires_distribution_permit`, `requires_halal`, `requires_sample`, `other_requirements` | Kunci utama `organization_id`. Indeks pada `store_type` |
 | `consignor_profiles` | `organization_id`, `delivery_radius_km`, `delivery_days`, `preferred_store_types`, `business_id_no` (NIB), `distribution_permit_no`, `halal_cert_no`, `can_provide_sample` | Kunci utama `organization_id` |

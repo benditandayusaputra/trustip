@@ -3,6 +3,7 @@ package domain
 import (
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/benditandayusaputra/trustip/api/internal/kernel/apperror"
@@ -23,10 +24,6 @@ const (
 
 func Methods() []string {
 	return []string{string(Transfer), string(QRIS), string(Cash)}
-}
-
-func (m Method) needsProof() bool {
-	return m == Transfer || m == QRIS
 }
 
 type PaymentStatus string
@@ -74,6 +71,7 @@ type Payable struct {
 	Remaining      money.Rupiah
 	HasOpenPayment bool
 	Proof          Proof
+	Methods        []string
 }
 
 type PaymentDraft struct {
@@ -90,7 +88,7 @@ func (p Payable) CheckPayment(input PaymentInput, now time.Time) (PaymentDraft, 
 	}
 	paidOn, dateProblem := parsePaidOn(input.PaidOn, now)
 	problems := field.Collect(
-		p.findAmountProblem(input.Amount), findMethodProblem(input.Method), dateProblem,
+		p.findAmountProblem(input.Amount), p.findMethodProblem(input.Method), dateProblem,
 		p.findProofProblem(input),
 	)
 	if len(problems) > 0 {
@@ -121,11 +119,14 @@ func (p Payable) findAmountProblem(amount int64) field.Problem {
 	return field.Problem{}
 }
 
-func findMethodProblem(method string) field.Problem {
+func (p Payable) findMethodProblem(method string) field.Problem {
 	if method == "" {
 		return field.Invalid("method", apperror.FieldRequired)
 	}
-	return field.CheckChoice("method", method, Methods())
+	if !slices.Contains(Methods(), method) || !slices.Contains(p.Methods, method) {
+		return field.Invalid("method", apperror.FieldUnknownChoice)
+	}
+	return field.Problem{}
 }
 
 func parsePaidOn(raw string, now time.Time) (time.Time, field.Problem) {
@@ -141,10 +142,7 @@ func parsePaidOn(raw string, now time.Time) (time.Time, field.Problem) {
 
 func (p Payable) findProofProblem(input PaymentInput) field.Problem {
 	if input.ProofFileID == "" {
-		if Method(input.Method).needsProof() {
-			return field.Invalid("proof_file_id", apperror.FieldProofRequired)
-		}
-		return field.Problem{}
+		return field.Invalid("proof_file_id", apperror.FieldProofRequired)
 	}
 	if !p.Proof.isGiven() || p.Proof.FileID != input.ProofFileID {
 		return field.Invalid("proof_file_id", apperror.FieldUnknownChoice)

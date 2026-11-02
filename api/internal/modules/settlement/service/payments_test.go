@@ -42,7 +42,7 @@ func (f *fakeSettlements) LockPayable(ctx context.Context, key domain.PayableKey
 	payable := domain.Payable{
 		SettlementID: view.ID, Number: view.Number, PartnershipID: view.PartnershipID, ConsignorID: view.ConsignorID,
 		StoreID: view.StoreID, StoreName: "Warung Bu Sri", Status: view.Status,
-		Remaining: view.Summary.Split.ConsignorShare,
+		Remaining: view.Summary.Split.ConsignorShare, Methods: domain.Methods(),
 	}
 	for _, payment := range f.payments {
 		isOpen := payment.Status != domain.PaymentRejected

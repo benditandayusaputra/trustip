@@ -33,13 +33,21 @@ type consignorProfileBody struct {
 }
 
 type paymentInfoRequest struct {
-	PaymentInfo     string  `json:"payment_info"`
-	PaymentQRFileID *string `json:"payment_qr_file_id"`
+	PaymentInfo       string   `json:"payment_info"`
+	PaymentQRFileID   *string  `json:"payment_qr_file_id"`
+	PaymentMethods    []string `json:"payment_methods"`
+	BankName          string   `json:"bank_name"`
+	BankAccountNumber string   `json:"bank_account_number"`
+	BankAccountHolder string   `json:"bank_account_holder"`
 }
 
 type paymentResponse struct {
-	Info string    `json:"info"`
-	QR   *imageRef `json:"qr"`
+	Info              string    `json:"info"`
+	QR                *imageRef `json:"qr"`
+	Methods           []string  `json:"methods"`
+	BankName          string    `json:"bank_name"`
+	BankAccountNumber string    `json:"bank_account_number"`
+	BankAccountHolder string    `json:"bank_account_holder"`
 }
 
 func updateConsignorProfile(editor ConsignorProfileEditor, filesBaseURL string) fiber.Handler {
@@ -98,11 +106,10 @@ func updatePaymentInfo(editor PaymentInfoEditor, filesBaseURL string) fiber.Hand
 		if err := httpserver.DecodeJSON(c, &request); err != nil {
 			return fmt.Errorf("read payment info: %w", err)
 		}
-		info := httpserver.MultilineInput("payment_info", request.PaymentInfo)
-		if err := httpserver.RejectUncleanInputs(info); err != nil {
-			return fmt.Errorf("check payment info text: %w", err)
+		form, err := request.toForm()
+		if err != nil {
+			return err
 		}
-		form := domain.PaymentInfoForm{Info: info.Value, QRFileID: valueOrEmpty(request.PaymentQRFileID)}
 		settings, err := editor.Execute(c.Context(), signedIn,
 			service.UpdatePaymentInfoCommand{OrganizationID: organizationID, Form: form})
 		if err != nil {
@@ -110,6 +117,22 @@ func updatePaymentInfo(editor PaymentInfoEditor, filesBaseURL string) fiber.Hand
 		}
 		return httpserver.Respond(c, httpserver.Reply{Data: toSettingsResponse(settings, filesBaseURL)})
 	}
+}
+
+func (r paymentInfoRequest) toForm() (domain.PaymentInfoForm, error) {
+	inputs := []httpserver.TextInput{
+		httpserver.MultilineInput("payment_info", r.PaymentInfo),
+		httpserver.LineInput("bank_name", r.BankName),
+		httpserver.LineInput("bank_account_number", r.BankAccountNumber),
+		httpserver.LineInput("bank_account_holder", r.BankAccountHolder),
+	}
+	if err := httpserver.RejectUncleanInputs(inputs...); err != nil {
+		return domain.PaymentInfoForm{}, fmt.Errorf("check payment info text: %w", err)
+	}
+	return domain.PaymentInfoForm{
+		Info: inputs[0].Value, QRFileID: valueOrEmpty(r.PaymentQRFileID), Methods: orEmpty(r.PaymentMethods),
+		Bank: domain.BankAccount{Name: inputs[1].Value, Number: inputs[2].Value, Holder: inputs[3].Value},
+	}, nil
 }
 
 func toConsignorProfileResponse(profile domain.ConsignorProfile) *consignorProfileBody {
@@ -125,7 +148,10 @@ func toConsignorProfileResponse(profile domain.ConsignorProfile) *consignorProfi
 }
 
 func toPaymentResponse(payment domain.PaymentSettings) *paymentResponse {
-	response := &paymentResponse{Info: payment.Info}
+	response := &paymentResponse{
+		Info: payment.Info, Methods: orEmpty(payment.Methods), BankName: payment.Bank.Name,
+		BankAccountNumber: payment.Bank.Number, BankAccountHolder: payment.Bank.Holder,
+	}
 	if payment.QR.ID != "" {
 		response.QR = &imageRef{ID: payment.QR.ID, URL: httpserver.APIPrefix + "/files/" + payment.QR.ID}
 	}

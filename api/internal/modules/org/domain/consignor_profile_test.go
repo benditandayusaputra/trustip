@@ -65,16 +65,63 @@ func TestNewConsignorProfile_BRORG07_LegalNumbersAreFreeTextWithALimit(t *testin
 }
 
 func TestNewPaymentInfo_FRORG07_InfoLimitAndQRFileID(t *testing.T) {
-	_, longInfo := NewPaymentInfo(PaymentInfoForm{Info: strings.Repeat("a", 501)})
-	_, badQR := NewPaymentInfo(PaymentInfoForm{Info: "BCA 123", QRFileID: "qris.png"})
-	info, err := NewPaymentInfo(PaymentInfoForm{Info: "BCA 1234567 a.n. Darmi"})
+	cash := []string{"CASH"}
+	_, longInfo := NewPaymentInfo(PaymentInfoForm{Info: strings.Repeat("a", 501), Methods: cash})
+	_, badQR := NewPaymentInfo(PaymentInfoForm{Info: "BCA 123", QRFileID: "qris.png", Methods: cash})
+	info, err := NewPaymentInfo(PaymentInfoForm{Info: "Tunai saat antar", Methods: cash})
 
 	if fieldCodes(t, longInfo)["payment_info"] != "TOO_LONG" ||
 		fieldCodes(t, badQR)["payment_qr_file_id"] != "UNKNOWN_CHOICE" {
 		t.Fatalf("long = %v, qr = %v", longInfo, badQR)
 	}
-	if err != nil || info.Info != "BCA 1234567 a.n. Darmi" {
+	if err != nil || info.Info != "Tunai saat antar" {
 		t.Fatalf("info = %+v, err = %v", info, err)
+	}
+}
+
+func TestNewPaymentInfo_ConsignorChoosesAtLeastOneKnownMethod(t *testing.T) {
+	_, none := NewPaymentInfo(PaymentInfoForm{})
+	_, unknown := NewPaymentInfo(PaymentInfoForm{Methods: []string{"CASH", "GOPAY"}})
+	_, twice := NewPaymentInfo(PaymentInfoForm{Methods: []string{"CASH", "CASH"}})
+
+	if fieldCodes(t, none)["payment_methods"] != "REQUIRED" ||
+		fieldCodes(t, unknown)["payment_methods"] != "UNKNOWN_CHOICE" ||
+		fieldCodes(t, twice)["payment_methods"] != "UNKNOWN_CHOICE" {
+		t.Fatalf("none = %v, unknown = %v, twice = %v", none, unknown, twice)
+	}
+}
+
+func TestNewPaymentInfo_TransferNeedsTheBankAccount(t *testing.T) {
+	transfer := []string{"TRANSFER"}
+	_, empty := NewPaymentInfo(PaymentInfoForm{Methods: transfer})
+	_, letters := NewPaymentInfo(PaymentInfoForm{Methods: transfer, Bank: BankAccount{
+		Name: "BRI", Number: "0123-abc-789", Holder: "Bendi",
+	}})
+	info, err := NewPaymentInfo(PaymentInfoForm{Methods: transfer, Bank: BankAccount{
+		Name: "BRI", Number: "0123 4567 8910", Holder: "Bendi",
+	}})
+
+	codes := fieldCodes(t, empty)
+	if codes["bank_name"] != "REQUIRED" || codes["bank_account_number"] != "REQUIRED" ||
+		codes["bank_account_holder"] != "REQUIRED" {
+		t.Fatalf("empty = %v", codes)
+	}
+	if fieldCodes(t, letters)["bank_account_number"] != "INVALID_CHARACTERS" {
+		t.Fatalf("letters = %v", letters)
+	}
+	if err != nil || info.Bank.Number != "0123 4567 8910" {
+		t.Fatalf("info = %+v, err = %v", info, err)
+	}
+}
+
+func TestNewPaymentInfo_QRISNeedsTheQRImage(t *testing.T) {
+	_, missing := NewPaymentInfo(PaymentInfoForm{Methods: []string{"QRIS"}})
+	_, err := NewPaymentInfo(PaymentInfoForm{
+		Methods: []string{"CASH", "QRIS"}, QRFileID: "0192f0c4-0000-7000-8000-000000000001",
+	})
+
+	if fieldCodes(t, missing)["payment_qr_file_id"] != "REQUIRED" || err != nil {
+		t.Fatalf("missing = %v, err = %v", missing, err)
 	}
 }
 

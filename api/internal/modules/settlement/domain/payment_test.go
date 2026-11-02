@@ -19,7 +19,7 @@ func aPayable() Payable {
 	return Payable{
 		SettlementID: "0192f0c4-0000-7000-8000-000000000701", Number: "ST-202611-0001", PartnershipID: partnershipID,
 		ConsignorID: consignorID, StoreID: storeID, StoreName: "Warung Bu Sri", Status: Issued, Remaining: 691187,
-		Proof: Proof{FileID: proofFileID, SHA256: bytes.Repeat([]byte{7}, 32)},
+		Proof: Proof{FileID: proofFileID, SHA256: bytes.Repeat([]byte{7}, 32)}, Methods: Methods(),
 	}
 }
 
@@ -55,8 +55,8 @@ func TestCheckPayment_BRSTL05_AmountMustBeTheRemainingSettlement(t *testing.T) {
 	}
 }
 
-func TestCheckPayment_BRSTL05_ProofIsRequiredForTransferAndQRISButNotCash(t *testing.T) {
-	for method, code := range map[string]string{"TRANSFER": "PROOF_REQUIRED", "QRIS": "PROOF_REQUIRED", "CASH": ""} {
+func TestCheckPayment_BRSTL05_ProofIsRequiredForEveryMethod(t *testing.T) {
+	for _, method := range Methods() {
 		input := aTransfer()
 		input.Method, input.ProofFileID = method, ""
 		payable := aPayable()
@@ -64,12 +64,23 @@ func TestCheckPayment_BRSTL05_ProofIsRequiredForTransferAndQRISButNotCash(t *tes
 
 		_, err := payable.CheckPayment(input, jakarta("2026-11-20 10:00"))
 
-		if code == "" && err != nil {
-			t.Fatalf("%s: err = %v", method, err)
-		}
-		if code != "" && fieldCodes(t, err)["proof_file_id"] != code {
+		if fieldCodes(t, err)["proof_file_id"] != "PROOF_REQUIRED" {
 			t.Fatalf("%s: codes = %v", method, fieldCodes(t, err))
 		}
+	}
+}
+
+func TestCheckPayment_StorePaysOnlyWithAMethodTheConsignorAccepts(t *testing.T) {
+	payable := aPayable()
+	payable.Methods = []string{"CASH", "QRIS"}
+	cash := aTransfer()
+	cash.Method = "CASH"
+
+	_, refused := payable.CheckPayment(aTransfer(), jakarta("2026-11-20 10:00"))
+	_, accepted := payable.CheckPayment(cash, jakarta("2026-11-20 10:00"))
+
+	if fieldCodes(t, refused)["method"] != "UNKNOWN_CHOICE" || accepted != nil {
+		t.Fatalf("refused = %v, accepted = %v", refused, accepted)
 	}
 }
 

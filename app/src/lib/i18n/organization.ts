@@ -114,10 +114,20 @@ export const organization = {
 		canProvideSample: 'Bisa mengirim sampel'
 	},
 	payment: {
-		title: 'Info pembayaran',
-		intro: 'Hanya terlihat oleh toko yang bermitra aktif dengan Anda.',
-		info: 'Rekening tujuan',
-		infoHint: 'Contoh: BCA 1234567890 a.n. Darmi',
+		title: 'Cara pembayaran',
+		intro:
+			'Pilih cara toko membayar setoran. Hanya terlihat oleh toko yang bermitra aktif dengan Anda.',
+		methods: 'Cara bayar yang diterima',
+		methodsHint:
+			'Toko hanya bisa memilih cara yang Anda centang, dan wajib mengunggah bukti bayar.',
+		methodLabels: { CASH: 'Tunai', TRANSFER: 'Transfer bank', QRIS: 'QRIS' },
+		bankName: 'Nama bank',
+		bankNameHint: 'Contoh: BRI, BCA, Mandiri, atau BSI',
+		bankAccountNumber: 'Nomor rekening',
+		bankAccountHolder: 'Atas nama',
+		info: 'Catatan untuk toko',
+		infoHint:
+			'Opsional. Contoh: transfer sebelum pukul 17.00, atau bayar tunai saat barang diantar.',
 		qr: 'Gambar QRIS',
 		chooseQr: 'Pilih gambar QRIS',
 		qrAlt: 'QRIS pembayaran',

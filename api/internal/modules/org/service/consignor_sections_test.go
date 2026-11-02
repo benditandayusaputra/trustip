@@ -54,7 +54,7 @@ func TestUpdatePaymentInfo_UnknownQRIsAFieldError(t *testing.T) {
 	sections := &fakeStoreProfiles{audit: &fakeAudit{}, failure: domain.ErrUnknownQR}
 
 	_, err := service.NewUpdatePaymentInfo(sectionDeps(sections)).Execute(t.Context(), consignorMember(actor.Owner),
-		service.UpdatePaymentInfoCommand{OrganizationID: ownOrganizationID, Form: domain.PaymentInfoForm{Info: "BCA"}})
+		service.UpdatePaymentInfoCommand{OrganizationID: ownOrganizationID, Form: cashPayment()})
 
 	fields := apperror.From(err).Fields()
 	if len(fields) != 1 || fields[0].Field != "payment_qr_file_id" {
@@ -66,9 +66,13 @@ func TestUpdatePaymentInfo_FRORG07_OwnerSavesTheInfo(t *testing.T) {
 	sections := &fakeStoreProfiles{audit: &fakeAudit{}}
 
 	_, err := service.NewUpdatePaymentInfo(sectionDeps(sections)).Execute(t.Context(), consignorMember(actor.Owner),
-		service.UpdatePaymentInfoCommand{OrganizationID: ownOrganizationID, Form: domain.PaymentInfoForm{Info: "BCA"}})
+		service.UpdatePaymentInfoCommand{OrganizationID: ownOrganizationID, Form: cashPayment()})
 
 	if err != nil || len(sections.payments) != 1 || sections.payments[0].Payment.Info != "BCA" {
 		t.Fatalf("err = %v, payments = %+v", err, sections.payments)
 	}
+}
+
+func cashPayment() domain.PaymentInfoForm {
+	return domain.PaymentInfoForm{Info: "BCA", Methods: []string{"CASH"}}
 }

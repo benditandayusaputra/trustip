@@ -185,11 +185,16 @@ func (s *demoSeeder) describeConsignor(ctx context.Context, owner actor.Actor, p
 	if err != nil {
 		return fmt.Errorf("edit consignor profile: %w", err)
 	}
-	if profile.PaymentInfo == "" {
-		return nil
+	methods := profile.PaymentMethods
+	if len(methods) == 0 {
+		methods = []string{cashPayment}
 	}
 	_, err = s.use.org.EditPayment.Execute(ctx, owner, orgservice.UpdatePaymentInfoCommand{
-		OrganizationID: organizationID, Form: orgdomain.PaymentInfoForm{Info: profile.PaymentInfo},
+		OrganizationID: organizationID, Form: orgdomain.PaymentInfoForm{
+			Info: profile.PaymentInfo, Methods: methods, Bank: orgdomain.BankAccount{
+				Name: profile.Bank.Name, Number: profile.Bank.AccountNumber, Holder: profile.Bank.Holder,
+			},
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("edit payment info: %w", err)

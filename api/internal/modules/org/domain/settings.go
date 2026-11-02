@@ -67,8 +67,10 @@ type ListingChange struct {
 }
 
 type PaymentSettings struct {
-	Info string
-	QR   FileRef
+	Info    string
+	QR      FileRef
+	Methods []string
+	Bank    BankAccount
 }
 
 type StoreSettings struct {
