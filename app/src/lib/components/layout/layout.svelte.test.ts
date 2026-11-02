@@ -71,6 +71,24 @@ describe('AppShell on a laptop', () => {
 	});
 });
 
+describe('AppShell on a page outside the sidebar', () => {
+	it('lights the menu the page belongs to and points back to it', async () => {
+		await page.viewport(1280, 800);
+		await render(AppShell, {
+			organizationType: 'CONSIGNOR',
+			currentPath: '/app/hitung',
+			children: textSnippet('Isi')
+		});
+
+		await expect
+			.element(mainNavigation().getByRole('link', { name: 'Mitra' }))
+			.toHaveAttribute('aria-current', 'page');
+		await expect
+			.element(page.getByRole('banner').getByRole('link', { name: 'Kembali' }))
+			.toHaveAttribute('href', '/app/mitra');
+	});
+});
+
 describe('AppShell for a visitor', () => {
 	it('shows the same header as the public pages, with sign in and the theme menu', async () => {
 		await page.viewport(1280, 800);

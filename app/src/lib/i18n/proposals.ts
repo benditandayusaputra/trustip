@@ -35,7 +35,7 @@ export const proposals = {
 		newTitle: 'Undang mitra',
 		newIntro:
 			'Buat Ajuan Kerja Sama lalu bagikan tautannya ke mitra lama lewat WhatsApp. Mitra yang membuka tautan bisa menerima atau menolak.',
-		detailTitle: 'Ajuan Kerja Sama',
+		detailTitle: 'Rincian Ajuan',
 		products: 'Produk yang ditawarkan',
 		productsHint: 'Centang produk yang ingin dititipkan, lalu atur syaratnya.',
 		noProducts: 'Belum ada produk aktif. Tambahkan produk di katalog dulu.',

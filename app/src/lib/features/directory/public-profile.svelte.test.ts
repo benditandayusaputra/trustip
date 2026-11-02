@@ -120,6 +120,12 @@ describe('Public profiles', () => {
 	it('FR-PUB-03 shows products with the suggested price and the declared legality', async () => {
 		const { container } = await render(PublicProfileHarness, { consignor });
 
+		await expect
+			.element(page.getByRole('heading', { level: 1, name: 'Roti Mak Ijah' }))
+			.toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: 'Kembali ke daftar' }))
+			.toHaveAttribute('href', '/cari/penitip?tab=penitip');
 		await expect.element(page.getByText('Roti Manis')).toBeVisible();
 		await expect.element(page.getByText('Rp2.000')).toBeVisible();
 		await expect.element(page.getByText('1234567890123')).toBeVisible();
@@ -165,6 +171,10 @@ describe('Public profiles', () => {
 			locate: () => Promise.resolve({ latitude: -7.05, longitude: 110.43 })
 		});
 		await expect.element(page.getByText('Tepung, gula')).toBeVisible();
+		await expect.element(page.getByRole('heading', { level: 1, name: 'Roti Manis' })).toBeVisible();
+		await expect
+			.element(page.getByRole('link', { name: /Roti Mak Ijah/u }))
+			.toHaveAttribute('href', '/u/roti-mak-ijah');
 		await expectAccessible(container);
 
 		await userEvent.click(page.getByRole('button', { name: 'Urutkan dari lokasi saya' }));
@@ -220,6 +230,9 @@ describe('Public profiles', () => {
 			return Promise.resolve();
 		});
 		const { container } = await render(PublicProfileHarness, { need });
+		await expect
+			.element(page.getByRole('heading', { level: 1, name: 'Butuh camilan kantin' }))
+			.toBeVisible();
 		await expect
 			.element(page.getByRole('link', { name: 'Tanggapi dengan Ajuan' }))
 			.toHaveAttribute('href', `/app/ajuan/baru?sasaran=${store.id}&kebutuhan=${need.id}`);

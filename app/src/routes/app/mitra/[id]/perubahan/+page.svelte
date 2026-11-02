@@ -13,7 +13,9 @@
 </svelte:head>
 
 <section class="trade-panel mx-auto flex w-full max-w-form flex-col gap-6">
-	<PageHeading backHref="/app/mitra" icon={Handshake}>{id.proposals.amendTitle}</PageHeading>
+	<PageHeading backHref="/app/mitra/{page.params.id}" icon={Handshake}
+		>{id.proposals.amendTitle}</PageHeading
+	>
 	<p class="text-base text-text-muted">{id.proposals.amendIntro}</p>
 	{#key page.url.href}
 		<AmendmentForm

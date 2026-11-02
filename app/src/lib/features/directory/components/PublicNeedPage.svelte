@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import Card from '#lib/components/ui/Card.svelte';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicNeed } from '#lib/api/public.js';
 	import { formatBasisPoints, formatDate, formatRupiah } from '#lib/i18n/format.js';
@@ -30,6 +32,7 @@
 </script>
 
 <article class="flex flex-col gap-6">
+	<PageHeading icon={Megaphone} backHref="/kebutuhan">{need.title}</PageHeading>
 	<img
 		src={categoryPhoto(need.category)}
 		alt=""
@@ -40,7 +43,6 @@
 	/>
 	<header class="trade-panel flex flex-col gap-4">
 		<p class="section-label">{text.needKind}</p>
-		<h1 class="text-xl font-semibold text-text">{need.title}</h1>
 		<p class="text-sm text-text-muted">
 			{text.needBy(store.name)}
 			{#if store.store_type}

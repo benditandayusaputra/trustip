@@ -1,7 +1,7 @@
 export const settlements = {
 	settlements: {
 		title: 'Setoran',
-		detailTitle: 'Setoran',
+		detailTitle: 'Rincian Setoran',
 		loadFailed: 'Setoran tidak bisa dimuat.',
 		listFailed: 'Daftar Setoran tidak bisa dimuat.',
 		empty: 'Belum ada Setoran. Setoran terbit sendiri dari penjualan yang sudah dihitung.',

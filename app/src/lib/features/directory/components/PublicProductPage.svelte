@@ -1,7 +1,8 @@
 <script lang="ts">
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ChefHat from '@lucide/svelte/icons/chef-hat';
 	import Package from '@lucide/svelte/icons/package';
 	import Card from '#lib/components/ui/Card.svelte';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicProduct } from '#lib/api/public.js';
 	import { formatRupiah } from '#lib/i18n/format.js';
@@ -25,11 +26,7 @@
 </script>
 
 <article class="flex flex-col gap-6">
-	<a
-		href="/u/{consignorSlug}"
-		class="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium text-text-muted hover:text-accent"
-		><ArrowLeft class="size-4" aria-hidden="true" />{text.productsBy(maker.name)}</a
-	>
+	<PageHeading icon={Package} backHref="/cari/penitip">{product.name}</PageHeading>
 	<header class="grid items-center gap-6 lg:grid-cols-2">
 		{#if product.photo_url}
 			<img
@@ -49,7 +46,11 @@
 		{/if}
 		<div class="flex flex-col gap-4">
 			<p class="section-label">{product.category}</p>
-			<h1 class="text-hero-compact font-semibold text-text">{product.name}</h1>
+			<a
+				href="/u/{consignorSlug}"
+				class="inline-flex min-h-11 items-center gap-2 self-start text-base font-semibold text-accent hover:underline"
+				><ChefHat class="size-5" aria-hidden="true" />{text.productsBy(maker.name)}</a
+			>
 			<p class="font-mono text-kpi-compact font-bold text-text">
 				{formatRupiah(product.suggested_retail_price)}
 			</p>

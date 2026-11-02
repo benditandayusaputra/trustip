@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bottomNavigationOf, isCurrent, navigationFor } from './navigation';
+import { bottomNavigationOf, isCurrent, menuOfPage, navigationFor } from './navigation';
 
 const labels = (items: { label: string }[]) => items.map((item) => item.label);
 
@@ -48,5 +48,17 @@ describe('isCurrent', () => {
 
 	it('does not mark a different section sharing a prefix', () => {
 		expect(isCurrent('/app/titipan', '/app/titipan-lama')).toBe(false);
+	});
+});
+
+describe('menuOfPage', () => {
+	it('keeps a menu lit for pages that are not in the sidebar', () => {
+		expect(menuOfPage('CONSIGNOR', '/app/setoran/0192f0c4')).toBe('/app/laporan');
+		expect(menuOfPage('STORE', '/app/setoran')).toBe('/app/laporan');
+		expect(menuOfPage('CONSIGNOR', '/app/hitung/0192f0c4')).toBe('/app/mitra');
+		expect(menuOfPage('CONSIGNOR', '/u/roti-mas-bendi')).toBe('/cari/toko');
+		expect(menuOfPage('STORE', '/p/roti-mas-bendi/SKU-1')).toBe('/cari/penitip');
+		expect(menuOfPage('STORE', '/kebutuhan/0192f0c4')).toBe('/app/kebutuhan');
+		expect(menuOfPage('STORE', '/app/hitung/0192f0c4')).toBeUndefined();
 	});
 });

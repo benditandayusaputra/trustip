@@ -1,6 +1,6 @@
 export const counts = {
 	counts: {
-		newTitle: 'Hitung Sisa',
+		newTitle: 'Hitung Sisa baru',
 		newIntro: 'Isi sisa fisik di rak. Selisih dengan stok tercatat dianggap terjual.',
 		loadFailed: 'Stok mitra tidak bisa dimuat.',
 		noStock: 'Belum ada stok tercatat dengan mitra ini. Catat Titipan Masuk dulu.',

@@ -81,8 +81,33 @@ export const sectionsOutsideNavigation: NavItem[] = [
 	{ href: '/cari/penitip', label: id.nav.findConsignors, icon: Search }
 ];
 
+const menuOfPagesOutside: Record<OrganizationType, Record<string, string>> = {
+	CONSIGNOR: {
+		'/app/hitung': '/app/mitra',
+		'/app/titipan': '/app/mitra',
+		'/app/setoran': '/app/laporan',
+		'/cari/penitip': '/cari/toko',
+		'/kebutuhan': '/cari/toko',
+		'/t': '/cari/toko',
+		'/u': '/cari/toko',
+		'/p': '/cari/toko'
+	},
+	STORE: {
+		'/app/setoran': '/app/laporan',
+		'/cari/toko': '/cari/penitip',
+		'/kebutuhan': '/app/kebutuhan',
+		'/t': '/cari/penitip',
+		'/u': '/cari/penitip',
+		'/p': '/cari/penitip'
+	}
+};
+
 export function navigationFor(type: OrganizationType): Navigation {
 	return byType[type];
+}
+
+export function menuOfPage(type: OrganizationType, path: string): string | undefined {
+	return Object.entries(menuOfPagesOutside[type]).find(([prefix]) => isCurrent(prefix, path))?.[1];
 }
 
 export function isCurrent(href: string, currentPath: string): boolean {

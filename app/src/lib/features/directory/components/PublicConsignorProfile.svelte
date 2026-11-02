@@ -1,5 +1,7 @@
 <script lang="ts">
+	import ChefHat from '@lucide/svelte/icons/chef-hat';
 	import Card from '#lib/components/ui/Card.svelte';
+	import PageHeading from '#lib/components/ui/PageHeading.svelte';
 	import ShareButton from '#lib/components/ui/ShareButton.svelte';
 	import type { PublicConsignor } from '#lib/api/public.js';
 	import { formatBusinessDate } from '#lib/i18n/format.js';
@@ -24,8 +26,8 @@
 </script>
 
 <article class="flex flex-col gap-6">
+	<PageHeading icon={ChefHat} backHref="/cari/penitip?tab=penitip">{consignor.name}</PageHeading>
 	<ProfileHeader
-		name={consignor.name}
 		kind={text.consignorKind}
 		place={text.place(consignor.district, consignor.city_name)}
 		logoUrl={consignor.logo_url}

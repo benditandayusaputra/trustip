@@ -25,7 +25,7 @@ export const drops = {
 		consignorShare: 'Harus setor',
 		save: 'Simpan Titipan Masuk',
 		saved: (number: string) => `Titipan masuk ${number} tersimpan.`,
-		detailTitle: 'Titipan Masuk',
+		detailTitle: 'Rincian Titipan Masuk',
 		detailFailed: 'Titipan Masuk tidak bisa dimuat.',
 		statuses: { RECORDED: 'Menunggu konfirmasi', CONFIRMED: 'Sesuai', CANCELLED: 'Dibatalkan' },
 		store: 'Toko',

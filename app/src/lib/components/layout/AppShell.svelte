@@ -15,6 +15,7 @@
 		bottomNavigationOf,
 		isCurrent,
 		isFocusPage,
+		menuOfPage,
 		navigationFor,
 		type OrganizationType
 	} from './navigation';
@@ -46,29 +47,54 @@
 	setPageTitle(pageTitle);
 	const items = $derived(navigation ? [...navigation.workspace, ...navigation.manage] : []);
 	const inSection = (path: string) => items.some((item) => isCurrent(item.href, path));
+	const pathOf = (href: string) => href.split('?')[0] ?? href;
+	const menuOf = (path: string) =>
+		organizationType ? menuOfPage(organizationType, path) : undefined;
 	let origin = $state<string>();
+	let previous = $state<string>();
+
+	const hrefOf = (url: URL | null | undefined) => (url ? url.pathname + url.search : undefined);
+	const isAnchor = (href: string | undefined) =>
+		href !== undefined && (inSection(pathOf(href)) || isFocusPage(pathOf(href)));
 
 	afterNavigate(({ from, to }) => {
-		const isAnchor = (url: URL) => inSection(url.pathname) || isFocusPage(url.pathname);
-		if (!to?.url || isAnchor(to.url)) {
+		previous = hrefOf(from?.url);
+		const target = hrefOf(to?.url);
+		if (target === undefined || isAnchor(target)) {
 			origin = undefined;
-			return;
-		}
-		if (from?.url && isAnchor(from.url)) {
-			origin = from.url.pathname + from.url.search;
+		} else if (isAnchor(previous)) {
+			origin = previous;
 		}
 	});
 
-	const backHref = $derived(
-		inSection(currentPath)
-			? pageTitle.entry?.backHref
-			: (origin ?? pageTitle.entry?.backHref ?? items[0]?.href)
-	);
-	const activePath = $derived(
-		inSection(currentPath) || backHref === undefined
-			? currentPath
-			: (backHref.split('?')[0] ?? currentPath)
-	);
+	const listHref = $derived(pageTitle.entry?.backHref);
+
+	function cameFromList(): boolean {
+		return (
+			listHref !== undefined && previous !== undefined && pathOf(previous) === pathOf(listHref)
+		);
+	}
+
+	function parentOf(path: string): string | undefined {
+		if (inSection(path)) {
+			return cameFromList() ? previous : listHref;
+		}
+		return origin ?? listHref ?? menuOf(path) ?? items[0]?.href;
+	}
+
+	function menuPathOf(path: string, parent: string | undefined): string {
+		if (inSection(path)) {
+			return path;
+		}
+		const parentPath = parent === undefined ? path : pathOf(parent);
+		if (inSection(parentPath)) {
+			return parentPath;
+		}
+		return menuOf(parentPath) ?? menuOf(path) ?? path;
+	}
+
+	const backHref = $derived(parentOf(currentPath));
+	const activePath = $derived(menuPathOf(currentPath, backHref));
 </script>
 
 <SkipLink />

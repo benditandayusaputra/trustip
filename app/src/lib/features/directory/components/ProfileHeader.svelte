@@ -3,13 +3,12 @@
 	import Store from '@lucide/svelte/icons/store';
 
 	interface Props {
-		name: string;
 		kind: string;
 		place: string;
 		logoUrl: string | null;
 	}
 
-	let { name, kind, place, logoUrl }: Props = $props();
+	let { kind, place, logoUrl }: Props = $props();
 </script>
 
 <header class="trade-panel flex flex-wrap items-center gap-5">
@@ -30,7 +29,6 @@
 	{/if}
 	<div class="flex min-w-0 flex-col gap-1">
 		<p class="section-label">{kind}</p>
-		<h1 class="text-xl font-semibold text-text">{name}</h1>
 		{#if place}
 			<p class="flex items-center gap-1 text-sm text-text-muted">
 				<MapPin class="size-4 shrink-0" aria-hidden="true" />{place}
