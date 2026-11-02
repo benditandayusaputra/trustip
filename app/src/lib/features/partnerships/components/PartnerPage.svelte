@@ -85,7 +85,7 @@
 			</a>
 		</div>
 	{/if}
-	<Tabs label={text.tabsLabel} {tabs} bind:selected>
+	<Tabs label={text.tabsLabel} {tabs} bind:selected param="tab">
 		{#snippet panel(key: string)}
 			{#if key === 'summary'}
 				<div class="flex flex-col gap-6">

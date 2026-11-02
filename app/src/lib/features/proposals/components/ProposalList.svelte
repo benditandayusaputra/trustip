@@ -36,7 +36,7 @@
 	}
 </script>
 
-<Tabs label={text.boxLabel} {tabs} bind:selected>
+<Tabs label={text.boxLabel} {tabs} bind:selected param="tab">
 	{#snippet panel()}
 		{#if inbox.status === 'loading'}
 			<ContentSkeleton variant="list" />

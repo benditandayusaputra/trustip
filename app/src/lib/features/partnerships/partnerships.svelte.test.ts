@@ -4,6 +4,8 @@ import { render } from 'vitest-browser-svelte';
 import PartnersHarness from '#lib/testing/PartnersHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 
+vi.mock('$app/navigation', () => ({ goto: vi.fn(() => Promise.resolve()) }));
+
 const partnershipId = '0192f0c4-0000-7000-8000-000000000501';
 
 const summary = {

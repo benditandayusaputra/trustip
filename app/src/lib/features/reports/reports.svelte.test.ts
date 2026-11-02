@@ -1,9 +1,20 @@
 import { page, userEvent } from 'vitest/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
+import { goto } from '$app/navigation';
 import ReportsHarness from '#lib/testing/ReportsHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 import { unzipStored } from '#lib/testing/unzip.js';
+
+const address = vi.hoisted(() => ({ url: new URL('https://trustip.test/app/laporan') }));
+vi.mock('$app/navigation', () => ({ goto: vi.fn(() => Promise.resolve()) }));
+vi.mock('$app/state', () => ({
+	page: {
+		get url() {
+			return address.url;
+		}
+	}
+}));
 
 const figures = {
 	sold_qty: 18,
@@ -72,6 +83,7 @@ function serve() {
 }
 
 afterEach(() => {
+	address.url = new URL('https://trustip.test/app/laporan');
 	vi.useRealTimers();
 	vi.unstubAllGlobals();
 	vi.restoreAllMocks();
@@ -172,6 +184,26 @@ describe('Sales report', () => {
 			'/api/v1/reports/sales?from=2026-11-14&to=2026-11-20&group_by=PRODUCT'
 		);
 		await expectAccessible(container);
+	});
+
+	it('keeps the chosen tab in the address so the way back opens it again', async () => {
+		serve();
+		await render(ReportsHarness, {});
+
+		await userEvent.click(page.getByRole('tab', { name: 'Setoran' }));
+
+		expect(goto).toHaveBeenLastCalledWith('?tab=settlements', { replace: true, reset: false });
+	});
+
+	it('opens the tab named in the address', async () => {
+		address.url = new URL('https://trustip.test/app/laporan?tab=settlements');
+		serve();
+		await render(ReportsHarness, {});
+
+		await expect
+			.element(page.getByRole('tab', { name: 'Setoran' }))
+			.toHaveAttribute('aria-selected', 'true');
+		await expect.element(page.getByText('daftar setoran')).toBeVisible();
 	});
 
 	it('FR-RPT-08 exports the rows on screen as an Excel workbook', async () => {

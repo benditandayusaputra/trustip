@@ -21,7 +21,7 @@
 	});
 </script>
 
-<Tabs label={text.filterLabel} {tabs} bind:selected>
+<Tabs label={text.filterLabel} {tabs} bind:selected param="tab">
 	{#snippet panel()}
 		{#if list.status === 'loading'}
 			<ContentSkeleton variant="list" />

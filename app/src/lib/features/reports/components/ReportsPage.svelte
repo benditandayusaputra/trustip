@@ -24,7 +24,7 @@
 	let narrowing = $state<SettlementNarrowing>({ status: '', age: '', query: '' });
 </script>
 
-<Tabs label={text.tabsLabel} {tabs} bind:selected centered>
+<Tabs label={text.tabsLabel} {tabs} bind:selected param="tab" centered>
 	{#snippet panel(key: string)}
 		<div class="flex flex-col gap-6">
 			{#if key === 'daily'}

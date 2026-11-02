@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
 	interface Tab {
 		key: string;
@@ -11,6 +13,7 @@
 		tabs: Tab[];
 		selected?: string;
 		centered?: boolean;
+		param?: string;
 		panel: Snippet<[string]>;
 	}
 
@@ -19,11 +22,29 @@
 		tabs,
 		selected = $bindable(tabs[0]?.key ?? ''),
 		centered = false,
+		param,
 		panel
 	}: Props = $props();
 
 	const baseId = $props.id();
 	const stepByKey: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
+
+	function rememberedTab(): string | undefined {
+		const key = param ? page.url.searchParams.get(param) : null;
+		return tabs.find((tab) => tab.key === key)?.key;
+	}
+
+	selected = rememberedTab() ?? selected;
+
+	function select(key: string) {
+		selected = key;
+		if (!param) {
+			return;
+		}
+		const others = [...page.url.searchParams].filter(([name]) => name !== param);
+		const query = new URLSearchParams([...others, [param, key]]);
+		void goto(`?${query.toString()}`, { replace: true, reset: false });
+	}
 
 	function moveSelection(event: KeyboardEvent) {
 		const step = stepByKey[event.key];
@@ -33,7 +54,7 @@
 		const current = tabs.findIndex((tab) => tab.key === selected);
 		const next = tabs[(current + step + tabs.length) % tabs.length];
 		if (next) {
-			selected = next.key;
+			select(next.key);
 			document.getElementById(`${baseId}-tab-${next.key}`)?.focus();
 		}
 	}
@@ -55,7 +76,9 @@
 				aria-selected={tab.key === selected}
 				aria-controls="{baseId}-panel"
 				tabindex={tab.key === selected ? 0 : -1}
-				onclick={() => (selected = tab.key)}
+				onclick={() => {
+					select(tab.key);
+				}}
 				class="min-h-11 border-b-2 px-4 text-base font-medium {tab.key === selected
 					? 'border-accent text-text'
 					: 'border-transparent text-text-muted'}"

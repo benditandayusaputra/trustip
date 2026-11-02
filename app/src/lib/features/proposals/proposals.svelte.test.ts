@@ -4,6 +4,8 @@ import { render } from 'vitest-browser-svelte';
 import ProposalsHarness from '#lib/testing/ProposalsHarness.svelte';
 import { expectAccessible } from '#lib/testing/accessibility.js';
 
+vi.mock('$app/navigation', () => ({ goto: vi.fn(() => Promise.resolve()) }));
+
 const consignorId = '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7c';
 const storeId = '0192f0c4-9c22-7e66-a1bb-4d2f3e5d6a7d';
 const proposalId = '0192f0c4-0000-7000-8000-000000000301';
