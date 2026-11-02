@@ -23,7 +23,7 @@
 	interface Props {
 		isOwner: boolean;
 		range: DateRange;
-		chart: Snippet<[SalesNarrowing, Snippet]>;
+		chart: Snippet<[SalesNarrowing, Snippet, SalesReport | undefined]>;
 		split: Snippet<[SalesReport['summary']]>;
 	}
 
@@ -66,7 +66,7 @@
 				{#if summary}{@render split(summary)}{/if}
 			</div>
 			<div class="min-w-0 lg:col-span-8 lg:row-start-1">
-				{@render chart(narrowingOf(chartChoice), chartControls)}
+				{@render chart(narrowingOf(chartChoice), chartControls, sales.byDay)}
 			</div>
 		</div>
 	{:else}

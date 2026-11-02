@@ -139,3 +139,19 @@
 		}
 	}
 }
+
+:root[data-workspace] [data-shell='public'] .public-header > * {
+	visibility: hidden;
+}
+:root[data-workspace] [data-shell='public'] [data-inline-heading],
+:root[data-workspace] [data-shell='public'] footer {
+	display: none;
+}
+@media (width >= 64rem) {
+	:root[data-workspace] [data-shell='public']::before {
+		flex-shrink: 0;
+		width: var(--sidebar-width);
+		background: var(--color-sidebar);
+		content: '';
+	}
+}

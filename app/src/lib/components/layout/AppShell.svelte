@@ -44,7 +44,7 @@
 </script>
 
 <SkipLink />
-<div class="flex min-h-dvh">
+<div class="flex min-h-dvh" data-shell={isPublic ? 'public' : 'workspace'}>
 	{#if organizationType && navigation && !focused}
 		<Sidebar {navigation} {currentPath} {organizationType} />
 	{:else if workspace && !organizationType}

@@ -59,6 +59,13 @@ function saveAppearance(chosen) {
 }
 
 applyAppearance(readAppearance());
+try {
+	if (['CONSIGNOR', 'STORE'].includes(localStorage.getItem('trustip-workspace') ?? '')) {
+		appearanceRoot.dataset.workspace = '';
+	}
+} catch {
+	delete appearanceRoot.dataset.workspace;
+}
 document.addEventListener('change', (event) => {
 	const toggle = event.target;
 	if (toggle instanceof HTMLInputElement && toggle.hasAttribute('data-appearance-toggle')) {

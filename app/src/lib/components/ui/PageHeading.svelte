@@ -21,7 +21,7 @@
 </script>
 
 {#if !inHeader}
-	<div class="flex min-w-0 flex-col gap-2">
+	<div class="flex min-w-0 flex-col gap-2" data-inline-heading>
 		{#if backHref}<a
 				href={backHref}
 				class="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium text-text-muted hover:text-accent"

@@ -25,8 +25,10 @@ function writeWorkspace(type: OrganizationType | undefined): void {
 	try {
 		if (type) {
 			localStorage.setItem(workspaceKey, type);
+			document.documentElement.dataset.workspace = '';
 		} else {
 			localStorage.removeItem(workspaceKey);
+			delete document.documentElement.dataset.workspace;
 		}
 	} catch {
 		return;

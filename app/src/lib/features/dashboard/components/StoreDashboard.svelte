@@ -17,7 +17,7 @@
 	interface Props {
 		isOwner: boolean;
 		range: DateRange;
-		chart: Snippet;
+		chart: Snippet<[SalesReport | undefined]>;
 		split: Snippet<[SalesReport['summary']]>;
 	}
 
@@ -55,7 +55,7 @@
 	</div>
 	{#if isOwner}
 		<div class="grid items-stretch gap-6 lg:grid-cols-12">
-			<div class="min-w-0 lg:col-span-8">{@render chart()}</div>
+			<div class="min-w-0 lg:col-span-8">{@render chart(sales.byDay)}</div>
 			<div class="min-w-0 lg:col-span-4">
 				{#if summary}{@render split(summary)}{/if}
 			</div>

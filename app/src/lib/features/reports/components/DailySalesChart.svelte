@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { untrack, type Snippet } from 'svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ResponsiveTable from '#lib/components/ui/ResponsiveTable.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { apiClient } from '#lib/api/client.js';
-	import type { SalesNarrowing } from '#lib/api/reports.js';
+	import type { SalesNarrowing, SalesReport } from '#lib/api/reports.js';
 	import type { DateRange } from '#lib/domain/ranges.js';
 	import {
 		dayOfMonth,
@@ -22,13 +22,19 @@
 	interface Props {
 		range: DateRange;
 		narrowing?: SalesNarrowing;
+		initial?: SalesReport | undefined;
 		controls?: Snippet;
 	}
 
-	let { range, narrowing = {}, controls }: Props = $props();
+	let { range, narrowing = {}, controls, initial }: Props = $props();
 
 	const text = id.reports;
 	const daily = new SalesReportView(apiClient, () => new Date());
+	let preloaded = untrack(() => initial);
+	if (preloaded) {
+		daily.report = preloaded;
+		daily.status = 'ready';
+	}
 	const columns = [
 		{ key: 'day' as const, label: text.day },
 		{ key: 'sold' as const, label: text.soldUnits, numeric: true },
@@ -50,7 +56,12 @@
 	);
 
 	$effect(() => {
-		void daily.load(range, 'DAY', narrowing);
+		const request = { range, narrowing };
+		if (preloaded) {
+			preloaded = undefined;
+			return;
+		}
+		void daily.load(request.range, 'DAY', request.narrowing);
 	});
 </script>
 

@@ -36,6 +36,7 @@ export class DashboardState {
 export class SalesOverview {
 	byPartner = $state<SalesReport>();
 	byProduct = $state<SalesReport>();
+	byDay = $state<SalesReport>();
 	status = $state<Status>('loading');
 	readonly #client: () => ApiClient;
 
@@ -46,12 +47,14 @@ export class SalesOverview {
 	async load(range: DateRange): Promise<void> {
 		this.status = 'loading';
 		try {
-			const [byPartner, byProduct] = await Promise.all([
+			const [byPartner, byProduct, byDay] = await Promise.all([
 				getSalesReport(this.#client(), { ...range, groupBy: 'PARTNER' }),
-				getSalesReport(this.#client(), { ...range, groupBy: 'PRODUCT' })
+				getSalesReport(this.#client(), { ...range, groupBy: 'PRODUCT' }),
+				getSalesReport(this.#client(), { ...range, groupBy: 'DAY' })
 			]);
 			this.byPartner = byPartner;
 			this.byProduct = byProduct;
+			this.byDay = byDay;
 			this.status = 'ready';
 		} catch {
 			this.status = 'failed';

@@ -22,8 +22,8 @@
 	<Greeting />
 	{#key isOwner}
 		<ConsignorDashboard {isOwner} {range}>
-			{#snippet chart(narrowing: SalesNarrowing, controls: Snippet)}
-				<DailySalesChart {range} {narrowing} {controls} />
+			{#snippet chart(narrowing: SalesNarrowing, controls: Snippet, daily: SalesReport | undefined)}
+				<DailySalesChart {range} {narrowing} {controls} initial={daily} />
 			{/snippet}
 			{#snippet split(figures: SalesReport['summary'])}
 				<SplitChart {figures} isStore={false} />

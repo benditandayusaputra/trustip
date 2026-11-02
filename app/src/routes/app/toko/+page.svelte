@@ -21,8 +21,8 @@
 	<Greeting />
 	{#key isOwner}
 		<StoreDashboard {isOwner} {range}>
-			{#snippet chart()}
-				<DailySalesChart {range} />
+			{#snippet chart(daily: SalesReport | undefined)}
+				<DailySalesChart {range} initial={daily} />
 			{/snippet}
 			{#snippet split(figures: SalesReport['summary'])}
 				<SplitChart {figures} isStore />
