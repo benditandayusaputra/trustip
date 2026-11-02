@@ -111,7 +111,7 @@ describe('Public profiles', () => {
 		await expect.element(page.getByText('Komisi 10% sampai 20%')).toBeVisible();
 		await expect.element(page.getByText('Wajib punya izin edar')).toBeVisible();
 		await expect.element(page.getByText('Butuh camilan kantin')).toBeVisible();
-		await expect.element(page.getByText('Bayar tepat waktu')).toBeVisible();
+		await expect.element(page.getByText('Tepat bayar')).toBeVisible();
 		await expect.element(page.getByText('Baru', { exact: true })).toBeVisible();
 		await expect.element(page.getByText('Mitra aktif')).toBeVisible();
 		await expectAccessible(container);

@@ -84,7 +84,7 @@ export const directory = {
 		activePartners: (count: number) => `${String(count)} mitra aktif`,
 		joined: (date: string) => `Bergabung ${date}`,
 		commissionLabel: 'Komisi',
-		onTimeLabel: 'Bayar tepat waktu',
+		onTimeLabel: 'Tepat bayar',
 		partnersLabel: 'Mitra aktif',
 		joinedLabel: 'Bergabung',
 		percentRange: (minimum: string, maximum: string) => `${minimum}–${maximum}`,
